@@ -1,30 +1,22 @@
 package cn.alchemy3d.polygon.primitives
 {
-	import cn.rc3dx.materials.AbstractMaterial;
-	import cn.rc3dx.polygon.Mesh;
-	import cn.rc3dx.polygon.renderables.AbstractRenderable;
-	import cn.rc3dx.polygon.renderables.Triangle3D;
-	import cn.rc3dx.polygon.renderables.Vertex3D;
-	
+
 	import flash.geom.Point;
-	import flash.geom.Vector3D;
 	import flash.utils.Dictionary;
+	import cn.alchemy3d.geom.Triangle3D;
+	import cn.alchemy3d.geom.Vertex3D;
+	import cn.alchemy3d.polygon.Mesh;
 	
 
 	public class Sphere extends Mesh
 	{
-		private var segmentsW :Number;
-		private var segmentsH :Number;
-		
-		private var v:Dictionary = new Dictionary();
-	
-		static public var DEFAULT_RADIUS :Number = 100;
-		static public var DEFAULT_SEGMENTSW :Number = 8;
-		static public var DEFAULT_SEGMENTSH :Number = 6;
-		static public var MIN_SEGMENTSW :Number = 3;
-		static public var MIN_SEGMENTSH :Number = 2;
+		public static  var DEFAULT_RADIUS :Number = 100;
+		public static  var DEFAULT_SEGMENTSH :Number = 6;
+		public static  var DEFAULT_SEGMENTSW :Number = 8;
+		public static  var MIN_SEGMENTSH :Number = 2;
+		public static  var MIN_SEGMENTSW :Number = 3;
 
-		public function Sphere(materialID:int = 1, radius:Number = 100, segmentsW:int = 8, segmentsH:int = 6, name:String = "")
+		public function Sphere(materialID:int = -1, radius:Number = 100, segmentsW:int = 8, segmentsH:int = 6, name:String = "")
 		{
 			super(name);
 			
@@ -40,6 +32,11 @@ package cn.alchemy3d.polygon.primitives
 			geometry.computeTriNormals();
 			geometry.computeVertexNormals();
 		}
+		
+		private var segmentsH :Number;
+		private var segmentsW :Number;
+		
+		private var v:Dictionary = new Dictionary();
 	
 		private function buildSphere( fRadius:Number ):void
 		{
@@ -47,9 +44,6 @@ package cn.alchemy3d.polygon.primitives
 			
 			var iHor:Number = Math.max(3,this.segmentsW);
 			var iVer:Number = Math.max(2,this.segmentsH);
-			
-			var aVertice:Vector.<Vertex3D> = this.geometry.vertices;
-			var aFace:Vector.<AbstractRenderable> = this.geometry.faces;
 			
 			var aVtc:Array = new Array();
 			var vv:int = 0;
@@ -72,8 +66,8 @@ package cn.alchemy3d.polygon.primitives
 					if (!((j==0||j==iVer)&&i>0))
 					{
 						// top||bottom = 1 vertex
-						oVtx = new Vertex3D(new Vector3D(fY, fZ, fX), this);
-						aVertice.push(oVtx);
+						oVtx = new Vertex3D(fY, fZ, fX, this);
+						vertices.push(oVtx);
 						v[oVtx] = vv;
 						vv ++;
 					}
@@ -119,14 +113,13 @@ package cn.alchemy3d.polygon.primitives
 						var aP3uv:Point = new Point(fI1,fJ1);
 						
 						// 2 faces
-						if (j<(aVtc.length-1))	aFace.push(new Triangle3D(materialID, aP1, aP2, aP3, aP1Index, aP2Index, aP3Index, aP1uv, aP2uv, aP3uv, this));
-						if (j>1)				aFace.push(new Triangle3D(materialID, aP1, aP3, aP4, aP1Index, aP3Index, aP4Index, aP1uv, aP3uv, aP4uv, this));
+						if (j<(aVtc.length-1))	faces.push(new Triangle3D(materialID, aP1Index, aP2Index, aP3Index, aP1uv, aP2uv, aP3uv, this));
+						if (j>1)				faces.push(new Triangle3D(materialID, aP1Index, aP3Index, aP4Index, aP1uv, aP3uv, aP4uv, this));
 	
 					}
 				}
 			}
-			//if (RC3D.useRIGHTHANDED)
-				//this.geometry.flipFaces();
 		}
+
 	}
 }

@@ -1,24 +1,17 @@
 package cn.alchemy3d.polygon.primitives
 {
-	import cn.rc3dx.materials.AbstractMaterial;
-	import cn.rc3dx.polygon.Mesh;
-	import cn.rc3dx.polygon.renderables.AbstractRenderable;
-	import cn.rc3dx.polygon.renderables.Triangle3D;
-	import cn.rc3dx.polygon.renderables.Vertex3D;
-	
+
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
+	import cn.alchemy3d.geom.Triangle3D;
+	import cn.alchemy3d.geom.Vertex3D;
+	import cn.alchemy3d.polygon.Mesh;
 	
 	/**
 	 * Plane是一个3D平面，拥有位移、旋转、缩放操作
 	 */
 	public class Plane extends Mesh
-	{	
-		private var width:Number;
-		private var height:Number;
-		private var segmentsWidth:uint;
-		private var segmentsHeight:uint;
-		
+	{
 		/**
 		 * 构造函数
 		 * 
@@ -27,9 +20,9 @@ package cn.alchemy3d.polygon.primitives
 		 * @param height 高度
 		 * @param segmentsWidth 水平方向分段
 		 * @param segmentsHeight 垂直方向分段
-		 * @param backFaceCulling 背面剔除
+		 * @param name 名字
 		 */
-		public function Plane(materialID:int = 1, width:Number = 500, height:Number = 500, segmentsWidth:uint = 1, segmentsHeight:uint = 1, name:String = "")
+		public function Plane(materialID:int = -1, width:Number = 500, height:Number = 500, segmentsWidth:uint = 1, segmentsHeight:uint = 1, name:String = "")
 		{
 			super(name);
 			
@@ -46,11 +39,13 @@ package cn.alchemy3d.polygon.primitives
 			geometry.computeVertexNormals();
 		}
 		
+		private var height:Number;
+		private var segmentsHeight:uint;
+		private var segmentsWidth:uint;
+		private var width:Number;
+		
 		protected function buildPlane():void
 		{
-			var vertices:Vector.<Vertex3D>  = this.geometry.vertices;
-			var faces:Vector.<AbstractRenderable>  = this.geometry.faces;
-			
 			var gridX:Number = this.segmentsWidth;
 			var gridY:Number = this.segmentsHeight;
 			var gridX1:Number = gridX + 1;
@@ -70,7 +65,7 @@ package cn.alchemy3d.polygon.primitives
 					var x :Number = ix * iW - textureX;
 					var y :Number = iy * iH - textureY;
 	
-					vertices.push(new Vertex3D(new Vector3D(x, y, 0), this));
+					vertices.push(new Vertex3D(x, y, 0, this));
 				}
 			}
 			
@@ -105,7 +100,7 @@ package cn.alchemy3d.polygon.primitives
 					uvC =  new Point( ix     / gridX, (iy+1) / gridY );
 					uvB =  new Point( (ix+1) / gridX, iy     / gridY );
 	
-					faces.push(new Triangle3D(materialID, a, b, c, aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + count));
+					faces.push(new Triangle3D(materialID, aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + count));
 	
 					// Triangle B
 					aIndex = (ix+1) * gridY1 + (iy+1);
@@ -120,11 +115,12 @@ package cn.alchemy3d.polygon.primitives
 					uvC =  new Point( (ix+1) / gridX, iy      / gridY );
 					uvB =  new Point( ix      / gridX, (iy+1) / gridY );
 					
-					faces.push(new Triangle3D(materialID, a, b, c, aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + (count + 1)));
+					faces.push(new Triangle3D(materialID, aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + (count + 1)));
 					
 					count += 2;
 				}
 			}
 		}
+
 	}
 }

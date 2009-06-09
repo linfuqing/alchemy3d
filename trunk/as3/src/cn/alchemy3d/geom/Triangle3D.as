@@ -1,27 +1,17 @@
 package cn.alchemy3d.geom
 {
-	import cn.alchemy3d.polygon.Polygon;
-	
+
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
+	import cn.alchemy3d.polygon.Polygon;
 	
 	public class Triangle3D extends AbstractRenderable
 	{
-		public var p0Index:int;
-		public var p1Index:int;
-		public var p2Index:int;
-		
-		public var uv0:Point;
-		public var uv1:Point;
-		public var uv2:Point;
-		
-		public var normal:Vector3D;
-		
-		public var uvtData:Vector.<Number>;
-		
-		public function Triangle3D(aIndex:int, bIndex:int, cIndex:int, uva:Point, uvb:Point, uvc:Point, instance:Polygon = null, name:String = "")
+		public function Triangle3D(materialID:int, aIndex:int, bIndex:int, cIndex:int, uva:Point, uvb:Point, uvc:Point, instance:Polygon = null, name:String = "")
 		{
 			super(instance, name);
+			
+			this.materialID = materialID;
 			
 			p0Index = aIndex;
 			p1Index = bIndex;
@@ -41,6 +31,20 @@ package cn.alchemy3d.geom
 			uvtData[5] = uvc.y;
 		}
 		
+		public var materialID:int;
+		
+		public var normal:Vector3D;
+		
+		public var p0Index:int;
+		public var p1Index:int;
+		public var p2Index:int;
+		
+		public var uv0:Point;
+		public var uv1:Point;
+		public var uv2:Point;
+		
+		public var uvtData:Vector.<Number>;
+		
 		public function destroy():void
 		{
 			uvtData.length = 0;
@@ -54,5 +58,6 @@ package cn.alchemy3d.geom
 			else
 				return "[Triangle3D]";
 		}
+
 	}
 }

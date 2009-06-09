@@ -1,7 +1,6 @@
 package cn.alchemy3d.polygon
 {
 
-	import cn.alchemy3d.geom.AbstractRenderable;
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.materials.AbstractMaterial;
@@ -23,6 +22,7 @@ package cn.alchemy3d.polygon
 		public var faces:Vector.<Triangle3D>;
 		public var material:AbstractMaterial;
 		public var vertices:Vector.<Vertex3D>;
+		public var materialID:int;
 		
 		protected var geomDirty:Boolean;
 		
