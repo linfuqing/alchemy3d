@@ -89,11 +89,6 @@ package cn.alchemy3d.polygon
 			scene.childrenNum ++;
 		}
 		
-		/**
-		 * 获得指定3D对象的一个副本
-		 * 
-		 * @return 返回指定3D对象的一个副本
-		 */
 		public function clone():Polygon
 		{
 			var object:Polygon = new Polygon();
