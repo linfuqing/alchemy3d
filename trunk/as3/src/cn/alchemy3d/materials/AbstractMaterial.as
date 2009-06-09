@@ -5,6 +5,7 @@ package cn.alchemy3d.materials
 
 	public class AbstractMaterial extends EventDispatcher
 	{
+		public var ID:int;
 		public var type:int;
 		public var size:uint;
 		public var name:String;
@@ -50,6 +51,7 @@ package cn.alchemy3d.materials
 		{
 			super();
 
+			this.ID = -1;
 			this.type = -1;
 			this.size = 1;
 			this.alpha = 255;

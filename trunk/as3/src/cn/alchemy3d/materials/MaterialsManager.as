@@ -1,7 +1,7 @@
 ﻿package cn.alchemy3d.materials
 {
-	import cn.rc3dx.events.Rc3DLoadEvent;
-	import cn.rc3dx.materials.AbstractMaterial;
+
+	import cn.alchemy3d.events.LoadEvent;
 	
 	import flash.display.BitmapData;
 	import flash.events.EventDispatcher;
@@ -15,49 +15,57 @@
 	*/
 	public class MaterialsManager extends EventDispatcher
 	{
-		private var _materials:Vector.<AbstractMaterial>;
-		private var _materialsTotal:int;
-		private var _materialsReadyNum:int;
+		public function MaterialsManager()
+		{
+			this._materials = new Vector.<AbstractMaterial>;
+			this._materialsNum  = this.index = 0;
+			this.ready = false;
+		}
 		
 		public var ready:Boolean;
+		private var _materials:Vector.<AbstractMaterial>;
+		private var _materialsNum:int;
+		private var _materialsReadyNum:int;
+		private var index:int
 		
-		private static var _instance:MaterialsManager;
-		
-		public static function getInstance():MaterialsManager
-		{
-			if(_instance == null){
-				_instance = new MaterialsManager();
-			}
-			return _instance;
-		}
-
-		/**
-		* 材质数量
-		*/
-		public function get numMaterials():int
-		{
-			return _materialsTotal;
-		}
-		
-		/**
-		* 材质列表
-		*/
 		public function get materials():Vector.<AbstractMaterial>
 		{
 			return _materials;
 		}
-		
-		/**
-		* 材质管理器构造函数
-		*/
-		public function MaterialsManager()
+
+		public function get materialsNum():int
 		{
-			this._materials = new Vector.<AbstractMaterial>;
-			this._materialsTotal  = 0;
-			this.ready = false;
+			return _materialsNum;
 		}
 		
-		public function createBuffer():ByteArray
+		public function addMaterial(material:AbstractMaterial, name:String=null):void
+		{
+			if (getMaterialID(material) == -1)
+			{
+				material.name = name || material.name;
+				material.ID = index;
+				_materialsNum ++;
+				index ++;
+				_materials.push(material);
+				
+				if (material.ready)
+				{
+					if (++ _materialsReadyNum == _materialsNum)
+						ready = true;
+				}
+				else
+				{
+					ready = false;
+					
+					material.addEventListener(LoadEvent.TEXTURE_LOAD_COMPLETE, textureLoadCompleteHandler);
+				}
+			}
+		}
+		
+		/**
+		 * 序列化
+		 */
+		public function serialize():ByteArray
 		{
 			var buffer:ByteArray = new ByteArray();
 			
@@ -70,9 +78,9 @@
 			var batmapDataByteArray:ByteArray;
 			var size:int;
 			
-			pointer = _materialsTotal;
+			pointer = _materialsNum;
 			
-			for (; i < _materialsTotal; i ++)
+			for (; i < _materialsNum; i ++)
 			{
 				m = _materials[i];
 				
@@ -83,7 +91,7 @@
 			
 			var bmd:BitmapData;
 			var bWidth:int = 0, bHeight:int = 0;
-			for (i = 0; i < _materialsTotal; i ++)
+			for (i = 0; i < _materialsNum; i ++)
 			{
 				m = _materials[i];
 				if (m.type == 2)
@@ -126,53 +134,16 @@
 			
 			return buffer;
 		}
-	
+		
 		/**
-		* 添加材质到管理器
-		*
-		* @param material 被添加的材质实例
-		* @param name 材质名称
-		* @return 返回被添加的材质ID
+		* 返回指定ID的材质实例
+		* 
+		* @param id 材质ID
+		* @return 返回材质实例
 		*/
-		public function addMaterial(material:AbstractMaterial, name:String=null):int
+		public function getMaterialByID(id:int):AbstractMaterial
 		{
-			var id:int = getMaterialID(material);
-			if (id == -1)
-			{
-				material.name = name || material.name;
-				id = _materialsTotal;
-				_materialsTotal ++;
-				_materials.push(material);
-				
-				if (material.ready)
-				{
-					if (++ _materialsReadyNum == _materialsTotal)
-						ready = true;
-				}
-				else
-				{
-					ready = false;
-					
-					material.addEventListener(Rc3DLoadEvent.TEXTURE_LOAD_COMPLETE, textureLoadCompleteHandler);
-				}
-			}
-			return id;
-		}
-		
-		private function textureLoadCompleteHandler(e:Rc3DLoadEvent):void
-		{
-			e.target.removeEventListener(Rc3DLoadEvent.TEXTURE_LOAD_COMPLETE, textureLoadCompleteHandler);
-			
-			if (++ _materialsReadyNum == _materialsTotal)
-			{
-				ready = true;
-				//dispatchEvent(new Rc3DLoadEvent(Rc3DLoadEvent.TEXTURE_LOAD_COMPLETE));
-			}
-		}
-		
-		public function getMaterialByID(id:uint):AbstractMaterial
-		{
-			if (id < _materialsTotal)
+			if (id < _materialsNum)
 				return this._materials[id];
 			else
 				return null;
@@ -186,7 +157,7 @@
 		*/
 		public function getMaterialByName(name:String):AbstractMaterial
 		{
-			for(var i:int = 0; i < _materialsTotal; i ++)
+			for(var i:int = 0; i < _materialsNum; i ++)
 			{
 				if (name == _materials[i].name)
 					return _materials[i];
@@ -201,7 +172,7 @@
 		
 		public function getMaterialIDByName(name:String):int
 		{
-			for(var i:int = 0; i < _materialsTotal; i ++)
+			for(var i:int = 0; i < _materialsNum; i ++)
 			{
 				if (name == _materials[i].name)
 					return i;
@@ -210,17 +181,34 @@
 		}
 	
 		/**
+		* 删除指定材质实例
+		* 
+		* @param name 材质实例
+		*/
+		public function removeMaterial(material:AbstractMaterial):AbstractMaterial
+		{
+			var i:int = getMaterialID(material);
+			if(i != -1)
+			{
+				_materialsNum --;
+				return _materials.splice(i, 1)[0];
+			}
+			else
+				return null;
+		}
+	
+		/**
 		* 从指定索引位置删除材质实例
 		*
 		* @param material 索引值
 		* @return 返回被删除的材质实例
 		*/
-		public function removeMaterialByID(id:uint):AbstractMaterial
+		public function removeMaterialAt(index:uint):AbstractMaterial
 		{
-			if (id < _materialsTotal)
+			if (index < _materialsNum)
 			{
-				_materialsTotal --;
-				return this._materials.splice(id, 1)[0];
+				_materialsNum --;
+				return this._materials.splice(index, 1)[0];
 			}
 			else
 				return null;
@@ -234,32 +222,15 @@
 		*/
 		public function removeMaterialByName(name:String):AbstractMaterial
 		{
-			for(var i:int = 0; i < _materialsTotal; i ++)
+			for(var i:int = 0; i < _materialsNum; i ++)
 			{
 				if (name == _materials[i].name)
 				{
-					_materialsTotal --;
-					return removeMaterialByID(i);
+					_materialsNum --;
+					return removeMaterialAt(i);
 				}
 			}
 			return null;
-		}
-	
-		/**
-		* 删除指定材质实例
-		* 
-		* @param name 材质实例
-		*/
-		public function removeMaterial(material:AbstractMaterial):AbstractMaterial
-		{
-			var i:int = _materials.indexOf(material);
-			if(i > -1)
-			{
-				_materialsTotal --;
-				return _materials.splice(i, 1)[0];
-			}
-			else
-				return null;
 		}
 	
 		/**
@@ -277,5 +248,16 @@
 	
 			return list;
 		}
+		
+		private function textureLoadCompleteHandler(e:LoadEvent):void
+		{
+			e.target.removeEventListener(LoadEvent.TEXTURE_LOAD_COMPLETE, textureLoadCompleteHandler);
+			
+			if (++ _materialsReadyNum == _materialsNum)
+			{
+				ready = true;
+			}
+		}
+
 	}
 }

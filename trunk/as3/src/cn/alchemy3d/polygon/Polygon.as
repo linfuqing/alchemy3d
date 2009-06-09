@@ -10,7 +10,8 @@ package cn.alchemy3d.polygon
 	{
 		public function Polygon(name:String = "")
 		{
-			this.name = name
+			this.ID = this.parentID = this.rootID = -1;
+			this.name = name;
 			this.visible = true;
 			this.childrenNum = 0;
 			this.children = new Vector.<Polygon>();
@@ -85,10 +86,14 @@ package cn.alchemy3d.polygon
 			children.push(child);
 			childrenNum ++;
 			
-			scene.children.push(child);
-			scene.childrenNum ++;
+			scene.addChild(child);
 		}
 		
+		/**
+		 * 获得该几何体的副本
+		 * 
+		 * @return 返回复制的几何体
+		 */
 		public function clone():Polygon
 		{
 			var object:Polygon = new Polygon();
@@ -104,10 +109,16 @@ package cn.alchemy3d.polygon
 			return object;
 		}
 		
+		/**
+		 * 销毁
+		 */
 		public function destory():void
 		{
 		}
 		
+		/**
+		 * 序列化
+		 */
 		public function serialize(buffer:ByteArray, offset:int = 0):void
 		{
 			if (headerDirty)
