@@ -1,5 +1,7 @@
 package cn.alchemy3d.scene
 {
+	import cn.alchemy3d.polygon.Polygon;
+	
 	public class Scene3D
 	{
 		public var childrenNum:int = 0;

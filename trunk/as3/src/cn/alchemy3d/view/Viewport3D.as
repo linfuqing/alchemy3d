@@ -1,5 +1,7 @@
 package cn.alchemy3d.view
 {
+	import cn.alchemy3d.cameras.Camera3D;
+	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.PixelSnapping;
@@ -9,6 +11,7 @@ package cn.alchemy3d.view
 	{
 		public var viewWidth:Number;
 		public var viewHeight:Number;
+		public var camera:Camera3D;
 		
 		public var leftClip:Number;
 		public var rightClip:Number;
@@ -22,10 +25,20 @@ package cn.alchemy3d.view
 		
 		private var bitmap:Bitmap;
 		
-		public function Viewport3D(width:Number, height:Number)
+		public function Viewport3D(width:Number, height:Number, camera:Camera3D)
 		{
 			super();
 			
+			this.camera = camera;
+			
+			this.bitmap = new Bitmap(null, PixelSnapping.NEVER, false);
+			addChild(bitmap);
+			
+			resize(width, height);
+		}
+		
+		public function resize(width:Number, height:Number):void
+		{
 			this.viewWidth = width;
 			this.viewHeight = height;
 			
@@ -37,10 +50,9 @@ package cn.alchemy3d.view
 			this.topClip = - centerY;
 			this.bottomClip = centerY;
 			
-			this.bitmapData = new BitmapData(viewWidth, viewHeight, true);
-			this.bitmap = new Bitmap(bitmapData, PixelSnapping.NEVER, false);
-			addChild(bitmap);
+			if (bitmapData) bitmapData.dispose();
+			bitmapData = new BitmapData(width, height, true);
+			this.bitmap.bitmapData = bitmapData;
 		}
-		
 	}
 }
