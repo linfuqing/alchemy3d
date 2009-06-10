@@ -27,8 +27,11 @@ package cn.alchemy3d.engines
 		
 		public function renderScene(camera:Camera3D, viewport:Viewport3D, scene:Scene3D, materialsManager:MaterialsManager):void
 		{
+			//摄像机序列化
 			var cameraSerialized:ByteArray = camera.serialize();
+			//材质序列化
 			var materialsSerialized:ByteArray = materialsManager.serialize();
+			//几何体序列化
 			var geomSerialized:ByteArray = new ByteArray();
 			geomSerialized.endian = Endian.LITTLE_ENDIAN;
 			var p:DisplayObject3D, pSerialized:ByteArray， children:Vector.<DisplayObject3D> = scene.children;
@@ -38,17 +41,26 @@ package cn.alchemy3d.engines
 				geomSerialized.writeBytes(pSerialized, 0, pSerialized.length);
 			}
 			
+			//初始化视口
 			alchemy3DLib.initializeViewport(viewport.viewWidth, viewport.viewHeight);
+			//初始化摄像机
 			alchemy3DLib.initializeCamera();
+			//初始化材质
 			alchemy3DLib.initializeMaterials();
 			
+			//获得摄像机缓冲区起始偏移量
 			buffer.position = alchemy3DLib.getCameraBufferPointer();
+			//序列化数据写入摄像机缓冲区
 			buffer.writeBytes(cameraSerialized, 0, cameraSerialized.length);
 			
+			//获得材质缓冲区起始偏移量
 			buffer.position = alchemy3DLib.getMaterialsBufferPointer();
+			//序列化数据写入摄像机缓冲区
 			buffer.writeBytes(materialsSerialized, 0, materialsSerialized.length);
 			
+			//获得几何体缓冲区起始偏移量
 			buffer.position = alchemy3DLib.getGeomBufferPointer();
+			//序列化数据写入摄像机缓冲区
 			buffer.writeBytes(geomSerialized, 0, geomSerialized.length);
 			
 			//顶点变换
@@ -57,6 +69,7 @@ package cn.alchemy3d.engines
 			alchemy3DLib.facesCulling();
 			//光栅化
 			alchemy3DLib.rasterize();
+			
 			//获得位图缓冲区起始偏移量
 			buffer.position = alchemy3DLib.getGfxBufferPointer();
 			//绘制
