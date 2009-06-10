@@ -1,9 +1,10 @@
 package cn.alchemy3d.geom
 {
 
+	import cn.alchemy3d.objects.DisplayObject3D;
+	
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
-	import cn.alchemy3d.polygon.DisplayObject3D;
 	
 	public class Triangle3D extends AbstractRenderable
 	{

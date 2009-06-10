@@ -1,6 +1,8 @@
 package cn.alchemy3d.cameras
 {
-	import cn.alchemy3d.polygon.DisplayObject3D;
+	import cn.alchemy3d.objects.DisplayObject3D;
+	
+	import flash.utils.ByteArray;
 
 	public class Camera3D extends DisplayObject3D
 	{
@@ -34,7 +36,7 @@ package cn.alchemy3d.cameras
 		/**
 		 * 序列化
 		 */
-		public function serialize():ByteArray
+		override public function serialize():ByteArray
 		{
 			var buffer:ByteArray = super.serialize();
 			

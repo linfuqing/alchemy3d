@@ -1,6 +1,6 @@
 package cn.alchemy3d.geom
 {
-	import cn.alchemy3d.polygon.DisplayObject3D;
+	import cn.alchemy3d.objects.DisplayObject3D;
 	
 	public class AbstractRenderable
 	{

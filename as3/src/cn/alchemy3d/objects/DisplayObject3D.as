@@ -226,9 +226,9 @@ package cn.alchemy3d.objects
 			if (positionDirty)
 			{
 				buffer.position = 160;
-				buffer.writeDouble(_position.x);
-				buffer.writeDouble(_position.y);
-				buffer.writeDouble(_position.z);
+				buffer.writeDouble(_position.x);	//20
+				buffer.writeDouble(_position.y);	//21
+				buffer.writeDouble(_position.z);	//22
 				
 				positionDirty = false;
 			}
@@ -236,19 +236,19 @@ package cn.alchemy3d.objects
 			if (directionDirty)
 			{
 				buffer.position = 184;
-				buffer.writeDouble(_direction.x);
-				buffer.writeDouble(_direction.y);
-				buffer.writeDouble(_direction.z);
+				buffer.writeDouble(_direction.x);	//23
+				buffer.writeDouble(_direction.y);	//24
+				buffer.writeDouble(_direction.z);	//25
 				
 				directionDirty = false;
 			}
 			
 			if (scaleDirty)
 			{
-				buffer.position = 208 + offset;
-				buffer.writeDouble(_scale.x);
-				buffer.writeDouble(_scale.y);
-				buffer.writeDouble(_scale.z);
+				buffer.position = 208;
+				buffer.writeDouble(_scale.x);	//26
+				buffer.writeDouble(_scale.y);	//27
+				buffer.writeDouble(_scale.z);	//28
 				
 				scaleDirty = false;
 			}

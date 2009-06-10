@@ -1,7 +1,8 @@
 package cn.alchemy3d.scene
 {
 
-	import cn.alchemy3d.polygon.DisplayObject3D;
+	import cn.alchemy3d.objects.DisplayObject3D;
+	import cn.alchemy3d.objects.Mesh3D;
 	
 	public class Scene3D
 	{
@@ -10,6 +11,9 @@ package cn.alchemy3d.scene
 			_children = new Vector.<DisplayObject3D>();
 			index = _childrenNum = 0;
 		}
+		
+		public var verticesNum:int = 0;
+		public var facesNum:int = 0;
 		
 		private var _children:Vector.<DisplayObject3D>;
 		private var _childrenNum:int;
@@ -37,6 +41,12 @@ package cn.alchemy3d.scene
 			_children.push(child);
 			_childrenNum ++;
 			index ++;
+			
+			if (child is Mesh3D)
+			{
+				verticesNum += Mesh3D(child).vertices.length;
+				facesNum += Mesh3D(child).faces.length;
+			}
 		}
 		
 		public function getChildAt(index:int):DisplayObject3D
@@ -62,6 +72,11 @@ package cn.alchemy3d.scene
 			var i:int = _children.indexOf(child);
 			if(i != -1)
 			{
+				if (child is Mesh3D)
+				{
+					verticesNum -= Mesh3D(child).vertices.length;
+					facesNum -= Mesh3D(child).faces.length;
+				}
 				_childrenNum --;
 				return _children.splice(i, 1)[0];
 			}

@@ -76,7 +76,7 @@ package cn.alchemy3d.objects
 			
 			if (geomDirty)
 			{
-				buffer.position = 80 + offset;
+				buffer.position = 80;
 				
 				buffer.writeDouble(vertices.length);	//1
 				buffer.writeDouble(faces.length);		//2
@@ -88,7 +88,7 @@ package cn.alchemy3d.objects
 				buffer.writeDouble(0);			//8
 				buffer.writeDouble(0);			//9
 				
-				buffer.position = 360 + offset;
+				buffer.position = 360;
 			
 				//data
 				for each (v in vertices)

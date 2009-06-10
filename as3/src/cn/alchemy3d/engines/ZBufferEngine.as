@@ -1,8 +1,10 @@
 package cn.alchemy3d.engines
 {
+	import cmodule.alchemy3d.CLibInit;
+	
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.materials.MaterialsManager;
-	import cn.alchemy3d.polygon.DisplayObject3D;
+	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Viewport3D;
 	
@@ -34,19 +36,23 @@ package cn.alchemy3d.engines
 			//几何体序列化
 			var geomSerialized:ByteArray = new ByteArray();
 			geomSerialized.endian = Endian.LITTLE_ENDIAN;
-			var p:DisplayObject3D, pSerialized:ByteArray， children:Vector.<DisplayObject3D> = scene.children;
+			var p:DisplayObject3D, pSerialized:ByteArray;
+			var children:Vector.<DisplayObject3D> = scene.children;
+			//遍历所有几何体
 			for each (p in children)
 			{
 				pSerialized = p.serialize();
 				geomSerialized.writeBytes(pSerialized, 0, pSerialized.length);
 			}
 			
-			//初始化视口
-			alchemy3DLib.initializeViewport(viewport.viewWidth, viewport.viewHeight);
+			//初始化位图
+			alchemy3DLib.initializeGfx(viewport.viewWidth, viewport.viewHeight);
 			//初始化摄像机
-			alchemy3DLib.initializeCamera();
+			alchemy3DLib.initializeCamera(camera.zoom, camera.focus, camera.nearClip, camera.farClip, cameraSerialized.length);
+			//初始化几何体
+			alchemy3DLib.initializeGeom(scene.childrenNum, geomSerialized.length);
 			//初始化材质
-			alchemy3DLib.initializeMaterials();
+			alchemy3DLib.initializeMaterials(materialsSerialized.length);
 			
 			//获得摄像机缓冲区起始偏移量
 			buffer.position = alchemy3DLib.getCameraBufferPointer();
