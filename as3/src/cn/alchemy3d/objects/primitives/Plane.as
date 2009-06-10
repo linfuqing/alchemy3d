@@ -1,16 +1,16 @@
-package cn.alchemy3d.polygon.primitives
+package cn.alchemy3d.objects.primitives
 {
 
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
-	import cn.alchemy3d.polygon.Mesh;
+	import cn.alchemy3d.polygon.Mesh3D;
 	
 	/**
 	 * Plane是一个3D平面，拥有位移、旋转、缩放操作
 	 */
-	public class Plane extends Mesh
+	public class Plane extends Mesh3D
 	{
 		/**
 		 * 构造函数

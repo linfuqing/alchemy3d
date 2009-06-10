@@ -1,21 +1,21 @@
 package cn.alchemy3d.scene
 {
 
-	import cn.alchemy3d.polygon.Polygon;
+	import cn.alchemy3d.polygon.DisplayObject3D;
 	
 	public class Scene3D
 	{
 		public function Scene3D()
 		{
-			_children = new Vector.<Polygon>();
+			_children = new Vector.<DisplayObject3D>();
 			index = _childrenNum = 0;
 		}
 		
-		private var _children:Vector.<Polygon>;
+		private var _children:Vector.<DisplayObject3D>;
 		private var _childrenNum:int;
 		private var index:int;
 		
-		public function get children():Vector.<Polygon>
+		public function get children():Vector.<DisplayObject3D>
 		{
 			return _children;
 		}
@@ -25,7 +25,7 @@ package cn.alchemy3d.scene
 			return _childrenNum;
 		}
 
-		public function addChild(child:Polygon):void
+		public function addChild(child:DisplayObject3D):void
 		{
 			if(child.parent) throw new Error("已经存在父级.");
 			
@@ -39,15 +39,15 @@ package cn.alchemy3d.scene
 			index ++;
 		}
 		
-		public function getChildByID(id:int):Polygon
+		public function getChildAt(index:int):DisplayObject3D
 		{
-			if (id < _childrenNum)
-				return this._children[id];
+			if (index < _childrenNum)
+				return this._children[index];
 			else
 				return null;
 		}
 		
-		public function getChildByName(name:String):Polygon
+		public function getChildByName(name:String):DisplayObject3D
 		{
 			for(var i:int = 0; i < _childrenNum; i ++)
 			{
@@ -57,14 +57,9 @@ package cn.alchemy3d.scene
 			return null;
 		}
 		
-		public function getChildID(Child:Polygon):int
+		public function removeChild(child:DisplayObject3D):DisplayObject3D
 		{
-			return _children.indexOf(Child);
-		}
-		
-		public function removeChild(child:Polygon):Polygon
-		{
-			var i:int = getChildID(child);
+			var i:int = _children.indexOf(child);
 			if(i != -1)
 			{
 				_childrenNum --;
@@ -74,7 +69,7 @@ package cn.alchemy3d.scene
 				return null;
 		}
 		
-		public function removeChildAt(index:int):Polygon
+		public function removeChildAt(index:int):DisplayObject3D
 		{
 			if (index < _childrenNum)
 			{
@@ -84,6 +79,18 @@ package cn.alchemy3d.scene
 			else
 				return null;
 		}
-
+		
+		public function removeChildByName(name:String):DisplayObject3D
+		{
+			for(var i:int = 0; i < _childrenNum; i ++)
+			{
+				if (name == _children[i].name)
+				{
+					_childrenNum --;
+					return removeChildAt(i);
+				}
+			}
+			return null;
+		}
 	}
 }

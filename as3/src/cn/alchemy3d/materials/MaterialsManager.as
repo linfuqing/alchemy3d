@@ -40,7 +40,7 @@
 		
 		public function addMaterial(material:AbstractMaterial, name:String=null):void
 		{
-			if (getMaterialID(material) == -1)
+			if (_materials.indexOf(material) == -1)
 			{
 				material.name = name || material.name;
 				material.ID = index;
@@ -141,10 +141,10 @@
 		* @param id 材质ID
 		* @return 返回材质实例
 		*/
-		public function getMaterialByID(id:int):AbstractMaterial
+		public function getMaterialAt(index:int):AbstractMaterial
 		{
-			if (id < _materialsNum)
-				return this._materials[id];
+			if (index < _materialsNum)
+				return this._materials[index];
 			else
 				return null;
 		}
@@ -165,11 +165,6 @@
 			return null;
 		}
 		
-		public function getMaterialID(material:AbstractMaterial):int
-		{
-			return _materials.indexOf(material);
-		}
-		
 		public function getMaterialIDByName(name:String):int
 		{
 			for(var i:int = 0; i < _materialsNum; i ++)
@@ -187,7 +182,7 @@
 		*/
 		public function removeMaterial(material:AbstractMaterial):AbstractMaterial
 		{
-			var i:int = getMaterialID(material);
+			var i:int = _materials.indexOf(material);
 			if(i != -1)
 			{
 				_materialsNum --;

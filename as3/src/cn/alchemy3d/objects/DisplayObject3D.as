@@ -1,20 +1,21 @@
-package cn.alchemy3d.polygon
+package cn.alchemy3d.objects
 {
 
 	import cn.alchemy3d.scene.Scene3D;
 	
 	import flash.geom.Vector3D;
 	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	
-	public class Polygon
+	public class DisplayObject3D
 	{
-		public function Polygon(name:String = "")
+		public function DisplayObject3D(name:String = "")
 		{
 			this.ID = this.parentID = this.rootID = -1;
 			this.name = name;
 			this.visible = true;
 			this.childrenNum = 0;
-			this.children = new Vector.<Polygon>();
+			this.children = new Vector.<DisplayObject3D>();
 			
 			this._direction = new Vector3D();
 			this._position = new Vector3D();
@@ -25,9 +26,9 @@ package cn.alchemy3d.polygon
 		
 		public var ID:int;
 		public var name:String;
-		public var parent:Polygon;
+		public var parent:DisplayObject3D;
 		public var parentID:int;
-		public var root:Polygon;
+		public var root:DisplayObject3D;
 		public var rootID:int;
 		public var scene:Scene3D;
 		public var visible:Boolean;
@@ -36,7 +37,7 @@ package cn.alchemy3d.polygon
 		protected var _position:Vector3D;
 		protected var _scale:Vector3D;
 		
-		protected var children:Vector.<Polygon>;
+		protected var children:Vector.<DisplayObject3D>;
 		protected var childrenNum:int;
 		protected var directionDirty:Boolean;
 		protected var headerDirty:Boolean;
@@ -146,7 +147,7 @@ package cn.alchemy3d.polygon
 			scaleDirty = true;
 		}
 		
-		public function addChild(child:Polygon):void
+		public function addChild(child:DisplayObject3D):void
 		{
 			child.parent = this;
 			child.root = root;
@@ -163,15 +164,15 @@ package cn.alchemy3d.polygon
 		 * 
 		 * @return 返回复制的几何体
 		 */
-		public function clone():Polygon
+		public function clone():DisplayObject3D
 		{
-			var object:Polygon = new Polygon();
+			var object:DisplayObject3D = new DisplayObject3D();
 			
 			object._direction = _direction.clone();
 			object._position = _position.clone();
 			object._scale = _scale.clone();
 			
-			var child:Polygon;
+			var child:DisplayObject3D;
 			for each(child in this.children)
 				object.addChild(child.clone());
 				
@@ -188,11 +189,14 @@ package cn.alchemy3d.polygon
 		/**
 		 * 序列化
 		 */
-		public function serialize(buffer:ByteArray, offset:int = 0):void
+		public function serialize():ByteArray
 		{
+			var buffer:ByteArray = new ByteArray();
+			buffer.endian = Endian.LITTLE_ENDIAN;
+			
 			if (headerDirty)
 			{
-				buffer.position = offset;
+				buffer.position = 0;
 				
 				buffer.writeDouble(ID);			//0
 				buffer.writeDouble(parentID);	//1
@@ -221,7 +225,7 @@ package cn.alchemy3d.polygon
 			
 			if (positionDirty)
 			{
-				buffer.position = 160 + offset;
+				buffer.position = 160;
 				buffer.writeDouble(_position.x);
 				buffer.writeDouble(_position.y);
 				buffer.writeDouble(_position.z);
@@ -231,7 +235,7 @@ package cn.alchemy3d.polygon
 			
 			if (directionDirty)
 			{
-				buffer.position = 184 + offset;
+				buffer.position = 184;
 				buffer.writeDouble(_direction.x);
 				buffer.writeDouble(_direction.y);
 				buffer.writeDouble(_direction.z);
@@ -251,7 +255,7 @@ package cn.alchemy3d.polygon
 			
 			if (transformDirty)
 			{
-				buffer.position = 232 + offset;
+				buffer.position = 232;
 				
 				buffer.writeDouble(1);
 				buffer.writeDouble(0);
@@ -275,6 +279,8 @@ package cn.alchemy3d.polygon
 				
 				transformDirty = false;
 			}
+			
+			return buffer;
 		}
 	}
 }

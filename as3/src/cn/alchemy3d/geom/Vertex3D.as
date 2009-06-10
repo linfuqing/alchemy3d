@@ -1,6 +1,6 @@
 package cn.alchemy3d.geom
 {
-	import cn.alchemy3d.polygon.Polygon;
+	import cn.alchemy3d.polygon.DisplayObject3D;
 	
 	import flash.geom.Vector3D;
 	
@@ -11,9 +11,9 @@ package cn.alchemy3d.geom
 		public var z:Number;
 		
 		public var normal:Vector3D;
-		public var instance:Polygon;
+		public var instance:DisplayObject3D;
 		
-		public function Vertex3D(x:Number = 0, y:Number = 0, z:Number = 0, instance:Polygon = null)
+		public function Vertex3D(x:Number = 0, y:Number = 0, z:Number = 0, instance:DisplayObject3D = null)
 		{
 			this.x = x;
 			this.y = y;
@@ -23,7 +23,7 @@ package cn.alchemy3d.geom
 			this.instance = instance;
 		}
 		
-		public function clone(instance:Polygon = null):Vertex3D
+		public function clone(instance:DisplayObject3D = null):Vertex3D
 		{
 			return new Vertex3D(x, y, z, instance);
 		}
