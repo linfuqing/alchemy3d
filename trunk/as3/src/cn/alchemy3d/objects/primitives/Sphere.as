@@ -1,14 +1,14 @@
-package cn.alchemy3d.polygon.primitives
+package cn.alchemy3d.objects.primitives
 {
 
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
-	import cn.alchemy3d.polygon.Mesh;
+	import cn.alchemy3d.polygon.Mesh3D;
 	
 
-	public class Sphere extends Mesh
+	public class Sphere extends Mesh3D
 	{
 		public static  var DEFAULT_RADIUS :Number = 100;
 		public static  var DEFAULT_SEGMENTSH :Number = 6;

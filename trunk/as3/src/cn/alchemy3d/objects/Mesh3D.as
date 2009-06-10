@@ -1,4 +1,4 @@
-package cn.alchemy3d.polygon
+package cn.alchemy3d.objects
 {
 
 	import cn.alchemy3d.geom.Triangle3D;
@@ -7,9 +7,9 @@ package cn.alchemy3d.polygon
 	
 	import flash.utils.ByteArray;
 	
-	public class Mesh extends Polygon
+	public class Mesh3D extends DisplayObject3D
 	{
-		public function Mesh(name:String = "")
+		public function Mesh3D(name:String = "")
 		{
 			super(name);
 			
@@ -26,9 +26,9 @@ package cn.alchemy3d.polygon
 		
 		protected var geomDirty:Boolean;
 		
-		override public function clone():Polygon
+		override public function clone():DisplayObject3D
 		{
-			var object:Mesh = new Mesh(name + "_cloned");
+			var object:Mesh3D = new Mesh3D(name + "_cloned");
 			
 			object.faces = faces;
 			object.vertices = vertices;
@@ -37,7 +37,7 @@ package cn.alchemy3d.polygon
 			object._position = _position.clone();
 			object._scale = _scale.clone();
 			
-			var child:Polygon;
+			var child:DisplayObject3D;
 			for each(child in this.children)
 				object.addChild(child.clone());
 				
