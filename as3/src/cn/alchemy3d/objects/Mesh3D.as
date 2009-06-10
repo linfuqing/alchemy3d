@@ -67,12 +67,12 @@ package cn.alchemy3d.objects
 		/**
 		 * 序列化
 		 */
-		override public function serialize(buffer:ByteArray, offset:int = 0):void
+		override public function serialize():ByteArray
 		{
 			var v:Vertex3D;
 			var f:Triangle3D;
 			
-			super.serialize(buffer, offset);
+			var buffer:ByteArray = super.serialize();
 			
 			if (geomDirty)
 			{
@@ -115,7 +115,8 @@ package cn.alchemy3d.objects
 				
 				geomDirty = false;
 			}
+			
+			return buffer;
 		}
-
 	}
 }
