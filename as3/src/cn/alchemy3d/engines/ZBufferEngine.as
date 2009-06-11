@@ -6,7 +6,7 @@ package cn.alchemy3d.engines
 	import cn.alchemy3d.materials.MaterialsManager;
 	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.scene.Scene3D;
-	import cn.alchemy3d.view.Viewport3D;
+	import cn.alchemy3d.view.View3D;
 	
 	import flash.display.BitmapData;
 	import flash.utils.ByteArray;
@@ -27,7 +27,7 @@ package cn.alchemy3d.engines
 			buffer.endian = Endian.LITTLE_ENDIAN;
 		}
 		
-		public function renderScene(camera:Camera3D, viewport:Viewport3D, scene:Scene3D, materialsManager:MaterialsManager):void
+		public function renderScene(camera:Camera3D, viewport:View3D, scene:Scene3D, materialsManager:MaterialsManager):void
 		{
 			//摄像机序列化
 			var cameraSerialized:ByteArray = camera.serialize();

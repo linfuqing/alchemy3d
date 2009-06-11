@@ -1,64 +1,31 @@
 package cn.alchemy3d.cameras
 {
-	import cn.alchemy3d.objects.DisplayObject3D;
+	import cn.alchemy3d.lib.Alchemy3DLib;
 	
-	import flash.utils.ByteArray;
-
-	public class Camera3D extends DisplayObject3D
+	public class Camera3D
 	{
-		public var type:String;
+		public var pointer:int;
+		
+		public var type:int;
 		public var zoom:Number;
 		public var focus:Number;
 		public var nearClip:Number;
 		public var farClip:Number;
-		public var targetID:int;
-		public var dirty:Boolean;
 		
-		public function get fz():Number
-		{
-			return zoom * focus;
-		}
-		
-		public function Camera3D()
+		public function Camera3D(type:int = 0, zoom:Number = 10, focus:Number = 40, nearClip:Number = 10, farClip:Number = 10000)
 		{
 			super();
 			
-			type = CameraType.FREE;
-			zoom = 10;
-			focus = 40;
-			nearClip = 10;
-			farClip = 10000;
-			targetID = -1;
+			this.type = type;
+			this.zoom = zoom;
+			this.focus = focus;
+			this.nearClip = nearClip;
+			this.farClip = farClip;
 			
-			dirty = false;
-		}
-		
-		/**
-		 * 序列化
-		 */
-		override public function serialize():ByteArray
-		{
-			var buffer:ByteArray = super.serialize();
+			var lib:Alchemy3DLib = Alchemy3DLib.getInstance();
 			
-			if (dirty)
-			{
-				buffer.position = 0;
-				
-				buffer.writeDouble(zoom);			//0
-				buffer.writeDouble(focus);	//1
-				buffer.writeDouble(nearClip);		//2
-				buffer.writeDouble(farClip);			//3
-				buffer.writeDouble(targetID);			//4
-				buffer.writeDouble(0);			//5
-				buffer.writeDouble(0);			//6
-				buffer.writeDouble(0);			//7
-				buffer.writeDouble(0);			//8
-				buffer.writeDouble(0);			//9
-				
-				dirty = false;
-			}
-			
-			return buffer;
+			//初始化摄像机
+			pointer = lib.alchemy3DLib.initializeCamera(type, zoom, focus, nearClip, farClip);
 		}
 	}
 }
