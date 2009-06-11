@@ -56,10 +56,18 @@ void vector3D_subtract( Vector3D * v1, Vector3D v2 )
 	( * v1 ).z = ( * v1 ).z - v2.z;
 }
 
-/*Vector3D clone( Vector3D v )
+Vector3D vector3D_clone( Vector3D v )
 {
 	return newVector3D( v.x, v.y, v.z, v.w );
-}*/
+}
+
+void vector3D_copy( Vector3D * v, Vector3D c )
+{
+	( * v ).x = c.x;
+	( * v ).y = c.y;
+	( * v ).z = c.z;
+	( * v ).w = c.w;
+}
 
 Vector3D vector3D_crossProduct( Vector3D v1, Vector3D v2 )
 {

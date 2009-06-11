@@ -42,11 +42,6 @@ void matrix3D_identity( Matrix3D * m )
 	( * m ).m41 = 0; ( * m ).m42 = 0; ( * m ).m43 = 0; ( * m ).m44 = 1;
 }
 
-/*Matrix3D clone( Matrix3D m )
-{
-	return newMatrix3D( getRawData( m ) );
-}*/
-
 void matrix3D_copy( Matrix3D * m, Matrix3D c )
 {
 	( * m ).m11 = c.m11; ( * m ).m12 = c.m12; ( * m ).m13 = c.m13; ( * m ).m14 = c.m14;
@@ -87,36 +82,42 @@ Number ( * matrix3D_getRawData( Matrix3D m ) )[16]
 	return rawData;
 }
 
-void matrix3D_setRawData( Matrix3D * m, Number rawData[16] )
+void matrix3D_setRawData( Matrix3D * m, Number ( * rawData )[16] )
 {
-	( * m ).m11 = rawData[0];
-	( * m ).m21 = rawData[1];
-	( * m ).m31 = rawData[2];
-	( * m ).m41 = rawData[3];
+	( * m ).m11 = ( * rawData )[0];
+	( * m ).m21 = ( * rawData )[1];
+	( * m ).m31 = ( * rawData )[2];
+	( * m ).m41 = ( * rawData )[3];
 
-	( * m ).m12 = rawData[4];
-	( * m ).m22 = rawData[5];
-	( * m ).m32 = rawData[6];
-	( * m ).m42 = rawData[7];
+	( * m ).m12 = ( * rawData )[4];
+	( * m ).m22 = ( * rawData )[5];
+	( * m ).m32 = ( * rawData )[6];
+	( * m ).m42 = ( * rawData )[7];
 
-	( * m ).m13 = rawData[8];
-	( * m ).m23 = rawData[9];
-	( * m ).m33 = rawData[10];
-	( * m ).m43 = rawData[11];
+	( * m ).m13 = ( * rawData )[8];
+	( * m ).m23 = ( * rawData )[9];
+	( * m ).m33 = ( * rawData )[10];
+	( * m ).m43 = ( * rawData )[11];
 
-	( * m ).m14 = rawData[12];
-	( * m ).m24 = rawData[13];
-	( * m ).m34 = rawData[14];
-	( * m ).m44 = rawData[15];
+	( * m ).m14 = ( * rawData )[12];
+	( * m ).m24 = ( * rawData )[13];
+	( * m ).m34 = ( * rawData )[14];
+	( * m ).m44 = ( * rawData )[15];
 }
 
-Matrix3D newMatrix3D( Number rawData[16] )
+Matrix3D newMatrix3D( Number ( * rawData )[16] )
 {
 	Matrix3D m;
 
 	matrix3D_setRawData( & m, rawData );
 
 	return m;
+}
+
+
+Matrix3D matrix3D_clone( Matrix3D m )
+{
+	return newMatrix3D( matrix3D_getRawData( m ) );
 }
 
 Vector3D matrix3D_getPosition( Matrix3D m )
