@@ -25,7 +25,13 @@ typedef struct
 	Number m44;
 }Matrix3D;
 
-void identity( Matrix3D * m )
+/**************************************************************************************
+ **----------------------------------------------------------------------------------**
+ **                                    |matrix3D|                                    **
+ **__________________________________________________________________________________**
+ **************************************************************************************/
+
+void matrix3D_identity( Matrix3D * m )
 {
 	( * m ).m11 = 1; ( * m ).m12 = 0; ( * m ).m13 = 0; ( * m ).m14 = 0;
 
@@ -41,7 +47,7 @@ void identity( Matrix3D * m )
 	return newMatrix3D( getRawData( m ) );
 }*/
 
-void copy( Matrix3D * m, Matrix3D c )
+void matrix3D_copy( Matrix3D * m, Matrix3D c )
 {
 	( * m ).m11 = c.m11; ( * m ).m12 = c.m12; ( * m ).m13 = c.m13; ( * m ).m14 = c.m14;
 
@@ -52,7 +58,7 @@ void copy( Matrix3D * m, Matrix3D c )
 	( * m ).m41 = c.m41; ( * m ).m42 = c.m42; ( * m ).m43 = c.m43; ( * m ).m44 = c.m44;
 }
 
-Number ( * getRawData( Matrix3D m ) )[16]
+Number ( * matrix3D_getRawData( Matrix3D m ) )[16]
 {
 	Number ( * rawData )[16];
 
@@ -81,7 +87,7 @@ Number ( * getRawData( Matrix3D m ) )[16]
 	return rawData;
 }
 
-void setRawData( Matrix3D * m, Number rawData[16] )
+void matrix3D_setRawData( Matrix3D * m, Number rawData[16] )
 {
 	( * m ).m11 = rawData[0];
 	( * m ).m21 = rawData[1];
@@ -108,12 +114,12 @@ Matrix3D newMatrix3D( Number rawData[16] )
 {
 	Matrix3D m;
 
-	setRawData( & m, rawData );
+	matrix3D_setRawData( & m, rawData );
 
 	return m;
 }
 
-Vector3D getPosition( Matrix3D m )
+Vector3D matrix3D_getPosition( Matrix3D m )
 {
 	Vector3D v;
 
@@ -125,7 +131,7 @@ Vector3D getPosition( Matrix3D m )
 	return v;
 }
 
-void setPosition( Matrix3D * m, Vector3D v )
+void matrix3D_setPosition( Matrix3D * m, Vector3D v )
 {
 	( * m ).m14 = v.x;
 	( * m ).m24 = v.y;
@@ -133,7 +139,7 @@ void setPosition( Matrix3D * m, Vector3D v )
 	( * m ).m44 = v.w;
 }
 
-Matrix3D multiply( Matrix3D m1, Matrix3D m2 )
+Matrix3D matrix3D_multiply( Matrix3D m1, Matrix3D m2 )
 {
 	Matrix3D m;
 
@@ -161,17 +167,17 @@ Matrix3D multiply( Matrix3D m1, Matrix3D m2 )
 	return m;
 }
 
-void apprend( Matrix3D * m, Matrix3D a )
+void matrix3D_apprend( Matrix3D * m, Matrix3D a )
 {
-	copy( m, multiply( * m, a ) );
+	matrix3D_copy( m, matrix3D_multiply( * m, a ) );
 }
 
-void prepend( Matrix3D * m, Matrix3D a )
+void matrix3D_prepend( Matrix3D * m, Matrix3D a )
 {
-	copy( m, multiply( a, * m ) );
+	matrix3D_copy( m, matrix3D_multiply( a, * m ) );
 }
 
-Matrix3D translationMatrix( x, y, z )
+Matrix3D translationMatrix3D( x, y, z )
 {
 	Matrix3D tran;
 
@@ -186,19 +192,19 @@ Matrix3D translationMatrix( x, y, z )
 	return tran;
 }
 
-void apprendTranslation( Matrix3D * m, Number x, Number y, Number z )
+void matrix3D_apprendTranslation( Matrix3D * m, Number x, Number y, Number z )
 {
-	apprend( m, translationMatrix( x, y, z ) );
+	matrix3D_apprend( m, translationMatrix3D( x, y, z ) );
 }
 
-void prependTranslation( Matrix3D * m, Number x, Number y, Number z )
+void matrix3D_prependTranslation( Matrix3D * m, Number x, Number y, Number z )
 {
-	prepend( m, translationMatrix( x, y, z ) );
+	matrix3D_prepend( m, translationMatrix3D( x, y, z ) );
 }
 
-Matrix3D rotationMatrix(  Number degrees, Vector3D axis )
+Matrix3D rotationMatrix3D(  Number degrees, Vector3D axis )
 {
-	Number angle = degrees * TOANGLE;
+	Number angle = degrees * TORADIANS;
 	Number c     = cos( angle );
 	Number s     = sin( angle );
 
@@ -249,17 +255,17 @@ Matrix3D rotationMatrix(  Number degrees, Vector3D axis )
 	return rot;
 }
 
-void apprendRotation( Matrix3D * m, Number degrees,Vector3D axis )
+void matrix3D_apprendRotation( Matrix3D * m, Number degrees,Vector3D axis )
 {
-	apprend( m, rotationMatrix(  degrees, axis ) );
+	matrix3D_apprend( m, rotationMatrix3D(  degrees, axis ) );
 }
 
-void prependRotation( Matrix3D * m, Number degrees,Vector3D axis )
+void matrix3D_prependRotation( Matrix3D * m, Number degrees,Vector3D axis )
 {
-	prepend( m, rotationMatrix(  degrees, axis ) );
+	matrix3D_prepend( m, rotationMatrix3D(  degrees, axis ) );
 }
 
-Matrix3D scaleMatrix( Number xScale, Number yScale, Number zScale )
+Matrix3D scaleMatrix3D( Number xScale, Number yScale, Number zScale )
 {
 	Matrix3D sca;
 	
@@ -286,17 +292,17 @@ Matrix3D scaleMatrix( Number xScale, Number yScale, Number zScale )
 	return sca;
 }
 
-void apprendScale( Matrix3D * m, Number xScale, Number yScale, Number zScale )
+void matrix3D_apprendScale( Matrix3D * m, Number xScale, Number yScale, Number zScale )
 {
-	apprend( m, scaleMatrix( xScale, yScale, zScale ) );
+	matrix3D_apprend( m, scaleMatrix3D( xScale, yScale, zScale ) );
 }
 
-void prependScale( Matrix3D * m, Number xScale, Number yScale, Number zScale )
+void matrix3D_prependScale( Matrix3D * m, Number xScale, Number yScale, Number zScale )
 {
-	prepend( m, scaleMatrix( xScale, yScale, zScale ) );
+	matrix3D_prepend( m, scaleMatrix3D( xScale, yScale, zScale ) );
 }
 
-void transformVector( Matrix3D m, Vector3D * v )
+void matrix3D_transformVector( Matrix3D m, Vector3D * v )
 {
 	Number x,y,z,w;
 
@@ -311,7 +317,7 @@ void transformVector( Matrix3D m, Vector3D * v )
 	( * v ).w = w;
 }
 
-void transpose( Matrix3D * m )
+void matrix3D_transpose( Matrix3D * m )
 {
 	( * m ).m12 = ( * m ).m21 + ( ( * m ).m21 = ( * m ).m12 ) * 0;
 	( * m ).m13 = ( * m ).m31 + ( ( * m ).m31 = ( * m ).m13 ) * 0;
@@ -323,14 +329,14 @@ void transpose( Matrix3D * m )
 	( * m ).m34 = ( * m ).m43 + ( ( * m ).m43 = ( * m ).m34 ) * 0;
 }
 
-Number determinant( Matrix3D m )
+Number matrix3D_determinant( Matrix3D m )
 {
 	return ( m.m11 * m.m22 - m.m21 * m.m12 ) * m.m33 - ( m.m11 * m.m32 - m.m31 * m.m12 ) * m.m23 + ( m.m21 * m.m32 - m.m31 * m.m22 ) * m.m13;
 }
 
-void invert( Matrix3D * m )
+void matrix3D_invert( Matrix3D * m )
 {
-	Number d = determinant( * m );
+	Number d = matrix3D_determinant( * m );
 
 	Number m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34;
 
@@ -360,7 +366,7 @@ void invert( Matrix3D * m )
 	}
 }
 
-Matrix3D rotationX( Number angle )
+Matrix3D rotationXMatrix3D( Number angle )
 {
 	Matrix3D m;
 
@@ -375,7 +381,7 @@ Matrix3D rotationX( Number angle )
 	return m;
 }
 
-Matrix3D rotationY( Number angle )
+Matrix3D rotationYMatrix3D( Number angle )
 {
 	Matrix3D m;
 
@@ -390,7 +396,7 @@ Matrix3D rotationY( Number angle )
 	return m;
 }
 
-Matrix3D rotationZ( Number angle )
+Matrix3D rotationZMatrix3D( Number angle )
 {
 	Matrix3D m;
 
@@ -405,7 +411,7 @@ Matrix3D rotationZ( Number angle )
 	return m;
 }
 
-void decompose( Matrix3D m, Vector3D * position, Vector3D * scale, Vector3D * rotation )
+void matrix3D_decompose( Matrix3D m, Vector3D * position, Vector3D * scale, Vector3D * rotation )
 {
 	Matrix3D t;
 
@@ -422,23 +428,23 @@ void decompose( Matrix3D m, Vector3D * position, Vector3D * scale, Vector3D * ro
 
 	if( scale && rotation )
 	{
-		( * scale ).x = normalize( & i );
-		( * scale ).y = normalize( & j );
-		( * scale ).z = normalize( & k );
+		( * scale ).x = vector3D_normalize( & i );
+		( * scale ).y = vector3D_normalize( & j );
+		( * scale ).z = vector3D_normalize( & k );
 	}
 	else if( scale )
 	{
-		( * scale ).x = length( i );
-		( * scale ).y = length( j );
-		( * scale ).z = length( k );
+		( * scale ).x = vector3D_length( i );
+		( * scale ).y = vector3D_length( j );
+		( * scale ).z = vector3D_length( k );
 
 		return;
 	}
 	else if( rotation )
 	{
-		normalize( & i );
-		normalize( & j );
-		normalize( & k );
+		vector3D_normalize( & i );
+		vector3D_normalize( & j );
+		vector3D_normalize( & k );
 	}
 	else
 	{
@@ -452,7 +458,7 @@ void decompose( Matrix3D m, Vector3D * position, Vector3D * scale, Vector3D * ro
 
 	( * rotation ).x = atan2( t.m23, t.m33 );
 
-	prepend( & m, rotationX( - ( * rotation ).x ) );
+	matrix3D_prepend( & m, rotationXMatrix3D( - ( * rotation ).x ) );
 
 	( * rotation ).y = atan2( - m.m31, sqrt( m.m11 * m.m11 + m.m21 * m.m21) );
 	( * rotation ).z = atan2( - m.m12, m.m11 );
@@ -477,36 +483,36 @@ void decompose( Matrix3D m, Vector3D * position, Vector3D * scale, Vector3D * ro
 	( * rotation ).z *= TODEGREES;
 }
 
-void recompose( Matrix3D * m, Vector3D position, Vector3D scale, Vector3D rotation )
+void matrix3D_recompose( Matrix3D * m, Vector3D position, Vector3D scale, Vector3D rotation )
 {
-	copy( m, translationMatrix( position.x, position.y, position.z ) );
+	matrix3D_copy( m, translationMatrix3D( position.x, position.y, position.z ) );
 
-	apprend( m, scaleMatrix( scale.x,scale.y, scale.z ) );
+	matrix3D_apprend( m, scaleMatrix3D( scale.x,scale.y, scale.z ) );
 
-	apprend( m, rotationX( rotation.x ) );
+	matrix3D_apprend( m, rotationXMatrix3D( rotation.x ) );
 
-	apprend( m, rotationY( rotation.y ) );
+	matrix3D_apprend( m, rotationYMatrix3D( rotation.y ) );
 
-	apprend( m, rotationZ( rotation.z ) );
+	matrix3D_apprend( m, rotationZMatrix3D( rotation.z ) );
 }
 
-void pointAt( Matrix3D * m, Vector3D pos, Vector3D at, Vector3D up )
+void matrix3D_pointAt( Matrix3D * m, Vector3D pos, Vector3D at, Vector3D up )
 {
 	Vector3D xAxis, yAxis, zAxis, scale;
 
-	normalize( & at );
+	vector3D_normalize( & at );
 
-	if( length( at ) )
+	if( vector3D_length( at ) )
 	{
-		xAxis = crossProduct( at, up );
-		normalize( & xAxis );
+		xAxis = vector3D_crossProduct( at, up );
+		vector3D_normalize( & xAxis );
 
-		yAxis = crossProduct( at, xAxis );
-		normalize( & yAxis );
+		yAxis = vector3D_crossProduct( at, xAxis );
+		vector3D_normalize( & yAxis );
 
 		zAxis = at;
 
-		decompose( * m, NULL, & scale, NULL );
+		matrix3D_decompose( * m, NULL, & scale, NULL );
 
 		( * m ).m11 =   xAxis.x * scale.x;
 		( * m ).m21 =   xAxis.y * scale.x;
@@ -526,14 +532,202 @@ void pointAt( Matrix3D * m, Vector3D pos, Vector3D at, Vector3D up )
 	}
 }
 
-void projectVector( Matrix3D m, Vector3D * v )
+void matrix3D_projectVector( Matrix3D m, Vector3D * v )
 {
 	Number c = 1.0 / ( ( * v ).x * m.m41 + ( * v ).y * m.m42 + ( * v ).z * m.m43 + 1 );
 
-	transformVector( m, v );
+	matrix3D_transformVector( m, v );
 
 	( * v ).x = ( * v ).x * c;
 	( * v ).y = ( * v ).y * c;
 	( * v ).z = 0;
 }
 
+
+/**************************************************************************************
+ **----------------------------------------------------------------------------------**
+ **                                    |quaternion|                                  **
+ **__________________________________________________________________________________**
+ **************************************************************************************/
+
+Vector3D matrix3D_toQuaternion( Matrix3D m )
+{
+	Vector3D q;
+
+	Number s, tr = m.m11 + m.m22 + m.m33, c[4];
+
+	int i, j, k;
+
+	if (tr > 0.0) 
+	{
+		s   = sqrt( tr + 1.0 );
+		q.w = s / 2.0;
+		s   = 0.5 / s;
+				
+		q.x = ( m.m32 -  m.m23) * s;
+		q.y = ( m.m13 -  m.m31) * s;
+		q.z = ( m.m21 -  m.m12) * s;
+	} 
+	else 
+	{
+		int nxt[3] = { 1, 2, 0 };
+
+		Number a[3][4] = {
+			{ m.m11, m.m12, m.m13, m.m14 },
+			{ m.m21, m.m22, m.m23, m.m24 },
+			{ m.m31, m.m32, m.m33, m.m34 }
+			};
+				
+		i = 0;
+
+		if ( a[1][1] > a[0][0]) 
+		{
+			i = 1;
+		}
+
+		if ( a[2][2] > a[i][i]) 
+		{
+			i = 2;
+		}
+
+		j = nxt[i];
+		k = nxt[j];
+		s = sqrt( ( a[i][i] - ( a[j][j] + a[k][k] ) ) + 1.0 );
+
+		c[i] = s * 0.5;
+
+		if ( s ) 
+		{
+			s = 0.5 / s;
+		}
+
+		c[3] = ( a[k][j] - a[j][k] ) * s;
+		c[j] = ( a[j][i] + a[i][j] ) * s;
+		c[k] = ( a[k][i] + a[i][k] ) * s;
+
+		q.x = c[0];
+		q.y = c[1];
+		q.z = c[2];
+		q.w = c[3];
+	}
+
+	return q;
+}
+
+Vector3D quaternion_multiply( Vector3D q1, Vector3D q2 )
+{
+	Vector3D q;
+	
+	q.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+    q.y = q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;
+    q.z = q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;
+    q.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+
+	return q;
+}
+
+Vector3D rotationQuaternion( Number degrees, Vector3D axis )
+{
+	Vector3D q;
+
+	Number angle = degrees * TORADIANS / 2, s = sin( angle );
+
+	q.x = axis.x * s;
+	q.y = axis.y * s;
+	q.z = axis.z * s;
+	q.w = cos( angle );
+
+	vector3D_normalize( & q );
+
+	return q;
+}
+
+void quaternion_slerp( Vector3D from, Vector3D to, Vector3D * res, Number t )
+{
+	Vector3D tol = newVector3D( from.x, from.y, from.z, from.w );
+	Number cosom  = vector3D_dotProduct( from, to ), omega, sinom, scale0, scale1;
+
+	if (cosom < 0.0)
+	{
+		cosom = - cosom;
+		vector3D_negate( & tol );
+	}
+
+	if ( ( 1.0 - cosom ) > 0 )
+	{
+		omega  = acos ( cosom );
+		sinom  = sin ( omega );
+		scale0 = sin ( ( 1.0 - t ) * omega ) / sinom;
+		scale1 = sin ( t * omega ) / sinom;
+
+	}
+	else
+	{
+		scale0 = 1.0 - t;
+		scale1 = t;
+	}
+
+	( * res ).x = scale0 * from.x + scale1 * tol.x;
+	( * res ).y = scale0 * from.y + scale1 * tol.y;
+	( * res ).z = scale0 * from.z + scale1 * tol.z;
+	( * res ).w = scale0 * from.w + scale1 * tol.w;
+}
+
+void quaternion_toMatrix3D( Vector3D q, Matrix3D * m )
+{
+	Number xx = q.x * q.x;
+	Number xy = q.x * q.y;
+	Number xz = q.x * q.z;
+	Number xw = q.x * q.w;
+
+	Number yy = q.y * q.y;
+	Number yz = q.y * q.z;
+	Number yw = q.y * q.w;
+
+	Number zz = q.z * q.z;
+	Number zw = q.z * q.w;
+		
+	( * m ).m11 = 1 - 2 * ( yy + zz );
+	( * m ).m12 =     2 * ( xy - zw );
+	( * m ).m13 =     2 * ( xz + yw );
+
+	( * m ).m21 =     2 * ( xy + zw );
+	( * m ).m22 = 1 - 2 * ( xx + zz );
+	( * m ).m23 =     2 * ( yz - xw );
+
+	( * m ).m31 =     2 * ( xz - yw );
+	( * m ).m32 =     2 * ( yz + xw );
+	( * m ).m33 = 1 - 2 * ( xx + yy );
+}
+
+/**************************************************************************************
+ **----------------------------------------------------------------------------------**
+ **                                 |interpolation|                                  **
+ **__________________________________________________________________________________**
+ **************************************************************************************/
+
+void matrix3D_interpolate( Matrix3D thisMat, Matrix3D toMat, Number percent, Matrix3D * target )
+{
+	Vector3D res;
+
+	quaternion_slerp( matrix3D_toQuaternion( thisMat ), matrix3D_toQuaternion( toMat ), &res, percent );
+
+	quaternion_toMatrix3D( res, target );
+
+	quaternion_slerp( matrix3D_getPosition( thisMat ), matrix3D_getPosition( toMat ), & res, percent );
+
+	matrix3D_setPosition( target, res );
+}
+
+void matrix3D_pointTowards( Number percent, Matrix3D mat, Vector3D pos, Vector3D at, Vector3D up,Matrix3D * target )
+{
+	Matrix3D m;
+
+	Vector3D res;
+
+	matrix3D_pointAt( & m, pos, at, up );
+
+	quaternion_slerp( matrix3D_toQuaternion( mat ), matrix3D_toQuaternion( m ), &res, percent );
+
+	quaternion_toMatrix3D( res, target );
+}
