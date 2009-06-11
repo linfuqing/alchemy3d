@@ -26,7 +26,7 @@
 		private var _materials:Vector.<AbstractMaterial>;
 		private var _materialsNum:int;
 		private var _materialsReadyNum:int;
-		private var index:int
+		private var index:int;
 		
 		public function get materials():Vector.<AbstractMaterial>
 		{
