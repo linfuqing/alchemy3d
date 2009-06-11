@@ -4,7 +4,7 @@ package cn.alchemy3d.cameras
 	
 	public class Camera3D
 	{
-		public var pointer:int;
+		public var pointer:uint;
 		
 		public var type:int;
 		public var zoom:Number;
@@ -14,8 +14,6 @@ package cn.alchemy3d.cameras
 		
 		public function Camera3D(type:int = 0, zoom:Number = 10, focus:Number = 40, nearClip:Number = 10, farClip:Number = 10000)
 		{
-			super();
-			
 			this.type = type;
 			this.zoom = zoom;
 			this.focus = focus;
