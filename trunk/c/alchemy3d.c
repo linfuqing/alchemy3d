@@ -29,6 +29,13 @@ AS3_Val initializeCamera( void* self, AS3_Val args )
 	return 0;
 }
 
+//创建几何实体
+AS3_Val createEntity( void* self, AS3_Val args )
+{
+	return 0;
+}
+
+//测试函数
 AS3_Val test( void* self, AS3_Val args )
 {
 	Vector3D *ptr;
@@ -45,17 +52,19 @@ int main()
 {
 	AS3_Val initializeSceneMethod = AS3_Function( NULL, initializeScene );
 	AS3_Val initializeCameraMethod = AS3_Function( NULL, initializeCamera );
+	AS3_Val createEntityMethod = AS3_Function( NULL, createEntity );
 	AS3_Val testMethod = AS3_Function( NULL, test );
 
 
 
-	AS3_Val result = AS3_Object( "initializeScene:AS3ValType, initializeCamera:AS3ValType, test:AS3ValType",
-								initializeSceneMethod, initializeCameraMethod, testMethod );
+	AS3_Val result = AS3_Object( "initializeScene:AS3ValType, initializeCamera:AS3ValType, createEntity:AS3ValType, test:AS3ValType",
+								initializeSceneMethod, initializeCameraMethod, createEntityMethod, testMethod );
 
 
 
 	AS3_Release( initializeSceneMethod );
 	AS3_Release( initializeCameraMethod );
+	AS3_Release( createEntityMethod );
 	AS3_Release( testMethod );
 
 
