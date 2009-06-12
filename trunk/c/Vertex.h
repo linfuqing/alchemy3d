@@ -13,18 +13,23 @@ Vertex newVertex( Vector3D * position )
 {
 	Vertex v;
 
-	( & v ) -> position = position;
+	v.position = position;
+	if( ( v.worldPosition = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
+	{
+		exit( 0 );
+	}
 
 	return v;
 }
 
+int vertex_check( Vertex * v )
+{
+	return v && v -> position && v -> worldPosition;
+}
+
 void transformVertex( Matrix3D m, Vertex * v )
 {
-	Vector3D c;
+	vector3D_copy( v -> worldPosition, * ( v -> position ) );
 
-	vector3D_copy( & c, * ( v -> position ) );
-
-	matrix3D_transformVector( m, &c );
-
-	vector3D_copy( v -> worldPosition, c );
+	matrix3D_transformVector( m, v -> worldPosition );
 }
