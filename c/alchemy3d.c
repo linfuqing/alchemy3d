@@ -1,22 +1,22 @@
 #include <stdlib.h>
 #include <AS3.h>
 
+#include <gl.h>
+
 #include "Vector3D.h"
 
-//初始化位图缓冲区
+//初始化场景
+//返回该对象的起始指针
 AS3_Val initializeScene( void* self, AS3_Val args )
 {
-	Vector3D v = newVector3D(100, 200, 300, 1);
-
-	Vector3D *ptrV = &v;
-
-	return AS3_Ptr(ptrV);
+	return 0;
 }
 
 //初始化摄像机设置
+//返回该对象的起始指针
 AS3_Val initializeCamera( void* self, AS3_Val args )
 {
-	int type;
+	/*int type;
 	double zoom;
 	double focus;
 	double nearClip;
@@ -24,12 +24,13 @@ AS3_Val initializeCamera( void* self, AS3_Val args )
 
 	AS3_ArrayValue(args, "IntType, DoubleType, DoubleType, DoubleType, DoubleType", &type, &zoom, &focus, &nearClip, &farClip);
 
-	double fz = zoom * focus;
+	double fz = zoom * focus;*/
 
 	return 0;
 }
 
 //创建几何实体
+//返回该对象的起始指针
 AS3_Val createEntity( void* self, AS3_Val args )
 {
 	return 0;
@@ -38,11 +39,21 @@ AS3_Val createEntity( void* self, AS3_Val args )
 //测试函数
 AS3_Val test( void* self, AS3_Val args )
 {
-	Vector3D *ptr;
+	int l;
 
-	AS3_ArrayValue(args, "PtrType", &ptr);
+	AS3_Val as3object;
 
-	AS3_Trace(AS3_Int(ptr->x));
+	AS3_ArrayValue(args, "AS3ValType, IntType", &as3object, &l);
+	
+	int i = 0;
+	for (; i < l; i ++)
+	{
+		AS3_CallTS("beginFill", as3object, "IntType, IntType", 0, 1);
+		AS3_CallTS("drawRect", as3object, "DoubleType, DoubleType, DoubleType, DoubleType", 0.0, 0.0, 100.0, 100.0);
+		AS3_CallTS("endFill", as3object, "");
+	}
+
+	AS3_Release(as3object);
 
 	return 0;
 }
