@@ -1,3 +1,12 @@
+
+/**************************************************************************************
+ **----------------------------------------------------------------------------------**
+ **                                    |Vector3D|                                    **
+ **__________________________________________________________________________________**
+ **                          include< math.h, malloc.h, Base.h >                     **
+ **__________________________________________________________________________________**
+ **************************************************************************************/
+
 # include<math.h>
 # include<malloc.h>
 //# include<string.h>
@@ -42,18 +51,26 @@ Vector3D newVector3D( Number x, Number y, Number z, Number w )
 
 
 
-void vector3D_add( Vector3D * v1, Vector3D v2 )
+Vector3D vector3D_add( Vector3D v1, Vector3D v2 )
 {
-	( * v1 ).x = ( * v1 ).x + v2.x;
-	( * v1 ).y = ( * v1 ).y + v2.y;
-	( * v1 ).z = ( * v1 ).z + v2.z;
+	Vector3D v;
+
+	v.x = v1.x + v2.x;
+	v.y = v1.y + v2.y;
+	v.z = v1.z + v2.z;
+
+	return v;
 }
 
-void vector3D_subtract( Vector3D * v1, Vector3D v2 )
+Vector3D vector3D_subtract( Vector3D v1, Vector3D v2 )
 {
-	( * v1 ).x = ( * v1 ).x - v2.x;
-	( * v1 ).y = ( * v1 ).y - v2.y;
-	( * v1 ).z = ( * v1 ).z - v2.z;
+	Vector3D v;
+
+	v.x = v1.x - v2.x;
+	v.y = v1.y - v2.y;
+	v.z = v1.z - v2.z;
+
+	return v;
 }
 
 Vector3D vector3D_clone( Vector3D v )
@@ -76,9 +93,7 @@ Vector3D vector3D_crossProduct( Vector3D v1, Vector3D v2 )
 
 Number vector3D_distance( Vector3D v1, Vector3D v2 )
 {
-	vector3D_subtract( & v2, v1 );
-
-	return vector3D_length( v2 );
+	return vector3D_length( vector3D_subtract( v2, v1 ) );
 }
 
 Number vector3D_dotMetrix( Vector3D v1, Vector3D v2 )
