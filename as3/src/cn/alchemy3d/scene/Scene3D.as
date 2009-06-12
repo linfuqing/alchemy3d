@@ -15,6 +15,7 @@ package cn.alchemy3d.scene
 			lib = Alchemy3DLib.getInstance();
 			
 			//初始化场景
+			//返回该对象起始指针
 			pointer = lib.alchemy3DLib.initializeScene();
 		}
 		
@@ -62,6 +63,7 @@ package cn.alchemy3d.scene
 			}
 			
 			//创建实体并添加到指定节点
+			//返回该对象起始指针
 			child.pointer = lib.alchemy3DLib.createEntity();
 		}
 

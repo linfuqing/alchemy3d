@@ -23,6 +23,7 @@ package cn.alchemy3d.cameras
 			var lib:Alchemy3DLib = Alchemy3DLib.getInstance();
 			
 			//初始化摄像机
+			//返回该对象起始指针
 			pointer = lib.alchemy3DLib.initializeCamera(type, zoom, focus, nearClip, farClip);
 		}
 	}
