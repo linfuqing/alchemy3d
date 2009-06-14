@@ -5,6 +5,8 @@
  **                           include< stdlib.h, Vector3D.h>                         **
  **__________________________________________________________________________________**
  **************************************************************************************/
+#ifndef __MATERIAL_H_INCLUDED__ 
+#define __MATERIAL_H_INCLUDED__ 
 
 # include < stdlib.h >
 
@@ -88,7 +90,7 @@ Number ( * matrix3D_getRawData( Matrix3D m ) )[16]
 {
 	Number ( * rawData )[16];
 
-	rawData = calloc( 16, sizeof( Number ) );
+	rawData = (Number (*)[16])calloc( 16, sizeof( Number ) );
 
 	( * rawData )[0]  = m.m11;
 	( * rawData )[1]  = m.m21;
@@ -278,7 +280,7 @@ void matrix3D_prepend( Matrix3D * thisMatrix, Matrix3D lhs )
 /**
 获取一个位移矩阵。
 **/
-Matrix3D translationMatrix3D( x, y, z )
+Matrix3D translationMatrix3D( Number x, Number y, Number z )
 {
 	Matrix3D tran;
 
@@ -1041,3 +1043,5 @@ void matrix3D_pointTowards( Number percent, Matrix3D mat, Vector3D pos, Vector3D
 
 	quaternion_toMatrix3D( res, target );
 }
+
+#endif

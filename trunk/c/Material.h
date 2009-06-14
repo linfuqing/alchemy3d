@@ -1,3 +1,6 @@
+#ifndef __MATERIAL_H_INCLUDED__ 
+#define __MATERIAL_H_INCLUDED__ 
+
 typedef struct
 {
 	unsigned int color;
@@ -16,3 +19,5 @@ typedef struct
 	Number       alpha;
 	Number   thickness;
 }LineMaterial;
+
+#endif
