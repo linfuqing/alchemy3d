@@ -1,6 +1,8 @@
 /**
 可查找双链堆栈结构。
 **/
+#ifndef __POLYGON_H_INCLUDED__ 
+#define __POLYGON_H_INCLUDED__ 
 
 # include <stdio.h>
 
@@ -254,3 +256,5 @@ void polygon_order( Polygon * head, void visit( Vertex vertex, Vector uv ) )
 		p = p -> next;
 	}
 }
+
+#endif

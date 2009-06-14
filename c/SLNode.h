@@ -7,7 +7,10 @@
  **                                  typedef DataType                                **
  **__________________________________________________________________________________**
  **************************************************************************************/
+#ifndef __SLNODE_H_INCLUDED__ 
+#define __SLNODE_H_INCLUDED__ 
 
+typedef double DataType;
 
 typedef struct Node
 {
@@ -61,7 +64,7 @@ int ListInsert( SLNode * head, int i, DataType x )
 	{
 		printf( "插入位置出错!" );
 
-		return FALUSE;
+		return FALSE;
 	}
 
 	if( ( q = ( SLNode * )malloc( sizeof( SLNode ) ) ) == NULL )
@@ -134,12 +137,32 @@ int ListGet( SLNode * head, int i, DataType * x )
 	{
 		printf( "取元素位置参数错!" );
 
-		return FALUSE;
+		return FALSE;
 	}
 
 	* x = p -> data;
 
 	return TRUE;
+}
+
+SLNode * ListFind( SLNode * head, DataType &item )
+{   
+	if ( head == NULL )
+	{
+		return FALSE;
+	}
+	else
+	{
+		if ( item == head->data )
+		{
+			item =  head->data;
+			return head;
+		}
+		else
+		{
+			return ListFind( head->next, item );
+		}
+	}
 }
 
 void Destroy( SLNode * * head )
@@ -159,3 +182,5 @@ void Destroy( SLNode * * head )
 
 	* head = NULL;
 }
+
+#endif
