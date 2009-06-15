@@ -8,9 +8,9 @@
 #ifndef __MATERIAL_H_INCLUDED__ 
 #define __MATERIAL_H_INCLUDED__ 
 
-# include < stdlib.h >
+#include <stdlib.h>
 
-# include "Vector3D.h"
+#include "Vector3D.h"
 
 typedef struct
 {
