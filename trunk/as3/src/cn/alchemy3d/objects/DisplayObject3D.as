@@ -25,6 +25,10 @@ package cn.alchemy3d.objects
 		}
 		
 		public var pointer:uint;
+		public var directionPtr:uint;
+		public var positionPtr:uint;
+		public var scalePtr:uint;
+		
 		public var name:String;
 		public var parent:DisplayObject3D;
 		public var root:DisplayObject3D;
@@ -34,10 +38,6 @@ package cn.alchemy3d.objects
 		protected var _direction:Vector3D;
 		protected var _position:Vector3D;
 		protected var _scale:Vector3D;
-		
-		protected var directionPtr:uint;
-		protected var positionPtr:uint;
-		protected var scalePtr:uint;
 		
 		protected var buffer:ByteArray;
 		
