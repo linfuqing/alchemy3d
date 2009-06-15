@@ -9,11 +9,11 @@
 #ifndef __VECTOR3D_H_INCLUDED__ 
 #define __VECTOR3D_H_INCLUDED__ 
 
-# include<math.h>
-# include<malloc.h>
+#include <math.h>
+//#include <malloc.h>
 //# include<string.h>
 
-# include "Base.h"
+#include "Base.h"
 
 typedef struct
 {

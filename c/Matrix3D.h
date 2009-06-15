@@ -55,6 +55,7 @@ void matrix3D_identity( Matrix3D * m )
 
 	( * m ).m41 = 0; ( * m ).m42 = 0; ( * m ).m43 = 0; ( * m ).m44 = 1;
 }
+
 /**
 ∏¥÷∆æÿ’Û°£
 **/

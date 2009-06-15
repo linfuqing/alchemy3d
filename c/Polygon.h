@@ -1,13 +1,14 @@
+#ifndef __POLYGON_H_INCLUDED__
+#define __POLYGON_H_INCLUDED__
+
 /**
 可查找双链堆栈结构。
 **/
-#ifndef __POLYGON_H_INCLUDED__ 
-#define __POLYGON_H_INCLUDED__ 
 
-# include <stdio.h>
+#include <stdio.h>
 
-# include "Vertex.h"
-# include "Vector.h"
+#include "Vertex.h"
+#include "Vector.h"
 
 typedef struct Node
 {
