@@ -43,7 +43,7 @@ void do3d_updateTransform(DisplayObject3D * do3d)
 	Matrix3D * mtr;
 
 	matrix3D_apprendScale(&(do3d->transform), do3d->scale.x, do3d->scale.y, do3d->scale.z);
-	qua = quaternoin_setFromEuler(do3d->direction.y, do3d->direction.x, do3d->direction.z);
+	qua = quaternoin_setFromEuler(do3d->direction.y * TORADIANS, do3d->direction.x * TORADIANS, do3d->direction.z * TORADIANS);
 	mtr = quaternoin_getMatrix(qua);
 	matrix3D_apprend(&(do3d->transform), * mtr);
 	matrix3D_apprendTranslation(&(do3d->transform), do3d->position.x, do3d->position.y, do3d->position.z);
