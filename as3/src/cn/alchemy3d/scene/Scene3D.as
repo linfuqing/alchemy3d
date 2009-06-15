@@ -1,10 +1,11 @@
 package cn.alchemy3d.scene
 {
 
-	import flash.utils.Dictionary;
 	import cn.alchemy3d.lib.Alchemy3DLib;
 	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.objects.Mesh3D;
+	
+	import flash.utils.Dictionary;
 	
 	public class Scene3D
 	{
@@ -64,7 +65,11 @@ package cn.alchemy3d.scene
 			
 			//创建实体并添加到指定节点
 			//返回该对象起始指针
-			child.pointer = lib.alchemy3DLib.createEntity();
+			var arr:Array = lib.alchemy3DLib.createEntity();
+			child.pointer = arr[0];
+			child.positionPtr = arr[1];
+			child.directionPtr = arr[2];
+			child.scalePtr = arr[3];
 		}
 
 	}
