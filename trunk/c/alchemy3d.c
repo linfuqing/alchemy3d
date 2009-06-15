@@ -1,10 +1,6 @@
 #include <stdlib.h>
 #include <AS3.h>
 
-#include <gl.h>
-
-#include "Vector3D.h"
-
 //初始化场景
 //返回该对象的起始指针
 AS3_Val initializeScene( void* self, AS3_Val args )

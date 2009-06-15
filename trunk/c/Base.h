@@ -1,13 +1,13 @@
-#ifndef __BASE_H_INCLUDED__ 
-#define __BASE_H_INCLUDED__ 
+#ifndef __BASE_H_INCLUDED__
+#define __BASE_H_INCLUDED__
 
-# include < math.h >
+#include <math.h>
 
-# define TRUE      1
-# define FALSE     0
-# define PI        3.1415926
-# define TODEGREES 180 / PI
-# define TORADIANS PI / 180
+#define TRUE      1
+#define FALSE     0
+#define PI        3.1415926
+#define TODEGREES 180 / PI
+#define TORADIANS PI / 180
 
 typedef double Number;
 
