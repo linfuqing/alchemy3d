@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <AS3.h>
 
+#include "Base.h"
+#include "DisplayObject3D.h"
+
+DisplayObject3D do3d;
+
 //初始化场景
 //返回该对象的起始指针
 AS3_Val initializeScene( void* self, AS3_Val args )
@@ -29,27 +34,38 @@ AS3_Val initializeCamera( void* self, AS3_Val args )
 //返回该对象的起始指针
 AS3_Val createEntity( void* self, AS3_Val args )
 {
-	return 0;
+	 do3d = newDisplayObject3D();
+
+	return AS3_Array("PtrType, PtrType, PtrType, PtrType", &do3d, &(do3d.position), &(do3d.direction), &(do3d.scale));
 }
 
 //测试函数
 AS3_Val test( void* self, AS3_Val args )
 {
-	int l;
+	do3d_updateTransform(&do3d);
 
-	AS3_Val as3object;
-
-	AS3_ArrayValue(args, "AS3ValType, IntType", &as3object, &l);
-	
-	int i = 0;
-	for (; i < l; i ++)
-	{
-		AS3_CallTS("beginFill", as3object, "IntType, IntType", 0, 1);
-		AS3_CallTS("drawRect", as3object, "DoubleType, DoubleType, DoubleType, DoubleType", 0.0, 0.0, 100.0, 100.0);
-		AS3_CallTS("endFill", as3object, "");
-	}
-
-	AS3_Release(as3object);
+	AS3_Trace(AS3_Number(do3d.position.x));
+	AS3_Trace(AS3_Number(do3d.position.y));
+	AS3_Trace(AS3_Number(do3d.position.z));
+	AS3_Trace(AS3_Number(do3d.scale.x));
+	AS3_Trace(AS3_Number(do3d.scale.y));
+	AS3_Trace(AS3_Number(do3d.scale.z));
+	AS3_Trace(AS3_Number(do3d.transform.m11));
+	AS3_Trace(AS3_Number(do3d.transform.m12));
+	AS3_Trace(AS3_Number(do3d.transform.m13));
+	AS3_Trace(AS3_Number(do3d.transform.m14));
+	AS3_Trace(AS3_Number(do3d.transform.m21));
+	AS3_Trace(AS3_Number(do3d.transform.m22));
+	AS3_Trace(AS3_Number(do3d.transform.m23));
+	AS3_Trace(AS3_Number(do3d.transform.m24));
+	AS3_Trace(AS3_Number(do3d.transform.m31));
+	AS3_Trace(AS3_Number(do3d.transform.m32));
+	AS3_Trace(AS3_Number(do3d.transform.m33));
+	AS3_Trace(AS3_Number(do3d.transform.m34));
+	AS3_Trace(AS3_Number(do3d.transform.m41));
+	AS3_Trace(AS3_Number(do3d.transform.m42));
+	AS3_Trace(AS3_Number(do3d.transform.m43));
+	AS3_Trace(AS3_Number(do3d.transform.m44));
 
 	return 0;
 }
