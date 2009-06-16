@@ -1,5 +1,5 @@
-#ifndef __VECTOR_H_INCLUDED__ 
-#define __VECTOR_H_INCLUDED__ 
+#ifndef VECTOR_H
+#define VECTOR_H
 
 # include "Base.h"
 

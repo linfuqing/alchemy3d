@@ -1,19 +1,19 @@
+#ifndef VECTOR3D_H
+#define VECTOR3D_H
+
 
 /**************************************************************************************
  **----------------------------------------------------------------------------------**
- **                                    |Vector3D|                                    **
+ **                                 |Vector3D verson1.5|                             **
  **__________________________________________________________________________________**
  **                          include< math.h, malloc.h, Base.h >                     **
  **__________________________________________________________________________________**
  **************************************************************************************/
-#ifndef __VECTOR3D_H_INCLUDED__ 
-#define __VECTOR3D_H_INCLUDED__ 
 
-#include <math.h>
-//#include <malloc.h>
+# include<malloc.h>
 //# include<string.h>
 
-#include "Base.h"
+# include "Base.h"
 
 typedef struct
 {
@@ -50,6 +50,8 @@ Vector3D newVector3D( Number x, Number y, Number z, Number w )
 
 	return v;
 }
+
+
 
 Vector3D vector3D_add( Vector3D v1, Vector3D v2 )
 {
@@ -183,4 +185,4 @@ Vector3D vector3D_Z_AXIS()
 	return newVector3D( 0, 0, 1, 1 );
 }
 
-#endif
+# endif

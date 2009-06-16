@@ -1,16 +1,18 @@
+# ifndef MATRIX3D_H
+# define MATRIX3D_H
+
+
 /**************************************************************************************
  **----------------------------------------------------------------------------------**
- **                                    |Matrix3D|                                    **
+ **                               |Matrix3D verson 1.5|                              **
  **----------------------------------------------------------------------------------**
  **                           include< stdlib.h, Vector3D.h>                         **
  **__________________________________________________________________________________**
  **************************************************************************************/
-#ifndef __MATERIAL_H_INCLUDED__ 
-#define __MATERIAL_H_INCLUDED__ 
 
-#include <stdlib.h>
+# include < stdlib.h >
 
-#include "Vector3D.h"
+# include "Vector3D.h"
 
 typedef struct
 {
@@ -55,7 +57,6 @@ void matrix3D_identity( Matrix3D * m )
 
 	( * m ).m41 = 0; ( * m ).m42 = 0; ( * m ).m43 = 0; ( * m ).m44 = 1;
 }
-
 /**
 复制矩阵。
 **/
@@ -91,7 +92,7 @@ Number ( * matrix3D_getRawData( Matrix3D m ) )[16]
 {
 	Number ( * rawData )[16];
 
-	rawData = (Number (*)[16])calloc( 16, sizeof( Number ) );
+	rawData = calloc( 16, sizeof( Number ) );
 
 	( * rawData )[0]  = m.m11;
 	( * rawData )[1]  = m.m21;
@@ -281,7 +282,7 @@ void matrix3D_prepend( Matrix3D * thisMatrix, Matrix3D lhs )
 /**
 获取一个位移矩阵。
 **/
-Matrix3D translationMatrix3D( Number x, Number y, Number z )
+Matrix3D translationMatrix3D( x, y, z )
 {
 	Matrix3D tran;
 
@@ -841,9 +842,9 @@ Vector3D matrix3D_toQuaternion( Matrix3D m )
 		q.w = s / 2.0;
 		s   = 0.5 / s;
 				
-		q.x = ( m.m32 -  m.m23) * s;
-		q.y = ( m.m13 -  m.m31) * s;
-		q.z = ( m.m21 -  m.m12) * s;
+		q.x = ( m.m32 -  m.m23 ) * s;
+		q.y = ( m.m13 -  m.m31 ) * s;
+		q.z = ( m.m21 -  m.m12 ) * s;
 	} 
 	else 
 	{
@@ -923,6 +924,38 @@ Vector3D rotationQuaternion( Number degrees, Vector3D axis )
 	vector3D_normalize( & q );
 
 	return q;
+}
+
+/**
+后置乘法.
+**/
+void quaternion_append( Vector3D * thisVector, Vector3D lhs )
+{
+	vector3D_copy( thisVector, quaternion_multiply( * thisVector, lhs ) );
+}
+
+/**
+前置乘法.
+**/
+void quaternion_prepend( Vector3D * thisVector, Vector3D lhs )
+{
+	vector3D_copy( thisVector, quaternion_multiply( lhs, * thisVector ) );
+}
+
+/**
+后置旋转.
+**/
+void quaternion_appendRotation( Vector3D * v, Number degrees, Vector3D axis )
+{
+	quaternion_append( v, rotationQuaternion( degrees, axis ) );
+}
+
+/**
+前置旋转.
+**/
+void quaternion_prependRotation( Vector3D * v, Number degrees, Vector3D axis )
+{
+	quaternion_prepend( v, rotationQuaternion( degrees, axis ) );
 }
 
 /**
@@ -1045,4 +1078,4 @@ void matrix3D_pointTowards( Number percent, Matrix3D mat, Vector3D pos, Vector3D
 	quaternion_toMatrix3D( res, target );
 }
 
-#endif
+# endif
