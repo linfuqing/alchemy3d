@@ -10,14 +10,14 @@
 #include "Vertex.h"
 #include "Vector.h"
 
-typedef struct Node
+typedef struct POLYGON
 {
 	Vertex * vertex;
 	Vector * uv;
 
 	Vector3D * normal;
 
-	struct Node * next;
+	struct POLYGON * next;
 }Polygon;
 
 int polygon_check( Polygon * node )

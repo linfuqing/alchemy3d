@@ -145,26 +145,6 @@ int ListGet( SLNode * head, int i, DataType * x )
 	return TRUE;
 }
 
-SLNode * ListFind( SLNode * head, DataType &item )
-{   
-	if ( head == NULL )
-	{
-		return FALSE;
-	}
-	else
-	{
-		if ( item == head->data )
-		{
-			item =  head->data;
-			return head;
-		}
-		else
-		{
-			return ListFind( head->next, item );
-		}
-	}
-}
-
 void Destroy( SLNode * * head )
 {
 	SLNode * p, * p1;
