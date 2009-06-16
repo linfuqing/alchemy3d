@@ -3,32 +3,36 @@
 
 #include "DisplayObject3D.h"
 
-typedef struct Node
+typedef struct SCENE
 {
 	DisplayObject3D * do3d;
 
-	struct Node * next;
+	struct SCENE * next;
 }Scene;
 
-void scene_initiate( Scene * * head )
+Scene * scene_initiate()
 {
-	if( ( * head = ( Scene * )malloc( sizeof( Scene ) ) ) == NULL )
+	Scene * head;
+
+	if( ( head = ( Scene * )malloc( sizeof( Scene ) ) ) == NULL )
 	{
 		exit( 1 );
 	}
 
-	( * head ) -> next = NULL;
+	head->next = NULL;
+
+	return head;
 }
 
 int scene_length( Scene * head )
 {
 	Scene * p = head;
-	
+
 	int size = 0;
 
-	while( p -> next != NULL )
+	while( p->next != NULL )
 	{
-		p = p -> next;
+		p = p->next;
 
 		size ++;
 	}
@@ -36,18 +40,16 @@ int scene_length( Scene * head )
 	return size;
 }
 
-int scene_push( Scene * head, int i, DisplayObject3D * x )
+int scene_push( Scene * head, int i, DisplayObject3D * do3d )
 {
 	Scene * p, * q;
-
 	int j;
-
 	p = head;
 	j = - 1;
 
-	while( p-> next != NULL && j< i - 1 )
+	while( p->next != NULL && j < i - 1 )
 	{
-		p = p -> next;
+		p = p->next;
 		j ++;
 	}
 
@@ -63,16 +65,16 @@ int scene_push( Scene * head, int i, DisplayObject3D * x )
 		exit( 1 );
 	}
 
-	q -> do3d = x;
+	q->do3d = do3d;
 
-	q ->next = p -> next;
+	q->next = p->next;
 
-	p -> next = q;
+	p->next = q;
 
 	return TRUE;
 }
 
-int scene_pop( Scene * head, int i, DisplayObject3D * x )
+int scene_delete( Scene * head, int i, DisplayObject3D * do3d )
 {
 	Scene * p, * s;
 
@@ -82,9 +84,9 @@ int scene_pop( Scene * head, int i, DisplayObject3D * x )
 
 	j = - 1;
 
-	while( p -> next != NULL && p -> next -> next != NULL && j < i - 1 )
+	while( p->next != NULL && j < i - 1 )
 	{
-		p = p -> next;
+		p = p->next;
 
 		j ++;
 	}
@@ -92,22 +94,19 @@ int scene_pop( Scene * head, int i, DisplayObject3D * x )
 	if( j != i - 1 )
 	{
 		printf( "删除位置参数错误!" );
-
 		return FALSE;
 	}
 
-	s = p -> next;
+	s = p->next;
 
-	x = s -> do3d;
-
-	p -> next = p -> next -> next;
+	p->next = s->next;
 
 	free( s );
 
 	return TRUE;
 }
 
-int scene_get( Scene * head, int i, DisplayObject3D * x )
+int scene_get( Scene * head, int i, DisplayObject3D * do3d )
 {
 	Scene * p;
 
@@ -117,9 +116,9 @@ int scene_get( Scene * head, int i, DisplayObject3D * x )
 
 	j = - 1;
 
-	while( p -> next != NULL && j < i )
+	while( p->next != NULL && j < i )
 	{
-		p = p -> next;
+		p = p->next;
 
 		j ++;
 	}
@@ -127,45 +126,92 @@ int scene_get( Scene * head, int i, DisplayObject3D * x )
 	if( j != i )
 	{
 		printf( "取元素位置参数错!" );
-
 		return FALSE;
 	}
 
-	x = p -> do3d;
+	do3d = p->do3d;
 
 	return TRUE;
 }
 
-Scene * scene_find( Scene * head, DisplayObject3D * item )
+Scene * scene_find( Scene * head, DisplayObject3D * do3d )
 {   
 	if ( head == NULL )
 	{
-		return FALSE;
+		return NULL;
 	}
 	else
 	{
-		if ( item == head->do3d )
+		if ( do3d == head->do3d )
 		{
 			return head;
 		}
 		else
 		{
-			return scene_find( head->next, item );
+			return scene_find( head->next, do3d );
 		}
+	}
+}
+
+void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * parent)
+{
+	Scene * p, * n;
+
+	if (parent != NULL)
+	{
+		p = scene_find(head, parent);
+
+		if (p == NULL)
+		{
+			exit(1);
+		}
+	}
+	else
+	{
+		p = head;
+
+		while(p->next != NULL)
+		{
+			p = p->next;
+		}
+	}
+
+	if( ( n = ( Scene * )malloc( sizeof( Scene ) ) ) == NULL )
+	{
+		exit( 1 );
+	}
+
+	n->do3d = do3d;
+
+	n->next = p->next;
+
+	p->next = n;
+}
+
+void scene_project(Scene * head)
+{
+	Scene * p;
+
+	p = head;
+
+	while( p->next != NULL )
+	{
+		do3d_updateTransform(p->do3d);
+
+		p = p->next;
 	}
 }
 
 void scene_destroy( Scene * * head )
 {
 	Scene * p, * p1;
-
 	p = * head;
 
 	while( p != NULL )
 	{
 		p1 = p;
 
-		p = p -> next;
+		p = p->next;
 
 		free( p1 );
 	}
