@@ -1,5 +1,5 @@
-#ifndef __MATERIAL_H_INCLUDED__ 
-#define __MATERIAL_H_INCLUDED__ 
+#ifndef MATERIAL_H
+#define MATERIAL_H
 
 typedef struct
 {

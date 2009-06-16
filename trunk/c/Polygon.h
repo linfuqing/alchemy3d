@@ -1,23 +1,25 @@
-#ifndef __POLYGON_H_INCLUDED__
-#define __POLYGON_H_INCLUDED__
+#ifndef POLYGON_H
+#define POLYGON_H
 
 /**
-可查找双链堆栈结构。
+双堆栈结构。
+__________________
+verson 1.4
 **/
 
-#include <stdio.h>
+# include <stdio.h>
 
-#include "Vertex.h"
-#include "Vector.h"
+# include "Vertex.h"
+# include "Vector.h"
 
-typedef struct POLYGON
+typedef struct Polygon
 {
 	Vertex * vertex;
 	Vector * uv;
 
 	Vector3D * normal;
 
-	struct POLYGON * next;
+	struct Polygon * next;
 }Polygon;
 
 int polygon_check( Polygon * node )
@@ -27,7 +29,7 @@ int polygon_check( Polygon * node )
 
 int isPolygon( Polygon * head )
 {
-	return polygon_check( head ) && polygon_check( head -> next ) && polygon_check( head -> next -> next );
+	return polygon_check( head -> next ) && polygon_check( head -> next -> next ) && polygon_check( head -> next -> next -> next );
 }
 
 Vector3D polygon_normal( Vertex * v1, Vertex * v2, Vertex * v3 )
@@ -53,36 +55,39 @@ Vector3D polygon_normal( Vertex * v1, Vertex * v2, Vertex * v3 )
 	return nor;
 }
 
-Vector3D buildPolygon( Polygon * * head )
+Vector3D buildPolygon( Polygon * head )
 {
-	Polygon * p = * head;
+	Polygon * p;
 
-	if( !isPolygon( * head ) )
+	if( !isPolygon( head ) )
 	{
-		exit( 0 );
+		exit( FALSE );
 	}
 
-	if( ( ( * head ) -> normal = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
+	if( ( head -> normal = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
 	{
-		exit( 0 );
+		exit( TRUE );
 	}
 
-	* ( ( * head ) -> normal ) = polygon_normal( ( * head ) -> vertex, ( * head ) -> next -> vertex, ( * head ) -> next -> next -> vertex );
+	* ( head -> normal ) = polygon_normal( head -> vertex, head -> next -> vertex, head -> next -> next -> vertex );
 
-	while( p -> next != NULL )
+	p = head -> next;
+
+	while( p != NULL )
 	{
-		p -> normal = ( * head ) -> normal;
+		p -> normal = head -> normal;
+
 		p = p -> next;
 	}
 
-	return * ( ( * head ) -> normal );
+	return * ( head -> normal );
 }
 
 void polygon_initiate( Polygon * * head )
 {
 	if( ( * head = ( Polygon * )malloc( sizeof( Polygon ) ) ) == NULL )
 	{
-		exit( 1 );
+		exit( TRUE );
 	}
 
 	( * head ) -> next = NULL;
@@ -109,7 +114,11 @@ int polygon_push( Polygon * head, Vertex * vertex, Vector * uv )
 {
 	Polygon * p, * q;
 
-	Vector3D normal;
+	if( !vertex_check( vertex ) )
+	{
+		printf( "顶点未初始化!" );
+		return FALSE;
+	}
 
 	p = head;
 
@@ -120,9 +129,7 @@ int polygon_push( Polygon * head, Vertex * vertex, Vector * uv )
 			p = p -> next;
 		}
 
-		normal = head -> normal ? (  * ( head -> normal ) ) : buildPolygon( & head );
-
-		if( vector3D_equals( normal, polygon_normal( p -> vertex, p -> next -> vertex, vertex ),FALSE ) )
+		if( vector3D_equals( head -> normal ? (  * ( head -> normal ) ) : buildPolygon( head ), polygon_normal( p -> vertex, p -> next -> vertex, vertex ),FALSE ) )
 		{
 			p = p -> next;
 		}
@@ -142,26 +149,66 @@ int polygon_push( Polygon * head, Vertex * vertex, Vector * uv )
 
 	if( ( q = ( Polygon * )malloc( sizeof( Polygon ) ) ) == NULL )
 	{
-		exit( 1 );
+		exit( TRUE );
 	}
 
 	q -> vertex = vertex;
 	q -> uv     = uv;
 
-	q -> next = p -> next;
+	q -> normal = head -> normal;
 
-	p -> next = q;
+	q -> next   = NULL;
+
+	p -> next   = q;
 
 	return TRUE;
 }
 
-void polygon_pop( Polygon * head, Vertex * vertex, Vector * uv )
+int polygon_unshift( Polygon * head, Vertex * vertex, Vector * uv )
+{
+	Polygon * p;
+
+	if( !vertex_check( vertex ) )
+	{
+		printf( "顶点未初始化!" );
+		return FALSE;
+	}
+
+	if( isPolygon( head ) && vector3D_equals( head -> normal ? (  * ( head -> normal ) ) : buildPolygon( head ), polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, vertex ),FALSE ) )
+	{
+		printf( "法向量不对，无法插入!" );
+		return FALSE;
+	}
+
+	if( ( p = ( Polygon * )malloc( sizeof( Polygon ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	p -> vertex = vertex;
+	p -> uv     = uv;
+
+	p -> normal = head -> normal;
+	p -> next   = head -> next;
+
+	head -> next = p;
+
+	return TRUE;
+}
+
+int polygon_pop( Polygon * head, Vertex * * vertex, Vector * * uv )
 {
 	Polygon * p, * s;
 
+	if( head -> next == NULL )
+	{
+		printf( "无元素可出栈!" );
+		return FALSE;
+	}
+
 	p = head;
 
-	while( p -> next != NULL && p -> next -> next != NULL )
+	while( p -> next -> next != NULL )
 	{
 		p = p -> next;
 	}
@@ -170,45 +217,44 @@ void polygon_pop( Polygon * head, Vertex * vertex, Vector * uv )
 
 	if( vertex )
 	{
-		vertex = s -> vertex;
+		* vertex = s -> vertex;
 	}
 
 	if( uv )
 	{
-		uv     = s -> uv;
+		* uv     = s -> uv;
 	}
 
-	p -> next = p -> next -> next;
+	p -> next = NULL;
 
 	free( s );
+
+	return TRUE;
 }
 
-int polygon_get( Polygon * head, int i, Vertex * vertex, Vector * uv )
+int polygon_shift( Polygon * head, Vertex * * vertex, Vector * * uv )
 {
-	Polygon * p;
+	Polygon * s;
 
-	int j;
-
-	p = head;
-
-	j = - 1;
-
-	while( p -> next != NULL && j < i )
+	if( ( s = head -> next ) == NULL )
 	{
-		p = p -> next;
-
-		j ++;
-	}
-
-	if( j != i )
-	{
-		printf( "取元素位置参数错!" );
-
+		printf( "无元素可出栈!" );
 		return FALSE;
 	}
 
-	vertex = p -> vertex;
-	uv     = p -> uv;
+	if( vertex )
+	{
+		* vertex = s -> vertex;
+	}
+
+	if( uv )
+	{
+		* uv     = s -> uv;
+	}
+
+	head -> next = head -> next -> next;
+
+	free( s );
 
 	return TRUE;
 }
@@ -241,16 +287,16 @@ Polygon * newTriangle3D( Vertex * va, Vertex * vb, Vertex * vc, Vector *uva, Vec
 	polygon_push( p, vb, uvb );
 	polygon_push( p, vc, uvc );
 
+	buildPolygon( p );
+
 	return p;
 }
 
 void polygon_order( Polygon * head, void visit( Vertex vertex, Vector uv ) )
 {
-	Polygon * p;
+	Polygon * p = head -> next;
 
-	p = head;
-
-	while( p -> next != NULL )
+	while( p != NULL )
 	{
 		visit( * ( p -> vertex ), * ( p -> uv ) );
 

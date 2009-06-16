@@ -1,5 +1,6 @@
-#ifndef __VERTEX_H_INCLUDED__ 
-#define __VERTEX_H_INCLUDED__ 
+# ifndef VERTEX_H
+# define VERTEX_H
+
 
 # include < malloc.h >
 # include < stdlib.h >
@@ -37,4 +38,4 @@ void transformVertex( Matrix3D m, Vertex * v )
 	matrix3D_transformVector( m, v -> worldPosition );
 }
 
-#endif
+# endif
