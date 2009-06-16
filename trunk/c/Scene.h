@@ -1,6 +1,8 @@
 #ifndef __SCENE_H_INCLUDED__ 
 #define __SCENE_H_INCLUDED__ 
 
+#include <string.h> 
+
 #include "DisplayObject3D.h"
 
 typedef struct SCENE
@@ -156,6 +158,7 @@ Scene * scene_find( Scene * head, DisplayObject3D * do3d )
 void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * parent)
 {
 	Scene * p, * n;
+	DisplayObject3D * ptr;
 
 	if (parent != NULL)
 	{
@@ -181,7 +184,19 @@ void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * pare
 		exit( 1 );
 	}
 
-	n->do3d = do3d;
+	if( ( n->do3d = ( DisplayObject3D * )malloc( sizeof( DisplayObject3D ) ) ) == NULL )
+	{
+		exit( 1 );
+	}
+
+	ptr = memcpy( n->do3d, do3d, sizeof( DisplayObject3D ) ); 
+	
+	if( ptr == NULL )
+	{
+		exit( 1 );
+	}
+
+	do3d = ptr;
 
 	n->next = p->next;
 
