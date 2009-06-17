@@ -1,6 +1,8 @@
 #ifndef __VIEWPORT_H
 #define __VIEWPORT_H
 
+#include <malloc.h>
+
 #include "DisplayObject3D.h"
 #include "Scene.h"
 
@@ -10,10 +12,25 @@ typedef struct Viewport
 	struct DisplayObject3D * camera;
 }Viewport;
 
+Viewport * newViewport(Scene * scene, DisplayObject3D * camera)
+{
+	Viewport * view;
+
+	if( (view = ( Viewport * )malloc( sizeof( Viewport ) ) ) == NULL)
+	{
+		exit( 1 );
+	}
+
+	view->camera = camera;
+	view->scene = scene;
+
+	return view;
+}
+
 void viewport_render(Viewport * viewport)
 {
 	Scene * scene, * p;
-	Matrix3D * cloned;
+
 	DisplayObject3D * camera, * do3d;
 
 	scene = viewport->scene;
@@ -34,6 +51,10 @@ void viewport_render(Viewport * viewport)
 		{
 			matrix3D_apprend(do3d->world, * (do3d->parent->world));
 			matrix3D_apprend(do3d->view, * (do3d->parent->view));
+		}
+		else
+		{
+			matrix3D_apprend(do3d->view, * (camera->view));
 		}
 
 		p = p->next;

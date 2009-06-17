@@ -9,9 +9,9 @@
 
 typedef struct DisplayObject3D
 {
-	Vector3D position;
-	Vector3D direction;
-	Vector3D scale;
+	Vector3D * position;
+	Vector3D * direction;
+	Vector3D * scale;
 
 	Matrix3D * transform;
 	Matrix3D * world;
@@ -40,6 +40,8 @@ DisplayObject3D * newDisplayObject3D()
 	do3d->world = newMatrix3D(&worldData);
 	do3d->view = newMatrix3D(&viewData);
 
+	do3d->parent = NULL;
+
 	return do3d;
 }
 
@@ -48,14 +50,14 @@ void do3d_updateTransform(DisplayObject3D * do3d)
 	Quaternion * qua;
 	Matrix3D * mtr;
 
-	matrix3D_apprendScale(do3d->transform, do3d->scale.x, do3d->scale.y, do3d->scale.z);
+	matrix3D_apprendScale(do3d->transform, do3d->scale->x, do3d->scale->y, do3d->scale->z);
 
-	qua = quaternoin_setFromEuler(do3d->direction.y * TORADIANS, do3d->direction.x * TORADIANS, do3d->direction.z * TORADIANS);
+	qua = quaternoin_setFromEuler(do3d->direction->y * TORADIANS, do3d->direction->x * TORADIANS, do3d->direction->z * TORADIANS);
 	mtr = quaternoin_getMatrix(qua);
 
 	matrix3D_apprend(do3d->transform, * mtr);
 
-	matrix3D_apprendTranslation(do3d->transform, do3d->position.x, do3d->position.y, do3d->position.z);
+	matrix3D_apprendTranslation(do3d->transform, do3d->position->x, do3d->position->y, do3d->position->z);
 
 	do3d->world = matrix3D_clone(do3d->transform);
 

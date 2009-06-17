@@ -303,7 +303,7 @@ void matrix3D_prepend( Matrix3D * thisMatrix, Matrix3D lhs )
 /**
 获取一个位移矩阵。
 **/
-Matrix3D translationMatrix3D( x, y, z )
+Matrix3D translationMatrix3D( Number x, Number y, Number z )
 {
 	Matrix3D tran;
 
