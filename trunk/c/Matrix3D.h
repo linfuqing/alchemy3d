@@ -10,7 +10,7 @@
  **__________________________________________________________________________________**
  **************************************************************************************/
 
-# include < stdlib.h >
+# include <stdlib.h>
 
 # include "Vector3D.h"
 
@@ -159,11 +159,16 @@ void matrix3D_setRawData( Matrix3D * m, Number ( * rawData )[16] )
 恒等矩阵的 rawData 属性的值为 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1。
 恒等矩阵的位置或平移值为 Vector3D(0,0,0)，旋转设置为 Vector3D(0,0,0)，缩放值为 Vector3D(1,1,1)。
 **/
-Matrix3D newMatrix3D( Number ( * rawData )[16] )
+Matrix3D * newMatrix3D( Number ( * rawData )[16] )
 {
-	Matrix3D m;
+	Matrix3D * m;
 
-	matrix3D_setRawData( & m, rawData );
+	if( ( m = ( Matrix3D * )malloc( sizeof( Matrix3D ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	matrix3D_setRawData( m, rawData );
 
 	return m;
 }
@@ -171,7 +176,7 @@ Matrix3D newMatrix3D( Number ( * rawData )[16] )
 /**
 返回一个新 Matrix3D 对象，它是与当前 Matrix3D 对象完全相同的副本。
 **/
-Matrix3D matrix3D_clone( Matrix3D m )
+Matrix3D * matrix3D_clone( Matrix3D m )
 {
 	return newMatrix3D( matrix3D_getRawData( m ) );
 }
@@ -516,19 +521,16 @@ void matrix3D_prependScale( Matrix3D * m, Number xScale, Number yScale, Number z
 返回的 Vector3D 对象将容纳转换后的新坐标。
 将对 Vector3D 对象中应用所有矩阵转换（包括平移）。 
 **/
-void matrix3D_transformVector( Matrix3D m, Vector3D * v )
+Vector3D matrix3D_transformVector( Matrix3D m, Vector3D v )
 {
-	Number x,y,z,w;
+	Vector3D tran;
 
-	x = m.m11 * ( * v ).x + m.m12 * ( * v ).y + m.m13 * ( * v ).z + m.m14 * ( * v ).w;
-	y = m.m21 * ( * v ).x + m.m22 * ( * v ).y + m.m23 * ( * v ).z + m.m24 * ( * v ).w;
-	z = m.m31 * ( * v ).x + m.m32 * ( * v ).y + m.m33 * ( * v ).z + m.m34 * ( * v ).w;
-	w = m.m41 * ( * v ).x + m.m42 * ( * v ).y + m.m43 * ( * v ).z + m.m44 * ( * v ).w;
+	tran.x = m.m11 * v.x + m.m12 * v.y + m.m13 * v.z + m.m14 * v.w;
+	tran.y = m.m21 * v.x + m.m22 * v.y + m.m23 * v.z + m.m24 * v.w;
+	tran.z = m.m31 * v.x + m.m32 * v.y + m.m33 * v.z + m.m34 * v.w;
+	tran.w = m.m41 * v.x + m.m42 * v.y + m.m43 * v.z + m.m44 * v.w;
 
-	( * v ).x = x;
-	( * v ).y = y;
-	( * v ).z = z;
-	( * v ).w = w;
+	return tran;
 }
 
 /**
@@ -666,9 +668,9 @@ void matrix3D_decompose( Matrix3D m, Vector3D * position, Vector3D * scale, Vect
 {
 	Matrix3D t;
 
-	Vector3D i = newVector3D( m.m11, m.m21, m.m31, 1 );
-	Vector3D j = newVector3D( m.m12, m.m22, m.m32, 1 );
-	Vector3D k = newVector3D( m.m13, m.m23, m.m33, 1 );
+	Vector3D i = * newVector3D( m.m11, m.m21, m.m31, 1 );
+	Vector3D j = * newVector3D( m.m12, m.m22, m.m32, 1 );
+	Vector3D k = * newVector3D( m.m13, m.m23, m.m33, 1 );
 
 	if( position )
 	{
@@ -807,15 +809,19 @@ void matrix3D_pointAt( Matrix3D * m, Vector3D pos, Vector3D at, Vector3D up )
 projectVector() 方法与 transformVector() 方法类似，只不过 projectVector() 方法将按照投影深度值来划分原始 Vector3D 对象的 x、y 和 z 元素。
 深度值是指视图或视角空间中从视点到 Vector3D 对象的距离。此距离的默认值为 z 元素的值。 
 **/
-void matrix3D_projectVector( Matrix3D m, Vector3D * v )
+Vector3D matrix3D_projectVector( Matrix3D m, Vector3D v )
 {
-	Number c = 1.0 / ( ( * v ).x * m.m41 + ( * v ).y * m.m42 + ( * v ).z * m.m43 + 1 );
+	Vector3D pro;
 
-	matrix3D_transformVector( m, v );
+	Number z = 1.0 / ( v.x * m.m41 + v.y * m.m42 + v.z * m.m43 + 1 );
 
-	( * v ).x = ( * v ).x * c;
-	( * v ).y = ( * v ).y * c;
-	( * v ).z = 0;
+	pro = matrix3D_transformVector( m, v );
+
+	pro.x = pro.x * z;
+	pro.y = pro.y * z;
+	pro.z = z;
+
+	return pro;
 }
 
 
@@ -931,7 +937,7 @@ Vector3D rotationQuaternion( Number degrees, Vector3D axis )
 **/
 void quaternion_append( Vector3D * thisVector, Vector3D lhs )
 {
-	vector3D_copy( thisVector, quaternion_multiply( * thisVector, lhs ) );
+	* thisVector = quaternion_multiply( * thisVector, lhs );
 }
 
 /**
@@ -939,7 +945,7 @@ void quaternion_append( Vector3D * thisVector, Vector3D lhs )
 **/
 void quaternion_prepend( Vector3D * thisVector, Vector3D lhs )
 {
-	vector3D_copy( thisVector, quaternion_multiply( lhs, * thisVector ) );
+	* thisVector = quaternion_multiply( lhs, * thisVector );
 }
 
 /**
@@ -963,7 +969,7 @@ void quaternion_prependRotation( Vector3D * v, Number degrees, Vector3D axis )
 **/
 void quaternion_slerp( Vector3D from, Vector3D to, Vector3D * res, Number t )
 {
-	Vector3D tol = newVector3D( from.x, from.y, from.z, from.w );
+	Vector3D tol = * newVector3D( from.x, from.y, from.z, from.w );
 	Number cosom  = vector3D_dotProduct( from, to ), omega, sinom, scale0, scale1;
 
 	if (cosom < 0.0)
@@ -995,8 +1001,10 @@ void quaternion_slerp( Vector3D from, Vector3D to, Vector3D * res, Number t )
 /**
 四元数转成矩阵。
 **/
-void quaternion_toMatrix3D( Vector3D q, Matrix3D * m )
+Matrix3D quaternion_toMatrix3D( Vector3D q )
 {
+	Matrix3D m;
+
 	Number xx = q.x * q.x;
 	Number xy = q.x * q.y;
 	Number xz = q.x * q.z;
@@ -1009,17 +1017,27 @@ void quaternion_toMatrix3D( Vector3D q, Matrix3D * m )
 	Number zz = q.z * q.z;
 	Number zw = q.z * q.w;
 		
-	( * m ).m11 = 1 - 2 * ( yy + zz );
-	( * m ).m12 =     2 * ( xy - zw );
-	( * m ).m13 =     2 * ( xz + yw );
+	m.m11 = 1 - 2 * ( yy + zz );
+	m.m12 =     2 * ( xy - zw );
+	m.m13 =     2 * ( xz + yw );
+	m.m14 = 0;
 
-	( * m ).m21 =     2 * ( xy + zw );
-	( * m ).m22 = 1 - 2 * ( xx + zz );
-	( * m ).m23 =     2 * ( yz - xw );
+	m.m21 =     2 * ( xy + zw );
+	m.m22 = 1 - 2 * ( xx + zz );
+	m.m23 =     2 * ( yz - xw );
+	m.m24 = 0;
 
-	( * m ).m31 =     2 * ( xz - yw );
-	( * m ).m32 =     2 * ( yz + xw );
-	( * m ).m33 = 1 - 2 * ( xx + yy );
+	m.m31 =     2 * ( xz - yw );
+	m.m32 =     2 * ( yz + xw );
+	m.m33 = 1 - 2 * ( xx + yy );
+	m.m34 = 0;
+
+	m.m41 = 0;
+	m.m42 = 0;
+	m.m43 = 0;
+	m.m44 = 1;
+
+	return m;
 }
 
 /**************************************************************************************
@@ -1049,7 +1067,7 @@ void matrix3D_interpolate( Matrix3D thisMat, Matrix3D toMat, Number percent, Mat
 
 	quaternion_slerp( matrix3D_toQuaternion( thisMat ), matrix3D_toQuaternion( toMat ), &res, percent );
 
-	quaternion_toMatrix3D( res, target );
+	* target = quaternion_toMatrix3D( res );
 
 	quaternion_slerp( matrix3D_getPosition( thisMat ), matrix3D_getPosition( toMat ), & res, percent );
 
@@ -1075,7 +1093,9 @@ void matrix3D_pointTowards( Number percent, Matrix3D mat, Vector3D pos, Vector3D
 
 	quaternion_slerp( matrix3D_toQuaternion( mat ), matrix3D_toQuaternion( m ), &res, percent );
 
-	quaternion_toMatrix3D( res, target );
+	* target = quaternion_toMatrix3D( res );
+
+	matrix3D_setPosition( target, pos );
 }
 
 # endif

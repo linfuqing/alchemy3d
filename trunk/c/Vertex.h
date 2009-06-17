@@ -2,8 +2,8 @@
 # define VERTEX_H
 
 
-# include < malloc.h >
-# include < stdlib.h >
+# include <malloc.h>
+# include <stdlib.h>
 
 # include "Matrix3D.h"
 
@@ -13,15 +13,23 @@ typedef struct
 	Vector3D * worldPosition;
 }Vertex;
 
-Vertex newVertex( Vector3D * position )
+Vertex * newVertex( Vector3D * position )
 {
-	Vertex v;
+	Vertex * v;
 
-	v.position = position;
-	if( ( v.worldPosition = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
+	if( ( v = ( Vertex * )malloc( sizeof( Vector3D ) ) ) == NULL )
 	{
-		exit( 0 );
+		exit( TRUE );
 	}
+
+	v -> position = position;
+
+	if( ( v -> worldPosition = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	* ( v -> worldPosition ) = * ( v -> position );
 
 	return v;
 }
@@ -33,9 +41,7 @@ int vertex_check( Vertex * v )
 
 void transformVertex( Matrix3D m, Vertex * v )
 {
-	vector3D_copy( v -> worldPosition, * ( v -> position ) );
-
-	matrix3D_transformVector( m, v -> worldPosition );
+	* ( v -> worldPosition ) = matrix3D_transformVector( m, * ( v -> position ) );
 }
 
 # endif

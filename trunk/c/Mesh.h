@@ -10,7 +10,7 @@ typedef struct
 	Vertices * vertices;
 }Mesh;
 
-Mesh newMesh( * faces, * vertices )
+Mesh newMesh( Faces * faces, Vertices * vertices )
 {
 	Mesh m;
 

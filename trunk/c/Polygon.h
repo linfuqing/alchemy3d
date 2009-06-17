@@ -32,6 +32,11 @@ int isPolygon( Polygon * head )
 	return polygon_check( head -> next ) && polygon_check( head -> next -> next ) && polygon_check( head -> next -> next -> next );
 }
 
+int polygon_isTriangle( Polygon * head )
+{
+	return isPolygon( head ) && ( head -> next -> next -> next -> next == NULL );
+}
+
 Vector3D polygon_normal( Vertex * v1, Vertex * v2, Vertex * v3 )
 {	
 	Vector3D * a, * b, * c, ca, bc,nor;
