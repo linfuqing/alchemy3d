@@ -39,19 +39,22 @@ Number vector3D_length( Vector3D v )
 	return sqrt( vector3D_lengthSquared( v ) );
 }
 
-Vector3D newVector3D( Number x, Number y, Number z, Number w )
+Vector3D * newVector3D( Number x, Number y, Number z, Number w )
 {
-	Vector3D v;
+	Vector3D * v;
 
-	v.x = x;
-	v.y = y;
-	v.z = z;
-	v.w = w;
+	if( ( v = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	v -> x = x;
+	v -> y = y;
+	v -> z = z;
+	v -> w = w;
 
 	return v;
 }
-
-
 
 Vector3D vector3D_add( Vector3D v1, Vector3D v2 )
 {
@@ -75,22 +78,22 @@ Vector3D vector3D_subtract( Vector3D v1, Vector3D v2 )
 	return v;
 }
 
-Vector3D vector3D_clone( Vector3D v )
+Vector3D * vector3D_clone( Vector3D v )
 {
 	return newVector3D( v.x, v.y, v.z, v.w );
 }
 
-void vector3D_copy( Vector3D * v, Vector3D c )
+/*void vector3D_copy( Vector3D * v, Vector3D c )
 {
 	( * v ).x = c.x;
 	( * v ).y = c.y;
 	( * v ).z = c.z;
 	( * v ).w = c.w;
-}
+}*/
 
 Vector3D vector3D_crossProduct( Vector3D v1, Vector3D v2 )
 {
-	return newVector3D( v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x, 1 );
+	return * newVector3D( v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x, 1 );
 }
 
 Number vector3D_distance( Vector3D v1, Vector3D v2 )
@@ -172,17 +175,17 @@ void vector3D_scaleBy( Vector3D * v, Number value )
 
 Vector3D vector3D_X_AXIS()
 {
-	return newVector3D( 1, 0, 0, 1 );
+	return * newVector3D( 1, 0, 0, 1 );
 }
 
 Vector3D vector3D_Y_AXIS()
 {
-	return newVector3D( 0, 1, 0, 1 );
+	return * newVector3D( 0, 1, 0, 1 );
 }
 
 Vector3D vector3D_Z_AXIS()
 {
-	return newVector3D( 0, 0, 1, 1 );
+	return * newVector3D( 0, 0, 1, 1 );
 }
 
 # endif

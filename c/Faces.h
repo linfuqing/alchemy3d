@@ -14,12 +14,12 @@ typedef struct Faces
 
 void faces_initiate( Faces * * head )
 {
-	if( ( ( * head ) = ( * Faces )malloc( sizeof( Faces ) ) ) == NULL )
+	if( ( ( * head ) = ( Faces * )malloc( sizeof( Faces ) ) ) == NULL )
 	{
 		exit( 0 );
 	}
 
-	( * head ) -> next = null;
+	( * head ) -> next = NULL;
 }
 
 int faces_push( Faces * head, Polygon * face )
@@ -39,7 +39,7 @@ int faces_push( Faces * head, Polygon * face )
 		p = p -> next;
 	}
 
-	if( ( q = ( * Faces )malloc( sizeof( Faces ) ) ) == NULL )
+	if( ( q = ( Faces * )malloc( sizeof( Faces ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}

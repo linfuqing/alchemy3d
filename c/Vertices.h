@@ -59,7 +59,7 @@ int vertices_push( Vertices * head, Vertex * vertex )
 		p = p -> next;
 	}
 
-	if( q = ( Vertices * ) malloc( sizeof( Vertices ) ) ) == NULL )
+	if( ( q = ( Vertices * ) malloc( sizeof( Vertices ) ) ) == NULL )
 	{
 		exit( 0 );
 	}
@@ -113,6 +113,30 @@ void vertices_destroy( Vertices * * head )
 	}
 
 	* head = NULL;
+}
+
+void vertices_order( Vertices * head, void visit( Vertex * vertex ) )
+{
+	Vertices * p = head -> next;
+
+	while( p != NULL )
+	{
+		visit(  p -> vertex );
+
+		p = p -> next;
+	}
+}
+
+void transfromVertices( Matrix3D m, Vertices * head )
+{
+	Vertices * p = head -> next;
+
+	while( p != NULL )
+	{
+		transformVertex( m, p -> vertex );
+
+		p = p -> next;
+	}
 }
 
 # endif
