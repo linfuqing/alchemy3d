@@ -1,64 +1,54 @@
 #include <malloc.h>
 
-//#include "DisplayObject3D.h"
-//#include "Scene.h"
 #include "Base.h"
-#include "Matrix3D.h"
+#include "DisplayObject3D.h"
+#include "Scene.h"
+#include "Viewport.h"
 
-Matrix3D * test()
-{
-	Matrix3D * newM;
-
-	Number transformData[16] = {4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-
-	newM = newMatrix3D(&transformData);
-
-	return newM;
-}
 
 int main()
 {
-	Matrix3D * m;
-
-	Number transformData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-
-	m = newMatrix3D(&transformData);
-
-	m = test(m);
-
-	/*DisplayObject3D * do3d1;
+	DisplayObject3D * do3d1;
 	DisplayObject3D * do3d2;
 	DisplayObject3D * do3d3;
 	DisplayObject3D * do3d4;
 	DisplayObject3D * do3d5;
-
+	DisplayObject3D * camera;
+	Viewport * view;
 	Scene * scene;
+
+	camera = newDisplayObject3D();
+	camera->position->z = -1000;
 	
-	scene = scene_initiate();
+	scene = newScene();
+
+	view = newViewport(scene, camera);
 
 	do3d1 = newDisplayObject3D();
-	do3d1->position.x = 1;
+	do3d1->position->x = 1;
 	scene_addChild(scene, do3d1, NULL);
 
 	do3d2 = newDisplayObject3D();
-	do3d2->position.x = 2;
+	do3d2->position->x = 2;
 	scene_addChild(scene, do3d2, NULL);
 
 	do3d3 = newDisplayObject3D();
-	do3d3->position.x = 3;
+	do3d3->position->x = 3;
 	scene_addChild(scene, do3d3, do3d1);
 
 	do3d4 = newDisplayObject3D();
-	do3d4->position.x = 4;
+	do3d4->position->x = 4;
 	scene_addChild(scene, do3d4, NULL);
 
 	do3d5 = newDisplayObject3D();
-	do3d5->position.x = 5;
-	scene_addChild(scene, do3d5, do3d2);*/
+	do3d5->position->x = 5;
+	scene_addChild(scene, do3d5, do3d2);
 
 	//scene_project(scene);
 
 	//printf("%f", do3d.transform.m14);
+
+	viewport_render(view);
 
 	return 0;
 }

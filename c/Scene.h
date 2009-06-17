@@ -10,7 +10,7 @@ typedef struct Scene
 	struct Scene * next;
 }Scene;
 
-Scene * scene_initiate()
+Scene * newScene()
 {
 	Scene * head;
 
