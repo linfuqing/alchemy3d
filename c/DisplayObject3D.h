@@ -56,6 +56,10 @@ void do3d_updateTransform(DisplayObject3D * do3d)
 	matrix3D_apprend(do3d->transform, * mtr);
 
 	matrix3D_apprendTranslation(do3d->transform, do3d->position.x, do3d->position.y, do3d->position.z);
+
+	do3d->world = matrix3D_clone(do3d->transform);
+
+	do3d->view = matrix3D_clone(do3d->transform);
 }
 
 void do3d_project(DisplayObject3D * do3d)
