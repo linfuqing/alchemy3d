@@ -1,5 +1,5 @@
-#ifndef __QUATERNION_H_INCLUDED__
-#define __QUATERNION_H_INCLUDED__
+#ifndef __QUATERNION_H
+#define __QUATERNION_H
 
 #include <stdio.h>
 

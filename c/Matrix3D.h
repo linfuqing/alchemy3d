@@ -10,9 +10,11 @@
  **__________________________________________________________________________________**
  **************************************************************************************/
 
-# include <stdlib.h>
 
-# include "Vector3D.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include "Vector3D.h"
 
 typedef struct
 {
@@ -49,13 +51,13 @@ typedef struct
 **/
 void matrix3D_identity( Matrix3D * m )
 {
-	( * m ).m11 = 1; ( * m ).m12 = 0; ( * m ).m13 = 0; ( * m ).m14 = 0;
+	( * m ).m11 = 1.0; ( * m ).m12 = 0.0; ( * m ).m13 = 0.0; ( * m ).m14 = 0.0;
 
-	( * m ).m21 = 0; ( * m ).m22 = 1; ( * m ).m23 = 0; ( * m ).m24 = 0;
+	( * m ).m21 = 0.0; ( * m ).m22 = 1.0; ( * m ).m23 = 0.0; ( * m ).m24 = 0.0;
 
-	( * m ).m31 = 0; ( * m ).m32 = 0; ( * m ).m33 = 1; ( * m ).m34 = 0;
+	( * m ).m31 = 0.0; ( * m ).m32 = 0.0; ( * m ).m33 = 1.0; ( * m ).m34 = 0.0;
 
-	( * m ).m41 = 0; ( * m ).m42 = 0; ( * m ).m43 = 0; ( * m ).m44 = 1;
+	( * m ).m41 = 0.0; ( * m ).m42 = 0.0; ( * m ).m43 = 0.0; ( * m ).m44 = 1.0;
 }
 /**
 复制矩阵。
@@ -176,9 +178,23 @@ Matrix3D * newMatrix3D( Number ( * rawData )[16] )
 /**
 返回一个新 Matrix3D 对象，它是与当前 Matrix3D 对象完全相同的副本。
 **/
-Matrix3D * matrix3D_clone( Matrix3D m )
+Matrix3D * matrix3D_clone( Matrix3D * src )
 {
-	return newMatrix3D( matrix3D_getRawData( m ) );
+	Matrix3D  * m, * ptr;
+
+	if( ( m = ( Matrix3D * )malloc( sizeof( Matrix3D ) ) ) == NULL )
+	{
+		exit( 1 );
+	}
+
+	ptr = memcpy( m, src, sizeof( Matrix3D ) ); 
+	
+	if( ptr == NULL )
+	{
+		exit( 1 );
+	}
+
+	return m;
 }
 
 /**
@@ -291,13 +307,13 @@ Matrix3D translationMatrix3D( x, y, z )
 {
 	Matrix3D tran;
 
-	tran.m11 = 1; tran.m12 = 0; tran.m13 = 0; tran.m14 = x;
+	tran.m11 = 1.0; tran.m12 = 0.0; tran.m13 = 0.0; tran.m14 = x;
 
-	tran.m21 = 0; tran.m22 = 1; tran.m23 = 0; tran.m24 = y;
+	tran.m21 = 0.0; tran.m22 = 1.0; tran.m23 = 0.0; tran.m24 = y;
 
-	tran.m31 = 0; tran.m32 = 0; tran.m33 = 1; tran.m34 = z;
+	tran.m31 = 0.0; tran.m32 = 0.0; tran.m33 = 1.0; tran.m34 = z;
 
-	tran.m41 = 0; tran.m42 = 0; tran.m43 = 0; tran.m44 = 1;
+	tran.m41 = 0.0; tran.m42 = 0.0; tran.m43 = 0.0; tran.m44 = 1.0;
 
 	return tran;
 }
@@ -379,21 +395,21 @@ Matrix3D rotationMatrix3D(  Number degrees, Vector3D axis )
 	rot.m11 = c + xx_c;
 	rot.m12 = xy_c - zs;
 	rot.m13 = xz_c + ys;
-	rot.m14 = 0;
+	rot.m14 = 0.0;
 
 	rot.m21 = xy_c + zs;
 	rot.m22 = c + yy_c;
 	rot.m23 = yz_c - xs;
-	rot.m24 = 0;
+	rot.m24 = 0.0;
 
 	rot.m31 = xz_c - ys;
 	rot.m32 = yz_c + xs;
 	rot.m33 = c + zz_c;
-	rot.m34 = 0;
+	rot.m34 = 0.0;
 
-	rot.m41 = 0;
-	rot.m42 = 0;
-	rot.m43 = 0;
+	rot.m41 = 0.0;
+	rot.m42 = 0.0;
+	rot.m43 = 0.0;
 	rot.m44 = 1.0;
 
 	return rot;
@@ -448,24 +464,24 @@ Matrix3D scaleMatrix3D( Number xScale, Number yScale, Number zScale )
 	Matrix3D sca;
 	
 	sca.m11 = xScale;
-	sca.m12 = 0;
-	sca.m13 = 0;
-	sca.m14 = 0;
+	sca.m12 = 0.0;
+	sca.m13 = 0.0;
+	sca.m14 = 0.0;
 
-	sca.m21 = 0;
+	sca.m21 = 0.0;
 	sca.m22 = yScale;
-	sca.m23 = 0;
-	sca.m24 = 0;
+	sca.m23 = 0.0;
+	sca.m24 = 0.0;
 
-	sca.m31 = 0;
-	sca.m32 = 0;
+	sca.m31 = 0.0;
+	sca.m32 = 0.0;
 	sca.m33 = zScale;
-	sca.m34 = 0;
+	sca.m34 = 0.0;
 
-	sca.m41 = 0;
-	sca.m42 = 0;
-	sca.m43 = 0;
-	sca.m44 = 1;
+	sca.m41 = 0.0;
+	sca.m42 = 0.0;
+	sca.m43 = 0.0;
+	sca.m44 = 1.0;
 
 	return sca;
 }
@@ -545,14 +561,14 @@ transpose() 方法会将当前矩阵替换为转置矩阵。
 **/
 void matrix3D_transpose( Matrix3D * m )
 {
-	( * m ).m12 = ( * m ).m21 + ( ( * m ).m21 = ( * m ).m12 ) * 0;
-	( * m ).m13 = ( * m ).m31 + ( ( * m ).m31 = ( * m ).m13 ) * 0;
-	( * m ).m14 = ( * m ).m41 + ( ( * m ).m41 = ( * m ).m14 ) * 0;
+	( * m ).m12 = ( * m ).m21 + ( ( * m ).m21 = ( * m ).m12 ) * 0.0;
+	( * m ).m13 = ( * m ).m31 + ( ( * m ).m31 = ( * m ).m13 ) * 0.0;
+	( * m ).m14 = ( * m ).m41 + ( ( * m ).m41 = ( * m ).m14 ) * 0.0;
 
-	( * m ).m23 = ( * m ).m32 + ( ( * m ).m32 = ( * m ).m23 ) * 0;
-	( * m ).m24 = ( * m ).m42 + ( ( * m ).m42 = ( * m ).m24 ) * 0;
+	( * m ).m23 = ( * m ).m32 + ( ( * m ).m32 = ( * m ).m23 ) * 0.0;
+	( * m ).m24 = ( * m ).m42 + ( ( * m ).m42 = ( * m ).m24 ) * 0.0;
 
-	( * m ).m34 = ( * m ).m43 + ( ( * m ).m43 = ( * m ).m34 ) * 0;
+	( * m ).m34 = ( * m ).m43 + ( ( * m ).m43 = ( * m ).m34 ) * 0.0;
 }
 
 /**
@@ -614,10 +630,10 @@ Matrix3D rotationXMatrix3D( Number angle )
 	Number c = cos( angle );
 	Number s = sin( angle );
 
-	m.m11 = 1; m.m12 = 0; m.m13 =    0; m.m14 = 0;
-	m.m21 = 0; m.m22 = c; m.m23 =  - s; m.m24 = 0;
-	m.m31 = 0; m.m32 = s; m.m33 =    c; m.m34 = 0;
-	m.m41 = 0; m.m42 = 0; m.m43 =    0; m.m44 = 1;
+	m.m11 = 1.0;	m.m12 = 0.0;	m.m13 =    0.0;	m.m14 = 0.0;
+	m.m21 = 0.0;	m.m22 = c;		m.m23 =  - s;	m.m24 = 0.0;
+	m.m31 = 0.0;	m.m32 = s;		m.m33 =    c;	m.m34 = 0.0;
+	m.m41 = 0.0;	m.m42 = 0.0;	m.m43 =    0.0;	m.m44 = 1.0;
 
 	return m;
 }
@@ -632,10 +648,10 @@ Matrix3D rotationYMatrix3D( Number angle )
 	Number c = cos( angle );
 	Number s = sin( angle );
 
-	m.m11 = c; m.m12 = 0; m.m13 =  - s; m.m14 = 0;
-	m.m21 = 0; m.m22 = 1; m.m23 =    0; m.m24 = 0;
-	m.m31 = s; m.m32 = 0; m.m33 =    c; m.m34 = 0;
-	m.m41 = 0; m.m42 = 0; m.m43 =    0; m.m44 = 1;
+	m.m11 = c;		m.m12 = 0.0;	m.m13 =  - s;	m.m14 = 0.0;
+	m.m21 = 0.0;	m.m22 = 1.0;	m.m23 =    0.0;	m.m24 = 0.0;
+	m.m31 = s;		m.m32 = 0.0;	m.m33 =    c;	m.m34 = 0.0;
+	m.m41 = 0.0;	m.m42 = 0.0;	m.m43 =    0.0;	m.m44 = 1.0;
 
 	return m;
 }
@@ -650,10 +666,10 @@ Matrix3D rotationZMatrix3D( Number angle )
 	Number c = cos( angle );
 	Number s = sin( angle );
 
-	m.m11 = c; m.m12 = - s; m.m13 = 0; m.m14 = 0;
-	m.m21 = s; m.m22 =   c; m.m23 = 0; m.m24 = 0;
-	m.m31 = 0; m.m32 =   0; m.m33 = 1; m.m34 = 0;
-	m.m41 = 0; m.m42 =   0; m.m43 = 0; m.m44 = 1;
+	m.m11 = c;		m.m12 = - s;	m.m13 = 0.0;	m.m14 = 0.0;
+	m.m21 = s;		m.m22 =   c;	m.m23 = 0.0;	m.m24 = 0.0;
+	m.m31 = 0.0;	m.m32 =   0.0;	m.m33 = 1.0;	m.m34 = 0.0;
+	m.m41 = 0.0;	m.m42 =   0.0;	m.m43 = 0.0;	m.m44 = 1.0;
 
 	return m;
 }
@@ -704,10 +720,10 @@ void matrix3D_decompose( Matrix3D m, Vector3D * position, Vector3D * scale, Vect
 		return;
 	}
 
-	t.m11 = i.x; t.m12 = j.x; t.m13 = k.x; t.m14 = 0;
-	t.m21 = i.y; t.m22 = j.y; t.m23 = k.y; t.m24 = 0;
-	t.m31 = i.z; t.m32 = j.z; t.m33 = k.z; t.m34 = 0;
-	t.m41 =   0; t.m42 =   0; t.m43 =   0; t.m44 = 1;
+	t.m11 = i.x; t.m12 = j.x; t.m13 = k.x; t.m14 = 0.0;
+	t.m21 = i.y; t.m22 = j.y; t.m23 = k.y; t.m24 = 0.0;
+	t.m31 = i.z; t.m32 = j.z; t.m33 = k.z; t.m34 = 0.0;
+	t.m41 =   0.0; t.m42 =   0.0; t.m43 =   0.0; t.m44 = 1.0;
 
 	( * rotation ).x = atan2( t.m23, t.m33 );
 
@@ -727,7 +743,7 @@ void matrix3D_decompose( Matrix3D m, Vector3D * position, Vector3D * scale, Vect
 			( * rotation ).y += PI;
 		}
 
-		( * rotation ).x = 0;
+		( * rotation ).x = 0.0;
 		( * rotation ).z += PI;
 	}
 
@@ -814,6 +830,7 @@ Vector3D matrix3D_projectVector( Matrix3D m, Vector3D v )
 	Vector3D pro;
 
 	Number z = 1.0 / ( v.x * m.m41 + v.y * m.m42 + v.z * m.m43 + 1 );
+
 
 	pro = matrix3D_transformVector( m, v );
 
@@ -920,7 +937,7 @@ Vector3D rotationQuaternion( Number degrees, Vector3D axis )
 {
 	Vector3D q;
 
-	Number angle = degrees * TORADIANS / 2, s = sin( angle );
+	Number angle = degrees * TORADIANS * 0.5, s = sin( angle );
 
 	q.x = axis.x * s;
 	q.y = axis.y * s;
@@ -1017,6 +1034,7 @@ Matrix3D quaternion_toMatrix3D( Vector3D q )
 	Number zz = q.z * q.z;
 	Number zw = q.z * q.w;
 		
+
 	m.m11 = 1 - 2 * ( yy + zz );
 	m.m12 =     2 * ( xy - zw );
 	m.m13 =     2 * ( xz + yw );

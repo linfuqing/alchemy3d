@@ -1,16 +1,19 @@
 #include <stdlib.h>
 #include <AS3.h>
 
-#include "Base.h"
 #include "DisplayObject3D.h"
-
-DisplayObject3D do3d;
+#include "Scene.h"
+#include "Base.h"
 
 //初始化场景
 //返回该对象的起始指针
 AS3_Val initializeScene( void* self, AS3_Val args )
 {
-	return 0;
+	Scene * scene;
+
+	scene = scene_initiate();
+
+	return AS3_Ptr(scene);
 }
 
 //初始化摄像机设置
@@ -34,15 +37,35 @@ AS3_Val initializeCamera( void* self, AS3_Val args )
 //返回该对象的起始指针
 AS3_Val createEntity( void* self, AS3_Val args )
 {
-	 do3d = newDisplayObject3D();
+	Scene * scene;
 
-	return AS3_Array("PtrType, PtrType, PtrType, PtrType", &do3d, &(do3d.position), &(do3d.direction), &(do3d.scale));
+	DisplayObject3D * do3d, * parent;
+
+	AS3_ArrayValue(args, "PtrType, PtrType", &scene, &parent);
+
+	if (parent == 0)
+	{
+		parent = NULL;
+	}
+
+	do3d = newDisplayObject3D();
+
+	scene_addChild(scene, do3d, parent);
+
+	return AS3_Array("PtrType, PtrType, PtrType, PtrType", do3d, do3d->position, do3d->direction, do3d->scale);
 }
 
 //测试函数
 AS3_Val test( void* self, AS3_Val args )
 {
-	do3d_updateTransform(&do3d);
+	Scene * scene;
+
+	AS3_ArrayValue(args, "PtrType", &scene);
+
+	scene_project(scene);
+
+
+	/*do3d_updateTransform(&do3d);
 
 	AS3_Trace(AS3_Number(do3d.position.x));
 	AS3_Trace(AS3_Number(do3d.position.y));
@@ -65,7 +88,7 @@ AS3_Val test( void* self, AS3_Val args )
 	AS3_Trace(AS3_Number(do3d.transform.m41));
 	AS3_Trace(AS3_Number(do3d.transform.m42));
 	AS3_Trace(AS3_Number(do3d.transform.m43));
-	AS3_Trace(AS3_Number(do3d.transform.m44));
+	AS3_Trace(AS3_Number(do3d.transform.m44));*/
 
 	return 0;
 }
