@@ -20,7 +20,6 @@ void viewport_render(Viewport * viewport)
 	camera = viewport->camera;
 
 	do3d_updateTransform(camera);
-	camera->view = matrix3D_clone(camera->transform);
 	matrix3D_invert(camera->view);
 
 	p = scene->next;
@@ -33,7 +32,8 @@ void viewport_render(Viewport * viewport)
 
 		if( do3d->parent != NULL )
 		{
-			
+			matrix3D_apprend(do3d->world, * (do3d->parent->world));
+			matrix3D_apprend(do3d->view, * (do3d->parent->view));
 		}
 
 		p = p->next;

@@ -5,7 +5,7 @@
 #include "Base.h"
 #include "Matrix3D.h"
 
-void test(Matrix3D *m)
+Matrix3D * test()
 {
 	Matrix3D * newM;
 
@@ -13,18 +13,18 @@ void test(Matrix3D *m)
 
 	newM = newMatrix3D(&transformData);
 
-	* m = * newM;
+	return newM;
 }
 
 int main()
 {
-	Matrix3D *m;
+	Matrix3D * m;
 
 	Number transformData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
 
 	m = newMatrix3D(&transformData);
 
-	test(m);
+	m = test(m);
 
 	/*DisplayObject3D * do3d1;
 	DisplayObject3D * do3d2;
