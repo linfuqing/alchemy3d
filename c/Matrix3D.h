@@ -236,26 +236,26 @@ Matrix3D matrix3D_multiply( Matrix3D m1, Matrix3D m2 )
 {
 	Matrix3D m;
 
-	m.m11 = m1.m11 * m2.m11 + m1.m12 * m2.m21 + m1.m13 * m2.m31 + m1.m14 * m2.m41;
-	m.m12 = m1.m11 * m2.m12 + m1.m12 * m2.m22 + m1.m13 * m2.m32 + m1.m14 * m2.m42;
-	m.m13 = m1.m11 * m2.m13 + m1.m12 * m2.m23 + m1.m13 * m2.m33 + m1.m14 * m2.m43;
-	m.m14 = m1.m11 * m2.m14 + m1.m12 * m2.m24 + m1.m13 * m2.m34 + m1.m14 * m2.m44;
+	m.m11 = m1.m11 * m2.m11 + m1.m12 * m2.m21 + m1.m13 * m2.m31;
+	m.m12 = m1.m11 * m2.m12 + m1.m12 * m2.m22 + m1.m13 * m2.m32;
+	m.m13 = m1.m11 * m2.m13 + m1.m12 * m2.m23 + m1.m13 * m2.m33;
+	m.m14 = m1.m11 * m2.m14 + m1.m12 * m2.m24 + m1.m13 * m2.m34 + m1.m14;
 
-	m.m21 = m1.m21 * m2.m11 + m1.m22 * m2.m21 + m1.m23 * m2.m31 + m1.m24 * m2.m41;
-	m.m22 = m1.m21 * m2.m12 + m1.m22 * m2.m22 + m1.m23 * m2.m32 + m1.m24 * m2.m42;
-	m.m23 = m1.m21 * m2.m13 + m1.m22 * m2.m23 + m1.m23 * m2.m33 + m1.m24 * m2.m43;
-	m.m24 = m1.m21 * m2.m14 + m1.m22 * m2.m24 + m1.m23 * m2.m34 + m1.m24 * m2.m44;
+	m.m21 = m1.m21 * m2.m11 + m1.m22 * m2.m21 + m1.m23 * m2.m31;
+	m.m22 = m1.m21 * m2.m12 + m1.m22 * m2.m22 + m1.m23 * m2.m32;
+	m.m23 = m1.m21 * m2.m13 + m1.m22 * m2.m23 + m1.m23 * m2.m33;
+	m.m24 = m1.m21 * m2.m14 + m1.m22 * m2.m24 + m1.m23 * m2.m34 + m1.m24;
 
-	m.m31 = m1.m31 * m2.m11 + m1.m32 * m2.m21 + m1.m33 * m2.m31 + m1.m34 * m2.m41;
-	m.m32 = m1.m31 * m2.m12 + m1.m32 * m2.m22 + m1.m33 * m2.m32 + m1.m34 * m2.m42;
-	m.m33 = m1.m31 * m2.m13 + m1.m32 * m2.m23 + m1.m33 * m2.m33 + m1.m34 * m2.m43;
-	m.m34 = m1.m31 * m2.m14 + m1.m32 * m2.m24 + m1.m33 * m2.m34 + m1.m34 * m2.m44;
+	m.m31 = m1.m31 * m2.m11 + m1.m32 * m2.m21 + m1.m33 * m2.m31;
+	m.m32 = m1.m31 * m2.m12 + m1.m32 * m2.m22 + m1.m33 * m2.m32;
+	m.m33 = m1.m31 * m2.m13 + m1.m32 * m2.m23 + m1.m33 * m2.m33;
+	m.m34 = m1.m31 * m2.m14 + m1.m32 * m2.m24 + m1.m33 * m2.m34 + m1.m34;
 
 
-	m.m41 = m1.m41 * m2.m11 + m1.m42 * m2.m21 + m1.m43 * m2.m31 + m1.m44 * m2.m41;
-	m.m42 = m1.m41 * m2.m12 + m1.m42 * m2.m22 + m1.m43 * m2.m32 + m1.m44 * m2.m42;
-	m.m43 = m1.m41 * m2.m13 + m1.m42 * m2.m23 + m1.m43 * m2.m33 + m1.m44 * m2.m43;
-	m.m44 = m1.m41 * m2.m14 + m1.m42 * m2.m24 + m1.m43 * m2.m34 + m1.m44 * m2.m44;
+	m.m41 = m1.m41 * m2.m11 + m1.m42 * m2.m21 + m1.m43 * m2.m31;
+	m.m42 = m1.m41 * m2.m12 + m1.m42 * m2.m22 + m1.m43 * m2.m32;
+	m.m43 = m1.m41 * m2.m13 + m1.m42 * m2.m23 + m1.m43 * m2.m33;
+	m.m44 = m1.m41 * m2.m14 + m1.m42 * m2.m24 + m1.m43 * m2.m34 + m1.m44;
 
 	return m;
 }
@@ -675,6 +675,57 @@ Matrix3D rotationZMatrix3D( Number angle )
 }
 
 /**
+后置X轴旋转.
+**/
+void matrix3D_apprendRotationX( Matrix3D * m, Number angle )
+{
+	matrix3D_apprend( m, rotationXMatrix3D( angle ) );
+}
+
+/**
+后置Y轴旋转.
+**/
+void matrix3D_apprendRotationY( Matrix3D * m, Number angle )
+{
+	matrix3D_apprend( m, rotationYMatrix3D( angle ) );
+}
+
+/**
+后置Z轴旋转.
+**/
+void matrix3D_apprendRotationZ( Matrix3D * m, Number angle )
+{
+	matrix3D_apprend( m, rotationZMatrix3D( angle ) );
+}
+
+
+/**
+前置X轴旋转.
+**/
+void matrix3D_prependRotationX( Matrix3D * m, Number angle )
+{
+	matrix3D_prepend( m, rotationXMatrix3D( angle ) );
+}
+
+
+/**
+前置Y轴旋转.
+**/
+void matrix3D_prependRotationY( Matrix3D * m, Number angle )
+{
+	matrix3D_prepend( m, rotationYMatrix3D( angle ) );
+}
+
+
+/**
+前置Z轴旋转.
+**/
+void matrix3D_prependRotationZ( Matrix3D * m, Number angle )
+{
+	matrix3D_prepend( m, rotationZMatrix3D( angle ) );
+}
+
+/**
 将转换矩阵的平移、旋转和缩放设置作为由三个 Vector3D 对象组成的矢量返回。
 第一个 Vector3D 对象容纳平移元素。
 第二个 Vector3D 对象容纳缩放元素。
@@ -762,15 +813,15 @@ recompose() 方法将覆盖矩阵转换。
 **/
 void matrix3D_recompose( Matrix3D * m, Vector3D position, Vector3D scale, Vector3D rotation )
 {
-	matrix3D_copy( m, translationMatrix3D( position.x, position.y, position.z ) );
+	* m = translationMatrix3D( position.x, position.y, position.z );
 
-	matrix3D_apprend( m, scaleMatrix3D( scale.x,scale.y, scale.z ) );
+	matrix3D_apprendScale( m, scale.x,scale.y, scale.z );
 
-	matrix3D_apprend( m, rotationXMatrix3D( rotation.x ) );
+	matrix3D_apprendRotationX( m, rotation.x );
 
-	matrix3D_apprend( m, rotationYMatrix3D( rotation.y ) );
+	matrix3D_apprendRotationY( m, rotation.y );
 
-	matrix3D_apprend( m, rotationZMatrix3D( rotation.z ) );
+	matrix3D_apprendRotationZ( m, rotation.z );
 }
 
 /**
@@ -968,7 +1019,7 @@ void quaternion_prepend( Vector3D * thisVector, Vector3D lhs )
 /**
 后置旋转.
 **/
-void quaternion_appendRotation( Vector3D * v, Number degrees, Vector3D axis )
+void quaternion_apprendRotation( Vector3D * v, Number degrees, Vector3D axis )
 {
 	quaternion_append( v, rotationQuaternion( degrees, axis ) );
 }
@@ -1035,25 +1086,25 @@ Matrix3D quaternion_toMatrix3D( Vector3D q )
 	Number zw = q.z * q.w;
 		
 
-	m.m11 = 1 - 2 * ( yy + zz );
-	m.m12 =     2 * ( xy - zw );
-	m.m13 =     2 * ( xz + yw );
-	m.m14 = 0;
+	m.m11 = 1.0 - 2.0 * ( yy + zz );
+	m.m12 =       2.0 * ( xy - zw );
+	m.m13 =       2.0 * ( xz + yw );
+	m.m14 = 0.0;
 
-	m.m21 =     2 * ( xy + zw );
-	m.m22 = 1 - 2 * ( xx + zz );
-	m.m23 =     2 * ( yz - xw );
-	m.m24 = 0;
+	m.m21 =       2.0 * ( xy + zw );
+	m.m22 = 1.0 - 2.0 * ( xx + zz );
+	m.m23 =       2.0 * ( yz - xw );
+	m.m24 = 0.0;
 
-	m.m31 =     2 * ( xz - yw );
-	m.m32 =     2 * ( yz + xw );
-	m.m33 = 1 - 2 * ( xx + yy );
-	m.m34 = 0;
+	m.m31 =       2.0 * ( xz - yw );
+	m.m32 =       2.0 * ( yz + xw );
+	m.m33 = 1.0 - 2.0 * ( xx + yy );
+	m.m34 = 0.0;
 
-	m.m41 = 0;
-	m.m42 = 0;
-	m.m43 = 0;
-	m.m44 = 1;
+	m.m41 = 0.0;
+	m.m42 = 0.0;
+	m.m43 = 0.0;
+	m.m44 = 1.0;
 
 	return m;
 }
@@ -1114,6 +1165,12 @@ void matrix3D_pointTowards( Number percent, Matrix3D mat, Vector3D pos, Vector3D
 	* target = quaternion_toMatrix3D( res );
 
 	matrix3D_setPosition( target, pos );
+}
+
+void printfMatrix3D( Matrix3D m )
+{
+	printf( "%.1d  %.1d  %.1d  %.1d/n%.1d  %.1d  %.1d  %.1d/n%.1d  %.1d  %.1d  %.1d/n%.1d  %.1d  %.1d  %.1d/n", 
+		m.m11, m.m12, m.m13, m.m14, m.m21, m.m22, m.m23, m.m24, m.m31, m.m32, m.m33, m.m34, m.m41, m.m42, m.m43, m.m44 );
 }
 
 # endif
