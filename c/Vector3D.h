@@ -10,11 +10,11 @@
  **__________________________________________________________________________________**
  **************************************************************************************/
 
-#include <malloc.h>
-#include <stdlib.h>
+# include<malloc.h>
+# include<stdio.h>
 //# include<string.h>
 
-#include "Base.h"
+# include "Base.h"
 
 typedef struct
 {
@@ -174,19 +174,24 @@ void vector3D_scaleBy( Vector3D * v, Number value )
  **__________________________________________________________________________________**
  **************************************************************************************/
 
-Vector3D vector3D_X_AXIS()
+Vector3D X_AXIS()
 {
-	return * newVector3D( 1, 0, 0, 1 );
+	return * newVector3D( 1.0, 0, 0, 1.0 );
 }
 
-Vector3D vector3D_Y_AXIS()
+Vector3D Y_AXIS()
 {
-	return * newVector3D( 0, 1, 0, 1 );
+	return * newVector3D( 0, 1.0, 0, 1.0 );
 }
 
-Vector3D vector3D_Z_AXIS()
+Vector3D Z_AXIS()
 {
-	return * newVector3D( 0, 0, 1, 1 );
+	return * newVector3D( 0, 0, 1.0, 1.0 );
+}
+
+void printfVector3D( Vector3D v )
+{
+	printf( "\nVector3D( x: %f, y: %f, z: %f, w: %f )\n", v.x, v.y, v.z, v.w );
 }
 
 # endif

@@ -7,8 +7,6 @@ __________________
 verson 1.4
 **/
 
-# include <stdio.h>
-
 # include "Vertex.h"
 # include "Vector.h"
 

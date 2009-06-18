@@ -10,12 +10,17 @@ typedef struct
 	Vertices * vertices;
 }Mesh;
 
-Mesh newMesh( Faces * faces, Vertices * vertices )
+Mesh * newMesh( Faces * faces, Vertices * vertices )
 {
-	Mesh m;
+	Mesh * m;
 
-	m.faces    = faces;
-	m.vertices = vertices;
+	if( ( m = ( Mesh * )malloc( sizeof( Mesh ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	m -> faces    = faces;
+	m -> vertices = vertices;
 
 	return m;
 }

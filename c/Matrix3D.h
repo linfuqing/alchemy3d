@@ -10,7 +10,7 @@
  **__________________________________________________________________________________**
  **************************************************************************************/
 
-#include <stdio.h>
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -148,7 +148,7 @@ void matrix3D_setRawData( Matrix3D * m, Number ( * rawData )[16] )
 
 	if( !matrix3D_determinant( * m ) )
 	{
-		exit(1);
+		exit( FALSE );
 	}
 }
 
@@ -239,27 +239,56 @@ Matrix3D matrix3D_multiply( Matrix3D m1, Matrix3D m2 )
 	m.m11 = m1.m11 * m2.m11 + m1.m12 * m2.m21 + m1.m13 * m2.m31;
 	m.m12 = m1.m11 * m2.m12 + m1.m12 * m2.m22 + m1.m13 * m2.m32;
 	m.m13 = m1.m11 * m2.m13 + m1.m12 * m2.m23 + m1.m13 * m2.m33;
-	//m.m14 = m1.m11 * m2.m14 + m1.m12 * m2.m24 + m1.m13 * m2.m34 + m1.m14;
-	m.m14 = m1.m14 * m2.m11 + m1.m24 * m2.m21 + m1.m34 * m2.m31 + m2.m14;
+	m.m14 = m1.m11 * m2.m14 + m1.m12 * m2.m24 + m1.m13 * m2.m34 + m1.m14;
 
 	m.m21 = m1.m21 * m2.m11 + m1.m22 * m2.m21 + m1.m23 * m2.m31;
 	m.m22 = m1.m21 * m2.m12 + m1.m22 * m2.m22 + m1.m23 * m2.m32;
 	m.m23 = m1.m21 * m2.m13 + m1.m22 * m2.m23 + m1.m23 * m2.m33;
-	//m.m24 = m1.m21 * m2.m14 + m1.m22 * m2.m24 + m1.m23 * m2.m34 + m1.m24;
-	m.m24 = m1.m14 * m2.m12 + m1.m24 * m2.m22 + m1.m34 * m2.m32 + m2.m24;
+	m.m24 = m1.m21 * m2.m14 + m1.m22 * m2.m24 + m1.m23 * m2.m34 + m1.m24;
 
 	m.m31 = m1.m31 * m2.m11 + m1.m32 * m2.m21 + m1.m33 * m2.m31;
 	m.m32 = m1.m31 * m2.m12 + m1.m32 * m2.m22 + m1.m33 * m2.m32;
 	m.m33 = m1.m31 * m2.m13 + m1.m32 * m2.m23 + m1.m33 * m2.m33;
-	//m.m34 = m1.m31 * m2.m14 + m1.m32 * m2.m24 + m1.m33 * m2.m34 + m1.m34;
-	m.m34 = m1.m14 * m2.m13 + m1.m24 * m2.m23 + m1.m34 * m2.m33 + m2.m34;
+	m.m34 = m1.m31 * m2.m14 + m1.m32 * m2.m24 + m1.m33 * m2.m34 + m1.m34;
+
+
+	/*m.m41 = m1.m41 * m2.m11 + m1.m42 * m2.m21 + m1.m43 * m2.m31;
+	m.m42 = m1.m41 * m2.m12 + m1.m42 * m2.m22 + m1.m43 * m2.m32;
+	m.m43 = m1.m41 * m2.m13 + m1.m42 * m2.m23 + m1.m43 * m2.m33;
+	m.m44 = m1.m41 * m2.m14 + m1.m42 * m2.m24 + m1.m43 * m2.m34 + m1.m44;*/
+
+	m.m41 = 0;
+	m.m42 = 0;
+	m.m43 = 0;
+	m.m44 = 1;
+
+	return m;
+}
+
+Matrix3D matrix3D_project( Matrix3D m1, Matrix3D m2 )
+{
+	Matrix3D m;
+
+	m.m11 = m1.m11 * m2.m11 + m1.m12 * m2.m21 + m1.m13 * m2.m31;
+	m.m12 = m1.m11 * m2.m12 + m1.m12 * m2.m22 + m1.m13 * m2.m32;
+	m.m13 = m1.m11 * m2.m13 + m1.m12 * m2.m23 + m1.m13 * m2.m33;
+	m.m14 = m1.m11 * m2.m14 + m1.m12 * m2.m24 + m1.m13 * m2.m34 + m1.m14;
+
+	m.m21 = m1.m21 * m2.m11 + m1.m22 * m2.m21 + m1.m23 * m2.m31;
+	m.m22 = m1.m21 * m2.m12 + m1.m22 * m2.m22 + m1.m23 * m2.m32;
+	m.m23 = m1.m21 * m2.m13 + m1.m22 * m2.m23 + m1.m23 * m2.m33;
+	m.m24 = m1.m21 * m2.m14 + m1.m22 * m2.m24 + m1.m23 * m2.m34 + m1.m24;
+
+	m.m31 = m1.m31 * m2.m11 + m1.m32 * m2.m21 + m1.m33 * m2.m31;
+	m.m32 = m1.m31 * m2.m12 + m1.m32 * m2.m22 + m1.m33 * m2.m32;
+	m.m33 = m1.m31 * m2.m13 + m1.m32 * m2.m23 + m1.m33 * m2.m33;
+	m.m34 = m1.m31 * m2.m14 + m1.m32 * m2.m24 + m1.m33 * m2.m34 + m1.m34;
 
 
 	m.m41 = m1.m41 * m2.m11 + m1.m42 * m2.m21 + m1.m43 * m2.m31;
 	m.m42 = m1.m41 * m2.m12 + m1.m42 * m2.m22 + m1.m43 * m2.m32;
 	m.m43 = m1.m41 * m2.m13 + m1.m42 * m2.m23 + m1.m43 * m2.m33;
-	//m.m44 = m1.m41 * m2.m14 + m1.m42 * m2.m24 + m1.m43 * m2.m34 + m1.m44;
-	m.m44 = m1.m14 * m2.m14 + m1.m24 * m2.m24 + m1.m34 * m2.m34 + m2.m44;
+	m.m44 = m1.m41 * m2.m14 + m1.m42 * m2.m24 + m1.m43 * m2.m34 + m1.m44;
 
 	return m;
 }
@@ -1104,7 +1133,7 @@ Matrix3D quaternion_toMatrix3D( Vector3D q )
 	m.m32 =       2.0 * ( yz + xw );
 	m.m33 = 1.0 - 2.0 * ( xx + yy );
 	m.m34 = 0.0;
-
+	
 	m.m41 = 0.0;
 	m.m42 = 0.0;
 	m.m43 = 0.0;
