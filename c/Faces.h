@@ -5,6 +5,7 @@
 
 # include"Polygon.h"
 
+//N
 typedef struct Faces
 {
 	Polygon      * face;

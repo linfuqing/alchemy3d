@@ -16,14 +16,24 @@ typedef struct DisplayObject3D
 	Vector3D * scale;
 
 	Matrix3D * transform;
-	Matrix3D * world;
 	Matrix3D * view;*/
 
+	//N
 	Camera                 * camera;
+
+	//RW
 	Mesh                   * mesh;
 
-	int                    visible;
+	//N
+	Matrix3D               * world;
 
+	//RW
+	int                      visible;
+
+	//N
+	int                      move;
+
+	//N
 	struct DisplayObject3D * parent;
 }DisplayObject3D;
 
@@ -50,8 +60,12 @@ DisplayObject3D * newDisplayObject3D( Mesh * mesh )
 
 	do3d->parent = NULL;*/
 
-	do3d -> camera = newCamera( newVector3D( 0, 0, 0, 1 ), newVector3D( 0, 0, 0, 1 ), newVector3D( 0, 0, 0, 1 ) );
-	do3d -> mesh   = mesh;
+	do3d -> camera  = newCamera( NULL, NULL, NULL );
+	do3d -> mesh    = mesh;
+	do3d -> world   = newMatrix3D( NULL );
+	do3d -> visible = TRUE;
+	do3d -> parent  = NULL;
+	do3d -> move    = FALSE;
 
 	return do3d;
 }
@@ -79,20 +93,47 @@ DisplayObject3D * newDisplayObject3D( Mesh * mesh )
 {
 
 }*/
-
-int transformDisplayObject( DisplayObject * d )
+int displayObject3D_getVisible( DisplayObject3D d )
 {
-	if( d -> camera -> move )
+	return d.visible && ( d.parent ? displayObject3D_getVisible( * ( d.parent ) ) : TRUE );
+}
+
+Matrix3D displayObject3D_getWorld( DisplayObject3D * d )
+{
+	Matrix3D          transform;
+	DisplayObject3D * parent    = d -> parent;
+
+	if( displayObject3D_getVisible( * d ) && ( d -> camera -> move || ( parent && parent -> move ) ) )
 	{
-		transformVertices( camera_getTransform( * ( d -> camera ) ) );
-		return TRUE;
+		transform = camera_getTransform( d -> camera );
+
+		* ( d -> world ) = parent ? matrix3D_multiply( displayObject3D_getWorld( parent ), transform ) : transform;
+
+		d -> move        = TRUE;
+	}
+	else
+	{
+		d -> move        = FALSE;
+	}
+
+	return * ( d -> world );
+}
+
+int transformDisplayObject3D( DisplayObject3D * d )
+{
+	Matrix3D world = displayObject3D_getWorld( d );
+	int      move  = d -> move;
+
+	if( mesh_check( d -> mesh ) && move && ( d -> camera != NULL ) )
+	{
+		transformVertices( world , d -> mesh -> vertices );
 	}
 	
-	return FALSE;
+	return move;
 }
 
 //Ìí¼Ó²¿·Ö:
-void DisplayObject3D_addChild( DisplayObject3D * d, DisplayObject3D * child )
+void displayObject3D_addChild( DisplayObject3D * d, DisplayObject3D * child )
 {
 	child -> parent = d;
 }

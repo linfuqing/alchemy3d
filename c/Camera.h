@@ -5,7 +5,17 @@
 
 # define MOVE_TYPE_TRANSFORM   1
 # define MOVE_TYPE_TRANSLATION 2
+# define MOVE_TYPE_ADDED_SCENE 3
 
+//N
+typedef struct
+{
+	Vector3D * quaternion;
+
+	int        move;
+}Rotation;
+
+//N
 typedef struct
 {
 	Vector3D * position;
@@ -13,11 +23,25 @@ typedef struct
 	Vector3D * scale;
 
 	Matrix3D * transform;
-	Vector3D * rotation;
+	Rotation * rotation;
 
 	int      move;
 }Camera;
 
+Rotation * newRotation( Vector3D * q )
+{
+	Rotation * r;
+	if( ( r = ( Rotation * )malloc( sizeof( Rotation ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	r -> quaternion = q;
+	r -> move       = FALSE;
+
+	return r;
+}
+	
 Camera * newCamera( Vector3D * position, Vector3D * direction, Vector3D * scale )
 {
 	Camera * c;
@@ -45,39 +69,48 @@ Camera * newCamera( Vector3D * position, Vector3D * direction, Vector3D * scale 
 	c -> position  = position;
 	c -> direction = direction;
 	c -> scale     = scale;
+	c -> transform = newMatrix3D( NULL );
 
 	matrix3D_recompose( c -> transform, * position, * scale, * direction );
 
-	c -> rotation = NULL;
+	c -> rotation = newRotation( NULL );
 
 	c -> move     = FALSE;
 
 	return c;
 }
 
-Matrix3D camera_getTransfrom( Camera c )
+Matrix3D camera_getTransform( Camera * c )
 {
 	Vector3D * v;
+	Rotation * rotation = c -> rotation;
 
-	if( c.rotation != NULL )
+	if( rotation -> quaternion != NULL )
 	{
-		matrix3D_apprend( c.transform, quaternion_toMatrix3D( * c.rotation ) );
+		if( rotation -> move )
+		{
+			//do something
 
-		v = c.rotation;
+			rotation -> move = FALSE;
+		}
 
-		c.rotation = NULL;
+		matrix3D_apprend( c -> transform, quaternion_toMatrix3D( * ( rotation -> quaternion ) ) );
+
+		v = rotation -> quaternion;
+
+		rotation -> quaternion = NULL;
 		
 		free( v );
 	}
 
-	if( c.move == MOVE_TYPE_TRANSLATION )
+	if( c -> move == MOVE_TYPE_TRANSLATION )
 	{
-		matrix3D_setPosition( c.transform, * c.position );
+		matrix3D_setPosition( c -> transform, * ( c -> position ) );
 
-		c.move = FALSE;
+		c -> move = FALSE;
 	}
 
-	return * c.transform;
+	return * ( c -> transform );
 }
 
 void camera_setTransform( Camera * c, Matrix3D transform )
@@ -92,7 +125,7 @@ void camera_setTransform( Camera * c, Matrix3D transform )
 **/
 void camera_updateTransform( Camera * c )
 {
-	Vector3D * rotation = c -> rotation;
+	Vector3D * rotation = c -> rotation -> quaternion;
 
 	if( c -> move == MOVE_TYPE_TRANSFORM )
 	{
@@ -100,7 +133,7 @@ void camera_updateTransform( Camera * c )
 
 		if( rotation != NULL )
 		{
-			c -> rotation = NULL;
+			c -> rotation -> quaternion = NULL;
 
 			free( rotation );
 		}
@@ -139,19 +172,21 @@ void camera_setScale( Camera * c, Number xScale, Number yScale, Number zScale )
 
 void camera_setRotation( Camera * c, Number degrees, Vector3D axis )
 {
-	if( c -> rotation == NULL )
+	if( c -> rotation -> quaternion == NULL )
 	{
-		if( ( c -> rotation = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
+		if( ( c -> rotation -> quaternion = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
 		{
 			exit( TRUE );
 		}
 
-		* ( c -> rotation ) = rotationQuaternion( degrees, axis );
+		* ( c -> rotation -> quaternion ) = rotationQuaternion( degrees, axis );
 	}
 	else
 	{
-		quaternion_apprendRotation( c -> rotation, degrees, axis );
+		quaternion_apprendRotation( c -> rotation -> quaternion, degrees, axis );
 	}
+
+	c -> rotation -> move = TRUE;
 }
 
 /**
@@ -183,6 +218,8 @@ void camera_setDirection( Camera * c, Number rotationX, Number rotationY, Number
 
 		direction -> z = rotationZ;
 	}
+
+	c -> rotation -> move = FALSE;
 }
 
 # endif
