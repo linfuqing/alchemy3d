@@ -3,6 +3,7 @@
 
 #include "DisplayObject3D.h"
 
+//N
 typedef struct Scene
 {
 	DisplayObject3D * do3d;
@@ -16,7 +17,7 @@ Scene * newScene()
 
 	if( ( head = ( Scene * )malloc( sizeof( Scene ) ) ) == NULL )
 	{
-		exit( 1 );
+		exit( TRUE );
 	}
 
 	head->next = NULL;
@@ -94,9 +95,7 @@ Scene * scene_find( Scene * head, DisplayObject3D * do3d )
 }
 
 
-//void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * parent)
-//修改部分
-void scene_addChild(Scene * head, DisplayObject3D * do3d )
+void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * parent)
 {
 	Scene * p, * n;
 
@@ -104,19 +103,18 @@ void scene_addChild(Scene * head, DisplayObject3D * do3d )
 
 	//DisplayObject3D * ptr;
 
-	//修改部分:
-	if ( do3d -> parent != NULL && ( p = scene_find(head, do3d -> parent ) == NULL )
-	/*{
+	if ( parent != NULL )
+	{
 		p = scene_find(head, do3d -> parent );
 
 		if (p == NULL)
 		{
-			exit(1);
+			exit(FALSE);
 		}
 
 		do3d->parent = parent;
 	}
-	else*/
+	else
 	{
 		p = head -> next;
 
@@ -128,7 +126,7 @@ void scene_addChild(Scene * head, DisplayObject3D * do3d )
 
 	if( ( n = ( Scene * )malloc( sizeof( Scene ) ) ) == NULL )
 	{
-		exit( 1 );
+		exit( TRUE );
 	}
 
 	//加入场景后设置为移动.

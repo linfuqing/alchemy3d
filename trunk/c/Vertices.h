@@ -6,6 +6,7 @@
 
 # include "Vertex.h"
 
+//N
 typedef struct Vertices
 {
 	Vertex * vertex;
@@ -127,7 +128,7 @@ void vertices_order( Vertices * head, void visit( Vertex * vertex ) )
 	}
 }
 
-void transfromVertices( Matrix3D m, Vertices * head )
+void transformVertices( Matrix3D m, Vertices * head )
 {
 	Vertices * p = head -> next;
 

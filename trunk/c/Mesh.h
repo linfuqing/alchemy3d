@@ -4,6 +4,7 @@
 # include "Faces.h"
 # include "Vertices.h"
 
+//RW
 typedef struct
 {
 	Faces    * faces;
@@ -23,6 +24,11 @@ Mesh * newMesh( Faces * faces, Vertices * vertices )
 	m -> vertices = vertices;
 
 	return m;
+}
+
+int mesh_check( Mesh * m )
+{
+	return ( m != NULL ) && ( m -> vertices != NULL );
 }
 
 #endif

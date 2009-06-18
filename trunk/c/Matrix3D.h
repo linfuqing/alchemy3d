@@ -16,6 +16,7 @@
 
 #include "Vector3D.h"
 
+//RW
 typedef struct
 {
 	Number m11;
@@ -170,7 +171,14 @@ Matrix3D * newMatrix3D( Number ( * rawData )[16] )
 		exit( TRUE );
 	}
 
-	matrix3D_setRawData( m, rawData );
+	if( rawData == NULL )
+	{
+		matrix3D_identity( m );
+	}
+	else
+	{
+		matrix3D_setRawData( m, rawData );
+	}
 
 	return m;
 }
@@ -1140,6 +1148,37 @@ Matrix3D quaternion_toMatrix3D( Vector3D q )
 	m.m44 = 1.0;
 
 	return m;
+}
+
+Vector3D quaternion_toEuler( Vector3D q )
+{
+	Vector3D euler;
+			
+	Number test = q.x * q.y + q.z * q.w, sqx, sqy, sqz;
+
+	if ( test > 0.5 ) {
+		euler.x = 2.0 * atan2( q.x,q.w );
+		euler.y = PI / 2.0;
+		euler.z = 0.0;
+	}
+	else if ( test < -0.5 ) {
+		euler.x = -2.0 * atan2( q.x,q.w );
+		euler.y = - PI / 2.0;
+		euler.z = 0.0;
+	}
+	else
+	{
+		sqx = q.x * q.x;
+		sqy = q.y * q.y;
+		sqz = q.z * q.z;
+		    
+		euler.x = atan2( 2.0 * q.y * q.w - 2.0 * q.x * q.z, 1 - 2.0 * sqy - 2.0 * sqz );
+		euler.y = asin( 2.0 * test );   
+		euler.z = atan2( 2.0 * q.x * q.w - 2.0 * q.y * q.z, 1 - 2.0 * sqx - 2.0 * sqz );
+		euler.w = 1.0;
+	}
+			
+	return euler;
 }
 
 /**************************************************************************************

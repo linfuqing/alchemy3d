@@ -1,3 +1,11 @@
+/**
+结构体说明:
+R :只读
+W :只写
+RW:读写
+N :封装
+**/
+
 #ifndef BASE_H
 #define BASE_H
 

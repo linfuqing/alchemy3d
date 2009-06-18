@@ -10,6 +10,7 @@ verson 1.4
 # include "Vertex.h"
 # include "Vector.h"
 
+//R
 typedef struct Polygon
 {
 	Vertex * vertex;
@@ -22,7 +23,7 @@ typedef struct Polygon
 
 int polygon_check( Polygon * node )
 {
-	return node && vertex_check( node -> vertex );
+	return ( node != NULL ) && vertex_check( node -> vertex );
 }
 
 int isPolygon( Polygon * head )

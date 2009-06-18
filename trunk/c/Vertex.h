@@ -7,6 +7,7 @@
 
 # include "Matrix3D.h"
 
+//RW
 typedef struct
 {
 	Vector3D * position;
@@ -36,7 +37,7 @@ Vertex * newVertex( Vector3D * position )
 
 int vertex_check( Vertex * v )
 {
-	return v && v -> position && v -> worldPosition;
+	return ( v != NULL ) && ( v -> position != NULL ) && ( v -> worldPosition != NULL );
 }
 
 void transformVertex( Matrix3D m, Vertex * v )

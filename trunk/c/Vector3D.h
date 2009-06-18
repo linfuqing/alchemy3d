@@ -16,6 +16,7 @@
 
 # include "Base.h"
 
+//RW
 typedef struct
 {
 	Number x;
