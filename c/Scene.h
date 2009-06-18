@@ -93,15 +93,21 @@ Scene * scene_find( Scene * head, DisplayObject3D * do3d )
 	}
 }
 
-void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * parent)
+
+//void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * parent)
+//修改部分
+void scene_addChild(Scene * head, DisplayObject3D * do3d )
 {
 	Scene * p, * n;
 
+	int move = do3d -> camera -> move;
+
 	//DisplayObject3D * ptr;
 
-	if (parent != NULL)
-	{
-		p = scene_find(head, parent);
+	//修改部分:
+	if ( do3d -> parent != NULL && ( p = scene_find(head, do3d -> parent ) == NULL )
+	/*{
+		p = scene_find(head, do3d -> parent );
 
 		if (p == NULL)
 		{
@@ -110,11 +116,11 @@ void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * pare
 
 		do3d->parent = parent;
 	}
-	else
+	else*/
 	{
-		p = head;
+		p = head -> next;
 
-		while(p->next != NULL)
+		while( p != NULL )
 		{
 			p = p->next;
 		}
@@ -124,6 +130,9 @@ void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * pare
 	{
 		exit( 1 );
 	}
+
+	//加入场景后设置为移动.
+	do3d -> camera -> move = move ? move : MOVE_TYPE_ADDED_SCENE;
 
 	n->do3d = do3d;
 
