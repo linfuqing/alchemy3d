@@ -57,19 +57,33 @@ package cn.alchemy3d.scene
 			children[child.name] = child;
 			childrenNum ++;
 			
-			if (child is Mesh3D)
-			{
-				verticesNum += Mesh3D(child).vertices.length;
-				facesNum += Mesh3D(child).faces.length;
-			}
-			
 			//创建实体并添加到指定节点
 			//返回该对象起始指针
-			var arr:Array = lib.alchemy3DLib.createEntity();
-			child.pointer = arr[0];
-			child.positionPtr = arr[1];
-			child.directionPtr = arr[2];
-			child.scalePtr = arr[3];
+			
+			var arr:Array;
+			if (child is Mesh3D)
+			{
+				var mesh:Mesh3D = Mesh3D(child);
+				
+				verticesNum += mesh.vertices.length;
+				facesNum += mesh.faces.length;
+				
+				arr = lib.alchemy3DLib.createMesh(mesh.vertices.length * 3, mesh.faces.length * 9);
+				mesh.pointer = arr[0];
+				mesh.positionPtr = arr[1];
+				mesh.directionPtr = arr[2];
+				mesh.scalePtr = arr[3];
+				mesh.fillVerticesToBuffer(arr[4]);
+				mesh.fillFacesToBuffer(arr[5]);
+			}
+			else
+			{
+				arr = lib.alchemy3DLib.createEntity();
+				child.pointer = arr[0];
+				child.positionPtr = arr[1];
+				child.directionPtr = arr[2];
+				child.scalePtr = arr[3];
+			}
 		}
 
 	}
