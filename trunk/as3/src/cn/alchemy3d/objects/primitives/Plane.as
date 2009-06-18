@@ -35,8 +35,8 @@ package cn.alchemy3d.objects.primitives
 			
 			buildPlane();
 			
-			geometry.computeTriNormals();
-			geometry.computeVertexNormals();
+			//geometry.computeTriNormals();
+			//geometry.computeVertexNormals();
 		}
 		
 		private var height:Number;

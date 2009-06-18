@@ -29,8 +29,8 @@ package cn.alchemy3d.objects.primitives
 	
 			buildSphere( radius );
 			
-			geometry.computeTriNormals();
-			geometry.computeVertexNormals();
+			//geometry.computeTriNormals();
+			//geometry.computeVertexNormals();
 		}
 		
 		private var segmentsH :Number;
