@@ -1,15 +1,17 @@
-#ifndef __DISPLAYOBJECT3D_H
-#define __DISPLAYOBJECT3D_H
+#ifndef DISPLAYOBJECT3D_H
+#define DISPLAYOBJECT3D_H
 
-#include <malloc.h>
+/*#include <malloc.h>
 
 #include "Vector3D.h"
 #include "Matrix3D.h"
-#include "Quaternion.h"
+#include "Quaternion.h"*/
+# include "Camera.h"
+# include "Mesh.h"
 
 typedef struct DisplayObject3D
 {
-	Vector3D * position;
+	/*Vector3D * position;
 	Vector3D * direction;
 	Vector3D * scale;
 
@@ -18,21 +20,27 @@ typedef struct DisplayObject3D
 	Matrix3D * view;
 
 	int visible;
-	struct DisplayObject3D * parent;
+	struct DisplayObject3D * parent;*/
+
+	Camera * camera;
+	Mesh   * mesh;
 
 }DisplayObject3D;
 
-DisplayObject3D * newDisplayObject3D()
+DisplayObject3D * newDisplayObject3D( Mesh * mesh )
 {
 	DisplayObject3D * do3d;
 
-	Number transformData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+	/*Number transformData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
 	Number worldData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-	Number viewData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+	Number viewData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};*/
 
-	do3d = ( DisplayObject3D * )malloc( sizeof( DisplayObject3D ) );
+	if( ( do3d = ( DisplayObject3D * )malloc( sizeof( DisplayObject3D ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
 
-	do3d->position = newVector3D(0.0, 0.0, 0.0, 1.0);
+	/*do3d->position = newVector3D(0.0, 0.0, 0.0, 1.0);
 	do3d->direction = newVector3D(0.0, 0.0, 0.0, 1.0);
 	do3d->scale = newVector3D(1.0, 1.0, 1.0, 1.0);
 
@@ -40,12 +48,15 @@ DisplayObject3D * newDisplayObject3D()
 	do3d->world = newMatrix3D(&worldData);
 	do3d->view = newMatrix3D(&viewData);
 
-	do3d->parent = NULL;
+	do3d->parent = NULL;*/
+
+	do3d -> camera = newCamera( newVector3D( 0, 0, 0, 1 ), newVector3D( 0, 0, 0, 1 ), newVector3D( 0, 0, 0, 1 ) );
+	do3d -> mesh   = mesh;
 
 	return do3d;
 }
 
-void do3d_updateTransform(DisplayObject3D * do3d)
+/*void do3d_updateTransform(DisplayObject3D * do3d)
 {
 	Quaternion * qua;
 	Matrix3D * mtr;
@@ -62,11 +73,22 @@ void do3d_updateTransform(DisplayObject3D * do3d)
 	do3d->world = matrix3D_clone(do3d->transform);
 
 	do3d->view = matrix3D_clone(do3d->transform);
-}
+}*/
 
-void do3d_project(DisplayObject3D * do3d)
+/*void do3d_project(DisplayObject3D * do3d)
 {
 
+}*/
+
+int transformDisplayObject( DisplayObject * d )
+{
+	if( d -> camera -> move )
+	{
+		transformVertices( camera_getTransform( * ( d -> camera ) ) );
+		return TRUE;
+	}
+	
+	return FALSE;
 }
 
 #endif
