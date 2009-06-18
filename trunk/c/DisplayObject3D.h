@@ -17,14 +17,14 @@ typedef struct DisplayObject3D
 
 	Matrix3D * transform;
 	Matrix3D * world;
-	Matrix3D * view;
+	Matrix3D * view;*/
 
-	int visible;
-	struct DisplayObject3D * parent;*/
+	Camera                 * camera;
+	Mesh                   * mesh;
 
-	Camera * camera;
-	Mesh   * mesh;
+	int                    visible;
 
+	struct DisplayObject3D * parent;
 }DisplayObject3D;
 
 DisplayObject3D * newDisplayObject3D( Mesh * mesh )
@@ -89,6 +89,12 @@ int transformDisplayObject( DisplayObject * d )
 	}
 	
 	return FALSE;
+}
+
+//Ìí¼Ó²¿·Ö:
+void DisplayObject3D_addChild( DisplayObject3D * d, DisplayObject3D * child )
+{
+	child -> parent = d;
 }
 
 #endif
