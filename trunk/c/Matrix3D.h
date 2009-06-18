@@ -1173,7 +1173,7 @@ void matrix3D_pointTowards( Number percent, Matrix3D mat, Vector3D pos, Vector3D
 
 void printfMatrix3D( Matrix3D m )
 {
-	printf( "%.1d  %.1d  %.1d  %.1d/n%.1d  %.1d  %.1d  %.1d/n%.1d  %.1d  %.1d  %.1d/n%.1d  %.1d  %.1d  %.1d/n", 
+	printf( "\nMatrix3D(\n%-10.1lf%-10.1lf%-10.1lf%-10.1lf\n%-10.1lf%-10.1lf%-10.1lf%-10.1lf\n%-10.1lf%-10.1lf%-10.1lf%-10.1lf\n%-10.1lf%-10.1lf%-10.1lf%-10.1lf\n)\n", 
 		m.m11, m.m12, m.m13, m.m14, m.m21, m.m22, m.m23, m.m24, m.m31, m.m32, m.m33, m.m34, m.m41, m.m42, m.m43, m.m44 );
 }
 
