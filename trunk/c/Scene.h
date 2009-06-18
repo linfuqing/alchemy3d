@@ -116,9 +116,9 @@ void scene_addChild(Scene * head, DisplayObject3D * do3d, DisplayObject3D * pare
 	}
 	else
 	{
-		p = head -> next;
+		p = head ;
 
-		while( p != NULL )
+		while( p -> next != NULL )
 		{
 			p = p->next;
 		}
