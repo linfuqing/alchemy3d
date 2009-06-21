@@ -9,15 +9,17 @@ package cn.alchemy3d.geom
 		public var x:Number;
 		public var y:Number;
 		public var z:Number;
+		public var w:Number;
 		
 		public var normal:Vector3D;
 		public var instance:DisplayObject3D;
 		
-		public function Vertex3D(x:Number = 0, y:Number = 0, z:Number = 0, instance:DisplayObject3D = null)
+		public function Vertex3D(x:Number = 0, y:Number = 0, z:Number = 0, w:Number = 1, instance:DisplayObject3D = null)
 		{
 			this.x = x;
 			this.y = y;
 			this.z = z;
+			this.w = w;
 			
 			this.normal = new Vector3D();
 			this.instance = instance;
@@ -25,12 +27,12 @@ package cn.alchemy3d.geom
 		
 		public function clone(instance:DisplayObject3D = null):Vertex3D
 		{
-			return new Vertex3D(x, y, z, instance);
+			return new Vertex3D(x, y, z, w, instance);
 		}
 		
 		public function equals(toCompare:Vertex3D, allFour:Boolean = false):Boolean
 		{
-			var bool:Boolean = (x == toCompare.x && y == toCompare.y && z == toCompare.z);
+			var bool:Boolean = (x == toCompare.x && y == toCompare.y && z == toCompare.z && w == toCompare.w);
 			if (allFour) bool = bool && (this.instance == toCompare.instance);
 			return bool;
 		}
@@ -38,11 +40,12 @@ package cn.alchemy3d.geom
 		public function reset():void
 		{
 			x = y = z = 0;
+			w = 1;
 		}
 		
 		public function toString():String
 		{
-			return "x:" + x + ", y:" + y + ", z:" + z;
+			return "x:" + x + ", y:" + y + ", z:" + z + ", w:" + w;
 		}
 	}
 }

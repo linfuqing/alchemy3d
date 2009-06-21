@@ -1,10 +1,12 @@
 package cn.alchemy3d.cameras
 {
-	import cn.alchemy3d.lib.Alchemy3DLib;
-	
 	public class Camera3D
 	{
 		public var pointer:uint;
+		public var focusPointer:uint;
+		public var zoomPointer:uint;
+		public var nearClipPointer:uint;
+		public var farClipPointer:uint;
 		
 		public var type:int;
 		public var zoom:Number;
@@ -19,12 +21,6 @@ package cn.alchemy3d.cameras
 			this.focus = focus;
 			this.nearClip = nearClip;
 			this.farClip = farClip;
-			
-			var lib:Alchemy3DLib = Alchemy3DLib.getInstance();
-			
-			//初始化摄像机
-			//返回该对象起始指针
-			pointer = lib.alchemy3DLib.initializeCamera(type, zoom, focus, nearClip, farClip);
 		}
 	}
 }
