@@ -1,11 +1,11 @@
 package cn.alchemy3d.objects.primitives
 {
 
-	import flash.geom.Point;
-	import flash.geom.Vector3D;
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
-	import cn.alchemy3d.polygon.Mesh3D;
+	import cn.alchemy3d.objects.Mesh3D;
+	
+	import flash.geom.Point;
 	
 	/**
 	 * Plane是一个3D平面，拥有位移、旋转、缩放操作
@@ -65,7 +65,7 @@ package cn.alchemy3d.objects.primitives
 					var x :Number = ix * iW - textureX;
 					var y :Number = iy * iH - textureY;
 	
-					vertices.push(new Vertex3D(x, y, 0, this));
+					vertices.push(new Vertex3D(x, y, 0, 1, this));
 				}
 			}
 			

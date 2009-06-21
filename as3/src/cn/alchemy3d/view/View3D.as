@@ -1,6 +1,7 @@
 package cn.alchemy3d.view
 {
 	import cn.alchemy3d.cameras.Camera3D;
+	import cn.alchemy3d.lib.Alchemy3DLib;
 	import cn.alchemy3d.scene.Scene3D;
 	
 	import flash.display.Bitmap;
@@ -10,12 +11,18 @@ package cn.alchemy3d.view
 
 	public class View3D extends Sprite
 	{
+		public var pointer:uint;
+		public var gfxPointer:uint;
+		
 		public var viewWidth:Number;
 		public var viewHeight:Number;
 		
 		protected var camera:Camera3D;
 		protected var scene:Scene3D;
 		protected var gfx:BitmapData;
+		protected var wh:int;
+		
+		protected var lib:Alchemy3DLib;
 		
 		public function View3D(width:Number, height:Number, scene:Scene3D, camera:Camera3D)
 		{
@@ -23,9 +30,38 @@ package cn.alchemy3d.view
 			
 			viewWidth = width;
 			viewHeight = height;
+			wh = int(width) * int(height);
 			
 			gfx = new BitmapData(width, height, true);
 			addChild(new Bitmap(gfx, PixelSnapping.NEVER, false));
+			
+			lib = Alchemy3DLib.getInstance();
+			
+			//初始化场景
+			//返回该对象起始指针
+			var pointerArr:Array = lib.alchemy3DLib.initializeViewport(width, height, camera.focus, camera.zoom, camera.nearClip, camera.farClip);
+			pointer = pointerArr[0];
+			gfxPointer = pointerArr[1];
+			scene.pointer = pointerArr[2];
+			camera.pointer = pointerArr[3];
+			camera.focusPointer = pointerArr[4];
+			camera.zoomPointer = pointerArr[5];
+			camera.nearClipPointer = pointerArr[6];
+			camera.farClipPointer = pointerArr[7];
+		}
+		
+		public function render():void
+		{
+			lib.alchemy3DLib.renderViewport(this.pointer);
+			
+			lib.buffer.position = gfxPointer;
+			
+			for (var i:int = 0; i < 100; i ++)
+			{
+				trace(lib.buffer.readUnsignedInt());
+			}
+			
+			gfx.setPixels(gfx.rect, lib.buffer);
 		}
 	}
 }
