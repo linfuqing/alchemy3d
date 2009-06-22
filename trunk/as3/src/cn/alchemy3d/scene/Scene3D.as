@@ -5,6 +5,7 @@ package cn.alchemy3d.scene
 	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.objects.Mesh3D;
 	
+	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	
 	public class Scene3D
@@ -66,7 +67,18 @@ package cn.alchemy3d.scene
 				verticesNum += mesh.vertices.length;
 				facesNum += mesh.faces.length;
 				
-				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, mesh.vertices.length * 4, mesh.fillVerticesToBuffer(), mesh.faces.length * 9, mesh.fillFacesToBuffer());
+				var vBuff:ByteArray = mesh.fillVerticesToBuffer();
+				var fBuff:ByteArray = mesh.fillFacesToBuffer();
+				
+				//vBuff.position = 0;
+				
+//				for (var i:int = 0; i < vBuff.length / 8; i ++)
+//				{
+//					trace(vBuff.readDouble());
+//				}
+				
+				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, vBuff, fBuff);
+
 				mesh.pointer = arr[0];
 				mesh.positionPtr = arr[1];
 				mesh.directionPtr = arr[2];
