@@ -5,6 +5,7 @@ package cn.alchemy3d.objects
 	import cn.alchemy3d.geom.Vertex3D;
 	
 	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	
 	public class Mesh3D extends DisplayObject3D
 	{
@@ -30,16 +31,16 @@ package cn.alchemy3d.objects
 		{
 			//buffer.position = verticesPointer;
 			var buff:ByteArray = new ByteArray();
+			buff.endian = Endian.LITTLE_ENDIAN;
 			
 			var v:Vertex3D;
-			var count:int = vertices.length;
 			
-			for each (v in count)
+			for each (v in vertices)
 			{
-				buffer.writeDouble(v.x);
-				buffer.writeDouble(v.y);
-				buffer.writeDouble(v.z);
-				buffer.writeDouble(v.w);
+				buff.writeDouble(v.x);
+				buff.writeDouble(v.y);
+				buff.writeDouble(v.z);
+				buff.writeDouble(v.w);
 			}
 			
 			return buff;
@@ -49,21 +50,21 @@ package cn.alchemy3d.objects
 		{
 			//buffer.position = facesPointer;
 			var buff:ByteArray = new ByteArray();
+			buff.endian = Endian.LITTLE_ENDIAN;
 			
 			var f:Triangle3D;
-			var count:int = faces.length;
 			
-			for each (f in count)
+			for each (f in faces)
 			{
-				buffer.writeDouble(f.p0Index);
-				buffer.writeDouble(f.p1Index);
-				buffer.writeDouble(f.p2Index);
-				buffer.writeDouble(f.uv0.x);
-				buffer.writeDouble(f.uv0.y);
-				buffer.writeDouble(f.uv1.x);
-				buffer.writeDouble(f.uv1.y);
-				buffer.writeDouble(f.uv2.x);
-				buffer.writeDouble(f.uv2.y);
+				buff.writeDouble(f.p0Index);
+				buff.writeDouble(f.p1Index);
+				buff.writeDouble(f.p2Index);
+				buff.writeDouble(f.uv0.x);
+				buff.writeDouble(f.uv0.y);
+				buff.writeDouble(f.uv1.x);
+				buff.writeDouble(f.uv1.y);
+				buff.writeDouble(f.uv2.x);
+				buff.writeDouble(f.uv2.y);
 			}
 			
 			return buff;

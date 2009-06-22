@@ -56,10 +56,10 @@ package cn.alchemy3d.view
 			
 			lib.buffer.position = gfxPointer;
 			
-			for (var i:int = 0; i < 100; i ++)
-			{
-				trace(lib.buffer.readUnsignedInt());
-			}
+			//for (var i:int = 0; i < 100; i ++)
+			//{
+				//trace(lib.buffer.readUnsignedInt());
+			//}
 			
 			gfx.setPixels(gfx.rect, lib.buffer);
 		}

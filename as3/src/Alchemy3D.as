@@ -31,6 +31,12 @@ package
 			var p:Plane = new Plane(1, 500, 500, 1, 1);
 			scene.addChild(p);
 			
+//			lib.buffer.position = p.verticesPointer;
+//			for (var i:int = 0; i < 10; i ++)
+//			{
+//				trace(lib.buffer.readDouble());
+//			}
+			
 			addEventListener(Event.ENTER_FRAME, onRenderTick);
 		}
 		
