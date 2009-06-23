@@ -175,19 +175,19 @@ void transformSceneMesh( Scene * s )
 	Scene * p = s -> children, * head = p;
 	
 	//此时S是P的父级,这里的世界矩阵是不包含本地变换的.
-	* ( head -> camera -> world ) = matrix3D_multiply( camera_getPosition( s -> camera ), * ( s -> camera -> world ) );
+	* ( head -> camera -> world ) = matrix3D_multiply( camera_getTransform( s -> camera ), * ( s -> camera -> world ) );
 
 	while( p != NULL && p -> visible )
 	{
 		//复制式付值.
 		* ( p -> camera -> world ) = * ( head -> camera -> world );
 
-		scene_transformSceneMesh( p );
+		transformSceneMesh( p );
 
 		if( mesh_check( p -> mesh ) )
 		{
 			//网格变换,当子集存在时使用子集世界矩阵, 不存在时计算本地世界矩阵.
-			transformVertices( p -> children ? p -> children -> camera -> world : matrix3D_multiply( camera_getPosition( p ->camera ), * ( p -> camera -> world ) ), p -> mesh -> vertices );
+			transformVertices( p -> children ? * ( p -> children -> camera -> world ) : matrix3D_multiply( camera_getTransform( p ->camera ), * ( p -> camera -> world ) ), p -> mesh -> vertices );
 		}
 
 		p = p -> next;
@@ -231,13 +231,13 @@ void transformScene( Scene * s )
 {
 	if( s -> visible && s -> camera -> move )
 	{
-		p -> move = TRUE;
-		transformSceneMesh( p );
+		s -> move = TRUE;
+		transformSceneMesh( s );
 	}
 	else
 	{
-		p -> move = FALSE;
-		transformSceneChildren( p );
+		s -> move = FALSE;
+		transformSceneChildren( s );
 	}
 }
 
