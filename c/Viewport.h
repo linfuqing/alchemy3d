@@ -1,65 +1,71 @@
-#ifndef __VIEWPORT_H
-#define __VIEWPORT_H
+#ifndef VIEWPORT_H
+#define VIEWPORT_H
 
-#include <malloc.h>
-
-#include "DisplayObject3D.h"
 #include "Scene.h"
 
 typedef struct Viewport
 {
-	struct Scene * scene;
-	struct DisplayObject3D * camera;
+	//RW
+	Number   left;
+
+	//RW
+	Number   right;
+
+	//RW
+	Number   up;
+
+	//RW
+	Number   bottom;
+
+	//R
+	Scene  * scene;
+
+	//N
+	Scene  * Projection;
+
+	//RW
+	Camera * camera;
 }Viewport;
 
-Viewport * newViewport(Scene * scene, DisplayObject3D * camera)
+void viewport_setScene( Viewport * v, Scene * s )
 {
-	Viewport * view;
-
-	if( (view = ( Viewport * )malloc( sizeof( Viewport ) ) ) == NULL)
+	if( v -> Projection != NULL )
 	{
-		exit( 1 );
+		scene_destroy( & ( v -> Projection ) );
 	}
 
-	view->camera = camera;
-	view->scene = scene;
+	v -> scene = s;
 
-	return view;
+	if( ( v -> Projection = ( Scene * )malloc( sizeof( Scene ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
 }
 
-void viewport_render(Viewport * viewport)
+Viewport * newViewport( Number left, Number right, Number up, Number bottom, Scene * scene )
 {
-	Scene * scene, * p;
+	Viewport * viewport;
 
-	DisplayObject3D * camera, * do3d;
-
-	scene = viewport->scene;
-	camera = viewport->camera;
-
-	do3d_updateTransform(camera);
-	matrix3D_invert(camera->view);
-
-	p = scene->next;
-
-	do
+	if( ( viewport = ( Viewport * )malloc( sizeof( Viewport ) ) ) == NULL )
 	{
-		do3d = p->do3d;
-
-		do3d_updateTransform(do3d);
-
-		if( do3d->parent != NULL )
-		{
-			matrix3D_apprend(do3d->world, * (do3d->parent->world));
-			matrix3D_apprend(do3d->view, * (do3d->parent->view));
-		}
-		else
-		{
-			matrix3D_apprend(do3d->view, * (camera->view));
-		}
-
-		p = p->next;
+		exit( TRUE );
 	}
-	while( p!= NULL);
+
+	viewport -> left   = left;
+	viewport -> right  = right;
+	viewport -> up     = up;
+	viewport -> bottom = bottom;
+
+	viewport -> camera = NULL;
+
+	viewport_setScene( viewport, scene );
+
+	return viewport;
+}
+
+void projectScene( Viewport * viewport, void render( Faces faces ) )
+{
+
 }
 
 #endif
