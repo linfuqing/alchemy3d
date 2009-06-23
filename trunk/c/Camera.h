@@ -1,7 +1,7 @@
 # ifndef CAMERA_H
 # define CAMERA_H
 
-# include"Matrix3D.h"
+# include "Matrix3D.h"
 
 # define MOVE_TYPE_TRANSFORM   1
 # define MOVE_TYPE_TRANSLATION 2
@@ -22,6 +22,7 @@ typedef struct
 	Vector3D * direction;
 	Vector3D * scale;
 
+	Matrix3D * world;
 	Matrix3D * transform;
 	Rotation * rotation;
 
@@ -69,6 +70,8 @@ Camera * newCamera( Vector3D * position, Vector3D * direction, Vector3D * scale 
 	c -> position  = position;
 	c -> direction = direction;
 	c -> scale     = scale;
+
+	c -> world     = newMatrix3D( NULL );
 	c -> transform = newMatrix3D( NULL );
 
 	matrix3D_recompose( c -> transform, * position, * scale, * direction );
