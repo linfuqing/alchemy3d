@@ -73,7 +73,7 @@ Vector3D buildPolygon( Polygon * head )
 		exit( TRUE );
 	}
 
-	* ( head -> normal ) = polygon_normal( head -> vertex, head -> next -> vertex, head -> next -> next -> vertex );
+	* ( head -> normal ) = polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, head -> next -> next -> next -> vertex );
 
 	p = head -> next;
 

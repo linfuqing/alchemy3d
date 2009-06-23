@@ -13,7 +13,7 @@ N :·â×°
 
 # define TRUE      1
 # define FALSE     0
-# define PI        3.14
+# define PI        3.1415926
 # define TODEGREES 180 / PI
 # define TORADIANS PI / 180
 

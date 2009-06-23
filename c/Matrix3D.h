@@ -188,18 +188,16 @@ Matrix3D * newMatrix3D( Number ( * rawData )[16] )
 **/
 Matrix3D * matrix3D_clone( Matrix3D * src )
 {
-	Matrix3D  * m, * ptr;
+	Matrix3D  * m;
 
 	if( ( m = ( Matrix3D * )malloc( sizeof( Matrix3D ) ) ) == NULL )
 	{
-		exit( 1 );
+		exit( TRUE );
 	}
 
-	ptr = memcpy( m, src, sizeof( Matrix3D ) ); 
-	
-	if( ptr == NULL )
+	if( memcpy( m, src, sizeof( Matrix3D ) ) == NULL )
 	{
-		exit( 1 );
+		exit( TRUE );
 	}
 
 	return m;
@@ -318,7 +316,7 @@ append() 方法会将当前矩阵替换为后置的矩阵。
 **/
 void matrix3D_apprend( Matrix3D * thisMatrix, Matrix3D lhs )
 {
-	matrix3D_copy( thisMatrix, matrix3D_multiply( * thisMatrix, lhs ) );
+	* thisMatrix = matrix3D_multiply( * thisMatrix, lhs );
 }
 
 /**
@@ -338,7 +336,7 @@ prepend() 方法会将当前矩阵替换为前置的矩阵。
 **/
 void matrix3D_prepend( Matrix3D * thisMatrix, Matrix3D lhs )
 {
-	matrix3D_copy( thisMatrix, matrix3D_multiply( lhs, * thisMatrix ) );
+	* thisMatrix = matrix3D_multiply( lhs, * thisMatrix );
 }
 
 /**

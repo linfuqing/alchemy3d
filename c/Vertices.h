@@ -46,23 +46,23 @@ int vertices_push( Vertices * head, Vertex * vertex )
 {
 	Vertices * p, * q;
 
-	if( vertex_check( vertex ) )
+	if( !vertex_check( vertex ) )
 	{
-		printf( "顶点未初始化!" );
+		printf( "\n顶点未初始化!\n" );
 
 		return FALSE;
 	}
 
 	p = head;
 
-	while( p -> next == NULL )
+	while( p -> next != NULL )
 	{
 		p = p -> next;
 	}
 
 	if( ( q = ( Vertices * ) malloc( sizeof( Vertices ) ) ) == NULL )
 	{
-		exit( 0 );
+		exit( TRUE );
 	}
 
 	q -> vertex = vertex;
@@ -80,7 +80,7 @@ int vertices_unshift( Vertices * head, Vertex * vertex )
 
 	if( !vertex_check( vertex ) )
 	{
-		printf( "多边形未初始化!" );
+		printf( "\n顶点未初始化!\n" );
 		return FALSE;
 	}
 

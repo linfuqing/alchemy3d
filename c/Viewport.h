@@ -51,12 +51,13 @@ Viewport * newViewport( Number left, Number right, Number up, Number bottom, Sce
 		exit( TRUE );
 	}
 
-	viewport -> left   = left;
-	viewport -> right  = right;
-	viewport -> up     = up;
-	viewport -> bottom = bottom;
+	viewport -> left       = left;
+	viewport -> right      = right;
+	viewport -> up         = up;
+	viewport -> bottom     = bottom;
 
-	viewport -> camera = NULL;
+	viewport -> camera     = NULL;
+	viewport -> Projection = NULL;
 
 	viewport_setScene( viewport, scene );
 
