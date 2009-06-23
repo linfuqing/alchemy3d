@@ -32,14 +32,14 @@ package cn.alchemy3d.view
 			viewHeight = height;
 			wh = int(width) * int(height);
 			
-			gfx = new BitmapData(width, height, true);
+			gfx = new BitmapData(width, height, true, 0);
 			addChild(new Bitmap(gfx, PixelSnapping.NEVER, false));
 			
 			lib = Alchemy3DLib.getInstance();
 			
 			//初始化场景
 			//返回该对象起始指针
-			var pointerArr:Array = lib.alchemy3DLib.initializeViewport(width, height, camera.focus, camera.zoom, camera.nearClip, camera.farClip);
+			var pointerArr:Array = lib.alchemy3DLib.initializeViewport(viewWidth, viewHeight, camera.focus, camera.zoom, camera.nearClip, camera.farClip);
 			pointer = pointerArr[0];
 			gfxPointer = pointerArr[1];
 			scene.pointer = pointerArr[2];
@@ -56,12 +56,20 @@ package cn.alchemy3d.view
 			
 			lib.buffer.position = gfxPointer;
 			
+//			for (var i:int = 0; i < 400; i ++)
+//			{
+//				trace(lib.buffer.readUnsignedInt());
+//			}
+			
 			//for (var i:int = 0; i < 100; i ++)
 			//{
 				//trace(lib.buffer.readUnsignedInt());
 			//}
-			
+			gfx.lock();
+			gfx.fillRect(gfx.rect, 0);
 			gfx.setPixels(gfx.rect, lib.buffer);
+			gfx.unlock();
+			//gfx.setPixel32(5, 5, 0xffffffff);
 		}
 	}
 }

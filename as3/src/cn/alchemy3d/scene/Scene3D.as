@@ -70,13 +70,6 @@ package cn.alchemy3d.scene
 				var vBuff:ByteArray = mesh.fillVerticesToBuffer();
 				var fBuff:ByteArray = mesh.fillFacesToBuffer();
 				
-				//vBuff.position = 0;
-				
-//				for (var i:int = 0; i < vBuff.length / 8; i ++)
-//				{
-//					trace(vBuff.readDouble());
-//				}
-				
 				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, vBuff, fBuff);
 
 				mesh.pointer = arr[0];
