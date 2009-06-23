@@ -27,12 +27,6 @@ int faces_push( Faces * head, Polygon * face )
 {
 	Faces * p, * q;
 
-	if( !polygon_check( face ) )
-	{
-		printf( "多边形未初始化!" );
-		return FALSE;
-	}
-
 	p = head;
 
 	while( p -> next != NULL )
@@ -57,12 +51,6 @@ int faces_push( Faces * head, Polygon * face )
 int faces_unshift( Faces * head, Polygon * face )
 {
 	Faces * p;
-
-	if( !polygon_check( face ) )
-	{
-		printf( "多边形未初始化!" );
-		return FALSE;
-	}
 
 	if( ( p = ( Faces * )malloc( sizeof( Faces ) ) ) == NULL )
 	{
