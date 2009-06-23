@@ -158,6 +158,42 @@ package cn.alchemy3d.objects
 			buffer.writeDouble(value);
 		}
 		
+		public function set rotationX(value:Number):void
+		{
+			_direction.x = value;
+			buffer.position = directionPtr;
+			buffer.writeDouble(direction.x);
+		}
+		
+		public function get rotationX():Number
+		{
+			return _direction.x;
+		}
+		
+		public function set rotationY(value:Number):void
+		{
+			_direction.y = value;
+			buffer.position = directionPtr + 8;
+			buffer.writeDouble(direction.y);
+		}
+		
+		public function get rotationY():Number
+		{
+			return _direction.y;
+		}
+		
+		public function set rotationZ(value:Number):void
+		{
+			_direction.z = value;
+			buffer.position = directionPtr + 16;
+			buffer.writeDouble(direction.z);
+		}
+		
+		public function get rotationZ():Number
+		{
+			return _direction.z;
+		}
+		
 		/**
 		 * 获得该几何体的副本
 		 * 
