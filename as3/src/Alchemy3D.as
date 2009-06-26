@@ -13,7 +13,7 @@ package
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
 
-	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
+	[SWF(width="400",height="400",backgroundColor="#000000",frameRate="60")]
 	public class Alchemy3D extends Sprite
 	{
 		private var viewport:View3D;
@@ -36,7 +36,7 @@ package
 			
 			scene = new Scene3D();
 			camera = new Camera3D();
-			viewport = new View3D(640, 480, scene, camera);
+			viewport = new View3D(400, 400, scene, camera);
 			
 			addChild(viewport);
 			
@@ -45,12 +45,12 @@ package
 			
 			lib = Alchemy3DLib.getInstance();
 			
-			p = new Plane(1, 250, 250, 4, 4);
+			p = new Plane(1, 250, 250, 100, 100);
 			scene.addChild(p);
 			
-			p2 = new Plane(1, 250, 250, 4, 4);
-			scene.addChild(p2);
-			p2.x = 200;
+//			p2 = new Plane(1, 250, 250, 4, 4);
+//			scene.addChild(p2);
+//			p2.x = 200;
 			
 //			lib.buffer.position = p.verticesPointer;
 //			for (var i:int = 0; i < 10; i ++)
@@ -67,9 +67,9 @@ package
 			p.rotationY ++;
 			p.rotationZ ++;
 			
-			p2.rotationX --;
-			p2.rotationY --;
-			p2.rotationZ --;
+//			p2.rotationX --;
+//			p2.rotationY --;
+//			p2.rotationZ --;
 			
 			viewport.render();
 		}
