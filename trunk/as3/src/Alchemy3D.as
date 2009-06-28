@@ -12,6 +12,7 @@ package
 	import flash.display.StageQuality;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 
 	[SWF(width="400",height="400",backgroundColor="#000000",frameRate="60")]
 	public class Alchemy3D extends Sprite
@@ -35,7 +36,7 @@ package
 			stage.frameRate = 60;
 			
 			scene = new Scene3D();
-			camera = new Camera3D();
+			camera = new Camera3D(0, 90, 100, 5000);
 			viewport = new View3D(400, 400, scene, camera);
 			
 			addChild(viewport);
@@ -45,8 +46,9 @@ package
 			
 			lib = Alchemy3DLib.getInstance();
 			
-			p = new Plane(1, 250, 250, 100, 100);
+			p = new Plane(1, 150, 150, 150, 100);
 			scene.addChild(p);
+			p.z = 500;
 			
 //			p2 = new Plane(1, 250, 250, 4, 4);
 //			scene.addChild(p2);
@@ -58,7 +60,13 @@ package
 //				trace(lib.buffer.readDouble());
 //			}
 			
+			//stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			addEventListener(Event.ENTER_FRAME, onRenderTick);
+		}
+		
+		protected function onKeyDown(e:KeyboardEvent):void
+		{
+			viewport.render();
 		}
 		
 		protected function onRenderTick(e:Event):void
