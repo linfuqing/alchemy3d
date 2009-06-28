@@ -39,15 +39,14 @@ package cn.alchemy3d.view
 			
 			//初始化场景
 			//返回该对象起始指针
-			var pointerArr:Array = lib.alchemy3DLib.initializeViewport(viewWidth, viewHeight, camera.focus, camera.zoom, camera.nearClip, camera.farClip);
+			var pointerArr:Array = lib.alchemy3DLib.initializeViewport(viewWidth, viewHeight, camera.fov, camera.nearClip, camera.farClip);
 			pointer = pointerArr[0];
 			gfxPointer = pointerArr[1];
 			scene.pointer = pointerArr[2];
 			camera.pointer = pointerArr[3];
-			camera.focusPointer = pointerArr[4];
-			camera.zoomPointer = pointerArr[5];
-			camera.nearClipPointer = pointerArr[6];
-			camera.farClipPointer = pointerArr[7];
+			camera.fovPointer = pointerArr[4];
+			camera.nearClipPointer = pointerArr[5];
+			camera.farClipPointer = pointerArr[6];
 		}
 		
 		public function render():void

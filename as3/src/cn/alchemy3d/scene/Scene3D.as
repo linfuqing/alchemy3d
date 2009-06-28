@@ -1,6 +1,7 @@
 package cn.alchemy3d.scene
 {
 
+	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.lib.Alchemy3DLib;
 	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.objects.Mesh3D;
@@ -29,6 +30,7 @@ package cn.alchemy3d.scene
 		public function addChild(child:DisplayObject3D, parent:* = null):void
 		{
 			if(child.parent) throw new Error("以存在父节点");
+			if(child is Camera3D) throw new Error("场景中不能添加摄像机");
 			
 			var parentInstance:DisplayObject3D;
 			var parentPointer:uint;
