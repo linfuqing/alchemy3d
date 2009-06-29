@@ -14,7 +14,7 @@ package
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 
-	[SWF(width="400",height="400",backgroundColor="#000000",frameRate="60")]
+	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
 	public class Alchemy3D extends Sprite
 	{
 		private var viewport:View3D;
@@ -37,7 +37,7 @@ package
 			
 			scene = new Scene3D();
 			camera = new Camera3D(0, 90, 100, 5000);
-			viewport = new View3D(400, 400, scene, camera);
+			viewport = new View3D(640, 480, scene, camera);
 			
 			addChild(viewport);
 			
@@ -46,7 +46,7 @@ package
 			
 			lib = Alchemy3DLib.getInstance();
 			
-			p = new Plane(1, 150, 150, 150, 100);
+			p = new Plane(1, 200, 200, 1, 1);
 			scene.addChild(p);
 			p.z = 500;
 			
@@ -71,9 +71,9 @@ package
 		
 		protected function onRenderTick(e:Event):void
 		{
-			p.rotationX ++;
-			p.rotationY ++;
-			p.rotationZ ++;
+//			p.rotationX ++;
+//			p.rotationY ++;
+//			p.rotationZ ++;
 			
 //			p2.rotationX --;
 //			p2.rotationY --;

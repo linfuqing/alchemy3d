@@ -6,7 +6,6 @@ package cn.alchemy3d.scene
 	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.objects.Mesh3D;
 	
-	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	
 	public class Scene3D
@@ -69,10 +68,16 @@ package cn.alchemy3d.scene
 				verticesNum += mesh.vertices.length;
 				facesNum += mesh.faces.length;
 				
-				var vBuff:ByteArray = mesh.fillVerticesToBuffer();
-				var fBuff:ByteArray = mesh.fillFacesToBuffer();
+				//把顶点和面信息压入内存
+				mesh.fillVerticesToBuffer();
+				mesh.fillFacesToBuffer();
+				lib.buffer.position = mesh.tmpBuffPointer;
+//				for (var i:int = 0; i < 34; i++)
+//				{
+//					trace(i + " : " + lib.buffer.readDouble());
+//				}
 				
-				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, vBuff, fBuff);
+				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, mesh.tmpBuffPointer, mesh.vertices.length, mesh.faces.length);
 
 				mesh.pointer = arr[0];
 				mesh.positionPtr = arr[1];
@@ -80,6 +85,18 @@ package cn.alchemy3d.scene
 				mesh.scalePtr = arr[3];
 				mesh.verticesPointer = arr[4];
 				mesh.facesPointer = arr[5];
+				
+//				lib.buffer.position = arr[4];
+//				trace(lib.buffer.readDouble());
+//				trace(lib.buffer.readDouble());
+//				trace(lib.buffer.readDouble());
+//				trace(lib.buffer.readDouble());
+//				
+//				lib.buffer.position = arr[5];
+//				trace(lib.buffer.readDouble());
+//				trace(lib.buffer.readDouble());
+//				trace(lib.buffer.readDouble());
+//				trace(lib.buffer.readDouble());
 			}
 			else
 			{

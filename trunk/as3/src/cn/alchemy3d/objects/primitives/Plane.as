@@ -35,6 +35,8 @@ package cn.alchemy3d.objects.primitives
 			
 			buildPlane();
 			
+			applyForTmpBuffer();
+			
 			//geometry.computeTriNormals();
 			//geometry.computeVertexNormals();
 		}

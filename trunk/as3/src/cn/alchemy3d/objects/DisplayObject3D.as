@@ -18,7 +18,7 @@ package cn.alchemy3d.objects
 			this._position = new Vector3D();
 			this._scale = new Vector3D();
 			
-			var lib:Alchemy3DLib = Alchemy3DLib.getInstance();
+			lib = Alchemy3DLib.getInstance();
 			
 			//初始化场景
 			buffer = lib.buffer;
@@ -35,6 +35,7 @@ package cn.alchemy3d.objects
 		public var scene:Scene3D;
 		public var visible:Boolean;
 		
+		protected var lib:Alchemy3DLib;
 		protected var _direction:Vector3D;
 		protected var _position:Vector3D;
 		protected var _scale:Vector3D;
