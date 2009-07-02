@@ -11,6 +11,7 @@ package cn.alchemy3d.cameras
 		public var fovPointer:uint;
 		public var nearPointer:uint;
 		public var farPointer:uint;
+		public var fnfDirtyPointer:int;
 		
 		public var type:int;
 		public var _fov:Number;
@@ -30,8 +31,12 @@ package cn.alchemy3d.cameras
 		public function set fov(value:Number):void
 		{
 			this._fov = value;
+			
 			buffer.position = fovPointer;
 			buffer.writeDouble(value);
+			
+			buffer.position = fnfDirtyPointer;
+			buffer.writeInt(1);
 		}
 		
 		public function get far():Number
@@ -42,8 +47,12 @@ package cn.alchemy3d.cameras
 		public function set far(value:Number):void
 		{
 			this._far = value;
+			
 			buffer.position = farPointer;
 			buffer.writeDouble(value);
+			
+			buffer.position = fnfDirtyPointer;
+			buffer.writeInt(1);
 		}
 		
 		public function get near():Number
@@ -54,8 +63,12 @@ package cn.alchemy3d.cameras
 		public function set near(value:Number):void
 		{
 			this._near = value;
+			
 			buffer.position = nearPointer;
 			buffer.writeDouble(value);
+			
+			buffer.position = fnfDirtyPointer;
+			buffer.writeInt(1);
 		}
 		
 		public function Camera3D(type:int = 0, fov:Number = 90, near:Number = 100, far:Number = 5000)
@@ -79,6 +92,13 @@ package cn.alchemy3d.cameras
 			this.fovPointer = ps[5];
 			this.nearPointer = ps[6];
 			this.farPointer = ps[7];
+			this.fnfDirtyPointer = ps[8];
+		}
+		
+		public function hover(mouseX:Number, mouseY:Number, camSpeed:Number):void
+		{
+			this.eye.x -= (this.eye.x - 1000 * mouseX) / camSpeed;
+			this.eye.y -= (this.eye.y - 1000 * mouseY) / camSpeed;
 		}
 	}
 }
