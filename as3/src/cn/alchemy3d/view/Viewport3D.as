@@ -2,7 +2,6 @@ package cn.alchemy3d.view
 {
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.lib.Alchemy3DLib;
-	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.scene.Scene3D;
 	
 	import flash.display.Bitmap;
@@ -10,7 +9,7 @@ package cn.alchemy3d.view
 	import flash.display.PixelSnapping;
 	import flash.display.Sprite;
 
-	public class View3D extends Sprite
+	public class Viewport3D extends Sprite
 	{
 		public var pointer:uint;
 		public var gfxPointer:uint;
@@ -25,7 +24,27 @@ package cn.alchemy3d.view
 		
 		protected var lib:Alchemy3DLib;
 		
-		public function View3D(width:Number, height:Number, scene:Scene3D, camera:Camera3D)
+		override public function get mouseX():Number
+		{
+			return super.mouseX - viewWidth * .5;
+		}
+		
+		override public function get mouseY():Number
+		{
+			return super.mouseY - viewHeight * .5;
+		}
+		
+		public function set backgroundColor(color:uint):void
+		{
+			with (this.graphics)
+			{
+				beginFill(color, 1);
+				drawRect(0, 0, this.width, this.height);
+				endFill();
+			}
+		}
+		
+		public function Viewport3D(width:Number, height:Number, scene:Scene3D, camera:Camera3D)
 		{
 			super();
 			

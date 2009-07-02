@@ -12,7 +12,7 @@ package cn.alchemy3d.view
 	{
 		public var pointer:uint;
 		
-		protected var viewports:Vector.<View3D>;
+		protected var viewports:Vector.<Viewport3D>;
 		
 		protected var lib:Alchemy3DLib;
 		
@@ -20,7 +20,7 @@ package cn.alchemy3d.view
 		{
 			super();
 			
-			viewports = new Vector.<View3D>();
+			viewports = new Vector.<Viewport3D>();
 			
 			lib = Alchemy3DLib.getInstance();
 			
@@ -29,9 +29,9 @@ package cn.alchemy3d.view
 		
 		override public function addChild(child:DisplayObject):DisplayObject
 		{
-			if (child is View3D)
+			if (child is Viewport3D)
 			{
-				lib.alchemy3DLib.addViewport(this.pointer, View3D(child).pointer);
+				lib.alchemy3DLib.addViewport(this.pointer, Viewport3D(child).pointer);
 				
 				viewports.push(child);
 			}
@@ -53,7 +53,7 @@ package cn.alchemy3d.view
 		{
 			lib.alchemy3DLib.render(this.pointer);
 			
-			var viewport:View3D;
+			var viewport:Viewport3D;
 			
 			for each (viewport in this.viewports)
 			{
