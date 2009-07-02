@@ -15,6 +15,8 @@ package cn.alchemy3d.scene
 			children = new Dictionary();
 			
 			lib = Alchemy3DLib.getInstance();
+			
+			this.pointer = lib.alchemy3DLib.initializeScene();
 		}
 		
 		public var pointer:uint;
@@ -108,5 +110,9 @@ package cn.alchemy3d.scene
 			}
 		}
 
+		public function getChildByName(name:String):DisplayObject3D
+		{
+			return this.children[name];
+		}
 	}
 }

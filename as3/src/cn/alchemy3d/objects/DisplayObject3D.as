@@ -163,7 +163,7 @@ package cn.alchemy3d.objects
 		{
 			_direction.x = value;
 			buffer.position = directionPtr;
-			buffer.writeDouble(direction.x);
+			buffer.writeDouble(value);
 		}
 		
 		public function get rotationX():Number
@@ -175,7 +175,7 @@ package cn.alchemy3d.objects
 		{
 			_direction.y = value;
 			buffer.position = directionPtr + 8;
-			buffer.writeDouble(direction.y);
+			buffer.writeDouble(value);
 		}
 		
 		public function get rotationY():Number
@@ -187,7 +187,7 @@ package cn.alchemy3d.objects
 		{
 			_direction.z = value;
 			buffer.position = directionPtr + 16;
-			buffer.writeDouble(direction.z);
+			buffer.writeDouble(value);
 		}
 		
 		public function get rotationZ():Number
