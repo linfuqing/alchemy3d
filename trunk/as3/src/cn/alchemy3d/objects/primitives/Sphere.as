@@ -29,8 +29,7 @@ package cn.alchemy3d.objects.primitives
 	
 			buildSphere( radius );
 			
-			//geometry.computeTriNormals();
-			//geometry.computeVertexNormals();
+			applyForTmpBuffer();
 		}
 		
 		private var segmentsH :Number;
