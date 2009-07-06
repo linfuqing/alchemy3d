@@ -17,8 +17,9 @@ package cn.alchemy3d.view
 		public var viewWidth:Number;
 		public var viewHeight:Number;
 		
-		protected var camera:Camera3D;
-		protected var scene:Scene3D;
+		public var camera:Camera3D;
+		public var scene:Scene3D;
+		
 		protected var gfx:BitmapData;
 		protected var wh:int;
 		
@@ -48,6 +49,12 @@ package cn.alchemy3d.view
 		{
 			super();
 			
+			if (scene.pointer == 0)
+				throw new Error("场景没有被添加到设备列表");
+			
+			if (camera.pointer == 0)
+				throw new Error("摄像机没有被添加到设备列表");
+			
 			this.scene = scene;
 			this.camera = camera;
 			
@@ -62,9 +69,9 @@ package cn.alchemy3d.view
 			
 			//初始化场景
 			//返回该对象起始指针
-			var pointerArr:Array = lib.alchemy3DLib.initializeViewport(viewWidth, viewHeight, scene.pointer, camera.pointer);
-			pointer = pointerArr[0];
-			gfxPointer = pointerArr[1];
+			//var pointerArr:Array = lib.alchemy3DLib.initializeViewport(viewWidth, viewHeight, scene.pointer, camera.pointer);
+			//pointer = pointerArr[0];
+			//gfxPointer = pointerArr[1];
 		}
 		
 		public function render():void

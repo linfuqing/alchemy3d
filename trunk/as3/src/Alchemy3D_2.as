@@ -1,0 +1,118 @@
+package
+{
+	import cn.alchemy3d.cameras.Camera3D;
+	import cn.alchemy3d.objects.DisplayObject3D;
+	import cn.alchemy3d.objects.primitives.Plane;
+	import cn.alchemy3d.scene.Scene3D;
+	import cn.alchemy3d.view.Device;
+	import cn.alchemy3d.view.Viewport3D;
+	import cn.alchemy3d.view.stats.FPS;
+	
+	import flash.display.StageAlign;
+	import flash.display.StageQuality;
+	import flash.display.StageScaleMode;
+	import flash.events.Event;
+
+	[SWF(width="400",height="400",backgroundColor="#000000",frameRate="60")]
+	public class Alchemy3D_2 extends Device
+	{
+		private var viewport:Viewport3D;
+		private var viewport2:Viewport3D;
+		private var viewport3:Viewport3D;
+		private var viewport4:Viewport3D;
+		
+		private var camera:Camera3D;
+		private var camera2:Camera3D;
+		private var camera3:Camera3D;
+		private var camera4:Camera3D;
+		
+		private var scene:Scene3D;
+		
+		protected var p:Plane;
+		protected var p2:Plane;
+		
+		public function Alchemy3D_2()
+		{
+			super();
+			
+			stage.scaleMode = StageScaleMode.NO_SCALE;
+			stage.align = StageAlign.TOP_LEFT;
+			stage.quality = StageQuality.HIGH;
+			stage.frameRate = 60;
+			
+			scene = new Scene3D();
+			addScene(scene);
+			
+			camera = new Camera3D(0, 90, 100, 5000);
+			addCamera(camera);
+			
+//			camera2 = new Camera3D(0, 90, 100, 5000);
+//			camera2.eye.y = 800;
+//			camera2.eye.rotationX = 45;
+//			
+//			camera3 = new Camera3D(0, 90, 100, 5000);
+//			camera3.eye.y = -800;
+//			camera3.eye.rotationX = -45;
+//			
+//			camera4 = new Camera3D(0, 90, 100, 5000);
+//			camera4.eye.y = 200;
+//			camera4.eye.z = -300;
+			
+			viewport = new Viewport3D(400, 400, scene, camera);
+//			viewport.backgroundColor = 0x222222;
+//			
+//			viewport2 = new Viewport3D(320, 240, scene, camera2);
+//			viewport2.backgroundColor = 0x222222;
+//			viewport2.x = 322;
+//			
+//			viewport3 = new Viewport3D(320, 240, scene, camera3);
+//			viewport3.backgroundColor = 0x222222;
+//			viewport3.y = 242;
+//			
+//			viewport4 = new Viewport3D(320, 240, scene, camera4);
+//			viewport4.backgroundColor = 0x222222;
+//			viewport4.x = 322;
+//			viewport4.y = 242;
+			
+			addViewport(viewport);
+//			addChild(viewport2);
+//			addChild(viewport3);
+//			addChild(viewport4);
+			
+			var fps:FPS = new FPS(scene);
+			addChild(fps);
+			
+			p = new Plane(1, 30, 30, 1, 1, "test");
+			p.z = 500;
+			scene.addChild(p);
+
+			p2 = new Plane(1, 30, 30, 1, 1, "test2");
+			scene.addChild(p2);
+			p2.z = 500;
+			//p2.x = 200;
+
+			startRendering();
+		}
+		
+		override protected function onRenderTick(e:Event = null):void
+		{
+//			var mx:Number = viewport4.mouseX / 1500;
+//			var my:Number = - viewport4.mouseY / 1500;
+//			
+//			camera4.hover(mx, my, 10);
+			
+//			p.rotationX ++;
+//			p.rotationY ++;
+//			p.rotationZ ++;
+//			
+//			//camera.eye.rotationY ++;
+//			//camera.fov ++;
+//			
+//			p2.rotationX --;
+//			p2.rotationY --;
+//			p2.rotationZ --;
+			
+			super.onRenderTick(e);
+		}
+	}
+}
