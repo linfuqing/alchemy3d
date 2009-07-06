@@ -86,7 +86,7 @@ package cn.alchemy3d.cameras
 		
 		public function initializeCamera(devicePointer:uint):void
 		{
-			var ps:Array = lib.alchemy3DLib.initializeCamera(devicePointer, fov, near, far);
+			var ps:Array = lib.alchemy3DLib.initializeCamera(devicePointer, _fov, _near, _far);
 			this.pointer = ps[0];
 			this.eye.pointer = ps[1];
 			this.eye.positionPtr = ps[2];
