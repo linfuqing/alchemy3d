@@ -15,11 +15,9 @@ package cn.alchemy3d.scene
 			children = new Dictionary();
 			
 			lib = Alchemy3DLib.getInstance();
-			
-			this.pointer = lib.alchemy3DLib.initializeScene();
 		}
 		
-		public var pointer:uint;
+		public var pointer:uint = 0;
 		
 		public var children:Dictionary;
 		public var childrenNum:int = 0;
@@ -27,6 +25,11 @@ package cn.alchemy3d.scene
 		public var verticesNum:int = 0;
 		
 		protected var lib:Alchemy3DLib;
+		
+		public function initializeScene(devicePointer:uint):void
+		{	
+			this.pointer = lib.alchemy3DLib.initializeScene(devicePointer);
+		}
 		
 		public function addChild(child:DisplayObject3D, parent:* = null):void
 		{

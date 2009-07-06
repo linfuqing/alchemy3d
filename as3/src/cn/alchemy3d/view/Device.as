@@ -2,13 +2,14 @@ package cn.alchemy3d.view
 {
 	import __AS3__.vec.Vector;
 	
+	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.scene.Scene3D;
 	
-	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	import flash.events.Event;
 
-	public class Screen2D extends Sprite
+	public class Device extends Sprite
 	{
 		public var pointer:uint;
 		
@@ -16,7 +17,7 @@ package cn.alchemy3d.view
 		
 		protected var lib:Alchemy3DLib;
 		
-		public function Screen2D()
+		public function Device()
 		{
 			super();
 			
@@ -24,19 +25,30 @@ package cn.alchemy3d.view
 			
 			lib = Alchemy3DLib.getInstance();
 			
-			this.pointer = lib.alchemy3DLib.initializeScreen();
+			this.pointer = lib.alchemy3DLib.initializeDevice();
 		}
 		
-		override public function addChild(child:DisplayObject):DisplayObject
+		public function addViewport(viewport:Viewport3D):Viewport3D
 		{
-			if (child is Viewport3D)
-			{
-				lib.alchemy3DLib.addViewport(this.pointer, Viewport3D(child).pointer);
-				
-				viewports.push(child);
-			}
+			var pointerArr:Array = lib.alchemy3DLib.initializeViewport(this.pointer, viewport.viewWidth, viewport.viewHeight, viewport.scene.pointer, viewport.camera.pointer);
+			viewport.pointer = pointerArr[0];
+			viewport.gfxPointer = pointerArr[1];
 			
-			return super.addChild(child);
+			viewports.push(viewport);
+			
+			addChild(viewport);
+			
+			return viewport;
+		}
+		
+		public function addCamera(camera:Camera3D):void
+		{
+			camera.initializeCamera(this.pointer);
+		}
+		
+		public function addScene(scene:Scene3D):void
+		{
+			scene.initializeScene(this.pointer);
 		}
 		
 		public function startRendering():void

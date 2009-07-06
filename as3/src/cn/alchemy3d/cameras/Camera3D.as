@@ -7,7 +7,7 @@ package cn.alchemy3d.cameras
 	
 	public class Camera3D
 	{
-		public var pointer:uint;
+		public var pointer:uint = 0;
 		public var fovPointer:uint;
 		public var nearPointer:uint;
 		public var farPointer:uint;
@@ -82,8 +82,11 @@ package cn.alchemy3d.cameras
 			buffer = lib.buffer;
 			
 			this.eye = new DisplayObject3D("camera");
-			
-			var ps:Array = lib.alchemy3DLib.initializeCamera(fov, near, far);
+		}
+		
+		public function initializeCamera(devicePointer:uint):void
+		{
+			var ps:Array = lib.alchemy3DLib.initializeCamera(devicePointer, fov, near, far);
 			this.pointer = ps[0];
 			this.eye.pointer = ps[1];
 			this.eye.positionPtr = ps[2];

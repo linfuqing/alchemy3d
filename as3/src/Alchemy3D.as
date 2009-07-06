@@ -4,7 +4,7 @@ package
 	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.scene.Scene3D;
-	import cn.alchemy3d.view.Screen2D;
+	import cn.alchemy3d.view.Device;
 	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
 	
@@ -14,7 +14,7 @@ package
 	import flash.events.Event;
 
 	[SWF(width="642",height="482",backgroundColor="#000000",frameRate="60")]
-	public class Alchemy3D extends Screen2D
+	public class Alchemy3D extends Device
 	{
 		private var viewport:Viewport3D;
 		private var viewport2:Viewport3D;
@@ -41,19 +41,25 @@ package
 			stage.frameRate = 60;
 			
 			scene = new Scene3D();
+			addScene(scene);
+			
 			camera = new Camera3D(0, 90, 100, 5000);
+			addCamera(camera);
 			camera.eye.y = 100;
 			camera.eye.z = -400;
 			
 			camera2 = new Camera3D(0, 90, 100, 5000);
+			addCamera(camera2);
 			camera2.eye.y = 800;
 			camera2.eye.rotationX = 45;
 			
 			camera3 = new Camera3D(0, 90, 100, 5000);
+			addCamera(camera3);
 			camera3.eye.y = -800;
 			camera3.eye.rotationX = -45;
 			
 			camera4 = new Camera3D(0, 90, 100, 5000);
+			addCamera(camera4);
 			camera4.eye.y = 200;
 			camera4.eye.z = -300;
 			
@@ -73,10 +79,10 @@ package
 			viewport4.x = 322;
 			viewport4.y = 242;
 			
-			addChild(viewport);
-			addChild(viewport2);
-			addChild(viewport3);
-			addChild(viewport4);
+			addViewport(viewport);
+			addViewport(viewport2);
+			addViewport(viewport3);
+			addViewport(viewport4);
 			
 			var fps:FPS = new FPS(scene);
 			addChild(fps);
