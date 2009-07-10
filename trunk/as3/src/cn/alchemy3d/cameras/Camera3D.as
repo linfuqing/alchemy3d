@@ -14,9 +14,10 @@ package cn.alchemy3d.cameras
 		public var fnfDirtyPointer:int;
 		
 		public var type:int;
-		public var _fov:Number;
-		public var _near:Number;
-		public var _far:Number;
+		
+		private var _fov:Number;
+		private var _near:Number;
+		private var _far:Number;
 		
 		public var eye:DisplayObject3D;
 		
@@ -33,7 +34,7 @@ package cn.alchemy3d.cameras
 			this._fov = value;
 			
 			buffer.position = fovPointer;
-			buffer.writeDouble(value);
+			buffer.writeFloat(value);
 			
 			buffer.position = fnfDirtyPointer;
 			buffer.writeInt(1);
@@ -49,7 +50,7 @@ package cn.alchemy3d.cameras
 			this._far = value;
 			
 			buffer.position = farPointer;
-			buffer.writeDouble(value);
+			buffer.writeFloat(value);
 			
 			buffer.position = fnfDirtyPointer;
 			buffer.writeInt(1);
@@ -65,7 +66,7 @@ package cn.alchemy3d.cameras
 			this._near = value;
 			
 			buffer.position = nearPointer;
-			buffer.writeDouble(value);
+			buffer.writeFloat(value);
 			
 			buffer.position = fnfDirtyPointer;
 			buffer.writeInt(1);

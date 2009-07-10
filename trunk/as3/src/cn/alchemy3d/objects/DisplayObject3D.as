@@ -43,6 +43,8 @@ package cn.alchemy3d.objects
 		
 		protected var buffer:ByteArray;
 		
+		protected static const sizeOfType:int = 4;
+		
 		public function get direction():Vector3D
 		{
 			return _direction;
@@ -54,9 +56,9 @@ package cn.alchemy3d.objects
 			
 			_direction = direction;
 			buffer.position = directionPtr;
-			buffer.writeDouble(direction.x);
-			buffer.writeDouble(direction.y);
-			buffer.writeDouble(direction.z);
+			buffer.writeFloat(direction.x);
+			buffer.writeFloat(direction.y);
+			buffer.writeFloat(direction.z);
 		}
 		
 		public function get position():Vector3D
@@ -70,9 +72,9 @@ package cn.alchemy3d.objects
 			
 			_position = position;
 			buffer.position = positionPtr;
-			buffer.writeDouble(direction.x);
-			buffer.writeDouble(direction.y);
-			buffer.writeDouble(direction.z);
+			buffer.writeFloat(direction.x);
+			buffer.writeFloat(direction.y);
+			buffer.writeFloat(direction.z);
 		}
 		
 		public function get scale():Number
@@ -89,9 +91,9 @@ package cn.alchemy3d.objects
 			
 			_scale.x = _scale.y = _scale.z = value;
 			buffer.position = scalePtr;
-			buffer.writeDouble(value);
-			buffer.writeDouble(value);
-			buffer.writeDouble(value);
+			buffer.writeFloat(value);
+			buffer.writeFloat(value);
+			buffer.writeFloat(value);
 		}
 		
 		public function get x():Number
@@ -105,7 +107,7 @@ package cn.alchemy3d.objects
 			
 			_position.x = value;
 			buffer.position = positionPtr;
-			buffer.writeDouble(value);
+			buffer.writeFloat(value);
 		}
 		
 		public function get y():Number
@@ -118,8 +120,8 @@ package cn.alchemy3d.objects
 			if (!checkIfAddedToScene()) return;
 			
 			_position.y = value;
-			buffer.position = positionPtr + 8;
-			buffer.writeDouble(value);
+			buffer.position = positionPtr + sizeOfType;
+			buffer.writeFloat(value);
 		}
 		
 		public function get z():Number
@@ -132,8 +134,8 @@ package cn.alchemy3d.objects
 			if (!checkIfAddedToScene()) return;
 			
 			_position.z = value;
-			buffer.position = positionPtr + 16;
-			buffer.writeDouble(value);
+			buffer.position = positionPtr + sizeOfType * 2;
+			buffer.writeFloat(value);
 		}
 		
 		public function get scaleX():Number
@@ -147,7 +149,7 @@ package cn.alchemy3d.objects
 			
 			_scale.x = value;
 			buffer.position = scalePtr;
-			buffer.writeDouble(value);
+			buffer.writeFloat(value);
 		}
 		
 		public function get scaleY():Number
@@ -160,8 +162,8 @@ package cn.alchemy3d.objects
 			if (!checkIfAddedToScene()) return;
 			
 			_scale.y = value;
-			buffer.position = scalePtr + 8;
-			buffer.writeDouble(value);
+			buffer.position = scalePtr + sizeOfType;
+			buffer.writeFloat(value);
 		}
 		
 		public function get scaleZ():Number
@@ -174,8 +176,8 @@ package cn.alchemy3d.objects
 			if (!checkIfAddedToScene()) return;
 			
 			_scale.z = value;
-			buffer.position = scalePtr + 16;
-			buffer.writeDouble(value);
+			buffer.position = scalePtr + sizeOfType * 2;
+			buffer.writeFloat(value);
 		}
 		
 		public function set rotationX(value:Number):void
@@ -184,7 +186,7 @@ package cn.alchemy3d.objects
 			
 			_direction.x = value;
 			buffer.position = directionPtr;
-			buffer.writeDouble(value);
+			buffer.writeFloat(value);
 		}
 		
 		public function get rotationX():Number
@@ -197,8 +199,8 @@ package cn.alchemy3d.objects
 			if (!checkIfAddedToScene()) return;
 			
 			_direction.y = value;
-			buffer.position = directionPtr + 8;
-			buffer.writeDouble(value);
+			buffer.position = directionPtr + sizeOfType;
+			buffer.writeFloat(value);
 		}
 		
 		public function get rotationY():Number
@@ -211,8 +213,8 @@ package cn.alchemy3d.objects
 			if (!checkIfAddedToScene()) return;
 			
 			_direction.z = value;
-			buffer.position = directionPtr + 16;
-			buffer.writeDouble(value);
+			buffer.position = directionPtr + sizeOfType * 2;
+			buffer.writeFloat(value);
 		}
 		
 		public function get rotationZ():Number

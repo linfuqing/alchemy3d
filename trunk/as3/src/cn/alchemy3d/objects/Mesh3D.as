@@ -33,30 +33,30 @@ package cn.alchemy3d.objects
 			
 			for each (v in vertices)
 			{
-				buffer.writeDouble(v.x);
-				buffer.writeDouble(v.y);
-				buffer.writeDouble(v.z);
-				buffer.writeDouble(v.w);
+				buffer.writeFloat(v.x);
+				buffer.writeFloat(v.y);
+				buffer.writeFloat(v.z);
+				buffer.writeFloat(v.w);
 			}
 		}
 		
 		public function fillFacesToBuffer():void
 		{
-			buffer.position = tmpBuffPointer + vertices.length * 4 * 8;
+			buffer.position = tmpBuffPointer + vertices.length * 4 * sizeOfType;
 			
 			var f:Triangle3D;
 			
 			for each (f in faces)
 			{
-				buffer.writeDouble(f.p0Index);
-				buffer.writeDouble(f.p1Index);
-				buffer.writeDouble(f.p2Index);
-				buffer.writeDouble(f.uv0.x);
-				buffer.writeDouble(f.uv0.y);
-				buffer.writeDouble(f.uv1.x);
-				buffer.writeDouble(f.uv1.y);
-				buffer.writeDouble(f.uv2.x);
-				buffer.writeDouble(f.uv2.y);
+				buffer.writeFloat(f.p0Index);
+				buffer.writeFloat(f.p1Index);
+				buffer.writeFloat(f.p2Index);
+				buffer.writeFloat(f.uv0.x);
+				buffer.writeFloat(f.uv0.y);
+				buffer.writeFloat(f.uv1.x);
+				buffer.writeFloat(f.uv1.y);
+				buffer.writeFloat(f.uv2.x);
+				buffer.writeFloat(f.uv2.y);
 			}
 		}
 		
