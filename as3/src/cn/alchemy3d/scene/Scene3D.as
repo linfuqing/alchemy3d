@@ -79,7 +79,7 @@ package cn.alchemy3d.scene
 				lib.buffer.position = mesh.tmpBuffPointer;
 //				for (var i:int = 0; i < 34; i++)
 //				{
-//					trace(i + " : " + lib.buffer.readDouble());
+//					trace(i + " : " + lib.buffer.readFloat());
 //				}
 				
 				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, mesh.tmpBuffPointer, mesh.vertices.length, mesh.faces.length);
@@ -92,16 +92,16 @@ package cn.alchemy3d.scene
 				mesh.facesPointer = arr[5];
 				
 //				lib.buffer.position = arr[4];
-//				trace(lib.buffer.readDouble());
-//				trace(lib.buffer.readDouble());
-//				trace(lib.buffer.readDouble());
-//				trace(lib.buffer.readDouble());
+//				trace(lib.buffer.readFloat());
+//				trace(lib.buffer.readFloat());
+//				trace(lib.buffer.readFloat());
+//				trace(lib.buffer.readFloat());
 //				
 //				lib.buffer.position = arr[5];
-//				trace(lib.buffer.readDouble());
-//				trace(lib.buffer.readDouble());
-//				trace(lib.buffer.readDouble());
-//				trace(lib.buffer.readDouble());
+//				trace(lib.buffer.readFloat());
+//				trace(lib.buffer.readFloat());
+//				trace(lib.buffer.readFloat());
+//				trace(lib.buffer.readFloat());
 			}
 			else
 			{

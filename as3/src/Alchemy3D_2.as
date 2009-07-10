@@ -1,7 +1,6 @@
 package
 {
 	import cn.alchemy3d.cameras.Camera3D;
-	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Device;
@@ -12,6 +11,7 @@ package
 	import flash.display.StageQuality;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 
 	[SWF(width="400",height="400",backgroundColor="#000000",frameRate="60")]
 	public class Alchemy3D_2 extends Device
@@ -49,14 +49,17 @@ package
 			
 			p = new Plane(1, 300, 300, 1, 1, "test");
 			scene.addChild(p);
+			p.rotationX = 50;
 			p.z = 500;
 
-			p2 = new Plane(1, 300, 300, 1, 1, "test2");
-			scene.addChild(p2);
-			p2.z = 500;
-			//p2.x = 200;
+//			p2 = new Plane(1, 300, 300, 1, 1, "test2");
+//			scene.addChild(p2);
+//			p2.z = 500;
+//			p2.x = 200;
 
-			startRendering();
+stage.addEventListener(KeyboardEvent.KEY_DOWN, function ():void {onRenderTick();});
+
+			//startRendering();
 		}
 		
 		override protected function onRenderTick(e:Event = null):void
@@ -66,16 +69,16 @@ package
 //			
 //			camera4.hover(mx, my, 10);
 			
-			p.rotationX ++;
-			p.rotationY ++;
-			p.rotationZ ++;
+//			p.rotationX ++;
+//			p.rotationY ++;
+//			p.rotationZ ++;
 //			
 //			//camera.eye.rotationY ++;
 //			//camera.fov ++;
 //			
 //			p2.rotationX --;
 //			p2.rotationY --;
-			p2.rotationZ --;
+//			p2.rotationZ --;
 			
 			super.onRenderTick(e);
 		}
