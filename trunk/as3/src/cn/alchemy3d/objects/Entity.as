@@ -8,9 +8,9 @@ package cn.alchemy3d.objects
 	import flash.geom.Vector3D;
 	import flash.utils.ByteArray;
 	
-	public class DisplayObject3D
+	public class Entity implements ISceneNode
 	{
-		public function DisplayObject3D(name:String)
+		public function Entity(name:String)
 		{
 			this.name = name;
 			this.visible = true;
@@ -21,7 +21,6 @@ package cn.alchemy3d.objects
 			
 			lib = Alchemy3DLib.getInstance();
 			
-			//初始化场景
 			buffer = lib.buffer;
 		}
 		
@@ -34,8 +33,8 @@ package cn.alchemy3d.objects
 		public var scalePtr:uint;
 		
 		public var name:String;
-		public var parent:DisplayObject3D;
-		public var root:DisplayObject3D;
+		public var parent:Entity;
+		public var root:Entity;
 		public var scene:Scene3D;
 		public var visible:Boolean;
 		
@@ -44,6 +43,15 @@ package cn.alchemy3d.objects
 		private var _scale:Vector3D;
 		
 		protected static const sizeOfType:int = 4;
+		
+		public function initialize(scenePtr:uint, parentPtr:uint):void
+		{
+			var ps:Array = lib.alchemy3DLib.createEntity(scenePtr, parentPtr, 0, 0, 0, 0);
+			pointer = ps[0];
+			positionPtr = ps[1];
+			directionPtr = ps[2];
+			scalePtr = ps[3];
+		}
 		
 		public function get direction():Vector3D
 		{
@@ -227,7 +235,7 @@ package cn.alchemy3d.objects
 		 * 
 		 * @return 返回复制的几何体
 		 */
-		public function clone():DisplayObject3D
+		public function clone():Entity
 		{
 			return null;
 		}

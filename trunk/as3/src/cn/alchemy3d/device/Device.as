@@ -13,10 +13,10 @@ package cn.alchemy3d.device
 	{
 		public var pointer:uint;
 		
-		protected var scenes:Vector.<Scene3D>;
-		protected var viewports:Vector.<Viewport3D>;
-		protected var cameras:Vector.<Camera3D>;
-		protected var lights:Vector.<Light3D>;
+		public var scenes:Vector.<Scene3D>;
+		public var viewports:Vector.<Viewport3D>;
+		public var cameras:Vector.<Camera3D>;
+		public var lights:Vector.<Light3D>;
 		
 		protected var lib:Alchemy3DLib;
 		

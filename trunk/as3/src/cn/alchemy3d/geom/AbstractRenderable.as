@@ -1,13 +1,13 @@
 package cn.alchemy3d.geom
 {
-	import cn.alchemy3d.objects.DisplayObject3D;
+	import cn.alchemy3d.objects.Entity;
 	
 	public class AbstractRenderable
 	{
 		public var name:String;
-		public var instance:DisplayObject3D;
+		public var instance:Entity;
 		
-		public function AbstractRenderable(instance:DisplayObject3D = null, name:String = "")
+		public function AbstractRenderable(instance:Entity = null, name:String = "")
 		{
 			this.name = name;
 			this.instance = instance;
