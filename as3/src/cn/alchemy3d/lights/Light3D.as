@@ -1,14 +1,13 @@
 package cn.alchemy3d.lights
 {
-	import cn.alchemy3d.device.IDevice;
 	import cn.alchemy3d.lib.Alchemy3DLib;
-	import cn.alchemy3d.objects.DisplayObject3D;
+	import cn.alchemy3d.objects.Entity;
+	import cn.alchemy3d.objects.ISceneNode;
 	
 	import flash.geom.ColorTransform;
-	import flash.geom.Vector3D;
 	import flash.utils.ByteArray;
 
-	public class Light3D implements IDevice
+	public class Light3D implements ISceneNode
 	{
 		public var pointer:uint = 0;
 		protected var buffer:ByteArray;
@@ -41,7 +40,7 @@ package cn.alchemy3d.lights
 		private var _attenuation1:Number;
 		private var _attenuation2:Number;
 		
-		private var source:DisplayObject3D;
+		private var source:Entity;
 		
 		public function get ambient():ColorTransform
 		{
@@ -172,26 +171,27 @@ package cn.alchemy3d.lights
 			buffer.writeFloat(value);
 		}
 		
-		public function Light3D(position:Vector3D, direction:Vector3D, color:ColorTransform)
+		public function Light3D()
 		{
-			_ambient = new ColorTransform(color.redMultiplier * 0.4, color.greenMultiplier * 0.4, color.blueMultiplier * 0.4, color.alphaMultiplier);
-			_diffuse = new ColorTransform(color.redMultiplier, color.greenMultiplier, color.blueMultiplier, color.alphaMultiplier);
-			_specular = new ColorTransform(color.redMultiplier * 0.6, color.greenMultiplier * 0.6, color.blueMultiplier * 0.6, color.alphaMultiplier);
+			_ambient = new ColorTransform(0.4, 0.4, 0.4, 1);
+			_diffuse = new ColorTransform(1, 1, 1, 1);
+			_specular = new ColorTransform(0.6, 0.6, 0.6, 1);
 			
 			lib = Alchemy3DLib.getInstance();
 			buffer = lib.buffer;
 			
-			this.source = source == null ? new DisplayObject3D("camera") : source;
-			var ps:Array = lib.alchemy3DLib.createEntity(0, 0, 0, 0, 0, 0);
-			this.source.pointer = ps[0];
-			this.source.positionPtr = ps[1];
-			this.source.directionPtr = ps[2];
-			this.source.scalePtr = ps[3];
+			this.source = source == null ? new Entity("camera") : source;
 		}
 		
-		public function initialize(devicePointer:uint):void
+		public function initialize(scenePtr:uint, parentPtr:uint):void
 		{
-			var ps:Array = lib.alchemy3DLib.initializeLight(devicePointer, source.pointer, type, _ambient, _diffuse, _specular, _range, _falloff, _theta, _phi, _attenuation0, _attenuation1, _attenuation2);
+			var ps:Array = lib.alchemy3DLib.createEntity(0, 0, 0, 0, 0, 0);
+			source.pointer = ps[0];
+			source.positionPtr = ps[1];
+			source.directionPtr = ps[2];
+			source.scalePtr = ps[3];
+			
+			ps = lib.alchemy3DLib.initializeLight(scenePtr, source.pointer, type);
 			pointer = ps[0];
 			ambientPtr = ps[1];
 			diffusePtr = ps[2];

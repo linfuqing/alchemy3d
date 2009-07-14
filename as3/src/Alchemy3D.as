@@ -87,12 +87,12 @@ package
 			addChild(fps);
 			
 			p = new Plane(1, 250, 250, 1, 1, "test");
-			scene.addChild(p);
+			scene.addEntity(p);
 			p.y = 250;
 			p.z = 500;
 			
 			p2 = new Plane(1, 250, 250, 1, 1, "test2");
-			scene.addChild(p2);
+			scene.addEntity(p2);
 			p2.z = 500;
 			p2.rotationX = 90;
 

@@ -5,9 +5,9 @@ package cn.alchemy3d.lights
 	
 	public class PointLight3D extends Light3D
 	{
-		public function PointLight3D(position:Vector3D, color:ColorTransform)
+		public function PointLight3D()
 		{
-			super(position, null, color);
+			super();
 			
 			this.type = LightType.POINT_LIGHT;
 		}

@@ -36,9 +36,6 @@ package
 			stage.quality = StageQuality.HIGH;
 			stage.frameRate = 60;
 			
-			var fps:FPS = new FPS(scene);
-			addChild(fps);
-			
 			scene = new Scene3D();
 			addScene(scene);
 			
@@ -48,21 +45,25 @@ package
 			viewport = new Viewport3D(400, 400, scene, camera);
 			addViewport(viewport);
 			
-			light = new PointLight3D(new Vector3D(100, 0, 0), new ColorTransform(1, 1, 1));
+			light = new PointLight3D();
+			scene.addLight(light);
 			
 			p = new Plane(1, 100, 100, 1, 1, "test");
-			scene.addChild(p);
+			scene.addEntity(p);
 			//p.rotationZ = 45;
 			p.z = 500;
 
 //			p2 = new Plane(1, 300, 300, 1, 1, "test2");
-//			scene.addChild(p2);
+//			scene.addEntity(p2);
 //			p2.z = 500;
 //			p2.x = 200;
 
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, function ():void {onRenderTick();});
 
 			startRendering();
+			
+			var fps:FPS = new FPS(scene);
+			addChild(fps);
 		}
 		
 		override protected function onRenderTick(e:Event = null):void
@@ -72,7 +73,7 @@ package
 //			
 //			camera4.hover(mx, my, 10);
 			
-//			p.rotationX ++;
+			p.rotationX ++;
 //			p.rotationY ++;
 //			p.rotationZ ++;
 //			

@@ -1,10 +1,10 @@
 package cn.alchemy3d.scene
 {
 
-	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.device.IDevice;
 	import cn.alchemy3d.lib.Alchemy3DLib;
-	import cn.alchemy3d.objects.DisplayObject3D;
+	import cn.alchemy3d.lights.Light3D;
+	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.Mesh3D;
 	
 	import flash.utils.Dictionary;
@@ -14,6 +14,7 @@ package cn.alchemy3d.scene
 		public function Scene3D()
 		{
 			children = new Dictionary();
+			lights = new Vector.<Light3D>();
 			
 			lib = Alchemy3DLib.getInstance();
 		}
@@ -21,6 +22,7 @@ package cn.alchemy3d.scene
 		public var pointer:uint = 0;
 		
 		public var children:Dictionary;
+		public var lights:Vector.<Light3D>;
 		public var childrenNum:int = 0;
 		public var facesNum:int = 0;
 		public var verticesNum:int = 0;
@@ -32,28 +34,18 @@ package cn.alchemy3d.scene
 			this.pointer = lib.alchemy3DLib.initializeScene(devicePointer);
 		}
 		
-		public function addChild(child:DisplayObject3D, parent:* = null):void
+		public function addEntity(child:Entity, parent:Entity = null):void
 		{
-			if(child.parent) throw new Error("以存在父节点");
-			if(child is Camera3D) throw new Error("场景中不能添加摄像机");
+			if(child.parent) throw new Error("已存在父节点");
 			
-			var parentInstance:DisplayObject3D;
-			var parentPointer:uint = 0;
+			var parentPtr:uint = 0;
 			
 			if (parent)
 			{
-				parentInstance = (parent is String) ? children[parent] : parent;
-				
-				if (parentInstance)
-				{
-					child.parent = parentInstance;
-					child.root = parentInstance.root;
-					child.scene = this;
-					
-					parentPointer = parentInstance.pointer;
-				}
-				else
-					throw new Error("不存在该节点");
+				child.parent = parent;
+				child.root = parent.root;
+				child.scene = this;
+				parentPtr = parent.pointer;
 			}
 			else
 			{
@@ -66,7 +58,14 @@ package cn.alchemy3d.scene
 			
 			//创建实体并添加到指定节点
 			//返回该对象起始指针
-			var arr:Array;
+			child.initialize(this.pointer, parentPtr);
+			
+			if (child is Mesh3D)
+			{
+				verticesNum += Mesh3D(child).vertices.length;
+				facesNum += Mesh3D(child).faces.length;
+			}
+			/*var arr:Array;
 			if (child is Mesh3D)
 			{
 				var mesh:Mesh3D = Mesh3D(child);
@@ -77,12 +76,12 @@ package cn.alchemy3d.scene
 				//把顶点和面信息压入内存
 				mesh.fillVerticesToBuffer();
 				mesh.fillFacesToBuffer();
-				lib.buffer.position = mesh.tmpBuffPointer;
-//				for (var i:int = 0; i < 34; i++)
+//				lib.buffer.position = mesh.tmpBuffPointer;
+//				for (var i:int = 0; i < mesh.vertices.length * 4 * 4 + mesh.faces.length * 9 * 4 + 500; i++)
 //				{
-//					trace(i + " : " + lib.buffer.readFloat());
+//					trace(i + " : " + lib.buffer.readByte());
 //				}
-				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, mesh.tmpBuffPointer, mesh.vertices.length, mesh.faces.length);
+				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPtr, mesh.tmpBuffPointer, mesh.vertices.length, mesh.faces.length);
 
 				mesh.pointer = arr[0];
 				mesh.positionPtr = arr[1];
@@ -93,15 +92,22 @@ package cn.alchemy3d.scene
 			}
 			else
 			{
-				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, 0, 0, 0, 0);
+				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPtr, 0, 0, 0, 0);
 				child.pointer = arr[0];
 				child.positionPtr = arr[1];
 				child.directionPtr = arr[2];
 				child.scalePtr = arr[3];
-			}
+			}*/
+		}
+		
+		public function addLight(light:Light3D):void
+		{
+			light.initialize(this.pointer, 0);
+			
+			lights.push(light);
 		}
 
-		public function getChildByName(name:String):DisplayObject3D
+		public function getChildByName(name:String):Entity
 		{
 			return this.children[name];
 		}

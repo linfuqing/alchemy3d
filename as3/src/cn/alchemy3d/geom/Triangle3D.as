@@ -1,14 +1,14 @@
 package cn.alchemy3d.geom
 {
 
-	import cn.alchemy3d.objects.DisplayObject3D;
+	import cn.alchemy3d.objects.Entity;
 	
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
 	
 	public class Triangle3D extends AbstractRenderable
 	{
-		public function Triangle3D(materialID:int, aIndex:int, bIndex:int, cIndex:int, uva:Point, uvb:Point, uvc:Point, instance:DisplayObject3D = null, name:String = "")
+		public function Triangle3D(materialID:int, aIndex:int, bIndex:int, cIndex:int, uva:Point, uvb:Point, uvc:Point, instance:Entity = null, name:String = "")
 		{
 			super(instance, name);
 			

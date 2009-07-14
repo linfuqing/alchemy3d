@@ -4,7 +4,7 @@ package cn.alchemy3d.objects
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
 	
-	public class Mesh3D extends DisplayObject3D
+	public class Mesh3D extends Entity implements ISceneNode
 	{
 		public function Mesh3D(name:String)
 		{
@@ -65,7 +65,21 @@ package cn.alchemy3d.objects
 			tmpBuffPointer = lib.alchemy3DLib.applyForTmpBuffer(vertices.length * 4 + faces.length * 9);
 		}
 		
-		override public function clone():DisplayObject3D
+		override public function initialize(scenePtr:uint, parentPtr:uint):void
+		{
+			fillVerticesToBuffer();
+			fillFacesToBuffer();
+			
+			var ps:Array = lib.alchemy3DLib.createEntity(scenePtr, parentPtr, tmpBuffPointer, vertices.length, faces.length);
+			pointer = ps[0];
+			positionPtr = ps[1];
+			directionPtr = ps[2];
+			scalePtr = ps[3];
+			verticesPointer = ps[4];
+			facesPointer = ps[5];
+		}
+		
+		override public function clone():Entity
 		{
 			return null;
 		}

@@ -4,7 +4,7 @@ package cn.alchemy3d.engines
 	
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.materials.MaterialsManager;
-	import cn.alchemy3d.objects.DisplayObject3D;
+	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Viewport3D;
 	
@@ -36,8 +36,8 @@ package cn.alchemy3d.engines
 			//几何体序列化
 			var geomSerialized:ByteArray = new ByteArray();
 			geomSerialized.endian = Endian.LITTLE_ENDIAN;
-			var p:DisplayObject3D, pSerialized:ByteArray;
-			var children:Vector.<DisplayObject3D> = scene.children;
+			var p:Entity, pSerialized:ByteArray;
+			var children:Vector.<Entity> = scene.children;
 			//遍历所有几何体
 			for each (p in children)
 			{
