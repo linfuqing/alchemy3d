@@ -26,6 +26,9 @@ package cn.alchemy3d.objects
 		}
 		
 		public var pointer:uint;
+		protected var lib:Alchemy3DLib;	
+		protected var buffer:ByteArray;
+		
 		public var directionPtr:uint;
 		public var positionPtr:uint;
 		public var scalePtr:uint;
@@ -36,12 +39,9 @@ package cn.alchemy3d.objects
 		public var scene:Scene3D;
 		public var visible:Boolean;
 		
-		protected var lib:Alchemy3DLib;
-		protected var _direction:Vector3D;
-		protected var _position:Vector3D;
-		protected var _scale:Vector3D;
-		
-		protected var buffer:ByteArray;
+		private var _direction:Vector3D;
+		private var _position:Vector3D;
+		private var _scale:Vector3D;
 		
 		protected static const sizeOfType:int = 4;
 		

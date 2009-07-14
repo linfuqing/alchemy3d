@@ -1,10 +1,9 @@
 package
 {
 	import cn.alchemy3d.cameras.Camera3D;
-	import cn.alchemy3d.objects.DisplayObject3D;
+	import cn.alchemy3d.device.Device;
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.scene.Scene3D;
-	import cn.alchemy3d.view.Device;
 	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
 	
