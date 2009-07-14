@@ -2,13 +2,14 @@ package cn.alchemy3d.scene
 {
 
 	import cn.alchemy3d.cameras.Camera3D;
+	import cn.alchemy3d.device.IDevice;
 	import cn.alchemy3d.lib.Alchemy3DLib;
 	import cn.alchemy3d.objects.DisplayObject3D;
 	import cn.alchemy3d.objects.Mesh3D;
 	
 	import flash.utils.Dictionary;
 	
-	public class Scene3D
+	public class Scene3D implements IDevice
 	{
 		public function Scene3D()
 		{
@@ -26,7 +27,7 @@ package cn.alchemy3d.scene
 		
 		protected var lib:Alchemy3DLib;
 		
-		public function initializeScene(devicePointer:uint):void
+		public function initialize(devicePointer:uint):void
 		{	
 			this.pointer = lib.alchemy3DLib.initializeScene(devicePointer);
 		}
@@ -37,7 +38,7 @@ package cn.alchemy3d.scene
 			if(child is Camera3D) throw new Error("场景中不能添加摄像机");
 			
 			var parentInstance:DisplayObject3D;
-			var parentPointer:uint;
+			var parentPointer:uint = 0;
 			
 			if (parent)
 			{
@@ -81,7 +82,6 @@ package cn.alchemy3d.scene
 //				{
 //					trace(i + " : " + lib.buffer.readFloat());
 //				}
-				
 				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, mesh.tmpBuffPointer, mesh.vertices.length, mesh.faces.length);
 
 				mesh.pointer = arr[0];
@@ -90,22 +90,10 @@ package cn.alchemy3d.scene
 				mesh.scalePtr = arr[3];
 				mesh.verticesPointer = arr[4];
 				mesh.facesPointer = arr[5];
-				
-//				lib.buffer.position = arr[4];
-//				trace(lib.buffer.readFloat());
-//				trace(lib.buffer.readFloat());
-//				trace(lib.buffer.readFloat());
-//				trace(lib.buffer.readFloat());
-//				
-//				lib.buffer.position = arr[5];
-//				trace(lib.buffer.readFloat());
-//				trace(lib.buffer.readFloat());
-//				trace(lib.buffer.readFloat());
-//				trace(lib.buffer.readFloat());
 			}
 			else
 			{
-				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, 0, null, 0, null);
+				arr = lib.alchemy3DLib.createEntity(this.pointer, parentPointer, 0, 0, 0, 0);
 				child.pointer = arr[0];
 				child.positionPtr = arr[1];
 				child.directionPtr = arr[2];

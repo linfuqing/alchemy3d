@@ -1,6 +1,7 @@
 package cn.alchemy3d.view
 {
 	import cn.alchemy3d.cameras.Camera3D;
+	import cn.alchemy3d.device.IDevice;
 	import cn.alchemy3d.lib.Alchemy3DLib;
 	import cn.alchemy3d.scene.Scene3D;
 	
@@ -9,7 +10,7 @@ package cn.alchemy3d.view
 	import flash.display.PixelSnapping;
 	import flash.display.Sprite;
 
-	public class Viewport3D extends Sprite
+	public class Viewport3D extends Sprite implements IDevice
 	{
 		public var pointer:uint;
 		public var gfxPointer:uint;
@@ -72,6 +73,13 @@ package cn.alchemy3d.view
 			//var pointerArr:Array = lib.alchemy3DLib.initializeViewport(viewWidth, viewHeight, scene.pointer, camera.pointer);
 			//pointer = pointerArr[0];
 			//gfxPointer = pointerArr[1];
+		}
+		
+		public function initialize(devicePointer:uint):void
+		{
+			var pointerArr:Array = lib.alchemy3DLib.initializeViewport(devicePointer, viewWidth, viewHeight, scene.pointer, camera.pointer);
+			pointer = pointerArr[0];
+			gfxPointer = pointerArr[1];
 		}
 		
 		public function render():void
