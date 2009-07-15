@@ -3,6 +3,7 @@ package cn.alchemy3d.lights
 	import cn.alchemy3d.lib.Alchemy3DLib;
 	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.ISceneNode;
+	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.geom.ColorTransform;
 	import flash.utils.ByteArray;
@@ -40,7 +41,7 @@ package cn.alchemy3d.lights
 		private var _attenuation1:Number;
 		private var _attenuation2:Number;
 		
-		private var source:Entity;
+		public var source:Entity;
 		
 		public function get ambient():ColorTransform
 		{
@@ -49,6 +50,8 @@ package cn.alchemy3d.lights
 		
 		public function set ambient(c:ColorTransform):void
 		{
+			if (!checkInitialized()) return;
+			
 			_ambient = c;
 			buffer.position = ambientPtr;
 			buffer.writeFloat(c.redMultiplier);
@@ -64,6 +67,8 @@ package cn.alchemy3d.lights
 		
 		public function set diffuse(c:ColorTransform):void
 		{
+			if (!checkInitialized()) return;
+			
 			_diffuse = c;
 			buffer.position = diffusePtr;
 			buffer.writeFloat(c.redMultiplier);
@@ -79,6 +84,8 @@ package cn.alchemy3d.lights
 		
 		public function set specular(c:ColorTransform):void
 		{
+			if (!checkInitialized()) return;
+			
 			_specular = c;
 			buffer.position = specularPtr;
 			buffer.writeFloat(c.redMultiplier);
@@ -94,6 +101,8 @@ package cn.alchemy3d.lights
 		
 		public function set range(value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			this._range = value;
 			buffer.position = rangePtr;
 			buffer.writeFloat(value);
@@ -106,6 +115,8 @@ package cn.alchemy3d.lights
 		
 		public function set falloff(value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			this._falloff = value;
 			buffer.position = falloffPtr;
 			buffer.writeFloat(value);
@@ -118,6 +129,8 @@ package cn.alchemy3d.lights
 		
 		public function set theta(value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			this._theta = value;
 			buffer.position = thetaPtr;
 			buffer.writeFloat(value);
@@ -130,6 +143,8 @@ package cn.alchemy3d.lights
 		
 		public function set phi(value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			this._phi = value;
 			buffer.position = phiPtr;
 			buffer.writeFloat(value);
@@ -142,6 +157,8 @@ package cn.alchemy3d.lights
 		
 		public function set attenuation0(value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			this._attenuation0 = value;
 			buffer.position = attenuation0Ptr;
 			buffer.writeFloat(value);
@@ -154,6 +171,8 @@ package cn.alchemy3d.lights
 		
 		public function set attenuation1(value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			this._attenuation1 = value;
 			buffer.position = attenuation1Ptr;
 			buffer.writeFloat(value);
@@ -166,6 +185,8 @@ package cn.alchemy3d.lights
 		
 		public function set attenuation2(value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			this._attenuation2 = value;
 			buffer.position = attenuation2Ptr;
 			buffer.writeFloat(value);
@@ -180,18 +201,18 @@ package cn.alchemy3d.lights
 			lib = Alchemy3DLib.getInstance();
 			buffer = lib.buffer;
 			
-			this.source = source == null ? new Entity("camera") : source;
+			this.source = source == null ? new Entity(null, "lightSource") : source;
 		}
 		
 		public function initialize(scenePtr:uint, parentPtr:uint):void
 		{
-			var ps:Array = lib.alchemy3DLib.createEntity(0, 0, 0, 0, 0, 0);
-			source.pointer = ps[0];
-			source.positionPtr = ps[1];
-			source.directionPtr = ps[2];
-			source.scalePtr = ps[3];
+			source.allotPtr(lib.alchemy3DLib.initializeEntity(0, 0, 0, 0, 0, 0));
 			
-			ps = lib.alchemy3DLib.initializeLight(scenePtr, source.pointer, type);
+			allotPtr(lib.alchemy3DLib.initializeLight(scenePtr, source.pointer, type));
+		}
+		
+		public function allotPtr(ps:Array):void
+		{
 			pointer = ps[0];
 			ambientPtr = ps[1];
 			diffusePtr = ps[2];
@@ -203,6 +224,17 @@ package cn.alchemy3d.lights
 			attenuation0Ptr = ps[8];
 			attenuation1Ptr = ps[9];
 			attenuation2Ptr = ps[10];
+		}
+		
+		protected function checkInitialized():Boolean
+		{
+			if (this.pointer == 0)
+			{
+				Alchemy3DLog.warning("在设置光源属性前必须先初始化！");
+				return false;
+			}
+			
+			return true;
 		}
 	}
 }

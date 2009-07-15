@@ -2,6 +2,7 @@ package cn.alchemy3d.objects
 {
 
 	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.tools.Alchemy3DLog;
 	
@@ -10,10 +11,12 @@ package cn.alchemy3d.objects
 	
 	public class Entity implements ISceneNode
 	{
-		public function Entity(name:String)
+		public function Entity(material:Material = null, name:String = "")
 		{
 			this.name = name;
 			this.visible = true;
+			
+			this._material = material;
 			
 			this._direction = new Vector3D();
 			this._position = new Vector3D();
@@ -42,15 +45,24 @@ package cn.alchemy3d.objects
 		private var _position:Vector3D;
 		private var _scale:Vector3D;
 		
+		public var materialPtr:int;
+		private var _material:Material;
+		
+		public var texturePtr:int;
+		
 		protected static const sizeOfType:int = 4;
 		
-		public function initialize(scenePtr:uint, parentPtr:uint):void
+		public function get material():Material
 		{
-			var ps:Array = lib.alchemy3DLib.createEntity(scenePtr, parentPtr, 0, 0, 0, 0);
-			pointer = ps[0];
-			positionPtr = ps[1];
-			directionPtr = ps[2];
-			scalePtr = ps[3];
+			return _material;
+		}
+		
+		public function set material(material:Material):void
+		{
+			if (!checkInitialized()) return;
+			
+			buffer.position = materialPtr;
+			buffer.writeUnsignedInt(material.pointer);
 		}
 		
 		public function get direction():Vector3D
@@ -60,7 +72,7 @@ package cn.alchemy3d.objects
 		
 		public function set direction(direction:Vector3D):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_direction = direction;
 			buffer.position = directionPtr;
@@ -76,7 +88,7 @@ package cn.alchemy3d.objects
 		
 		public function set position(position:Vector3D):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_position = position;
 			buffer.position = positionPtr;
@@ -95,7 +107,7 @@ package cn.alchemy3d.objects
 		
 		public function set scale(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_scale.x = _scale.y = _scale.z = value;
 			buffer.position = scalePtr;
@@ -111,7 +123,7 @@ package cn.alchemy3d.objects
 		
 		public function set x(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_position.x = value;
 			buffer.position = positionPtr;
@@ -125,7 +137,7 @@ package cn.alchemy3d.objects
 		
 		public function set y(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_position.y = value;
 			buffer.position = positionPtr + sizeOfType;
@@ -139,7 +151,7 @@ package cn.alchemy3d.objects
 		
 		public function set z(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_position.z = value;
 			buffer.position = positionPtr + sizeOfType * 2;
@@ -153,7 +165,7 @@ package cn.alchemy3d.objects
 		
 		public function set scaleX(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_scale.x = value;
 			buffer.position = scalePtr;
@@ -167,7 +179,7 @@ package cn.alchemy3d.objects
 		
 		public function set scaleY(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_scale.y = value;
 			buffer.position = scalePtr + sizeOfType;
@@ -181,7 +193,7 @@ package cn.alchemy3d.objects
 		
 		public function set scaleZ(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_scale.z = value;
 			buffer.position = scalePtr + sizeOfType * 2;
@@ -190,7 +202,7 @@ package cn.alchemy3d.objects
 		
 		public function set rotationX(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_direction.x = value;
 			buffer.position = directionPtr;
@@ -204,7 +216,7 @@ package cn.alchemy3d.objects
 		
 		public function set rotationY(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_direction.y = value;
 			buffer.position = directionPtr + sizeOfType;
@@ -218,7 +230,7 @@ package cn.alchemy3d.objects
 		
 		public function set rotationZ(value:Number):void
 		{
-			if (!checkIfAddedToScene()) return;
+			if (!checkInitialized()) return;
 			
 			_direction.z = value;
 			buffer.position = directionPtr + sizeOfType * 2;
@@ -228,6 +240,22 @@ package cn.alchemy3d.objects
 		public function get rotationZ():Number
 		{
 			return _direction.z;
+		}
+		
+		public function initialize(scenePtr:uint, parentPtr:uint):void
+		{
+			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, material.pointer, 0, 0, 0, 0));
+		}
+		
+		public function allotPtr(ps:Array):void
+		{
+			pointer = ps[0];
+			materialPtr = ps[1];
+			positionPtr = ps[2];
+			directionPtr = ps[3];
+			scalePtr = ps[4];
+			materialPtr = ps[5];
+			texturePtr = ps[6];
 		}
 		
 		/**
@@ -240,11 +268,11 @@ package cn.alchemy3d.objects
 			return null;
 		}
 		
-		public function checkIfAddedToScene():Boolean
+		protected function checkInitialized():Boolean
 		{
 			if (this.pointer == 0)
 			{
-				Alchemy3DLog.warning("在设置实体属性前必须先添加到场景！");
+				Alchemy3DLog.warning("在设置实体属性前必须先初始化！");
 				return false;
 			}
 			

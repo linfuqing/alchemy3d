@@ -3,7 +3,9 @@ package
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.device.Device;
 	import cn.alchemy3d.lights.PointLight3D;
+	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.primitives.Plane;
+	import cn.alchemy3d.objects.primitives.Sphere;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
@@ -14,9 +16,8 @@ package
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.geom.ColorTransform;
-	import flash.geom.Vector3D;
 
-	[SWF(width="400",height="400",backgroundColor="#000000",frameRate="60")]
+	[SWF(width="400",height="400",backgroundColor="#006699",frameRate="60")]
 	public class Alchemy3D_2 extends Device
 	{
 		private var viewport:Viewport3D;
@@ -27,6 +28,8 @@ package
 		protected var p:Plane;
 		protected var p2:Plane;
 		
+		protected var s:Sphere;
+		
 		public function Alchemy3D_2()
 		{
 			super();
@@ -35,6 +38,11 @@ package
 			stage.align = StageAlign.TOP_LEFT;
 			stage.quality = StageQuality.HIGH;
 			stage.frameRate = 60;
+			
+			var m:Material = new Material();
+			m.ambient = new ColorTransform(1, 0, 0, 1);
+			m.diffuse = new ColorTransform(1, 0, 0, 1);
+			m.specular = new ColorTransform(1, 0, 0, 1);
 			
 			scene = new Scene3D();
 			addScene(scene);
@@ -47,13 +55,20 @@ package
 			
 			light = new PointLight3D();
 			scene.addLight(light);
+			light.source.z = 300;
+			light.ambient = new ColorTransform(0.0, 0.5, 0.5, 1); 
 			
-			p = new Plane(1, 100, 100, 1, 1, "test");
+			p = new Plane(m, 300, 300, 1, 1, "test");
 			scene.addEntity(p);
-			//p.rotationZ = 45;
+			p.rotationZ = 45;
+			p.rotationX = 45;
 			p.z = 500;
+			
+//			s = new Sphere(m, 150, 18, 16)
+//			scene.addEntity(s);
+//			s.z = 500;
 
-//			p2 = new Plane(1, 300, 300, 1, 1, "test2");
+//			p2 = new Plane(m, 300, 300, 1, 1, "test2");
 //			scene.addEntity(p2);
 //			p2.z = 500;
 //			p2.x = 200;
@@ -73,9 +88,11 @@ package
 //			
 //			camera4.hover(mx, my, 10);
 			
-			p.rotationX ++;
+//			p.rotationX ++;
 //			p.rotationY ++;
 //			p.rotationZ ++;
+
+//			s.rotationY ++;
 //			
 //			//camera.eye.rotationY ++;
 //			//camera.fov ++;
@@ -83,6 +100,7 @@ package
 //			p2.rotationX --;
 //			p2.rotationY --;
 //			p2.rotationZ --;
+			light.source.x ++;
 			
 			super.onRenderTick(e);
 		}

@@ -83,23 +83,23 @@ package cn.alchemy3d.cameras
 			lib = Alchemy3DLib.getInstance();
 			buffer = lib.buffer;
 			
-			this.eye = eye == null ? new Entity("camera") : eye;
+			this.eye = eye == null ? new Entity(null, "camera") : eye;
 		}
 		
 		public function initialize(devicePointer:uint):void
 		{
-			var arr:Array = lib.alchemy3DLib.createEntity(0, 0, 0, 0, 0, 0);
-			this.eye.pointer = arr[0];
-			this.eye.positionPtr = arr[1];
-			this.eye.directionPtr = arr[2];
-			this.eye.scalePtr = arr[3];
+			eye.allotPtr(lib.alchemy3DLib.initializeEntity(0, 0, 0, 0, 0, 0));
 			
-			var ps:Array = lib.alchemy3DLib.initializeCamera(devicePointer, eye.pointer, _fov, _near, _far);
-			this.pointer = ps[0];
-			this.fovPtr = ps[1];
-			this.nearPtr = ps[2];
-			this.farPtr = ps[3];
-			this.fnfDirtyPtr = ps[4];
+			allotPtr(lib.alchemy3DLib.initializeCamera(devicePointer, eye.pointer, _fov, _near, _far));
+		}
+		
+		public function allotPtr(ps:Array):void
+		{
+			pointer = ps[0];
+			fovPtr = ps[1];
+			nearPtr = ps[2];
+			farPtr = ps[3];
+			fnfDirtyPtr = ps[4];
 		}
 		
 		public function hover(mouseX:Number, mouseY:Number, camSpeed:Number):void

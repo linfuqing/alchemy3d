@@ -2,6 +2,7 @@ package
 {
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.device.Device;
+	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Viewport3D;
@@ -11,6 +12,7 @@ package
 	import flash.display.StageQuality;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.geom.ColorTransform;
 
 	[SWF(width="642",height="482",backgroundColor="#000000",frameRate="60")]
 	public class Alchemy3D extends Device
@@ -38,6 +40,11 @@ package
 			stage.align = StageAlign.TOP_LEFT;
 			stage.quality = StageQuality.HIGH;
 			stage.frameRate = 60;
+			
+			var m:Material = new Material();
+			m.ambient = new ColorTransform(1, 0, 0, 1);
+			m.diffuse = new ColorTransform(1, 0, 0, 1);
+			m.specular = new ColorTransform(1, 0, 0, 1);
 			
 			scene = new Scene3D();
 			addScene(scene);
@@ -86,12 +93,12 @@ package
 			var fps:FPS = new FPS(scene);
 			addChild(fps);
 			
-			p = new Plane(1, 250, 250, 1, 1, "test");
+			p = new Plane(m, 250, 250, 1, 1, "test");
 			scene.addEntity(p);
 			p.y = 250;
 			p.z = 500;
 			
-			p2 = new Plane(1, 250, 250, 1, 1, "test2");
+			p2 = new Plane(m, 250, 250, 1, 1, "test2");
 			scene.addEntity(p2);
 			p2.z = 500;
 			p2.rotationX = 90;

@@ -77,9 +77,13 @@ package cn.alchemy3d.view
 		
 		public function initialize(devicePointer:uint):void
 		{
-			var pointerArr:Array = lib.alchemy3DLib.initializeViewport(devicePointer, viewWidth, viewHeight, scene.pointer, camera.pointer);
-			pointer = pointerArr[0];
-			gfxPointer = pointerArr[1];
+			allotPtr(lib.alchemy3DLib.initializeViewport(devicePointer, viewWidth, viewHeight, scene.pointer, camera.pointer));
+		}
+		
+		public function allotPtr(ps:Array):void
+		{
+			pointer = ps[0];
+			gfxPointer = ps[1];
 		}
 		
 		public function render():void

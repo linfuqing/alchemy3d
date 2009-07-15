@@ -3,6 +3,7 @@ package cn.alchemy3d.objects.primitives
 
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
+	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.Mesh3D;
 	
 	import flash.geom.Point;
@@ -22,11 +23,9 @@ package cn.alchemy3d.objects.primitives
 		 * @param segmentsHeight 垂直方向分段
 		 * @param name 名字
 		 */
-		public function Plane(materialID:int = -1, width:Number = 500, height:Number = 500, segmentsWidth:uint = 1, segmentsHeight:uint = 1, name:String = "")
+		public function Plane(material:Material = null, width:Number = 500, height:Number = 500, segmentsWidth:uint = 1, segmentsHeight:uint = 1, name:String = "")
 		{
-			super(name);
-			
-			this.materialID = materialID;
+			super(material, name);
 			
 			this.width = width;
 			this.height = height;
@@ -64,7 +63,7 @@ package cn.alchemy3d.objects.primitives
 					var x :Number = ix * iW - textureX;
 					var y :Number = iy * iH - textureY;
 	
-					vertices.push(new Vertex3D(x, y, 0, 1, this));
+					vertices.push(new Vertex3D(x, y, 0, 1));
 				}
 			}
 			
@@ -99,7 +98,7 @@ package cn.alchemy3d.objects.primitives
 					uvC =  new Point( ix     / gridX, (iy+1) / gridY );
 					uvB =  new Point( (ix+1) / gridX, iy     / gridY );
 	
-					faces.push(new Triangle3D(materialID, aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + count));
+					faces.push(new Triangle3D(aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + count));
 	
 					// Triangle B
 					aIndex = (ix+1) * gridY1 + (iy+1);
@@ -114,7 +113,7 @@ package cn.alchemy3d.objects.primitives
 					uvC =  new Point( (ix+1) / gridX, iy      / gridY );
 					uvB =  new Point( ix      / gridX, (iy+1) / gridY );
 					
-					faces.push(new Triangle3D(materialID, aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + (count + 1)));
+					faces.push(new Triangle3D(aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + (count + 1)));
 					
 					count += 2;
 				}
