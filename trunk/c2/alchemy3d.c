@@ -6,6 +6,7 @@
 #include "Screen.h"
 #include "Entity.h"
 #include "Color.h"
+#include "Material.h"
 #include "Light.h"
 #include "Scene.h"
 #include "Viewport.h"
@@ -82,6 +83,19 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 	return AS3_Array( "PtrType, PtrType", view, view->gfxBuffer );
 }
 
+AS3_Val initializeMaterial( void* self, AS3_Val args )
+{
+	Material * material;
+
+	material = newMaterial( newColor( 0.0f, 0.0f, 0.0f, 1.0f ),
+							newColor( 0.0f, 0.0f, 0.0f, 1.0f ),
+							newColor( 0.0f, 0.0f, 0.0f, 1.0f ),
+							newColor( 0.0f, 0.0f, 0.0f, 1.0f ),
+							0.0f );
+
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", material, material->ambient, material->diffuse, material->specular, material->emissive, &material->power );
+}
+
 //初始化光源
 //返回该对象起始指针
 AS3_Val initializeLight( void* self, AS3_Val args )
@@ -98,10 +112,6 @@ AS3_Val initializeLight( void* self, AS3_Val args )
 
 	LIGHT_ENABLE = 1;
 
-	AS3_Trace(AS3_Number(light->ambient->red));
-	AS3_Trace(AS3_Number(light->attenuation0));
-	AS3_Trace(AS3_Number(light->source->position->x));
-
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
 		light, light->ambient, light->diffuse, light->specular,
 		&(light->range), &(light->falloff), &(light->theta), &(light->phi), &(light->attenuation0), &(light->attenuation1), &(light->attenuation2) );
@@ -109,17 +119,18 @@ AS3_Val initializeLight( void* self, AS3_Val args )
 
 //创建几何实体
 //返回该对象的起始指针
-AS3_Val createEntity( void* self, AS3_Val args )
+AS3_Val initializeEntity( void* self, AS3_Val args )
 {
 	Scene * scene;
 	Entity * entity, * parent;
 	Faces * faces;
 	Vertices * vertices;
+	Material * material;
 	float * tmpBuff;
 
 	int vNum, fNum, vLen, i, j;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, IntType, IntType", &scene, &parent, &tmpBuff, &vNum, &fNum );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType, IntType", &scene, &parent, &material, &tmpBuff, &vNum, &fNum );
 
 	Vertex * vArr[vNum];
 
@@ -150,9 +161,11 @@ AS3_Val createEntity( void* self, AS3_Val args )
 
 	if ( parent == FALSE ) parent = NULL;
 
+	if ( material != FALSE ) entity_setMaterial( entity, material );
+
 	if ( scene != FALSE ) scene_addEntity(scene, entity, parent);
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", entity, entity->position, entity->direction, entity->scale, entity->mesh->vertices, entity->mesh->faces );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", entity, &entity->material, entity->position, entity->direction, entity->scale, entity->material, entity->texture, entity->mesh->vertices, entity->mesh->faces );
 }
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
@@ -193,27 +206,7 @@ AS3_Val test( void* self, AS3_Val args )
 	/*entity_updateTransform(&entity);
 
 	AS3_Trace(AS3_Number(entity.position.x));
-	AS3_Trace(AS3_Number(entity.position.y));
-	AS3_Trace(AS3_Number(entity.position.z));
-	AS3_Trace(AS3_Number(entity.scale.x));
-	AS3_Trace(AS3_Number(entity.scale.y));
-	AS3_Trace(AS3_Number(entity.scale.z));
-	AS3_Trace(AS3_Number(entity.transform.m11));
-	AS3_Trace(AS3_Number(entity.transform.m12));
-	AS3_Trace(AS3_Number(entity.transform.m13));
-	AS3_Trace(AS3_Number(entity.transform.m14));
-	AS3_Trace(AS3_Number(entity.transform.m21));
-	AS3_Trace(AS3_Number(entity.transform.m22));
-	AS3_Trace(AS3_Number(entity.transform.m23));
-	AS3_Trace(AS3_Number(entity.transform.m24));
-	AS3_Trace(AS3_Number(entity.transform.m31));
-	AS3_Trace(AS3_Number(entity.transform.m32));
-	AS3_Trace(AS3_Number(entity.transform.m33));
-	AS3_Trace(AS3_Number(entity.transform.m34));
-	AS3_Trace(AS3_Number(entity.transform.m41));
-	AS3_Trace(AS3_Number(entity.transform.m42));
-	AS3_Trace(AS3_Number(entity.transform.m43));
-	AS3_Trace(AS3_Number(entity.transform.m44));*/
+	AS3_Trace(AS3_Number(entity.position.y));*/
 
 	return 0;
 }
@@ -225,16 +218,17 @@ int main()
 	AS3_Val initializeCameraMethod = AS3_Function( NULL, initializeCamera );
 	AS3_Val initializeSceneMethod = AS3_Function( NULL, initializeScene );
 	AS3_Val initializeViewportMethod = AS3_Function( NULL, initializeViewport );
+	AS3_Val initializeMaterialMethod = AS3_Function( NULL, initializeMaterial );
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
-	AS3_Val createEntityMethod = AS3_Function( NULL, createEntity );
+	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val applyForTmpBufferMethod = AS3_Function( NULL, applyForTmpBuffer );
 	AS3_Val renderMethod = AS3_Function( NULL, render );
 	AS3_Val testMethod = AS3_Function( NULL, test );
 
 
 
-	AS3_Val result = AS3_Object( "initializeDevice:AS3ValType, initializeCamera:AS3ValType, initializeScene:AS3ValType, initializeViewport:AS3ValType, initializeLight:AS3ValType, createEntity:AS3ValType, applyForTmpBuffer:AS3ValType, render:AS3ValType, test:AS3ValType",
-		initializeDeviceMethod, initializeCameraMethod, initializeSceneMethod, initializeViewportMethod, initializeLightMethod, createEntityMethod, applyForTmpBufferMethod, renderMethod, testMethod );
+	AS3_Val result = AS3_Object( "initializeDevice:AS3ValType, initializeCamera:AS3ValType, initializeScene:AS3ValType, initializeViewport:AS3ValType, initializeMaterial:AS3ValType, initializeLight:AS3ValType, initializeEntity:AS3ValType, applyForTmpBuffer:AS3ValType, render:AS3ValType, test:AS3ValType",
+		initializeDeviceMethod, initializeCameraMethod, initializeSceneMethod, initializeViewportMethod, initializeMaterialMethod, initializeLightMethod, initializeEntityMethod, applyForTmpBufferMethod, renderMethod, testMethod );
 
 
 
@@ -242,8 +236,9 @@ int main()
 	AS3_Release( initializeCameraMethod );
 	AS3_Release( initializeSceneMethod );
 	AS3_Release( initializeViewportMethod );
+	AS3_Release( initializeMaterialMethod );
 	AS3_Release( initializeLightMethod );
-	AS3_Release( createEntityMethod );
+	AS3_Release( initializeEntityMethod );
 	AS3_Release( applyForTmpBufferMethod );
 	AS3_Release( renderMethod );
 	AS3_Release( testMethod );

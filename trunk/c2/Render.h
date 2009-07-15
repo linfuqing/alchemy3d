@@ -162,15 +162,24 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			dy = 1.0f / (y2 - y0);
 
 			dxdyl = (x2 - x0) * dy;	//左斜边倒数
-			dxdyr = (x2 - x1) * dy;	//右斜边倒数
-
 			dzdyl = (z2 - z0) * dy;
-			dzdyr = (z2 - z1) * dy;
 			dudyl = (u2 - u0) * dy;
-
-			dudyr = (u2 - u1) * dy;
 			dvdyl = (v2 - v0) * dy;
+			
+			dadyl = (a2 - a0) * dy;
+			drdyl = (r2 - r0) * dy;
+			dgdyl = (g2 - g0) * dy;
+			dbdyl = (b2 - b0) * dy;
+
+			dxdyr = (x2 - x1) * dy;	//右斜边倒数
+			dzdyr = (z2 - z1) * dy;
+			dudyr = (u2 - u1) * dy;
 			dvdyr = (v2 - v1) * dy;
+
+			dadyr = (a2 - a1) * dy;
+			drdyr = (r2 - r1) * dy;
+			dgdyr = (g2 - g1) * dy;
+			dbdyr = (b2 - b1) * dy;
 
 			//y0小于视窗顶部y坐标，调整左斜边和右斜边当前值,y值开始值
 			if (y0 < 0)
@@ -182,10 +191,20 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				uStart = dudyl * dy + u0;
 				vStart = dvdyl * dy + v0;
 
+				aStart = dadyl * dy + a0;
+				rStart = drdyl * dy + r0;
+				gStart = dgdyl * dy + g0;
+				bStart = dbdyl * dy + b0;
+
 				xEnd = dxdyr * dy + x1;
 				zEnd = dzdyr * dy + z1;
 				uEnd = dudyr * dy + u1;
 				vEnd = dvdyr * dy + v1;
+
+				aEnd = dadyr * dy + a1;
+				rEnd = drdyr * dy + r1;
+				gEnd = dgdyr * dy + g1;
+				bEnd = dbdyr * dy + b1;
 
 				yStart = 0;
 			}
@@ -193,14 +212,24 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			{
 				//注意平顶和平底这里的区别
 				xStart = (float)x0;
-				uStart = (float)u0;
-				vStart = (float)v0;
-				zStart = (float)z0;
+				uStart = u0;
+				vStart = v0;
+				zStart = z0;
+
+				aStart = a0;
+				rStart = r0;
+				gStart = g0;
+				bStart = b0;
 
 				xEnd = (float)x1;
-				uEnd = (float)u1;
-				vEnd = (float)v1;
-				zEnd = (float)z1;
+				uEnd = u1;
+				vEnd = v1;
+				zEnd = z1;
+
+				aEnd = a1;
+				rEnd = r1;
+				gEnd = g1;
+				bEnd = b1;
 
 				yStart = (float)y0;
 			}
@@ -211,41 +240,72 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			dy = 1.0f / (y1 - y0);
 
 			dxdyl = (x1 - x0) * dy;
-			dxdyr = (x2 - x0) * dy;
 			dzdyl = (z1 - z0) * dy;
-			dzdyr = (z2 - z0) * dy;
-
 			dudyl = (u1 - u0) * dy;
-			dudyr = (u2 - u0) * dy;
 			dvdyl = (v1 - v0) * dy;
+
+			dadyl = (a1 - a0) * dy;
+			drdyl = (r1 - r0) * dy;
+			dgdyl = (g1 - g0) * dy;
+			dbdyl = (b1 - b0) * dy;
+
+			dxdyr = (x2 - x0) * dy;
+			dzdyr = (z2 - z0) * dy;
+			dudyr = (u2 - u0) * dy;
 			dvdyr = (v2 - v0) * dy;
+
+			dadyr = (a2 - a0) * dy;
+			drdyr = (r2 - r0) * dy;
+			dgdyr = (g2 - g0) * dy;
+			dbdyr = (b2 - b0) * dy;
 
 			if (y0 < 0)
 			{
 				dy = - (float)y0;
+
 				xStart = dxdyl * dy + x0;
 				zStart = dzdyl * dy + z0;
 				uStart = dudyl * dy + u0;
 				vStart = dvdyl * dy + v0;
+
+				aStart = dadyl * dy + a0;
+				rStart = drdyl * dy + r0;
+				gStart = dgdyl * dy + g0;
+				bStart = dbdyl * dy + b0;
 
 				xEnd = dxdyr * dy + x0;
 				zEnd = dzdyr * dy + z0;
 				uEnd = dudyr * dy + u0;
 				vEnd = dvdyr * dy + v0;
 
+				aEnd = dadyr * dy + a0;
+				rEnd = drdyr * dy + r0;
+				gEnd = dgdyr * dy + g0;
+				bEnd = dbdyr * dy + b0;
+
 				yStart = 0.0f;
 			}
 			else
 			{
 				xStart = (float)x0;
-				uStart = (float)u0;
-				vStart = (float)v0;
-				zStart = (float)z0;
+				uStart = u0;
+				vStart = v0;
+				zStart = z0;
+
+				aStart = a0;
+				rStart = r0;
+				gStart = g0;
+				bStart = b0;
 
 				xEnd = (float)x0;
-				uEnd = (float)u0;
-				vEnd = (float)v0;
-				zEnd = (float)z0;
+				uEnd = u0;
+				vEnd = v0;
+				zEnd = z0;
+
+				aEnd = a0;
+				rEnd = r0;
+				gEnd = g0;
+				bEnd = b0;
 
 				yStart = (float)y0;
 			}
@@ -267,18 +327,34 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 					uStart += dudyl;
 					vStart += dvdyl;
 
+					aStart += dadyl;
+					rStart += drdyl;
+					gStart += dgdyl;
+					bStart += dbdyl;
+
 					xEnd += dxdyr;
 					zEnd += dzdyr;
 					uEnd += dudyl;
 					vEnd += dvdyr;
 
+					aEnd += dadyr;
+					rEnd += drdyr;
+					gEnd += dgdyr;
+					bEnd += dbdyr;
+
 					continue;
 				}
 
 				dx = 1.0f / (xEnd - xStart);
+
 				dzdx = (zEnd - zStart) * dx;
 				dudx = (uEnd - uStart) * dx;
 				dvdx = (vEnd - vStart) * dx;
+
+				dadx = (aEnd - aStart) * dx;
+				drdx = (rEnd - rStart) * dx;
+				dgdx = (gEnd - gStart) * dx;
+				dbdx = (bEnd - bStart) * dx;
 
 				cxStart = (int)(xStart + 0.5);
 				cxEnd = xEnd > nw ? nw : (int)(xEnd + 0.5);
@@ -287,12 +363,21 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				currU = uStart;
 				currV = vStart;
 
+				currA = aStart;
+				currR = rStart;
+				currG = gStart;
+				currB = bStart;
+
 				//初始值需要裁剪
 				if (cxStart < 0)
 				{
 					currZ -= cxStart * dzdx;
 					currU -= cxStart * dudx;
 					currV -= cxStart * dvdx;
+					currA -= cxStart * dadx;
+					currR -= cxStart * drdx;
+					currG -= cxStart * dgdx;
+					currB -= cxStart * dbdx;
 
 					cxStart = 0;
 				}
@@ -302,7 +387,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 					pos = cxStart + ypos;
 					if(currZ < zBuffer[pos])
 					{
-						gfxBuffer[pos] = 0xffffffff;
+						gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 						zBuffer[pos] = currZ;
 					}
 				}
@@ -317,23 +402,39 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						pos = xi + ypos;
 						if(currZ < zBuffer[pos])
 						{
-							gfxBuffer[pos] = 0xffffffff;
+							gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 							zBuffer[pos] = currZ;
 						}
 						currZ += dzdx;
 						currU += dudx;
 						currV += dvdx;
+						currA += dadx;
+						currR += drdx;
+						currG += dgdx;
+						currB += dbdx;
 					}
 				}
 				//y每增加1时,xl和xr分别加上他们的递增量
 				xStart += dxdyl;
-				xEnd += dxdyr;
 				zStart += dzdyl;
-				zEnd += dzdyr;
 				uStart += dudyl;
-				uEnd += dudyr;
 				vStart += dvdyl;
+				
+				aStart += dadyl;
+				rStart += drdyl;
+				gStart += dgdyl;
+				bStart += dbdyl;
+
+				xEnd += dxdyr;
+				zEnd += dzdyr;
+				uEnd += dudyr;
 				vEnd += dvdyr;
+				
+				aEnd += dadyr;
+				rEnd += drdyr;
+				gEnd += dgdyr;
+				bEnd += dbdyr;
+
 				ypos += resX;
 			}
 		}
@@ -348,22 +449,32 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				currZ = zStart;
 				currU = uStart;
 				currV = vStart;
+				currA = aStart;
+				currR = rStart;
+				currG = gStart;
+				currB = bStart;
 
 				if (cxStart == cxEnd)
 				{
 					pos = cxStart + ypos;
 					if(currZ < zBuffer[pos])
 					{
-						gfxBuffer[pos] = 0xffffffff;
+						gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 						zBuffer[pos] = currZ;
 					}
 				}
 				else
 				{
 					dx = 1.0f / (xEnd - xStart);
+
 					dzdx = (zEnd - zStart) * dx;
 					dudx = (uEnd - uStart) * dx;
 					dvdx = (vEnd - vStart) * dx;
+
+					dadx = (aEnd - aStart) * dx;
+					drdx = (rEnd - rStart) * dx;
+					dgdx = (gEnd - gStart) * dx;
+					dbdx = (bEnd - bStart) * dx;
 
 					for ( xi = cxStart; xi <= cxEnd; xi ++ )
 					{
@@ -373,26 +484,40 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						pos = xi + ypos;
 						if(currZ < zBuffer[pos])
 						{
-							gfxBuffer[pos] = 0xffffffff;
+							gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 							zBuffer[pos] = currZ;
-
-							//AS3_Trace(AS3_Int(pos));
-							//AS3_Trace(AS3_Number(currZ));
 						}
 
 						currZ += dzdx;
 						currU += dudx;
 						currV += dvdx;
+						currA += dadx;
+						currR += drdx;
+						currG += dgdx;
+						currB += dbdx;
 					}
 				}
+
 				xStart += dxdyl;
-				xEnd += dxdyr;
 				zStart += dzdyl;
-				zEnd += dzdyr;
 				uStart += dudyl;
-				uEnd += dudyr;
 				vStart += dvdyl;
+				
+				aStart += dadyl;
+				rStart += drdyl;
+				gStart += dgdyl;
+				bStart += dbdyl;
+
+				xEnd += dxdyr;
+				zEnd += dzdyr;
+				uEnd += dudyr;
 				vEnd += dvdyr;
+				
+				aEnd += dadyr;
+				rEnd += drdyr;
+				gEnd += dgdyr;
+				bEnd += dbdyr;
+
 				ypos += resX;
 			}
 		}
@@ -723,7 +848,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 					pos = cxStart + ypos;
 					if(currZ < zBuffer[pos])
 					{
-						gfxBuffer[pos] = 0xffffffff;
+						gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 						zBuffer[pos] = currZ;
 					}
 				}
@@ -737,7 +862,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						pos = xi + ypos;
 						if(currZ < zBuffer[pos])
 						{
-							gfxBuffer[pos] = 0xffffffff;
+							gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 							zBuffer[pos] = currZ;
 						}
 
@@ -964,22 +1089,6 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	}
 }
 
-uint32 ttttemp( Entity * instance, int pos )
-{
-	uint32 result;
-
-	Texture * texture;
-
-	texture = instance->texture;
-
-	if ( NULL == texture )
-	{
-		result = colorToUint32( instance->material->ambient );
-	}
-
-	return result;
-}
-
 void rasterize(Viewport * view)
 {
 	Scene * scene;
@@ -1010,7 +1119,10 @@ void rasterize(Viewport * view)
 		//遍历面
 		while( faceNode != NULL )
 		{
-			//如果面背向摄像机
+			//如果没有材质，不用光栅化
+			if ( sceneNode->entity->material == NULL ) continue;
+
+			//如果面背向摄像机，不用光栅化
 			if ( TRUE == faceNode->face->isBackFace )
 			{
 				polygon_resetBackFace( faceNode->face );

@@ -61,24 +61,27 @@ void entity_setMesh( Entity * entity, Mesh * m )
 {
 	VertexNode * vNode;
 	ContectedFaces * cf;
-	Vector3D nv;
+	Vector3D * nv;
 
 	vNode = m->vertices->nodes;
 
 	while ( NULL != vNode )
 	{
+		nv = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+
 		cf = vNode->vertex->contectedFaces;
 
 		while ( NULL != cf )
 		{
-			vector3D_add( & nv, &nv, cf->face->normal );
+
+			vector3D_add( nv, nv, cf->face->normal );
 
 			cf = cf->next;
 		}
 
-		vector3D_normalize( &nv );
+		vector3D_normalize( nv );
 
-		vNode->vertex->normal = & nv;
+		vNode->vertex->normal = nv;
 
 		vNode = vNode->next;
 	}
@@ -94,7 +97,9 @@ void entity_setMaterial( Entity * entity, Material * m )
 
 	while ( NULL != vNode )
 	{
-		vNode->vertex->color = m->ambient;
+		vNode->vertex->color = newColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
+		color_copy( vNode->vertex->color, m->ambient);
 
 		vNode = vNode->next;
 	}

@@ -261,13 +261,14 @@ void scene_update(Scene * scene)
 
 	SceneNode * p;
 	Entity * entity;
-	VertexNode * v;
+	VertexNode * vNode;
 	Matrix3D * world;
 
 	Lights * lights;
 	Light * light;
 	Vector3D lightToLocal, dstns;
-	Color a, d;
+	Color d;
+	float dot;
 
 	p = scene->nodes;
 
@@ -296,43 +297,64 @@ void scene_update(Scene * scene)
 
 			aabb_createFromSelf( & aabb );
 
-			v = entity->mesh->vertices->nodes;
+			vNode = entity->mesh->vertices->nodes;
 
 			//===================顶点变换===================
-			while ( NULL != v )
+			//遍历顶点
+			while ( NULL != vNode )
 			{
-				vector3D_copy( v->vertex->worldPosition, v->vertex->position );
+				vector3D_copy( vNode->vertex->worldPosition, vNode->vertex->position );
 
-				matrix3D_transformVector( world, v->vertex->worldPosition );	//变换顶点到世界坐标系
+				matrix3D_transformVector( world, vNode->vertex->worldPosition );	//变换顶点到世界坐标系
 
 				//===================计算光照和顶点颜色值===================
 				lights = scene->lights;
-
-				while ( LIGHT_ENABLE == 1 && NULL != lights )
+				//遍历光源
+				while ( LIGHT_ENABLE == 1 &&  entity->material != NULL && NULL != lights)
 				{
 					light = lights->light;
 
 					entity_updateTransform(light->source);
+					/*AS3_Trace(AS3_String("world"));
+					AS3_Trace(AS3_Number(light->source->worldPosition->z));*/
 
 					vector3D_copy( & lightToLocal, light->source->worldPosition );
 
 					matrix3D_transformVector( entity->worldInvert, & lightToLocal );
+					/*AS3_Trace(AS3_String("toLocal"));
+					AS3_Trace(AS3_Number(lightToLocal.z));*/
 
-					vector3D_subtract( & dstns, & lightToLocal, v->vertex->position );
+					vector3D_subtract( & dstns, & lightToLocal, vNode->vertex->position );
 
-					vector3D_normalize( & dstns );
+					vector3D_normalize( & dstns );					
+					/*AS3_Trace(AS3_String("normal"));
+					AS3_Trace(AS3_Number(dstns.z));*/
 
 					//环境光
-					color_append( & a, entity->material->ambient, light->ambient );
+					color_append( vNode->vertex->color, entity->material->ambient, light->ambient );					
+					/*AS3_Trace(AS3_String("vcolor"));
+					AS3_Trace(AS3_Number(vNode->vertex->color->red));*/
+
 					//漫反射
 					color_append( & d, entity->material->diffuse, light->diffuse );
-					//反射光线（看到的颜色）
-					v->vertex->color = color_add_self( & a, color_scaleBy_self( & d, vector3D_dotProduct( & dstns, v->vertex->normal ) ) );
+					/*AS3_Trace(AS3_String("di.color"));
+					AS3_Trace(AS3_Number(d.red));*/
+
+					dot = vector3D_dotProduct( & dstns, vNode->vertex->normal );
+
+					if ( dot >= 0.0f )
+					{
+						//反射光线（看到的颜色）
+						color_add_self( vNode->vertex->color, color_scaleBy_self( & d, dot ) );
+					}
+					/*AS3_Trace(AS3_String("fanshe.color"));
+					AS3_Trace(AS3_Number(vNode->vertex->color->red));
+					AS3_Trace(AS3_Number(xxx));*/
 
 					lights = lights->next;
 				}
 
-				v = v -> next;
+				vNode = vNode -> next;
 			}
 		}
 
