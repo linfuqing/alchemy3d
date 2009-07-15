@@ -34,6 +34,11 @@ package cn.alchemy3d.scene
 			this.pointer = lib.alchemy3DLib.initializeScene(devicePointer);
 		}
 		
+		public function allotPtr(ps:Array):void
+		{
+			
+		}
+		
 		public function addEntity(child:Entity, parent:Entity = null):void
 		{
 			if(child.parent) throw new Error("已存在父节点");

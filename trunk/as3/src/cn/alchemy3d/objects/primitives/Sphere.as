@@ -1,11 +1,13 @@
 package cn.alchemy3d.objects.primitives
 {
 
-	import flash.geom.Point;
-	import flash.utils.Dictionary;
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
-	import cn.alchemy3d.polygon.Mesh3D;
+	import cn.alchemy3d.materials.Material;
+	import cn.alchemy3d.objects.Mesh3D;
+	
+	import flash.geom.Point;
+	import flash.utils.Dictionary;
 	
 
 	public class Sphere extends Mesh3D
@@ -16,11 +18,9 @@ package cn.alchemy3d.objects.primitives
 		public static  var MIN_SEGMENTSH :Number = 2;
 		public static  var MIN_SEGMENTSW :Number = 3;
 
-		public function Sphere(materialID:int = -1, radius:Number = 100, segmentsW:int = 8, segmentsH:int = 6, name:String = "")
+		public function Sphere(material:Material = null, radius:Number = 100, segmentsW:int = 8, segmentsH:int = 6, name:String = "")
 		{
-			super(name);
-			
-			this.materialID = materialID;
+			super(material, name);
 	
 			this.segmentsW = Math.max( MIN_SEGMENTSW, segmentsW || DEFAULT_SEGMENTSW); // Defaults to 8
 			this.segmentsH = Math.max( MIN_SEGMENTSH, segmentsH || DEFAULT_SEGMENTSH); // Defaults to 6
@@ -65,7 +65,7 @@ package cn.alchemy3d.objects.primitives
 					if (!((j==0||j==iVer)&&i>0))
 					{
 						// top||bottom = 1 vertex
-						oVtx = new Vertex3D(fY, fZ, fX, this);
+						oVtx = new Vertex3D(fY, fZ, fX, 0);
 						vertices.push(oVtx);
 						v[oVtx] = vv;
 						vv ++;
@@ -112,8 +112,8 @@ package cn.alchemy3d.objects.primitives
 						var aP3uv:Point = new Point(fI1,fJ1);
 						
 						// 2 faces
-						if (j<(aVtc.length-1))	faces.push(new Triangle3D(materialID, aP1Index, aP2Index, aP3Index, aP1uv, aP2uv, aP3uv, this));
-						if (j>1)				faces.push(new Triangle3D(materialID, aP1Index, aP3Index, aP4Index, aP1uv, aP3uv, aP4uv, this));
+						if (j<(aVtc.length-1))	faces.push(new Triangle3D(aP1Index, aP2Index, aP3Index, aP1uv, aP2uv, aP3uv, this));
+						if (j>1)				faces.push(new Triangle3D(aP1Index, aP3Index, aP4Index, aP1uv, aP3uv, aP4uv, this));
 	
 					}
 				}

@@ -8,11 +8,9 @@ package cn.alchemy3d.geom
 	
 	public class Triangle3D extends AbstractRenderable
 	{
-		public function Triangle3D(materialID:int, aIndex:int, bIndex:int, cIndex:int, uva:Point, uvb:Point, uvc:Point, instance:Entity = null, name:String = "")
+		public function Triangle3D(aIndex:int, bIndex:int, cIndex:int, uva:Point, uvb:Point, uvc:Point, instance:Entity = null, name:String = "")
 		{
 			super(instance, name);
-			
-			this.materialID = materialID;
 			
 			p0Index = aIndex;
 			p1Index = bIndex;
@@ -31,8 +29,6 @@ package cn.alchemy3d.geom
 			uvtData[4] = uvc.x;
 			uvtData[5] = uvc.y;
 		}
-		
-		public var materialID:int;
 		
 		public var normal:Vector3D;
 		

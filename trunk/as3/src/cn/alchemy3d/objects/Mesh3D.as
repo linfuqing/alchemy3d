@@ -3,14 +3,13 @@ package cn.alchemy3d.objects
 
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
+	import cn.alchemy3d.materials.Material;
 	
 	public class Mesh3D extends Entity implements ISceneNode
 	{
-		public function Mesh3D(name:String)
+		public function Mesh3D(material:Material = null, name:String = "")
 		{
-			super(name);
-			
-			geomDirty = true;
+			super(material, name);
 			
 			vertices = new Vector.<Vertex3D>();
 			faces = new Vector.<Triangle3D>();
@@ -21,9 +20,6 @@ package cn.alchemy3d.objects
 		public var tmpBuffPointer:uint;
 		public var verticesPointer:uint;
 		public var facesPointer:uint;
-		public var materialID:int;
-		
-		protected var geomDirty:Boolean;
 		
 		public function fillVerticesToBuffer():void
 		{
@@ -70,13 +66,20 @@ package cn.alchemy3d.objects
 			fillVerticesToBuffer();
 			fillFacesToBuffer();
 			
-			var ps:Array = lib.alchemy3DLib.createEntity(scenePtr, parentPtr, tmpBuffPointer, vertices.length, faces.length);
+			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, material.pointer, tmpBuffPointer, vertices.length, faces.length));
+		}
+		
+		override public function allotPtr(ps:Array):void
+		{
 			pointer = ps[0];
-			positionPtr = ps[1];
-			directionPtr = ps[2];
-			scalePtr = ps[3];
-			verticesPointer = ps[4];
-			facesPointer = ps[5];
+			materialPtr = ps[1];
+			positionPtr = ps[2];
+			directionPtr = ps[3];
+			scalePtr = ps[4];
+			materialPtr = ps[5];
+			texturePtr = ps[6];
+			verticesPointer = ps[7];
+			facesPointer = ps[8];
 		}
 		
 		override public function clone():Entity
