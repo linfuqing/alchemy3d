@@ -70,12 +70,6 @@ int main()
 	int i = 0;
 	int j = 0;
 
-	Color * c;
-
-	c = newColor(1.0f, 0.5f, 0.0f, 1.0f);
-	printf("%x\n", &(c->red));
-	printf("%x", &(c->green));
-
 	//初始化顶点链表
 	vertices = newVertices();
 	vertices2 = newVertices();
@@ -136,13 +130,13 @@ int main()
 	faces_push(faces2, tri);
 
 	material = newMaterial( newColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newColor( 0.0f, 0.0f, 0.0f, 1.0f ),
-							newColor( 0.0f, 0.0f, 0.0f, 1.0f ),
-							newColor( 0.0f, 0.0f, 0.0f, 1.0f ),
+							newColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 							0.0f );
 
 	do3d = newEntity();
-	//entity_setRotationY( do3d, 150.0f );
+	entity_setRotationY( do3d, 45.0f );
 	entity_setZ(do3d, 500);
 	entity_setMesh( do3d, newMesh(faces, vertices) );
 	entity_setMaterial( do3d, material );
@@ -150,14 +144,14 @@ int main()
 	do3d2 = newEntity();
 	entity_setZ(do3d2, 500);
 	entity_setMesh( do3d2, newMesh(faces2, vertices2) );
-	entity_setMaterial( do3d2, material );
+	//entity_setMaterial( do3d2, material );
 
 	camera = newCamera( 90.0f, 100.0f, 5000.0f, newEntity() );
 	camera->target = do3d2->worldPosition;
 
 	lightSource = newEntity();
-	lightSource->position->x = 100;
-	lightSource->position->z = 100;
+	lightSource->position->x = 0;
+	lightSource->position->z = -100;
 	light = newPointLight( POINT_LIGHT, lightSource, newColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 
 	scene = newScene();
@@ -179,10 +173,10 @@ int main()
 	scene_addChild(scene, do3d1, NULL);*/
 
 	device_render(device);
+	/*device_render(device);
 	device_render(device);
 	device_render(device);
-	device_render(device);
-	device_render(device);
+	device_render(device);*/
 
 	//printf("%x", view->gfxBuffer[189206]);
 

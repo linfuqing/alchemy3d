@@ -59,15 +59,25 @@ uint32 colorToUint32( Color * c )
 	return ( (int)(c->alpha * 255) << 24 ) + ( (int)(c->red * 255) << 16 ) + ( (int)(c->green * 255) << 8 ) + (int)(c->blue * 255);
 }
 
+void color_copy( Color * c, Color * src )
+{
+	c->red = src->red;
+	c->green = src->green;
+	c->blue = src->blue;
+	c->alpha = src->alpha;
+}
+
 Color * color_add( Color * output, Color * c1, Color * c2 )
 {
 	output->red = c1->red + c2->red;
 	output->green = c1->green + c2->green;
 	output->blue = c1->blue + c2->blue;
+	output->blue = c1->alpha + c2->alpha;
 
 	output->red = output->red > 1.0f ? 1.0f : output->red;
 	output->green = output->green > 1.0f ? 1.0f : output->green;
 	output->blue = output->blue > 1.0f ? 1.0f : output->blue;
+	output->alpha = output->alpha > 1.0f ? 1.0f : output->alpha;
 
 	return output;
 }
@@ -80,6 +90,7 @@ Color * color_scaleBy( Color * output, Color * c, float value )
 	output->red = c->red * value;
 	output->green = c->green * value;
 	output->blue = c->blue * value;
+	output->alpha = c->alpha;
 
 	return output;
 }
@@ -89,6 +100,7 @@ Color * color_append( Color * output, Color * c1, Color * c2 )
 	output->red = c1->red * c2->red;
 	output->green = c1->green * c2->green;
 	output->blue = c1->blue * c2->blue;
+	output->alpha = c1->alpha * c2->alpha;
 
 	return output;
 }
@@ -100,10 +112,12 @@ Color * color_add_self( Color * c1, Color * c2 )
 	c1->red += c2->red;
 	c1->green += c2->green;
 	c1->blue += c2->blue;
+	c1->alpha += c2->alpha;
 
 	c1->red = c1->red > 1.0f ? 1.0f : c1->red;
 	c1->green = c1->green > 1.0f ? 1.0f : c1->green;
 	c1->blue = c1->blue > 1.0f ? 1.0f : c1->blue;
+	c1->alpha = c1->alpha > 1.0f ? 1.0f : c1->alpha;
 
 	return c1;
 }
@@ -125,6 +139,7 @@ Color * color_append_self( Color * c1, Color * c2 )
 	c1->red *= c2->red;
 	c1->green *= c2->green;
 	c1->blue *= c2->blue;
+	c1->alpha *= c2->alpha;
 
 	return c1;
 }

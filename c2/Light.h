@@ -39,11 +39,11 @@ Light * newPointLight( int type, Entity * source, Color * color )
 
 	light->type = type;
 	light->ambient = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
-	light->specular = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
-	light->diffuse = color;
+	light->diffuse = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
+	light->specular = color;
 
 	color_scaleBy( light->ambient, color, 0.4f);
-	color_scaleBy( light->specular, color, 0.6f );
+	color_scaleBy( light->diffuse, color, 0.6f );
 
 	light->source = source;
 

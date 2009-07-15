@@ -41,6 +41,14 @@ float vector3D_length( Vector3D * v )
 	return sqrtf( vector3D_lengthSquared( v ) );
 }
 
+void vector3D_set( Vector3D * v, float x, float y, float z, float w )
+{
+	v->x = x;
+	v->y = y;
+	v->z = z;
+	v->w = w;
+}
+
 Vector3D * newVector3D( float x, float y, float z, float w )
 {
 	Vector3D * v;
@@ -50,10 +58,7 @@ Vector3D * newVector3D( float x, float y, float z, float w )
 		exit( TRUE );
 	}
 
-	v->x = x;
-	v->y = y;
-	v->z = z;
-	v->w = w;
+	vector3D_set( v, x, y, z, w );
 
 	return v;
 }

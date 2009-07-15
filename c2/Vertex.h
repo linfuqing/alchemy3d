@@ -52,7 +52,7 @@ Vertex * newVertex( float x, float y, float z )
 	v->uv = newVector( 0.0f, 0.0f );
 	v->position = newVector3D(x, y, z, 1.0f);
 	v->worldPosition = newVector3D(x, y, z, 1.0f);
-	v->color = NULL;
+	v->color = newColor( 0.0f, 0.0f, 0.0f, 1.0f );
 
 	v->nContectedFaces = FALSE;
 	v->bFlag = FALSE;
