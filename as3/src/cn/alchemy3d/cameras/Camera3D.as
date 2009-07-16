@@ -4,6 +4,7 @@ package cn.alchemy3d.cameras
 	import cn.alchemy3d.lib.Alchemy3DLib;
 	import cn.alchemy3d.objects.Entity;
 	
+	import flash.geom.Vector3D;
 	import flash.utils.ByteArray;
 	
 	public class Camera3D implements IDevice
@@ -12,6 +13,8 @@ package cn.alchemy3d.cameras
 		protected var lib:Alchemy3DLib;
 		protected var buffer:ByteArray;
 		
+		public var targetPtr:uint;
+		public var hasTargetPtr:uint;
 		public var fovPtr:uint;
 		public var nearPtr:uint;
 		public var farPtr:uint;
@@ -19,11 +22,38 @@ package cn.alchemy3d.cameras
 		
 		public var type:int;
 		
+		private var _target:Vector3D;
 		private var _fov:Number;
 		private var _near:Number;
 		private var _far:Number;
 		
 		public var eye:Entity;
+		
+		public function get target():Vector3D
+		{
+			return _target;
+		}
+		
+		public function set target(target:Vector3D):void
+		{
+			this._target = target;
+			
+			if (target)
+			{
+				buffer.position = targetPtr;
+				buffer.writeFloat(target.x);
+				buffer.writeFloat(target.y);
+				buffer.writeFloat(target.z);
+				
+				buffer.position = hasTargetPtr;
+				buffer.writeInt(1);
+			}
+			else
+			{
+				buffer.position = hasTargetPtr;
+				buffer.writeInt(0);
+			}
+		}
 		
 		public function get fov():Number
 		{
@@ -96,10 +126,12 @@ package cn.alchemy3d.cameras
 		public function allotPtr(ps:Array):void
 		{
 			pointer = ps[0];
-			fovPtr = ps[1];
-			nearPtr = ps[2];
-			farPtr = ps[3];
-			fnfDirtyPtr = ps[4];
+			targetPtr = ps[1];
+			fovPtr = ps[2];
+			nearPtr = ps[3];
+			farPtr = ps[4];
+			fnfDirtyPtr = ps[5];
+			hasTargetPtr = ps[6];
 		}
 		
 		public function hover(mouseX:Number, mouseY:Number, camSpeed:Number):void
