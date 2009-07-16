@@ -69,38 +69,35 @@ void color_copy( Color * c, Color * src )
 
 Color * color_add( Color * output, Color * c1, Color * c2 )
 {
+	output->alpha = c1->alpha + c2->alpha;
 	output->red = c1->red + c2->red;
 	output->green = c1->green + c2->green;
 	output->blue = c1->blue + c2->blue;
-	output->blue = c1->alpha + c2->alpha;
 
+	output->alpha = output->alpha > 1.0f ? 1.0f : output->alpha;
 	output->red = output->red > 1.0f ? 1.0f : output->red;
 	output->green = output->green > 1.0f ? 1.0f : output->green;
 	output->blue = output->blue > 1.0f ? 1.0f : output->blue;
-	output->alpha = output->alpha > 1.0f ? 1.0f : output->alpha;
 
 	return output;
 }
 
-Color * color_scaleBy( Color * output, Color * c, float value )
+Color * color_scaleBy( Color * output, Color * c, float r, float g, float b, float a )
 {
-	value = value > 1.0f ? 1.0f : value;
-	value = value < 0.0f ? 0.0f : value;
-
-	output->red = c->red * value;
-	output->green = c->green * value;
-	output->blue = c->blue * value;
-	output->alpha = c->alpha;
+	output->alpha = c->alpha * a;
+	output->red = c->red * r;
+	output->green = c->green * g;
+	output->blue = c->blue * b;
 
 	return output;
 }
 
 Color * color_append( Color * output, Color * c1, Color * c2 )
 {
+	output->alpha = c1->alpha * c2->alpha;
 	output->red = c1->red * c2->red;
 	output->green = c1->green * c2->green;
 	output->blue = c1->blue * c2->blue;
-	output->alpha = c1->alpha * c2->alpha;
 
 	return output;
 }
@@ -109,37 +106,35 @@ Color * color_append( Color * output, Color * c1, Color * c2 )
 
 Color * color_add_self( Color * c1, Color * c2 )
 {
+	c1->alpha += c2->alpha;
 	c1->red += c2->red;
 	c1->green += c2->green;
 	c1->blue += c2->blue;
-	c1->alpha += c2->alpha;
 
+	c1->alpha = c1->alpha > 1.0f ? 1.0f : c1->alpha;
 	c1->red = c1->red > 1.0f ? 1.0f : c1->red;
 	c1->green = c1->green > 1.0f ? 1.0f : c1->green;
 	c1->blue = c1->blue > 1.0f ? 1.0f : c1->blue;
-	c1->alpha = c1->alpha > 1.0f ? 1.0f : c1->alpha;
 
 	return c1;
 }
 
-Color * color_scaleBy_self( Color * c, float value )
+Color * color_scaleBy_self( Color * c, float r, float g, float b, float a )
 {
-	value = value > 1.0f ? 1.0f : value;
-	value = value < 0.0f ? 0.0f : value;
-
-	c->red *= value;
-	c->green *= value;
-	c->blue *= value;
+	c->alpha *= a;
+	c->red *= r;
+	c->green *= g;
+	c->blue *= b;
 
 	return c;
 }
 
 Color * color_append_self( Color * c1, Color * c2 )
 {
+	c1->alpha *= c2->alpha;
 	c1->red *= c2->red;
 	c1->green *= c2->green;
 	c1->blue *= c2->blue;
-	c1->alpha *= c2->alpha;
 
 	return c1;
 }

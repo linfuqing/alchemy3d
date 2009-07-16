@@ -136,7 +136,8 @@ int main()
 							0.0f );
 
 	do3d = newEntity();
-	entity_setRotationY( do3d, 45.0f );
+	entity_setRotationX( do3d, 45.0f );
+	entity_setY(do3d, 200);
 	entity_setZ(do3d, 500);
 	entity_setMesh( do3d, newMesh(faces, vertices) );
 	entity_setMaterial( do3d, material );
@@ -147,11 +148,11 @@ int main()
 	//entity_setMaterial( do3d2, material );
 
 	camera = newCamera( 90.0f, 100.0f, 5000.0f, newEntity() );
-	camera->target = do3d2->worldPosition;
+	//camera->target = do3d2->worldPosition;
 
 	lightSource = newEntity();
-	lightSource->position->x = 0;
-	lightSource->position->z = -100;
+	//lightSource->position->y = -500;
+	//lightSource->position->z = 200;
 	light = newPointLight( POINT_LIGHT, lightSource, newColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 
 	scene = newScene();

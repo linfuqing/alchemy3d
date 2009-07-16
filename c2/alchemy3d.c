@@ -38,14 +38,14 @@ AS3_Val initializeCamera( void* self, AS3_Val args )
 
 	double fov, nearClip, farClip;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, DoubleType, DoubleType, DoubleType", &device, &eye, &fov, &nearClip, &farClip );
+	AS3_ArrayValue( args, "PtrType, PtrType, DoubleType, DoubleType, DoubleType", & device, & eye, & fov, & nearClip, & farClip );
 
 	camera = newCamera( (float)fov, (float)nearClip, (float)farClip, eye );
 
 	device_addCamera( device, camera );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType",
-					camera, &(camera->fov), &(camera->nearClip), &(camera->farClip), &(camera->fnfDirty) );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+					camera, camera->target, & camera->fov, & camera->nearClip, & camera->farClip, & camera->fnfDirty, & camera->hasTarget );
 }
 
 AS3_Val initializeScene( void* self, AS3_Val args )

@@ -305,7 +305,7 @@ void viewport_project( Viewport * viewport )
 					screenVertices[i].z = tmpViewPos->z;
 					screenVertices[i].u = vtx->uv->x;
 					screenVertices[i].v = vtx->uv->y;
-					screenVertices[i].color = vtx->color;
+					screenVertices[i].color = color_scaleBy_self( vtx->color, 255, 255, 255, 255 );
 
 					/*AS3_Trace(AS3_String("screen..."));
 					AS3_Trace(AS3_Number(vtx->position->x));

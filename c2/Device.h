@@ -306,7 +306,7 @@ void device_render(Device * device)
 	{
 		camera = cameras->camera;
 
-		if ( TRUE == camera->isAttached ) camera_update( camera );
+		if ( TRUE == camera->isAttached ) camera_updateTransform( camera );
 
 		cameras = cameras->next;
 	}

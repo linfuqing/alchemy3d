@@ -39,11 +39,11 @@ Light * newPointLight( int type, Entity * source, Color * color )
 
 	light->type = type;
 	light->ambient = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
-	light->diffuse = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
-	light->specular = color;
+	light->diffuse = color;
+	light->specular = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
-	color_scaleBy( light->ambient, color, 0.4f);
-	color_scaleBy( light->diffuse, color, 0.6f );
+	color_scaleBy( light->ambient, color, 0.4f, 0.4f, 0.4f, 1 );
+	color_scaleBy( light->specular, color, 0.6f, 0.6f, 0.6f, 1 );
 
 	light->source = source;
 
@@ -86,5 +86,20 @@ Light * newPointLight( int type, Entity * source, Color * color )
 //
 //	return light;
 //}
+
+void light_updateTransform(Light * light)
+{
+	Entity * source = light->source;
+	//单位化
+	matrix3D_identity( source->transform );
+	//旋转
+	matrix3D_append( source->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( source->direction->y ), DEG2RAD( source->direction->x ), DEG2RAD( source->direction->z ) ) ) );
+	//位移
+	matrix3D_appendTranslation( source->transform, source->position->x, source->position->y, source->position->z );
+
+	matrix3D_copy( source->world, source->transform );
+
+	matrix3D_getPosition( source->worldPosition, source->world );
+}
 
 #endif

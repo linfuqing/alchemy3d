@@ -1,6 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <malloc.h>
+
 #include "Matrix3D.h"
 #include "Entity.h"
 
@@ -16,7 +18,7 @@ typedef struct Camera
 
 	float fov, nearClip, farClip, left, right, top, bottom;
 
-	int fnfDirty, isAttached;
+	int fnfDirty, isAttached, hasTarget;
 }Camera;
 
 Camera * newCamera( float fov, float nearClip, float farClip, Entity * eye )
@@ -39,12 +41,26 @@ Camera * newCamera( float fov, float nearClip, float farClip, Entity * eye )
 	cam->projectionMatrix = newMatrix3D(NULL);
 	cam->projectionMatrixInvert = newMatrix3D(NULL);
 
-	cam->target = NULL;
+	cam->target = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 
 	cam->fnfDirty = TRUE;
 	cam->isAttached = FALSE;
+	cam->hasTarget = FALSE;
 
 	return cam;
+}
+
+void camera_setTarget( Camera * camera, Vector3D * target )
+{
+	camera->target = target;
+	camera->hasTarget = TRUE;
+}
+
+void camera_setNullTarget( Camera * camera, int setFree )
+{
+	if ( TRUE == setFree ) free( camera->target );
+
+	camera->hasTarget = FALSE;
 }
 
 Matrix3D getProjectionMatrix( float top, float bottom, float left, float right, float near, float far )
@@ -98,16 +114,30 @@ Matrix3D getPerspectiveFovLH( Camera * camera, float aspect )
 	return getProjectionMatrix(top, bottom, left, right, camera->nearClip, camera->farClip);
 }
 
-void camera_update(Camera * camera)
+void camera_updateTransform(Camera * camera)
 {
 	Entity * eye = camera->eye;
 
 	if ( TRUE == eye->transformDirty )
 	{
-		if ( NULL == camera->target )
+		if ( FALSE == camera->hasTarget )
 		{
-			entity_updateTransform(eye);
-			matrix3D_fastInvert(eye->world);
+			//单位化
+			matrix3D_identity( eye->transform );
+			//缩放
+			matrix3D_appendScale( eye->transform, eye->scale->x, - eye->scale->y, eye->scale->z );
+			//旋转
+			matrix3D_append( eye->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( eye->direction->y ), DEG2RAD( eye->direction->x ), DEG2RAD( eye->direction->z ) ) ) );
+			//位移
+			matrix3D_appendTranslation( eye->transform, eye->position->x, eye->position->y, eye->position->z );
+
+			matrix3D_copy( eye->world, eye->transform );
+
+			matrix3D_copy( eye->worldInvert, eye->world );
+
+			matrix3D_getPosition( eye->worldPosition, eye->world );
+
+			matrix3D_fastInvert( eye->world );
 		}
 		else
 		{
