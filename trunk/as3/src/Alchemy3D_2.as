@@ -20,7 +20,7 @@ package
 	import gs.TweenLite;
 	import gs.easing.Linear;
 
-	[SWF(width="400",height="400",backgroundColor="#000000",frameRate="60")]
+	[SWF(width="600",height="400",backgroundColor="#000000",frameRate="60")]
 	public class Alchemy3D_2 extends Device
 	{
 		private var viewport:Viewport3D;
@@ -32,6 +32,8 @@ package
 		protected var p2:Plane;
 		
 		protected var s:Sphere;
+		protected var s2:Sphere;
+		protected var s3:Sphere;
 		
 		public function Alchemy3D_2()
 		{
@@ -43,9 +45,14 @@ package
 			stage.frameRate = 60;
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(.5, .2, 0.8, 1);
-			m.diffuse = new ColorTransform(.5, .2, 0.8, 1);
+			m.ambient = new ColorTransform(.3, .5, .8, 1);
+			m.diffuse = new ColorTransform(.3, .5, .8, 1);
 			m.specular = new ColorTransform(1, 0, 0, 1);
+			
+			var m1:Material = new Material();
+			m1.ambient = new ColorTransform(.5, .2, 0.8, 1);
+			m1.diffuse = new ColorTransform(.5, .2, 0.8, 1);
+			m1.specular = new ColorTransform(1, 0, 0, 1);
 			
 			var m2:Material = new Material();
 			m2.ambient = new ColorTransform(0, .2, 1, 1);
@@ -63,41 +70,53 @@ package
 			camera = new Camera3D(0, 90, 100, 5000);
 			addCamera(camera);
 			
-			viewport = new Viewport3D(400, 400, scene, camera);
+			viewport = new Viewport3D(600, 400, scene, camera);
 			addViewport(viewport);
 			
 			light = new PointLight3D();
 			scene.addLight(light);
-			light.source.y = -200;
-			light.source.z = -500;
-			light.ambient = new ColorTransform(.3, .3, .3, 1); 
+			light.source.y = 300;
+			light.source.z = -300;
+			light.ambient = new ColorTransform(.2, .2, .2, 1); 
 			
-			p = new Plane(m, 300, 300, 4, 4);
+			p = new Plane(m, 800, 800, 2, 2);
 			scene.addEntity(p);
-			p.rotationZ = 45;
-//			p.rotationX = 45;
-			p.z = 500;
+			p.rotationX = -90;
+			p.y = -180;
+			p.z = 800;
 			
-			s = new Sphere(m2, 150, 34, 30)
+			s = new Sphere(m1, 180, 16, 12)
 			scene.addEntity(s);
-			s.z = 600;
-
-			p2 = new Plane(m3, 300, 300, 4, 4);
-			scene.addEntity(p2);
-			p2.rotationY = 45;
-			p2.rotationX = 45;
-			p2.z = 700;
-			p2.y = 180;
-			p2.x = -150;
+			s.z = 1100;
 			
-			//camera.target = s.position;
+			s2 = new Sphere(m2, 120, 16, 12)
+			scene.addEntity(s2);
+			s2.x = -130;
+			s2.y = -60;
+			s2.z = 750;
+			
+			s3 = new Sphere(m3, 120, 16, 12)
+			scene.addEntity(s3);
+			s3.x = 150;
+			s3.y = -60;
+			s3.z = 700;
+
+//			p2 = new Plane(m3, 300, 300, 4, 4);
+//			scene.addEntity(p2);
+//			p2.rotationY = 45;
+//			p2.rotationX = 45;
+//			p2.z = 700;
+//			p2.y = 180;
+//			p2.x = -150;
+			
+//			camera.target = s.position;
 
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, function ():void {onRenderTick();});
 
 			startRendering();
 			
 			moveLight(1);
-			movePlane(1);
+			//movePlane(1);
 			
 			var fps:FPS = new FPS(scene);
 			addChild(fps);
@@ -105,8 +124,8 @@ package
 		
 		protected function moveLight(dir:int = 1):void
 		{
-			var target:int = 800 * dir;
-			TweenLite.to(light.source, 3, { x:target, onComplete:moveLight, onCompleteParams:[dir * -1]});
+			var target:int = 1500 * dir;
+			TweenLite.to(light.source, 5, { x:target, onComplete:moveLight, onCompleteParams:[dir * -1]});
 		}
 		
 		protected function movePlane(dir:int = 1):void
@@ -117,16 +136,16 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
-//			var mx:Number = viewport.mouseX / 1500;
-//			var my:Number = - viewport.mouseY / 1500;
-//			
-//			camera.hover(mx, my, 10);
+			var mx:Number = viewport.mouseX / 2500;
+			var my:Number = - viewport.mouseY / 1500;
+			
+			camera.hover(mx, my, 10);
 			
 //			p.rotationX ++;
 //			p.rotationY ++;
 //			p.rotationZ ++;
 
-			s.rotationY ++;
+//			s.rotationY ++;
 //			
 //			//camera.eye.rotationY ++;
 //			//camera.fov ++;
