@@ -421,17 +421,17 @@ int matrix3D_fastInvert( Matrix3D * m )
 	det_21 = m12 * m31 - m11 * m32;
 	det_22 = m11 * m22 - m12 * m21;
 
-	m11 = det_00 * invDet;
-	m12 = det_01 * invDet;
-	m13 = det_02 * invDet;
+	m->m11 = det_00 * invDet;
+	m->m12 = det_01 * invDet;
+	m->m13 = det_02 * invDet;
 
-	m21 = det_10 * invDet;
-	m22 = det_11 * invDet;
-	m23 = det_12 * invDet;
+	m->m21 = det_10 * invDet;
+	m->m22 = det_11 * invDet;
+	m->m23 = det_12 * invDet;
 
-	m31 = det_20 * invDet;
-	m32 = det_21 * invDet;
-	m33 = det_22 * invDet;
+	m->m31 = det_20 * invDet;
+	m->m32 = det_21 * invDet;
+	m->m33 = det_22 * invDet;
 	
 	m->m41 = -(m41 * m->m11 + m42 * m->m21 + m43 * m->m31);
 	m->m42 = -(m41 * m->m12 + m42 * m->m22 + m43 * m->m32);

@@ -36,7 +36,7 @@ Scene * newScene()
 		exit( TRUE );
 	}
 
-	scene->nFaces = scene->nNodes = scene->nVertices = 0;
+	scene->nFaces = scene->nNodes = scene->nVertices = scene->nLights = 0;
 	scene->nodes = NULL;
 	scene->lights = NULL;
 	scene->isAttached = FALSE;
@@ -68,13 +68,13 @@ SceneNode * scene_findEntity( SceneNode * node, Entity * entity )
 
 void scene_addEntity(Scene * scene, Entity * entity, Entity * parent)
 {
-	SceneNode * p, * n;
+	SceneNode * sceneNode, * n;
 
 	if (parent != NULL)
 	{
-		p = scene_findEntity(scene->nodes, parent);
+		sceneNode = scene_findEntity(scene->nodes, parent);
 
-		if (p == NULL)
+		if (sceneNode == NULL)
 		{
 			exit(TRUE);
 		}
@@ -83,13 +83,13 @@ void scene_addEntity(Scene * scene, Entity * entity, Entity * parent)
 	}
 	else
 	{
-		p = scene->nodes;
+		sceneNode = scene->nodes;
 
-		if (NULL != p)
+		if (NULL != sceneNode)
 		{
-			while( NULL != p->next )
+			while( NULL != sceneNode->next )
 			{
-				p = p->next;
+				sceneNode = sceneNode->next;
 			}
 		}
 	}
@@ -101,7 +101,7 @@ void scene_addEntity(Scene * scene, Entity * entity, Entity * parent)
 
 	n->entity = entity;
 
-	if (NULL == p)
+	if (NULL == sceneNode)
 	{
 		n->next = NULL;
 
@@ -109,9 +109,9 @@ void scene_addEntity(Scene * scene, Entity * entity, Entity * parent)
 	}
 	else
 	{
-		n->next = p->next;
+		n->next = sceneNode->next;
 
-		p->next = n;
+		sceneNode->next = n;
 	}
 
 	scene->nNodes ++;
@@ -121,7 +121,7 @@ void scene_addEntity(Scene * scene, Entity * entity, Entity * parent)
 
 int scene_removeEntityAt( Scene * scene, int i )
 {
-	SceneNode * p, * s;
+	SceneNode * sceneNode, * s;
 
 	int j = 1;
 
@@ -138,16 +138,16 @@ int scene_removeEntityAt( Scene * scene, int i )
 	}
 	else
 	{
-		p = scene->nodes;
+		sceneNode = scene->nodes;
 
 		for (; j < i; j ++)
 		{
-			p = p->next;
+			sceneNode = sceneNode->next;
 		}
 
-		s = p->next;
+		s = sceneNode->next;
 
-		p->next = s->next;
+		sceneNode->next = s->next;
 	}
 
 	scene->nFaces --;
@@ -161,15 +161,15 @@ int scene_removeEntityAt( Scene * scene, int i )
 //------------------------Light----------------------
 int scene_addLight(Scene * scene, Light * light)
 {
-	Lights * p, * q;
+	Lights * sceneNode, * q;
 
-	p = scene->lights;
+	sceneNode = scene->lights;
 
-	if (NULL != p)
+	if (NULL != sceneNode)
 	{
-		while( NULL != p->next )
+		while( NULL != sceneNode->next )
 		{
-			p = p->next;
+			sceneNode = sceneNode->next;
 		}
 	}
 
@@ -182,13 +182,13 @@ int scene_addLight(Scene * scene, Light * light)
 
 	q->next = NULL;
 
-	if (NULL == p)
+	if (NULL == sceneNode)
 	{
 		scene->lights = q;
 	}
 	else
 	{
-		p->next = q;
+		sceneNode->next = q;
 	}
 
 	scene->nLights ++;
@@ -198,7 +198,7 @@ int scene_addLight(Scene * scene, Light * light)
 
 int scene_removeLightAt( Scene * scene, int i )
 {
-	Lights * p, * s;
+	Lights * sceneNode, * s;
 
 	int j = 1;
 
@@ -215,16 +215,16 @@ int scene_removeLightAt( Scene * scene, int i )
 	}
 	else
 	{
-		p = scene->lights;
+		sceneNode = scene->lights;
 
 		for (; j < i; j ++)
 		{
-			p = p->next;
+			sceneNode = sceneNode->next;
 		}
 
-		s = p->next;
+		s = sceneNode->next;
 
-		p->next = s->next;
+		sceneNode->next = s->next;
 	}
 
 	scene->nLights --;
@@ -237,15 +237,15 @@ int scene_removeLightAt( Scene * scene, int i )
 
 void scene_destroy( Scene * * head )
 {
-	SceneNode * p, * p1;
+	SceneNode * sceneNode, * p1;
 
-	p = (* head)->nodes;
+	sceneNode = (* head)->nodes;
 
-	while( p != NULL )
+	while( sceneNode != NULL )
 	{
-		p1 = p;
+		p1 = sceneNode;
 
-		p = p->next;
+		sceneNode = sceneNode->next;
 
 		free( p1 );
 	}
@@ -259,23 +259,41 @@ void scene_update(Scene * scene)
 {
 	AABB * aabb;
 
-	SceneNode * p;
+	SceneNode * sceneNode;
 	Entity * entity;
 	VertexNode * vNode;
 	Matrix3D * world;
 
 	Lights * lights;
 	Light * light;
-	Vector3D lightToLocal, dstns;
+	Vector3D dstns, * lightToLocals;
 	Color d;
 	float dot;
+	int i = 0;
 
-	p = scene->nodes;
-
-	//遍历场景
-	do
+	if( ( lightToLocals = ( Vector3D * )malloc( sizeof( Vector3D ) * scene->nLights ) ) == NULL )
 	{
-		entity = p->entity;
+		exit( TRUE );
+	}
+
+	//===================更新光源位置===================
+	lights = scene->lights;
+	//遍历光源
+	while ( LIGHT_ENABLE == 1 && NULL != lights)
+	{
+		light = lights->light;
+
+		light_updateTransform(light);
+
+		lights = lights->next;
+	}
+
+	sceneNode = scene->nodes;
+
+	//遍历场景结点
+	while( NULL != sceneNode )
+	{
+		entity = sceneNode->entity;
 
 		//===================更新矩阵===================
 		world = entity->world;
@@ -286,6 +304,25 @@ void scene_update(Scene * scene)
 		{
 			matrix3D_append(world, entity->parent->world);	//连接父世界矩阵
 		}
+
+		//===================更新光源位置===================
+		lights = scene->lights;
+
+		//遍历光源
+		while ( LIGHT_ENABLE == 1 && NULL != lights)
+		{
+			light = lights->light;
+
+			vector3D_copy( & lightToLocals[i], light->source->worldPosition );
+
+			matrix3D_transformVector( entity->worldInvert, & lightToLocals[i] );
+
+			lights = lights->next;
+
+			i ++;
+		}
+
+		i = 0;
 
 		if ( NULL != entity->mesh )
 		{
@@ -312,21 +349,9 @@ void scene_update(Scene * scene)
 				//遍历光源
 				while ( LIGHT_ENABLE == 1 &&  entity->material != NULL && NULL != lights)
 				{
-					light = lights->light;
+					vector3D_subtract( & dstns, & lightToLocals[i], vNode->vertex->position );
 
-					entity_updateTransform(light->source);
-					/*AS3_Trace(AS3_String("world"));
-					AS3_Trace(AS3_Number(light->source->worldPosition->z));*/
-
-					vector3D_copy( & lightToLocal, light->source->worldPosition );
-
-					matrix3D_transformVector( entity->worldInvert, & lightToLocal );
-					/*AS3_Trace(AS3_String("toLocal"));
-					AS3_Trace(AS3_Number(lightToLocal.z));*/
-
-					vector3D_subtract( & dstns, & lightToLocal, vNode->vertex->position );
-
-					vector3D_normalize( & dstns );					
+					vector3D_normalize( & dstns );
 					/*AS3_Trace(AS3_String("normal"));
 					AS3_Trace(AS3_Number(dstns.z));*/
 
@@ -335,17 +360,17 @@ void scene_update(Scene * scene)
 					/*AS3_Trace(AS3_String("vcolor"));
 					AS3_Trace(AS3_Number(vNode->vertex->color->red));*/
 
-					//漫反射
-					color_append( & d, entity->material->diffuse, light->diffuse );
-					/*AS3_Trace(AS3_String("di.color"));
-					AS3_Trace(AS3_Number(d.red));*/
-
 					dot = vector3D_dotProduct( & dstns, vNode->vertex->normal );
 
 					if ( dot >= 0.0f )
 					{
-						//反射光线（看到的颜色）
-						color_add_self( vNode->vertex->color, color_scaleBy_self( & d, dot ) );
+						//漫反射
+						color_append( & d, entity->material->diffuse, light->diffuse );
+						/*AS3_Trace(AS3_String("di.color"));
+						AS3_Trace(AS3_Number(d.red));*/
+
+						//反射光
+						color_add_self( vNode->vertex->color, color_scaleBy_self( & d, dot, dot, dot, 1 ) );
 					}
 					/*AS3_Trace(AS3_String("fanshe.color"));
 					AS3_Trace(AS3_Number(vNode->vertex->color->red));
@@ -358,9 +383,10 @@ void scene_update(Scene * scene)
 			}
 		}
 
-		p = p->next;
+		sceneNode = sceneNode->next;
 	}
-	while( NULL != p );
+
+	free( lightToLocals );
 }
 
 #endif

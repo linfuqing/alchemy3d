@@ -117,20 +117,20 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	u2 = ver2->u;
 	v2 = ver2->v;
 
-	a0 = ver0->color->alpha * 0xFF;
-	r0 = ver0->color->red * 0xFF;
-	g0 = ver0->color->green * 0xFF;
-	b0 = ver0->color->blue * 0xFF;
+	a0 = ver0->color->alpha;
+	r0 = ver0->color->red;
+	g0 = ver0->color->green;
+	b0 = ver0->color->blue;
 
-	a1 = ver1->color->alpha * 0xFF;
-	r1 = ver1->color->red * 0xFF;
-	g1 = ver1->color->green * 0xFF;
-	b1 = ver1->color->blue * 0xFF;
+	a1 = ver1->color->alpha;
+	r1 = ver1->color->red;
+	g1 = ver1->color->green;
+	b1 = ver1->color->blue;
 
-	a2 = ver2->color->alpha * 0xFF;
-	r2 = ver2->color->red * 0xFF;
-	g2 = ver2->color->green * 0xFF;
-	b2 = ver2->color->blue * 0xFF;
+	a2 = ver2->color->alpha;
+	r2 = ver2->color->red;
+	g2 = ver2->color->green;
+	b2 = ver2->color->blue;
 
 	/*AS3_Trace(AS3_String("Output0 XYZ..............."));
 	AS3_Trace(AS3_String("X0Y0...."));
@@ -706,9 +706,23 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 
 			dxdyl = (x1 - x0) * dyl;
 			dzdyl = (z1 - z0) * dyl;
+			dudyl = (u1 - u0) * dyl;
+			dvdyl = (v1 - v0) * dyl;
 
 			dxdyr = (x2 - x0) * dyr;
 			dzdyr = (z2 - z0) * dyr;
+			dudyr = (u2 - u0) * dyr;
+			dvdyr = (v2 - v0) * dyr;
+
+			dadyl = (a1 - a0) * dyl;
+			drdyl = (r1 - r0) * dyl;
+			dgdyl = (g1 - g0) * dyl;
+			dbdyl = (b1 - b0) * dyl;
+
+			dadyr = (a2 - a0) * dyr;
+			drdyr = (r2 - r0) * dyr;
+			dgdyr = (g2 - g0) * dyr;
+			dbdyr = (b2 - b0) * dyr;
 
 			xStart = (float)x0;
 			zStart = z0;
@@ -735,6 +749,14 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			if (dxdyr < dxdyl)
 			{
 				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
+				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
+				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
+				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
+
+				temp2 = dadyl;	dadyl = dadyr;	dadyr = temp2;
+				temp2 = drdyl;	drdyl = drdyr;	drdyr = temp2;
+				temp2 = dgdyl;	dgdyl = dgdyr;	dgdyr = temp2;
+				temp2 = dbdyl;	dbdyl = dbdyr;	dbdyr = temp2;
 
 				temp = x1;	x1 = x2;	x2 = temp;
 				temp = y1;	y1 = y2;	y2 = temp;
@@ -743,36 +765,13 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				temp2 = u1;	u1 = u2;	u2 = temp2;
 				temp2 = v1;	v1 = v2;	v2 = temp2;
 
-				//TODO ±£Áô
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-				temp2 = uStart;	uStart = uEnd;	uEnd = temp2;
-				temp2 = vStart;	vStart = vEnd;	vEnd = temp2;
-				
-				temp2 = aStart;	aStart = aEnd;	aEnd = temp2;
-				temp2 = rStart;	rStart = rEnd;	rEnd = temp2;
-				temp2 = gStart;	gStart = gEnd;	gEnd = temp2;
-				temp2 = bStart;	bStart = bEnd;	bEnd = temp2;
-				//
+				temp2 = a1;	a1 = a2;	a2 = temp2;
+				temp2 = r1;	r1 = r2;	r2 = temp2;
+				temp2 = g1;	g1 = g2;	g2 = temp2;
+				temp2 = b1;	b1 = b2;	b2 = temp2;
 
 				side = 1;
 			}
-
-			dudyl = (u1 - u0) * dyl;
-			dvdyl = (v1 - v0) * dyl;
-			
-			dadyl = (a1 - a0) * dyl;
-			drdyl = (r1 - r0) * dyl;
-			dgdyl = (g1 - g0) * dyl;
-			dbdyl = (b1 - b0) * dyl;
-
-			dudyr = (u2 - u0) * dyr;
-			dvdyr = (v2 - v0) * dyr;
-
-			dadyr = (a2 - a0) * dyr;
-			drdyr = (r2 - r0) * dyr;
-			dgdyr = (g2 - g0) * dyr;
-			dbdyr = (b2 - b0) * dyr;
 		}
 
 		cyStart = (int)(yStart + 0.5);
