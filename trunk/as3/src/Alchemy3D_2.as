@@ -41,7 +41,7 @@ package
 			
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
-			stage.quality = StageQuality.HIGH;
+			stage.quality = StageQuality.BEST;
 			stage.frameRate = 60;
 			
 			var m:Material = new Material();
@@ -81,7 +81,7 @@ package
 			
 			p = new Plane(m, 800, 800, 2, 2);
 			scene.addEntity(p);
-			p.rotationX = -90;
+			p.rotationX = 90;
 			p.y = -180;
 			p.z = 800;
 			
@@ -101,21 +101,17 @@ package
 			s3.y = -60;
 			s3.z = 700;
 
-//			p2 = new Plane(m3, 300, 300, 4, 4);
-//			scene.addEntity(p2);
-//			p2.rotationY = 45;
-//			p2.rotationX = 45;
-//			p2.z = 700;
-//			p2.y = 180;
-//			p2.x = -150;
+			p2 = new Plane(m3, 300, 300, 1, 1);
+			scene.addEntity(p2);
+			p2.rotationY = 45;
+			p2.z = 700;
+			p2.x = -550;
 			
 //			camera.target = s.position;
 
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, function ():void {onRenderTick();});
-
 			startRendering();
 			
-			moveLight(1);
+//			moveLight(1);
 			//movePlane(1);
 			
 			var fps:FPS = new FPS(scene);
@@ -136,8 +132,8 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
-			var mx:Number = viewport.mouseX / 2500;
-			var my:Number = - viewport.mouseY / 1500;
+			var mx:Number = viewport.mouseX / 100;
+			var my:Number = - viewport.mouseY / 300;
 			
 			camera.hover(mx, my, 10);
 			
@@ -145,7 +141,7 @@ package
 //			p.rotationY ++;
 //			p.rotationZ ++;
 
-//			s.rotationY ++;
+//			s2.rotationZ ++;
 //			
 //			//camera.eye.rotationY ++;
 //			//camera.fov ++;
