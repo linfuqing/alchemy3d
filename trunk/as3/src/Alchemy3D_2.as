@@ -101,14 +101,15 @@ package
 			s3.y = -60;
 			s3.z = 700;
 
-			p2 = new Plane(m3, 300, 300, 1, 1);
-			scene.addEntity(p2);
-			p2.rotationY = 45;
-			p2.z = 700;
-			p2.x = -550;
+//			p2 = new Plane(m3, 300, 300, 1, 1);
+//			scene.addEntity(p2);
+//			p2.rotationX = 45;
+//			p2.rotationY = 25;
+//			p2.z = 700;
+//			p2.x = 810;
 			
-//			camera.target = s.position;
-
+			camera.target = s.position;
+			
 			startRendering();
 			
 //			moveLight(1);
@@ -132,10 +133,10 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
-			var mx:Number = viewport.mouseX / 100;
-			var my:Number = - viewport.mouseY / 300;
-			
-			camera.hover(mx, my, 10);
+//			var mx:Number = viewport.mouseX / 100;
+//			var my:Number = - viewport.mouseY / 100;
+//			
+//			camera.hover(mx, my, 10);
 			
 //			p.rotationX ++;
 //			p.rotationY ++;
@@ -143,8 +144,7 @@ package
 
 //			s2.rotationZ ++;
 //			
-//			//camera.eye.rotationY ++;
-//			//camera.fov ++;
+			camera.eye.x ++;
 //			
 //			p2.rotationX --;
 //			p2.rotationY --;
