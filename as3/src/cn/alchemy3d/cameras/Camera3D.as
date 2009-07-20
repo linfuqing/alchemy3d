@@ -138,7 +138,6 @@ package cn.alchemy3d.cameras
 		{
 			this.eye.x -= (this.eye.x - 1000 * mouseX) / camSpeed;
 			this.eye.y -= (this.eye.y - 1000 * mouseY) / camSpeed;
-			trace(eye.y);
 		}
 	}
 }

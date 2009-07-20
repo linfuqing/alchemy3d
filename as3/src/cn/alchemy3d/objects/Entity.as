@@ -21,6 +21,7 @@ package cn.alchemy3d.objects
 			this._direction = new Vector3D();
 			this._position = new Vector3D();
 			this._scale = new Vector3D();
+			this._worldPosition = new Vector3D();
 			
 			lib = Alchemy3DLib.getInstance();
 			
@@ -34,6 +35,7 @@ package cn.alchemy3d.objects
 		public var directionPtr:uint;
 		public var positionPtr:uint;
 		public var scalePtr:uint;
+		public var worldPositionPtr:uint;
 		
 		public var name:String;
 		public var parent:Entity;
@@ -44,6 +46,7 @@ package cn.alchemy3d.objects
 		private var _direction:Vector3D;
 		private var _position:Vector3D;
 		private var _scale:Vector3D;
+		private var _worldPosition:Vector3D;
 		
 		public var materialPtr:int;
 		private var _material:Material;
@@ -95,6 +98,16 @@ package cn.alchemy3d.objects
 			buffer.writeFloat(direction.x);
 			buffer.writeFloat(direction.y);
 			buffer.writeFloat(direction.z);
+		}
+		
+		public function get worldPosition():Vector3D
+		{
+			buffer.position = worldPositionPtr;
+			_worldPosition.x = buffer.readFloat();
+			_worldPosition.y = buffer.readFloat();
+			_worldPosition.z = buffer.readFloat();
+			
+			return _worldPosition;
 		}
 		
 		public function get scale():Number
@@ -254,8 +267,9 @@ package cn.alchemy3d.objects
 			positionPtr = ps[2];
 			directionPtr = ps[3];
 			scalePtr = ps[4];
-			materialPtr = ps[5];
-			texturePtr = ps[6];
+			worldPositionPtr = ps[5];
+			materialPtr = ps[6];
+			texturePtr = ps[7];
 		}
 		
 		/**
