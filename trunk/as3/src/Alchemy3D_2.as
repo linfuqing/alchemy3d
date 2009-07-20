@@ -45,13 +45,13 @@ package
 			stage.frameRate = 60;
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(.3, .5, .8, 1);
+			m.ambient = new ColorTransform(1, 0, 0, 1);
 			m.diffuse = new ColorTransform(.3, .5, .8, 1);
 			m.specular = new ColorTransform(1, 0, 0, 1);
 			
 			var m1:Material = new Material();
-			m1.ambient = new ColorTransform(.5, .2, 0.8, 1);
-			m1.diffuse = new ColorTransform(.5, .2, 0.8, 1);
+			m1.ambient = new ColorTransform(0, .2, 0.8, 1);
+			m1.diffuse = new ColorTransform(0, .2, 0.8, 1);
 			m1.specular = new ColorTransform(1, 0, 0, 1);
 			
 			var m2:Material = new Material();
@@ -79,41 +79,38 @@ package
 			light.source.z = -300;
 			light.ambient = new ColorTransform(.2, .2, .2, 1); 
 			
-			p = new Plane(m, 800, 800, 2, 2);
+			p = new Plane(m, 800, 800, 1, 1);
 			scene.addEntity(p);
 			p.rotationX = 90;
 			p.y = -180;
 			p.z = 800;
 			
-			s = new Sphere(m1, 180, 16, 12)
-			scene.addEntity(s);
-			s.z = 1100;
-			
-			s2 = new Sphere(m2, 120, 16, 12)
-			scene.addEntity(s2);
-			s2.x = -130;
-			s2.y = -60;
-			s2.z = 750;
-			
-			s3 = new Sphere(m3, 120, 16, 12)
-			scene.addEntity(s3);
-			s3.x = 150;
-			s3.y = -60;
-			s3.z = 700;
-
-//			p2 = new Plane(m3, 300, 300, 1, 1);
+//			s = new Sphere(m1, 180, 16, 12)
+//			scene.addEntity(s);
+//			s.z = 1100;
+//			
+//			s2 = new Sphere(m2, 120, 16, 12)
+//			scene.addEntity(s2);
+//			s2.x = -130;
+//			s2.y = -60;
+//			s2.z = 750;
+//
+//			s3 = new Sphere(m3, 120, 16, 12)
+//			scene.addEntity(s3);
+//			s3.x = 150;
+//			s3.y = -60;
+//			s3.z = 700;
+//
+//			p2 = new Plane(m3, 300, 300, 2, 2);
 //			scene.addEntity(p2);
 //			p2.rotationX = 45;
 //			p2.rotationY = 25;
 //			p2.z = 700;
-//			p2.x = 810;
-			
-			camera.target = s.position;
 			
 			startRendering();
 			
-//			moveLight(1);
-			//movePlane(1);
+			moveLight(1);
+			movePlane(1);
 			
 			var fps:FPS = new FPS(scene);
 			addChild(fps);
@@ -128,13 +125,14 @@ package
 		protected function movePlane(dir:int = 1):void
 		{
 			var target:int = 80 * dir;
-			TweenLite.to(p, 4, { rotationX:target, onComplete:movePlane, onCompleteParams:[dir * -1], ease:Linear.easeInOut});
+			TweenLite.to(p2, 4, { rotationX:target, onComplete:movePlane, onCompleteParams:[dir * -1], ease:Linear.easeInOut});
 		}
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
-//			var mx:Number = viewport.mouseX / 100;
-//			var my:Number = - viewport.mouseY / 100;
+//			camera.target = s.worldPosition;
+//			var mx:Number = viewport.mouseX / 200;
+//			var my:Number = - viewport.mouseY / 200;
 //			
 //			camera.hover(mx, my, 10);
 			
@@ -144,7 +142,8 @@ package
 
 //			s2.rotationZ ++;
 //			
-			camera.eye.x ++;
+//			camera.eye.z ++;
+p.rotationX++;
 //			
 //			p2.rotationX --;
 //			p2.rotationY --;

@@ -71,13 +71,8 @@ package cn.alchemy3d.objects
 		
 		override public function allotPtr(ps:Array):void
 		{
-			pointer = ps[0];
-			materialPtr = ps[1];
-			positionPtr = ps[2];
-			directionPtr = ps[3];
-			scalePtr = ps[4];
-			materialPtr = ps[5];
-			texturePtr = ps[6];
+			super.allotPtr(ps);
+			
 			verticesPointer = ps[7];
 			facesPointer = ps[8];
 		}
