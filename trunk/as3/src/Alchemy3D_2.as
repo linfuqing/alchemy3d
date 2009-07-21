@@ -7,6 +7,7 @@ package
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.objects.primitives.Sphere;
 	import cn.alchemy3d.scene.Scene3D;
+	import cn.alchemy3d.texture.Texture;
 	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
 	
@@ -14,7 +15,6 @@ package
 	import flash.display.StageQuality;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
-	import flash.events.KeyboardEvent;
 	import flash.geom.ColorTransform;
 	
 	import gs.TweenLite;
@@ -34,6 +34,8 @@ package
 		protected var s:Sphere;
 		protected var s2:Sphere;
 		protected var s3:Sphere;
+		
+		private var t:Texture;
 		
 		public function Alchemy3D_2()
 		{
@@ -64,6 +66,9 @@ package
 			m3.diffuse = new ColorTransform(0, 1, 1, 1);
 			m3.specular = new ColorTransform(1, 0, 0, 1);
 			
+//			t = new Texture();
+//			t.load("asset/earth.jpg");
+			
 			scene = new Scene3D();
 			addScene(scene);
 			
@@ -79,38 +84,38 @@ package
 			light.source.z = -300;
 			light.ambient = new ColorTransform(.2, .2, .2, 1); 
 			
-			p = new Plane(m, 800, 800, 1, 1);
+			p = new Plane(m, null, 800, 800, 1, 1);
 			scene.addEntity(p);
 			p.rotationX = 90;
 			p.y = -180;
 			p.z = 800;
 			
-//			s = new Sphere(m1, 180, 16, 12)
-//			scene.addEntity(s);
-//			s.z = 1100;
+			s = new Sphere(m1, null, 180, 16, 12)
+			scene.addEntity(s);
+			s.z = 1100;
 //			
-//			s2 = new Sphere(m2, 120, 16, 12)
+//			s2 = new Sphere(m2, null, 120, 16, 12)
 //			scene.addEntity(s2);
 //			s2.x = -130;
 //			s2.y = -60;
 //			s2.z = 750;
 //
-//			s3 = new Sphere(m3, 120, 16, 12)
-//			scene.addEntity(s3);
-//			s3.x = 150;
-//			s3.y = -60;
-//			s3.z = 700;
+			s3 = new Sphere(m3, null, 120, 16, 12)
+			scene.addEntity(s3);
+			s3.x = 150;
+			s3.y = -60;
+			s3.z = 700;
 //
-//			p2 = new Plane(m3, 300, 300, 2, 2);
-//			scene.addEntity(p2);
-//			p2.rotationX = 45;
-//			p2.rotationY = 25;
-//			p2.z = 700;
+			p2 = new Plane(m3, null, 300, 300, 2, 2);
+			scene.addEntity(p2);
+			p2.rotationX = 45;
+			p2.rotationY = 25;
+			p2.z = 700;
 			
 			startRendering();
 			
 			moveLight(1);
-			movePlane(1);
+//			movePlane(1);
 			
 			var fps:FPS = new FPS(scene);
 			addChild(fps);
@@ -130,12 +135,12 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
-//			camera.target = s.worldPosition;
-//			var mx:Number = viewport.mouseX / 200;
-//			var my:Number = - viewport.mouseY / 200;
-//			
-//			camera.hover(mx, my, 10);
+			camera.target = s.worldPosition;
+			var mx:Number = viewport.mouseX / 200;
+			var my:Number = - viewport.mouseY / 200;
 			
+			camera.hover(mx, my, 10);
+//			
 //			p.rotationX ++;
 //			p.rotationY ++;
 //			p.rotationZ ++;
@@ -143,7 +148,7 @@ package
 //			s2.rotationZ ++;
 //			
 //			camera.eye.z ++;
-p.rotationX++;
+//			p.rotationX++;
 //			
 //			p2.rotationX --;
 //			p2.rotationY --;

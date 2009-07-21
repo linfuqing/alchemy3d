@@ -4,6 +4,7 @@ package cn.alchemy3d.objects
 	import cn.alchemy3d.lib.Alchemy3DLib;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.scene.Scene3D;
+	import cn.alchemy3d.texture.Texture;
 	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.geom.Vector3D;
@@ -11,12 +12,13 @@ package cn.alchemy3d.objects
 	
 	public class Entity implements ISceneNode
 	{
-		public function Entity(material:Material = null, name:String = "")
+		public function Entity(material:Material = null, texture:Texture = null, name:String = "")
 		{
 			this.name = name;
 			this.visible = true;
 			
 			this._material = material;
+			this._texture = texture;
 			
 			this._direction = new Vector3D();
 			this._position = new Vector3D();
@@ -36,6 +38,8 @@ package cn.alchemy3d.objects
 		public var positionPtr:uint;
 		public var scalePtr:uint;
 		public var worldPositionPtr:uint;
+		public var materialPtr:int;
+		public var texturePtr:int;
 		
 		public var name:String;
 		public var parent:Entity;
@@ -48,10 +52,9 @@ package cn.alchemy3d.objects
 		private var _scale:Vector3D;
 		private var _worldPosition:Vector3D;
 		
-		public var materialPtr:int;
 		private var _material:Material;
+		private var _texture:Texture;
 		
-		public var texturePtr:int;
 		
 		protected static const sizeOfType:int = 4;
 		
@@ -66,6 +69,19 @@ package cn.alchemy3d.objects
 			
 			buffer.position = materialPtr;
 			buffer.writeUnsignedInt(material.pointer);
+		}
+		
+		public function get texture():Texture
+		{
+			return _texture;
+		}
+		
+		public function set texture(texture:Texture):void
+		{
+			if (!checkInitialized()) return;
+			
+			buffer.position = texturePtr;
+			buffer.writeUnsignedInt(texture.pointer);
 		}
 		
 		public function get direction():Vector3D
@@ -257,19 +273,21 @@ package cn.alchemy3d.objects
 		
 		public function initialize(scenePtr:uint, parentPtr:uint):void
 		{
-			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, material.pointer, 0, 0, 0, 0));
+			var tPtr:uint = texture == null ? 0 : texture.pointer;
+			var mPtr:uint = material == null ? 0 : material.pointer;
+			
+			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0, 0));
 		}
 		
 		public function allotPtr(ps:Array):void
 		{
 			pointer = ps[0];
 			materialPtr = ps[1];
-			positionPtr = ps[2];
-			directionPtr = ps[3];
-			scalePtr = ps[4];
-			worldPositionPtr = ps[5];
-			materialPtr = ps[6];
-			texturePtr = ps[7];
+			texturePtr = ps[2];
+			positionPtr = ps[3];
+			directionPtr = ps[4];
+			scalePtr = ps[5];
+			worldPositionPtr = ps[6];
 		}
 		
 		/**

@@ -4,12 +4,13 @@ package cn.alchemy3d.objects
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.materials.Material;
+	import cn.alchemy3d.texture.Texture;
 	
 	public class Mesh3D extends Entity implements ISceneNode
 	{
-		public function Mesh3D(material:Material = null, name:String = "")
+		public function Mesh3D(material:Material = null, texture:Texture = null, name:String = "")
 		{
-			super(material, name);
+			super(material, texture, name);
 			
 			vertices = new Vector.<Vertex3D>();
 			faces = new Vector.<Triangle3D>();
@@ -66,7 +67,10 @@ package cn.alchemy3d.objects
 			fillVerticesToBuffer();
 			fillFacesToBuffer();
 			
-			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, material.pointer, tmpBuffPointer, vertices.length, faces.length));
+			var tPtr:uint = texture == null ? 0 : texture.pointer;
+			var mPtr:uint = material == null ? 0 : material.pointer;
+			
+			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, tmpBuffPointer, vertices.length, faces.length));
 		}
 		
 		override public function allotPtr(ps:Array):void
