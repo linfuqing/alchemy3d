@@ -62,6 +62,7 @@ void camera_setNullTarget( Camera * camera, int setFree )
 	camera->hasTarget = FALSE;
 }
 
+//根据上下左右远近截面获得投影矩阵
 Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float bottom, float left, float right, float near, float far )
 {
 	float fn;
@@ -97,6 +98,7 @@ Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float bottom, floa
 	return output;
 }
 
+//根据远近截面、宽高比和视角获得投影矩阵
 Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float aspect )
 {
 	float top = camera->nearClip * tanf( DEG2RAD( camera->fov * 0.5 ) );
@@ -107,12 +109,15 @@ Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float aspect
 	return getProjectionMatrix(output, top, bottom, left, right, camera->nearClip, camera->farClip);
 }
 
+//更新摄像机矩阵
 void camera_updateTransform(Camera * camera)
 {
 	Entity * eye = camera->eye;
 
+	//如果摄像机属性被改变
 	if ( TRUE == eye->transformDirty )
 	{
+		//如果没有目标
 		if ( FALSE == camera->hasTarget )
 		{
 			//单位化
@@ -120,22 +125,24 @@ void camera_updateTransform(Camera * camera)
 			//缩放
 			matrix3D_appendScale( eye->transform, eye->scale->x, - eye->scale->y, eye->scale->z );
 			//旋转
-			matrix3D_append( eye->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( eye->direction->y ), DEG2RAD( eye->direction->x ), DEG2RAD( eye->direction->z ) ) ) );
+			matrix3D_append_self( eye->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( eye->direction->y ), DEG2RAD( eye->direction->x ), DEG2RAD( eye->direction->z ) ) ) );
 			//位移
 			matrix3D_appendTranslation( eye->transform, eye->position->x, eye->position->y, eye->position->z );
 
 			matrix3D_copy( eye->world, eye->transform );
 
-			matrix3D_copy( eye->worldInvert, eye->world );
-
+			matrix3D_copy( eye->worldInvert, eye->transform );
+			//从世界矩阵获得世界位置
 			matrix3D_getPosition( eye->worldPosition, eye->world );
-
+			//计算世界逆矩阵，供光照和背面剔除使用
 			matrix3D_fastInvert( eye->world );
 		}
+		//如果有目标
 		else
 		{
-			lookAtLH( eye->world, eye->position, camera->target, INV_Y_AXIS );
-
+			//获得指向目标位置的旋转矩阵
+			lookAt( eye->world, eye->position, camera->target, INV_Y_AXIS );
+			//从世界矩阵获得世界位置
 			matrix3D_getPosition( eye->worldPosition, eye->world );
 		}
 	}

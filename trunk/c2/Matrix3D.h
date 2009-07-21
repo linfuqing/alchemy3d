@@ -594,7 +594,28 @@ thisMatrix = lhs * thisMatrix;
 append() 方法会将当前矩阵替换为后置的矩阵。
 如果要后置两个矩阵，而不更改当前矩阵，请使用 clone() 方法复制当前矩阵，然后对生成的副本应用 append() 方法。 
 **/
-Matrix3D * matrix3D_append( Matrix3D * thisMatrix, Matrix3D * lhs )
+Matrix3D * matrix3D_append( Matrix3D * output, Matrix3D * m1, Matrix3D * m2 )
+{
+	output->m11 = m1->m11 * m2->m11 + m1->m12 * m2->m21 + m1->m13 * m2->m31;
+	output->m12 = m1->m11 * m2->m12 + m1->m12 * m2->m22 + m1->m13 * m2->m32;
+	output->m13 = m1->m11 * m2->m13 + m1->m12 * m2->m23 + m1->m13 * m2->m33;
+
+	output->m21 = m1->m21 * m2->m11 + m1->m22 * m2->m21 + m1->m23 * m2->m31;
+	output->m22 = m1->m21 * m2->m12 + m1->m22 * m2->m22 + m1->m23 * m2->m32;
+	output->m23 = m1->m21 * m2->m13 + m1->m22 * m2->m23 + m1->m23 * m2->m33;
+
+	output->m31 = m1->m31 * m2->m11 + m1->m32 * m2->m21 + m1->m33 * m2->m31;
+	output->m32 = m1->m31 * m2->m12 + m1->m32 * m2->m22 + m1->m33 * m2->m32;
+	output->m33 = m1->m31 * m2->m13 + m1->m32 * m2->m23 + m1->m33 * m2->m33;
+
+	output->m41 = m1->m41 * m2->m11 + m1->m42 * m2->m21 + m1->m43 * m2->m31 + m2->m41;
+	output->m42 = m1->m41 * m2->m12 + m1->m42 * m2->m22 + m1->m43 * m2->m32 + m2->m42;
+	output->m43 = m1->m41 * m2->m13 + m1->m42 * m2->m23 + m1->m43 * m2->m33 + m2->m43;
+
+	return output;
+}
+
+Matrix3D * matrix3D_append_self( Matrix3D * thisMatrix, Matrix3D * lhs )
 {
 	float m11, m12, m13, m21, m22, m23, m31, m32, m33, m41, m42, m43, lhs_m11, lhs_m12, lhs_m13, lhs_m21, lhs_m22, lhs_m23, lhs_m31, lhs_m32, lhs_m33;
 
@@ -696,7 +717,7 @@ void matrix3D_appendTranslation( Matrix3D * m, float x, float y, float z )
 {
 	Matrix3D input;
 
-	matrix3D_append( m, translationMatrix3D( &input, x, y, z ) );
+	matrix3D_append_self( m, translationMatrix3D( &input, x, y, z ) );
 }
 
 Matrix3D * rotationMatrix3D( Matrix3D * output,  float degrees, int axis )
@@ -791,14 +812,14 @@ void matrix3D_appendRotation( Matrix3D * m, float degrees, int axis )
 {
 	Matrix3D input;
 
-	matrix3D_append( m, rotationMatrix3D( &input,  degrees, axis ) );
+	matrix3D_append_self( m, rotationMatrix3D( &input,  degrees, axis ) );
 }
 
 void matrix3D_appendRotationByAxis( Matrix3D * m, float degrees, Vector3D * axis )
 {
 	Matrix3D input;
 
-	matrix3D_append( m, rotationMatrix3DByAxis( &input, degrees, axis ) );
+	matrix3D_append_self( m, rotationMatrix3DByAxis( &input, degrees, axis ) );
 }
 
 /**
@@ -837,7 +858,7 @@ void matrix3D_appendScale( Matrix3D * m, float xScale, float yScale, float zScal
 {
 	Matrix3D input;
 
-	matrix3D_append( m, scaleMatrix3D( &input, xScale, yScale, zScale ) );
+	matrix3D_append_self( m, scaleMatrix3D( &input, xScale, yScale, zScale ) );
 }
 
 /**
@@ -906,7 +927,7 @@ void matrix3D_appendRotationX( Matrix3D * m, float angle )
 		angle = DEG2RAD(angle);
 	}
 
-	matrix3D_append( m, rotationXMatrix3D( &rotMtr, angle ) );
+	matrix3D_append_self( m, rotationXMatrix3D( &rotMtr, angle ) );
 }
 
 /**
@@ -921,7 +942,7 @@ void matrix3D_appendRotationY( Matrix3D * m, float angle )
 		angle = DEG2RAD(angle);
 	}
 
-	matrix3D_append( m, rotationYMatrix3D( &rotMtr, angle ) );
+	matrix3D_append_self( m, rotationYMatrix3D( &rotMtr, angle ) );
 }
 
 /**
@@ -936,7 +957,7 @@ void matrix3D_appendRotationZ( Matrix3D * m, float angle )
 		angle = DEG2RAD(angle);
 	}
 
-	matrix3D_append( m, rotationZMatrix3D( &rotMtr, angle ) );
+	matrix3D_append_self( m, rotationZMatrix3D( &rotMtr, angle ) );
 }
 
 #include "Quaternion.h"
@@ -1053,7 +1074,32 @@ void matrix3D_recompose( Matrix3D * m, Vector3D * position, Vector3D * scale, Ve
 返回的 Vector3D 对象将容纳转换后的新坐标。
 将对 Vector3D 对象中应用所有矩阵转换（包括平移）。 
 **/
-void matrix3D_transformVector( Matrix3D * m, Vector3D * v )
+Vector3D * matrix3D_transformVector( Vector3D * output, Matrix3D * m, Vector3D * v )
+{
+	//普通变换 12次乘法 + 12次加法
+	//投影变换 12次乘法 + 12次加法 + 3次除法
+	if (v->w == 1)
+	{
+		output->x = m->m11 * v->x + m->m21 * v->y + m->m31 * v->z + m->m41;
+		output->y = m->m12 * v->x + m->m22 * v->y + m->m32 * v->z + m->m42;
+		output->z = m->m13 * v->x + m->m23 * v->y + m->m33 * v->z + m->m43;
+		output->w = m->m14 * v->x + m->m24 * v->y + m->m34 * v->z + m->m44;
+	}
+	else
+	{
+		output->x = m->m11 * v->x + m->m21 * v->y + m->m31 * v->z + m->m41 * v->w;
+		output->y = m->m12 * v->x + m->m22 * v->y + m->m32 * v->z + m->m42 * v->w;
+		output->z = m->m13 * v->x + m->m23 * v->y + m->m33 * v->z + m->m43 * v->w;
+		output->w = m->m14 * v->x + m->m24 * v->y + m->m34 * v->z + m->m44 * v->w;
+	}
+
+	if (output->w != 1)
+		vector3D_project( output );
+
+	return output;
+}
+
+void matrix3D_transformVector_self( Matrix3D * m, Vector3D * v )
 {
 	//普通变换 12次乘法 + 12次加法
 	//投影变换 12次乘法 + 12次加法 + 3次除法
@@ -1089,12 +1135,12 @@ void matrix3D_transformVector( Matrix3D * m, Vector3D * v )
 显示对象（即 at Vector3D 对象）的向前方向矢量指向指定的现实世界相关位置。
 显示对象的向上方向是用 up Vector3D 对象指定的。 
 
-pointAt() 方法可使缓存的显示对象旋转属性值无效。
+lookAt() 方法可使缓存的显示对象旋转属性值无效。
 此方法可分解显示对象的矩阵并修改旋转元素，从而让对象转向指定位置。
 然后，此方法将重新组成（更新）显示对象的矩阵，这将执行转换。
 如果该对象指向正在移动的目标（例如正在移动的对象位置），则对于每个后续调用，此方法都会让对象朝正在移动的目标旋转。 
 **/
-Matrix3D * lookAtLH( Matrix3D * output, Vector3D * pEye, Vector3D * pAt, Vector3D * pUp )
+Matrix3D * lookAt( Matrix3D * output, Vector3D * pEye, Vector3D * pAt, Vector3D * pUp )
 {
 	Vector3D right, up, vec;
 

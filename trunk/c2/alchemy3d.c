@@ -7,6 +7,7 @@
 #include "Entity.h"
 #include "Color.h"
 #include "Material.h"
+#include "Texture.h"
 #include "Light.h"
 #include "Scene.h"
 #include "Viewport.h"
@@ -96,6 +97,18 @@ AS3_Val initializeMaterial( void* self, AS3_Val args )
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", material, material->ambient, material->diffuse, material->specular, material->emissive, &material->power );
 }
 
+AS3_Val initializeTexture( void* self, AS3_Val args )
+{
+	Texture * texture;
+	int width, height;
+
+	AS3_ArrayValue( args, "IntType, IntType", &width, &height );
+
+	texture = newTexture( width, height );
+
+	return AS3_Array( "PtrType, PtrType", texture, texture->datas );
+}
+
 //初始化光源
 //返回该对象起始指针
 AS3_Val initializeLight( void* self, AS3_Val args )
@@ -125,12 +138,13 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 	Entity * entity, * parent;
 	Faces * faces;
 	Vertices * vertices;
+	Texture * texture;
 	Material * material;
 	float * tmpBuff;
 
 	int vNum, fNum, vLen, i, j;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType, IntType", &scene, &parent, &material, &tmpBuff, &vNum, &fNum );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, PtrType, IntType, IntType", &scene, &parent, &material, &texture, &tmpBuff, &vNum, &fNum ); 
 
 	Vertex * vArr[vNum];
 
@@ -161,11 +175,13 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 	if ( parent == FALSE ) parent = NULL;
 
+	if ( texture != FALSE ) entity_setTexture( entity, texture );
+
 	if ( material != FALSE ) entity_setMaterial( entity, material );
 
 	if ( scene != FALSE ) scene_addEntity(scene, entity, parent);
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", entity, &entity->material, entity->position, entity->direction, entity->scale, entity->worldPosition, entity->material, entity->texture, entity->mesh->vertices, entity->mesh->faces );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", entity, &entity->material, &entity->texture, entity->position, entity->direction, entity->scale, entity->worldPosition, entity->mesh->vertices, entity->mesh->faces );
 }
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
@@ -219,6 +235,7 @@ int main()
 	AS3_Val initializeSceneMethod = AS3_Function( NULL, initializeScene );
 	AS3_Val initializeViewportMethod = AS3_Function( NULL, initializeViewport );
 	AS3_Val initializeMaterialMethod = AS3_Function( NULL, initializeMaterial );
+	AS3_Val initializeTextureMethod = AS3_Function( NULL, initializeTexture );
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val applyForTmpBufferMethod = AS3_Function( NULL, applyForTmpBuffer );
@@ -227,8 +244,8 @@ int main()
 
 
 
-	AS3_Val result = AS3_Object( "initializeDevice:AS3ValType, initializeCamera:AS3ValType, initializeScene:AS3ValType, initializeViewport:AS3ValType, initializeMaterial:AS3ValType, initializeLight:AS3ValType, initializeEntity:AS3ValType, applyForTmpBuffer:AS3ValType, render:AS3ValType, test:AS3ValType",
-		initializeDeviceMethod, initializeCameraMethod, initializeSceneMethod, initializeViewportMethod, initializeMaterialMethod, initializeLightMethod, initializeEntityMethod, applyForTmpBufferMethod, renderMethod, testMethod );
+	AS3_Val result = AS3_Object( "initializeDevice:AS3ValType, initializeCamera:AS3ValType, initializeScene:AS3ValType, initializeViewport:AS3ValType, initializeMaterial:AS3ValType, initializeTexture:AS3ValType, initializeLight:AS3ValType, initializeEntity:AS3ValType, applyForTmpBuffer:AS3ValType, render:AS3ValType, test:AS3ValType",
+		initializeDeviceMethod, initializeCameraMethod, initializeSceneMethod, initializeViewportMethod, initializeMaterialMethod, initializeTextureMethod, initializeLightMethod, initializeEntityMethod, applyForTmpBufferMethod, renderMethod, testMethod );
 
 
 
@@ -237,6 +254,7 @@ int main()
 	AS3_Release( initializeSceneMethod );
 	AS3_Release( initializeViewportMethod );
 	AS3_Release( initializeMaterialMethod );
+	AS3_Release( initializeTextureMethod );
 	AS3_Release( initializeLightMethod );
 	AS3_Release( initializeEntityMethod );
 	AS3_Release( applyForTmpBufferMethod );
