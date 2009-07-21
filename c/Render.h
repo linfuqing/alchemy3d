@@ -1,12 +1,23 @@
-#ifndef __RENDER_H
-#define __RENDER_H
+#ifndef RENDER_H
+#define RENDER_H
 
 #include "Viewport.h"
-#include "Scene.h"
-#include "Camera.h"
-#include "Entity.h"
-#include "Polygon.h"
-#include "Vector3D.h"
+
+typedef struct Screen
+{
+	Viewport * viewport;
+
+	struct Screen * next;
+}Screen;
+
+typedef struct
+{
+	Screen * screen;
+
+	Number * zBuffer;
+
+	Number * gfxBuffer;
+}RenderEngine;
 
 //光栅化
 void triangle_rasterize( Polygon * tri, Viewport * view )
@@ -805,39 +816,28 @@ void triangle_rasterize( Polygon * tri, Viewport * view )
 	}
 }
 
-void render(Viewport * view)
+void renderPolygon( ScreenPolygon * f, Number * rgfxBuffer, Number * zBuffer )
 {
-	Scene * scene, * scenePtr;
-	Camera * camera;
-	Entity * entity;
-	Faces * faces, * fPtr;
-	Polygon * face;
+}
 
-	resetBuffer( view );
+//改动:
+void render( RenderEngine * r )
+{
+	Screen      * vp = r -> screen;
+	ScreenFaces * graphics;
 
-	scene = view->scene;
-	camera = view->camera;
-
-	scenePtr = scene->next;
-
-	while( scenePtr != NULL )
+	while( vp != NULL )
 	{
-		entity = scenePtr->entity;
+		transformScene( vp -> viewport -> scene );
+		
+		graphics = vp -> viewport -> graphics;
 
-		faces = entity->mesh->faces;
-
-		fPtr = faces->next;
-
-		while( fPtr != NULL )
+		while( ( graphics = graphics -> next ) == NULL )
 		{
-			face = fPtr->face->next;
-
-			triangle_rasterize(face, view);
-
-			fPtr = fPtr->next;
+			renderPolygon( graphics -> face, r -> gfxBuffer, r -> zBuffer );
 		}
 
-		scenePtr = scenePtr->next;
+		vp = vp -> next;
 	}
 }
 
