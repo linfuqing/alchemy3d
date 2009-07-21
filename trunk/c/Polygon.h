@@ -36,30 +36,33 @@ int polygon_isTriangle( Polygon * head )
 	return isPolygon( head ) && ( head -> next -> next -> next -> next == NULL );
 }
 
-Vector3D polygon_normal( Vertex * v1, Vertex * v2, Vertex * v3 )
+Vector3D * polygon_normal( Vertex * v1, Vertex * v2, Vertex * v3 )
 {	
-	Vector3D * a, * b, * c, ca, bc,nor;
+	Vector3D * a, * b, * c, ca, * bc,* nor;
 
 	if( !( vertex_check( v1 ) && vertex_check( v2 ) && vertex_check( v3 ) ) )
 	{
-		exit( 0 );
+		exit( FALSE );
 	}
 	
 	a = v1 -> worldPosition;
 	b = v2 -> worldPosition;
 	c = v3 -> worldPosition;
 
-	ca = vector3D_subtract( * c, * a );
-	bc = vector3D_subtract( * b, * c );
+	ca = * c;
+	vector3D_subtract( & ca, a );
 
-	nor = vector3D_crossProduct( ca, bc );
+	bc =   b;
+	vector3D_subtract(   bc, c );
 
-	vector3D_normalize( & nor );
+	nor = vector3D_crossProduct( & ca, bc );
+
+	vector3D_normalize( nor );
 
 	return nor;
 }
 
-Vector3D buildPolygon( Polygon * head )
+Vector3D * buildPolygon( Polygon * head )
 {
 	Polygon * p;
 
@@ -73,7 +76,7 @@ Vector3D buildPolygon( Polygon * head )
 		exit( TRUE );
 	}
 
-	* ( head -> normal ) = polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, head -> next -> next -> next -> vertex );
+	head -> normal = polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, head -> next -> next -> next -> vertex );
 
 	p = head -> next;
 
@@ -84,7 +87,7 @@ Vector3D buildPolygon( Polygon * head )
 		p = p -> next;
 	}
 
-	return * ( head -> normal );
+	return head -> normal;
 }
 
 void polygon_initiate( Polygon * * head )
@@ -133,7 +136,7 @@ int polygon_push( Polygon * head, Vertex * vertex, Vector * uv )
 			p = p -> next;
 		}
 
-		if( vector3D_equals( head -> normal ? (  * ( head -> normal ) ) : buildPolygon( head ), polygon_normal( p -> vertex, p -> next -> vertex, vertex ),FALSE ) )
+		if( vector3D_equals( head -> normal ? head -> normal : buildPolygon( head ), polygon_normal( p -> vertex, p -> next -> vertex, vertex ),FALSE ) )
 		{
 			p = p -> next;
 		}
@@ -178,7 +181,7 @@ int polygon_unshift( Polygon * head, Vertex * vertex, Vector * uv )
 		return FALSE;
 	}
 
-	if( isPolygon( head ) && vector3D_equals( head -> normal ? (  * ( head -> normal ) ) : buildPolygon( head ), polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, vertex ),FALSE ) )
+	if( isPolygon( head ) && vector3D_equals( head -> normal ? head -> normal : buildPolygon( head ), polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, vertex ),FALSE ) )
 	{
 		printf( "法向量不对，无法插入!" );
 		return FALSE;
@@ -296,13 +299,13 @@ Polygon * newTriangle3D( Vertex * va, Vertex * vb, Vertex * vc, Vector *uva, Vec
 	return p;
 }
 
-void polygon_order( Polygon * head, void visit( Vertex vertex, Vector uv ) )
+void polygon_order( Polygon * head, void visit( Vertex * vertex, Vector * uv ) )
 {
 	Polygon * p = head -> next;
 
 	while( p != NULL )
 	{
-		visit( * ( p -> vertex ), * ( p -> uv ) );
+		visit( p -> vertex, p -> uv );
 
 		p = p -> next;
 	}

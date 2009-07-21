@@ -98,6 +98,26 @@ int vertices_unshift( Vertices * head, Vertex * vertex )
 	return TRUE;
 }
 
+int vertices_index( Vertices * head, Vertex * v )
+{
+	Vertices * p     = head -> next;
+	int        index = 1;
+
+	while( p != NULL )
+	{
+		if( p -> vertex == v )
+		{
+			return index;
+		}
+
+		index ++;
+
+		p = p -> next;
+	}
+
+	return 0;
+}
+
 void vertices_destroy( Vertices * * head )
 {
 	Vertices * p, * p1;
@@ -128,7 +148,7 @@ void vertices_order( Vertices * head, void visit( Vertex * vertex ) )
 	}
 }
 
-void transformVertices( Matrix3D m, Vertices * head )
+void transformVertices( Matrix3D * m, Vertices * head )
 {
 	Vertices * p = head -> next;
 

@@ -5,7 +5,7 @@
 # include <malloc.h>
 # include <stdlib.h>
 
-# include "Matrix3D.h"
+# include "Matrix.h"
 
 //RW
 typedef struct
@@ -40,9 +40,10 @@ int vertex_check( Vertex * v )
 	return ( v != NULL ) && ( v -> position != NULL ) && ( v -> worldPosition != NULL );
 }
 
-void transformVertex( Matrix3D m, Vertex * v )
+void transformVertex( Matrix3D * m, Vertex * v )
 {
-	* ( v -> worldPosition ) = matrix3D_transformVector( m, * ( v -> position ) );
+	* ( v -> worldPosition ) = * ( v -> position );
+	matrix3D_transformVector( m, v -> worldPosition );
 }
 
 # endif

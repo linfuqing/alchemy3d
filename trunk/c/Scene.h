@@ -1,6 +1,8 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+//verson 1.3
+
 # include "Mesh.h"
 # include "Camera.h"
 
@@ -18,6 +20,9 @@ typedef struct Scene
 
 	//N
 	int            move;
+
+	//N
+	int            ID;
 
 	//N
 	struct Scene * next;
@@ -40,6 +45,7 @@ Scene * newScene( Mesh * mesh )
 	scene -> visible  = TRUE;
 	scene -> children = NULL;
 	scene -> next     = NULL;
+	scene -> ID       = 0;
 	scene -> move     = FALSE;
 
 	return scene;
@@ -64,7 +70,7 @@ int scene_numChildren( Scene * s )
 /**
 场景前根遍历.
 **/
-void scene_preRootOrder( Scene * s,void visit( Scene * child ) )
+void scene_previousRootOrder( Scene * s,void visit( Scene * child ) )
 {
 	Scene * p = s -> children;
 
@@ -72,7 +78,7 @@ void scene_preRootOrder( Scene * s,void visit( Scene * child ) )
 	{
 		visit( p );
 
-		scene_preRootOrder( p, visit );
+		scene_previousRootOrder( p, visit );
 
 		p = p -> next;
 	}
@@ -81,62 +87,11 @@ void scene_preRootOrder( Scene * s,void visit( Scene * child ) )
 /**
 场景前续遍历.
 **/
-void scene_preOrder( Scene * s, void visit( Scene * child ) )
+void scene_previousOrder( Scene * s, void visit( Scene * child ) )
 {
 	visit( s );
 
-	scene_preRootOrder( s, visit );
-}
-
-int scene_removeChild( Scene * s, Scene * child )
-{   
-	Scene * p = s -> children;
-
-	if( p == child )
-	{
-		s -> children = p -> next;
-
-		free( p );
-	}
-
-	if( p != NULL )
-	{
-		while( p -> next != NULL )
-		{
-			if( p -> next == child )
-			{
-				p -> next = child -> next;
-
-				free( child );
-
-				return TRUE;
-			}
-
-			p = p -> next;
-		}
-
-	}
-
-	return FALSE;
-}
-
-void scene_addChild( Scene * s, Scene * child )
-{
-	Scene * p = s -> children;
-
-	if( p == NULL )
-	{
-		s -> children = child;
-
-		return;
-	}
-
-	while( p -> next != NULL )
-	{
-		p = p -> next;
-	}
-
-	p -> children = child;
+	scene_previousRootOrder( s, visit );
 }
 
 int scene_find( Scene * s, Scene * child )
@@ -167,6 +122,86 @@ int scene_contains( Scene * s, Scene * child )
 }
 
 /**
+树的序列化.
+**/
+/*
+void scene_orderTree( Scene * s )
+{
+	Scene * p = s -> children;
+	int    ID = scene_numChildren( s );
+
+	while( p != NULL )
+	{
+		p -> ID = ID;
+
+		scene_orderTree( p );
+
+		ID --;
+
+		p = p -> next;
+	}
+}*/
+
+int scene_removeChild( Scene * s, Scene * child, int all )
+{   
+	Scene * p = s -> children;
+
+	if( p == child )
+	{
+		s -> children = p -> next;
+
+		free( p );
+
+		return TRUE;
+	}
+
+	if( p != NULL )
+	{
+		while( p -> next != NULL )
+		{
+			if( p -> next == child )
+			{
+				p -> next = child -> next;
+
+				free( child );
+
+				return TRUE;
+			}
+
+			if( all )
+			{
+				if( scene_removeChild( p, child, TRUE ) )
+				{
+					return TRUE;
+				}
+			}
+
+			p = p -> next;
+		}
+
+		if( all )
+		{
+			scene_removeChild( p, child, TRUE );
+		}
+	}
+
+	return FALSE;
+}
+
+void scene_addChild( Scene * s, Scene * child )
+{
+	//child -> ID             = s -> children == NULL ? s -> ID + 1 : s -> ID + s -> children -> ID + 1;
+
+	child -> camera -> move = MOVE_TYPE_ADDED_SCENE;
+
+	child -> next           = s -> children;
+
+	s -> children           = child;
+
+	//scene_orderTree( child );
+}
+
+/**
 变换场景网格.
 这是无判断的变换,也就是静态渲染,不管场景是否变动都做变换.
 **/
@@ -175,7 +210,8 @@ void transformSceneMesh( Scene * s )
 	Scene * p = s -> children, * head = p;
 	
 	//此时S是P的父级,这里的世界矩阵是不包含本地变换的.
-	* ( head -> camera -> world ) = matrix3D_multiply( camera_getTransform( s -> camera ), * ( s -> camera -> world ) );
+	* ( head -> camera -> world ) = * camera_getTransform( s -> camera );
+	matrix3D_apprend( head -> camera -> world, s -> camera -> world );
 
 	while( p != NULL && p -> visible )
 	{
@@ -187,7 +223,7 @@ void transformSceneMesh( Scene * s )
 		if( mesh_check( p -> mesh ) )
 		{
 			//网格变换,当子集存在时使用子集世界矩阵, 不存在时计算本地世界矩阵.
-			transformVertices( p -> children ? * ( p -> children -> camera -> world ) : matrix3D_multiply( camera_getTransform( p ->camera ), * ( p -> camera -> world ) ), p -> mesh -> vertices );
+			transformVertices( p -> children ? p -> children -> camera -> world : matrix3D_multiply( camera_getTransform( p ->camera ), p -> camera -> world ), p -> mesh -> vertices );
 		}
 
 		p = p -> next;
@@ -199,12 +235,77 @@ void transformSceneMesh( Scene * s )
 **/
 void transformSceneChildren( Scene * s )
 {
+	/*Scene * previous = s -> children, * p;
+
+	if( previous == NULL )
+	{
+		return;
+	}
+	else if( previous -> visible )
+	{
+		if( previous -> camera -> move )
+		{
+			//如果相机移动,完全变换子集.
+			previous -> move = TRUE;
+			transformSceneMesh( previous );
+		}
+		else
+		{
+			//继续监测子集是否变动.
+			previous -> move = FALSE;
+			transformSceneChildren( previous );
+		}
+	}
+
+	p = previous -> next;
+
+	while( p != NULL )
+	{
+		if( !( p -> visible ) )
+		{
+			previous = p;
+
+			p = p -> next;
+
+			continue;
+		}
+		else if( p -> camera -> move )
+		{
+			//如果相机移动,完全变换子集.
+			p -> move = TRUE;
+			transformSceneMesh( p );
+
+			//把变动的孩子移动到最前面
+			//[
+			previous -> next = p -> next;
+
+			p -> next        = s -> children;
+
+			s -> children    = p;
+
+			p                = previous -> next;
+			//]
+		}
+		else
+		{
+			//继续监测子集是否变动.
+			p -> move = FALSE;
+			transformSceneChildren( p );
+
+			previous = p;
+
+			p = p -> next;
+
+		}
+	}*/
+
 	Scene * p = s -> children;
 
 	while( p != NULL )
 	{
 		if( !( p -> visible ) )
 		{
+			p = p -> next;
 			continue;
 		}
 		else if( p -> camera -> move )
@@ -243,7 +344,7 @@ void transformScene( Scene * s )
 
 void scene_destroy( Scene * * s )
 {
-	scene_preOrder( * s, free );
+	scene_previousOrder( * s, free );
 
 	* s = NULL;
 }

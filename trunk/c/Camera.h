@@ -1,7 +1,7 @@
 # ifndef CAMERA_H
 # define CAMERA_H
 
-# include "Matrix3D.h"
+# include "Matrix.h"
 
 # define MOVE_TYPE_TRANSFORM   1
 # define MOVE_TYPE_TRANSLATION 2
@@ -74,7 +74,7 @@ Camera * newCamera( Vector3D * position, Vector3D * direction, Vector3D * scale 
 	c -> world     = newMatrix3D( NULL );
 	c -> transform = newMatrix3D( NULL );
 
-	matrix3D_recompose( c -> transform, * position, * scale, * direction );
+	matrix3D_recompose( c -> transform, position, scale, direction );
 
 	c -> rotation = newRotation( NULL );
 
@@ -83,7 +83,7 @@ Camera * newCamera( Vector3D * position, Vector3D * direction, Vector3D * scale 
 	return c;
 }
 
-Matrix3D camera_getTransform( Camera * c )
+Matrix3D * camera_getTransform( Camera * c )
 {
 	Vector3D * v;
 	Rotation * rotation = c -> rotation;
@@ -97,7 +97,7 @@ Matrix3D camera_getTransform( Camera * c )
 			rotation -> move = FALSE;
 		}
 
-		matrix3D_apprend( c -> transform, quaternion_toMatrix3D( * ( rotation -> quaternion ) ) );
+		matrix3D_apprend( c -> transform, vector3D_toMatrix3D( rotation -> quaternion ) );
 
 		v = rotation -> quaternion;
 
@@ -108,12 +108,12 @@ Matrix3D camera_getTransform( Camera * c )
 
 	if( c -> move == MOVE_TYPE_TRANSLATION )
 	{
-		matrix3D_setPosition( c -> transform, * ( c -> position ) );
+		matrix3D_setPosition( c -> transform, c -> position );
 
 		c -> move = FALSE;
 	}
 
-	return * ( c -> transform );
+	return c -> transform;
 }
 
 void camera_setTransform( Camera * c, Matrix3D transform )
@@ -132,7 +132,7 @@ void camera_updateTransform( Camera * c )
 
 	if( c -> move == MOVE_TYPE_TRANSFORM )
 	{
-		matrix3D_decompose( * ( c -> transform ), c -> position, c -> scale, c -> direction );
+		matrix3D_decompose( c -> transform, c -> position, c -> scale, c -> direction );
 
 		if( rotation != NULL )
 		{
@@ -173,7 +173,7 @@ void camera_setScale( Camera * c, Number xScale, Number yScale, Number zScale )
 	c -> move = MOVE_TYPE_TRANSLATION;
 }
 
-void camera_setRotation( Camera * c, Number degrees, Vector3D axis )
+void camera_setRotation( Camera * c, Number degrees, Vector3D * axis )
 {
 	if( c -> rotation -> quaternion == NULL )
 	{
@@ -182,12 +182,10 @@ void camera_setRotation( Camera * c, Number degrees, Vector3D axis )
 			exit( TRUE );
 		}
 
-		* ( c -> rotation -> quaternion ) = rotationQuaternion( degrees, axis );
+		c -> rotation -> quaternion = newVector3D( 0, 0, 0, 1 );
 	}
-	else
-	{
-		quaternion_apprendRotation( c -> rotation -> quaternion, degrees, axis );
-	}
+
+	vector3D_apprendRotation( c -> rotation -> quaternion, degrees, axis );
 
 	c -> rotation -> move = TRUE;
 }
