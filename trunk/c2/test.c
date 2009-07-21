@@ -3,16 +3,22 @@
 #include <time.h>
 
 #include "Base.h"
+#include "Math.h"
+#include "Device.h"
 #include "Entity.h"
 #include "Scene.h"
 #include "Viewport.h"
-#include "Polygon.h"
 #include "Vertices.h"
+#include "Polygon.h"
 #include "Faces.h"
 #include "Mesh.h"
 #include "Render.h"
 #include "Vector3D.h"
 #include "Matrix3D.h"
+#include "AABB.h"
+#include "Color.h"
+#include "Material.h"
+#include "Light.h"
 
 int main()
 {
@@ -60,7 +66,7 @@ int main()
 	Vector3D tv;
 
 	//test***************************
-	Matrix3D testM, *testMP;
+	Matrix3D testM, testMP;
 	float transformData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
 
 	time_t ts,te;
@@ -68,10 +74,6 @@ int main()
 
 	float pos[8];
 	int i = 0, j = 0;
-	float a = 12.2243;
-
-	a = Sqrt(a);
-
 	//初始化顶点链表
 	vertices = newVertices();
 	//初始化面链表
@@ -85,22 +87,22 @@ int main()
 	entity = newEntity();
 	entity_setRotationX(entity, 45.0);
 
-	testMP = translationMatrix3D(&testM, 100, 200, 300);
+	translationMatrix3D(&testM, 100, 200, 300);
 	//matrix3D_appendRotation(testMP, 45, 1);
 
 	ts=clock();
 
-	for (i = 0; i < 10000000; i ++)
+	for (i = 0; i < 100000000; i ++)
 	{
 		//newVector3D(100, 200, 0, 1);
 		//matrix3D_transformVector(&testM, v3d);
 		//matrix3D_append4x4(&testM, entity->transform);
 		//testM1 = matrix3D_clone(&testM);
-		//matrix3D_copy(&testM1, &testM);
+		//matrix3D_copy(&testMP, &testM);
 		//memcpy(&entity1, entity, sizeof( * entity));
 		//matrix3D_invert4x4(&testM);
 		//matrix3D_invert(testMP);
-		//a = Sqrt16(a);
+		sqrtf(16.0);
 	}
 	
 	te=clock();
@@ -108,7 +110,7 @@ int main()
 	delT = (double)(te-ts) / CLOCKS_PER_SEC;
 
 	printf("%f\n",delT);
-	printf("%d\n",sizeof( * testMP));
+	printf("%d\n",sizeof( testMP));
 
 	//printf("%x", view->gfxBuffer[189206]);
 

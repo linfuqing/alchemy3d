@@ -61,7 +61,7 @@ int main()
 	Vertex * v;
 	Vertex * vArr[4], * vArr2[4];
 	Vector * point, * point2;
-	Material * material;
+	Material * material, * material2;
 	Light * light;
 
 	float pos[16];
@@ -135,20 +135,26 @@ int main()
 							newColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 							0.0f );
 
+	material2 = newMaterial( newColor( 0.0f, 1.0f, 0.0f, 1.0f ),
+							newColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							0.0f );
+
 	do3d = newEntity();
-	entity_setRotationX( do3d, 45.0f );
-	entity_setY(do3d, 200);
-	entity_setZ(do3d, 500);
+	entity_setRotationX( do3d, 90.0f );
+	//entity_setY(do3d, -180.0f);
+	entity_setZ(do3d, 500.0f);
 	entity_setMesh( do3d, newMesh(faces, vertices) );
 	entity_setMaterial( do3d, material );
 
 	do3d2 = newEntity();
 	entity_setZ(do3d2, 500);
 	entity_setMesh( do3d2, newMesh(faces2, vertices2) );
-	//entity_setMaterial( do3d2, material );
+	entity_setMaterial( do3d2, material2 );
 
 	camera = newCamera( 90.0f, 100.0f, 5000.0f, newEntity() );
-	//camera->target = do3d2->worldPosition;
+	camera_setTarget( camera, do3d->worldPosition );
 
 	lightSource = newEntity();
 	//lightSource->position->y = -500;
@@ -156,28 +162,28 @@ int main()
 	light = newPointLight( POINT_LIGHT, lightSource, newColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 
 	scene = newScene();
-	scene_addLight(scene, light);
+	//scene_addLight(scene, light);
 	scene_addEntity(scene, do3d, NULL);
 	//scene_addEntity(scene, do3d2, NULL);
 
-	view = newViewport( 400.0f, 400.0f, scene, camera );
+	view = newViewport( 600.0f, 400.0f, scene, camera );
 
 	device = newDevice();
 	device_addViewport(device, view);
 	device_addCamera(device, camera);
 	device_addScene(device, scene);
 
-	LIGHT_ENABLE = 1;
+	//LIGHT_ENABLE = 1;
 
 	/*do3d1 = newEntity();
 	do3d1->direction->x = 45;
 	scene_addChild(scene, do3d1, NULL);*/
 
 	device_render(device);
-	/*device_render(device);
 	device_render(device);
 	device_render(device);
-	device_render(device);*/
+	device_render(device);
+	device_render(device);
 
 	//printf("%x", view->gfxBuffer[189206]);
 

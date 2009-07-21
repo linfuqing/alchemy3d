@@ -16,7 +16,7 @@ typedef struct Camera
 
 	Matrix3D * projectionMatrixInvert;
 
-	float fov, nearClip, farClip, left, right, top, bottom;
+	float fov, nearClip, farClip;
 
 	int fnfDirty, isAttached, hasTarget;
 }Camera;
@@ -33,7 +33,6 @@ Camera * newCamera( float fov, float nearClip, float farClip, Entity * eye )
 	cam->fov = fov;
 	cam->nearClip = nearClip;
 	cam->farClip = farClip;
-	cam->left = cam->right = cam->bottom = cam->top = 0.0f;
 
 	cam->eye = eye;
 	cam->eye->position->z = -nearClip;
@@ -63,55 +62,49 @@ void camera_setNullTarget( Camera * camera, int setFree )
 	camera->hasTarget = FALSE;
 }
 
-Matrix3D getProjectionMatrix( float top, float bottom, float left, float right, float near, float far )
+Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float bottom, float left, float right, float near, float far )
 {
-	Matrix3D proj_matrix;
 	float fn;
 
-	fn = far - near;
+	fn = far / ( far - near );
 
-	proj_matrix.m11 = 2 * near / (right - left);
-	proj_matrix.m22 = 2 * near / (top - bottom);
+	output->m11 = 2 * near / (right - left);
+	output->m22 = 2 * near / (top - bottom);
 	
 	if (left == -right)
 	{
-		proj_matrix.m31 = 0;
+		output->m31 = 0;
 	}
 	else
 	{
-		proj_matrix.m31 = (left + right) / (left - right);
+		output->m31 = (left + right) / (left - right);
 	}
 
 	if (top == -bottom)
 	{
-		proj_matrix.m32 = 0;
+		output->m32 = 0;
 	}
 	else
 	{
-		proj_matrix.m32 = (bottom + top) / (bottom - top);
+		output->m32 = (bottom + top) / (bottom - top);
 	}
 
-	proj_matrix.m33 = far / fn;
-	proj_matrix.m34 = 1;
-	proj_matrix.m43 = - near * far / fn;
-	proj_matrix.m12 = proj_matrix.m13 = proj_matrix.m14 = proj_matrix.m21 = proj_matrix.m23 = proj_matrix.m24 = proj_matrix.m41 = proj_matrix.m42 = proj_matrix.m44 = 0.0f;
+	output->m33 = fn;
+	output->m34 = 1;
+	output->m43 = - near * fn;
+	output->m12 = output->m13 = output->m14 = output->m21 = output->m23 = output->m24 = output->m41 = output->m42 = output->m44 = 0.0f;
 
-	return proj_matrix;
+	return output;
 }
 
-Matrix3D getPerspectiveFovLH( Camera * camera, float aspect )
+Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float aspect )
 {
 	float top = camera->nearClip * tanf( DEG2RAD( camera->fov * 0.5 ) );
 	float bottom = -top;
 	float right = top * aspect;
 	float left = -right;
 
-	camera->bottom = bottom;
-	camera->top = top;
-	camera->left = left;
-	camera->right = right;
-
-	return getProjectionMatrix(top, bottom, left, right, camera->nearClip, camera->farClip);
+	return getProjectionMatrix(output, top, bottom, left, right, camera->nearClip, camera->farClip);
 }
 
 void camera_updateTransform(Camera * camera)
@@ -141,7 +134,8 @@ void camera_updateTransform(Camera * camera)
 		}
 		else
 		{
-			lookAtLH( eye->world, eye->position, camera->target, Y_AXIS );
+			lookAtLH( eye->world, eye->position, camera->target, INV_Y_AXIS );
+
 			matrix3D_getPosition( eye->worldPosition, eye->world );
 		}
 	}

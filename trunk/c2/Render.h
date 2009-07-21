@@ -98,16 +98,16 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 		tri_type = 2;
 	}
 
-	x0 = (int)(ver0->x + 0.5);
-	y0 = (int)(ver0->y + 0.5);
+	x0 = (int)ver0->x;
+	y0 = (int)ver0->y;
 	z0 = ver0->z;
 
-	x1 = (int)(ver1->x + 0.5);
-	y1 = (int)(ver1->y + 0.5);
+	x1 = (int)ver1->x;
+	y1 = (int)ver1->y;
 	z1 = ver1->z;
 
-	x2 = (int)(ver2->x + 0.5);
-	y2 = (int)(ver2->y + 0.5);
+	x2 = (int)ver2->x;
+	y2 = (int)ver2->y;
 	z2 = ver2->z;
 
 	u0 = ver0->u;
@@ -117,20 +117,20 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	u2 = ver2->u;
 	v2 = ver2->v;
 
-	a0 = ver0->color->alpha;
-	r0 = ver0->color->red;
-	g0 = ver0->color->green;
-	b0 = ver0->color->blue;
+	a0 = ver0->a;
+	r0 = ver0->r;
+	g0 = ver0->g;
+	b0 = ver0->b;
 
-	a1 = ver1->color->alpha;
-	r1 = ver1->color->red;
-	g1 = ver1->color->green;
-	b1 = ver1->color->blue;
+	a1 = ver1->a;
+	r1 = ver1->r;
+	g1 = ver1->g;
+	b1 = ver1->b;
 
-	a2 = ver2->color->alpha;
-	r2 = ver2->color->red;
-	g2 = ver2->color->green;
-	b2 = ver2->color->blue;
+	a2 = ver2->a;
+	r2 = ver2->r;
+	g2 = ver2->g;
+	b2 = ver2->b;
 
 	/*AS3_Trace(AS3_String("Output0 XYZ..............."));
 	AS3_Trace(AS3_String("X0Y0...."));
@@ -311,8 +311,8 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			}
 		}
 		//y2>视窗高度时，大于rect.height部分就不用画出了
-		cyStart = (int)(yStart + 0.5);
-		cyEnd = (int)( ( y2 > nh ? nh : y2 ) + 0.5 );
+		cyStart = (int)yStart;
+		cyEnd = (int)( y2 > nh ? nh : y2 );
 		ypos = cyStart * resX;
 
 		//x值需要裁剪的情况
@@ -320,100 +320,79 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 		{
 			for ( yi = cyStart; yi <= cyEnd; yi ++ )
 			{
-				if (xEnd < 0 || xStart > nw)
+				cxStart = (int)xStart;
+				cxEnd = xEnd > nw ? nw : (int)xEnd;
+
+				if ( cxEnd >= 0 && cxStart <= nw )
 				{
-					xStart += dxdyl;
-					zStart += dzdyl;
-					uStart += dudyl;
-					vStart += dvdyl;
-
-					aStart += dadyl;
-					rStart += drdyl;
-					gStart += dgdyl;
-					bStart += dbdyl;
-
-					xEnd += dxdyr;
-					zEnd += dzdyr;
-					uEnd += dudyl;
-					vEnd += dvdyr;
-
-					aEnd += dadyr;
-					rEnd += drdyr;
-					gEnd += dgdyr;
-					bEnd += dbdyr;
-
-					continue;
-				}
-
-				dx = 1.0f / (xEnd - xStart);
-
-				dzdx = (zEnd - zStart) * dx;
-				dudx = (uEnd - uStart) * dx;
-				dvdx = (vEnd - vStart) * dx;
-
-				dadx = (aEnd - aStart) * dx;
-				drdx = (rEnd - rStart) * dx;
-				dgdx = (gEnd - gStart) * dx;
-				dbdx = (bEnd - bStart) * dx;
-
-				cxStart = (int)(xStart + 0.5);
-				cxEnd = xEnd > nw ? nw : (int)(xEnd + 0.5);
-
-				currZ = zStart;
-				currU = uStart;
-				currV = vStart;
-
-				currA = aStart;
-				currR = rStart;
-				currG = gStart;
-				currB = bStart;
-
-				//初始值需要裁剪
-				if (cxStart < 0)
-				{
-					currZ -= cxStart * dzdx;
-					currU -= cxStart * dudx;
-					currV -= cxStart * dvdx;
-					currA -= cxStart * dadx;
-					currR -= cxStart * drdx;
-					currG -= cxStart * dgdx;
-					currB -= cxStart * dbdx;
-
-					cxStart = 0;
-				}
-
-				if (cxStart == cxEnd)
-				{
-					pos = cxStart + ypos;
-					if(currZ < zBuffer[pos])
+					if (cxStart == cxEnd)
 					{
-						gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-						zBuffer[pos] = currZ;
-					}
-				}
-				else
-				{
-					//绘制扫描线
-					for ( xi = cxStart; xi <= cxEnd; xi ++ )
-					{
-						currU = currU > 1 ? 1 : currU;
-						currV = currV > 1 ? 1 : currV;
+						pos = cxStart + ypos;
 
-						pos = xi + ypos;
-						if(currZ < zBuffer[pos])
+						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-							zBuffer[pos] = currZ;
+							gfxBuffer[pos] = ((int)aStart << 24) + ((int)rStart << 16) + ((int)gStart << 8) + (int)bStart;
+							zBuffer[pos] = zStart;
 						}
-						currZ += dzdx;
-						currU += dudx;
-						currV += dvdx;
-						currA += dadx;
-						currR += drdx;
-						currG += dgdx;
-						currB += dbdx;
+					}
+					else
+					{
+						dx = 1.0f / (xEnd - xStart);
+
+						dzdx = (zEnd - zStart) * dx;
+						dudx = (uEnd - uStart) * dx;
+						dvdx = (vEnd - vStart) * dx;
+
+						dadx = (aEnd - aStart) * dx;
+						drdx = (rEnd - rStart) * dx;
+						dgdx = (gEnd - gStart) * dx;
+						dbdx = (bEnd - bStart) * dx;
+
+						currZ = zStart;
+						currU = uStart;
+						currV = vStart;
+						currA = aStart;
+						currR = rStart;
+						currG = gStart;
+						currB = bStart;
+
+						//初始值需要裁剪
+						if (cxStart < 0)
+						{
+							currZ -= cxStart * dzdx;
+							currU -= cxStart * dudx;
+							currV -= cxStart * dvdx;
+							currA -= cxStart * dadx;
+							currR -= cxStart * drdx;
+							currG -= cxStart * dgdx;
+							currB -= cxStart * dbdx;
+
+							cxStart = 0;
+						}
+						//绘制扫描线
+						for ( xi = cxStart; xi <= cxEnd; xi ++ )
+						{
+							currU = currU > 1 ? 1 : currU;
+							currV = currV > 1 ? 1 : currV;
+
+							pos = xi + ypos;
+							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
+							{
+								gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+								zBuffer[pos] = currZ;
+							}
+
+							currZ += dzdx;
+							currU += dudx;
+							currV += dvdx;
+							currA += dadx;
+							currR += drdx;
+							currG += dgdx;
+							currB += dbdx;
+						}
 					}
 				}
+
 				//y每增加1时,xl和xr分别加上他们的递增量
 				xStart += dxdyl;
 				zStart += dzdyl;
@@ -443,8 +422,8 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			//不需要裁剪的情况
 			for ( yi = cyStart; yi <= cyEnd; yi ++ )
 			{
-				cxStart = (int)(xStart + 0.5);
-				cxEnd = (int)(xEnd + 0.5);
+				cxStart = (int)xStart;
+				cxEnd = (int)xEnd;
 
 				currZ = zStart;
 				currU = uStart;
@@ -457,7 +436,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				if (cxStart == cxEnd)
 				{
 					pos = cxStart + ypos;
-					if(currZ < zBuffer[pos])
+					if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 					{
 						gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 						zBuffer[pos] = currZ;
@@ -482,7 +461,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						currV = currV > 1 ? 1 : currV;
 
 						pos = xi + ypos;
-						if(currZ < zBuffer[pos])
+						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
 							gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 							zBuffer[pos] = currZ;
@@ -619,6 +598,8 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			dyr = 1.0f / (y2 - y0);
 
 			dxdyl = (x1 - x0) * dyl;
+			dxdyr = (x2 - x0) * dyr;
+
 			dzdyl = (z1 - z0) * dyl;
 			dudyl = (u1 - u0) * dyl;
 			dvdyl = (v1 - v0) * dyl;
@@ -628,7 +609,6 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			dgdyl = (g1 - g0) * dyl;
 			dbdyl = (b1 - b0) * dyl;
 
-			dxdyr = (x2 - x0) * dyr;
 			dzdyr = (z2 - z0) * dyr;
 			dudyr = (u2 - u0) * dyr;
 			dvdyr = (v2 - v0) * dyr;
@@ -664,10 +644,6 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 
 			if (dxdyr < dxdyl)
 			{
-				/*x1 = x2 + (x2 = x1) * 0;
-				y1 = y2 + (y2 = y1) * 0;
-				z1 = z2 + (z2 = z1) * 0;*/
-
 				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
 				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
 				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
@@ -774,8 +750,8 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			}
 		}
 
-		cyStart = (int)(yStart + 0.5);
-		cyEnd = (int)(yEnd + 0.5);
+		cyStart = (int)yStart;
+		cyEnd = (int)yEnd;
 		ypos = cyStart * resX;
 
 		//x需要裁剪
@@ -783,95 +759,80 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 		{
 			for ( yi = cyStart; yi <= cyEnd; yi ++ )
 			{
-				if (xEnd < 0 || xStart > nw)
+				cxStart = (int)xStart;
+				cxEnd = xEnd > nw ? nw :(int)xEnd;
+
+				if ( cxEnd >= 0 && cxStart <= nw )
 				{
-					xStart += dxdyl;
-					zStart += dzdyl;
-					uStart += dudyl;
-					vStart += dvdyl;
-					
-					aStart += dadyl;
-					rStart += drdyl;
-					gStart += dgdyl;
-					bStart += dbdyl;
-
-					xEnd += dxdyr;
-					zEnd += dzdyr;
-					uEnd += dudyr;
-					vEnd += dvdyr;
-					
-					aEnd += dadyr;
-					rEnd += drdyr;
-					gEnd += dgdyr;
-					bEnd += dbdyr;
-
-					continue;
-				}
-
-				dx = 1.0f / (xEnd - xStart);
-				dzdx = (zEnd - zStart) * dx;
-				dudx = (uEnd - uStart) * dx;
-				dvdx = (vEnd - vStart) * dx;
-				
-				dadx = (aEnd - aStart) * dx;
-				drdx = (rEnd - rStart) * dx;
-				dgdx = (gEnd - gStart) * dx;
-				dbdx = (bEnd - bStart) * dx;
-
-				cxStart = (int)(xStart + 0.5);
-				cxEnd = xEnd > nw ? nw :(int)(xEnd + 0.5);;
-
-				currZ = zStart;
-				currU = uStart;
-				currV = vStart;
-				currA = aStart;
-				currR = rStart;
-				currG = gStart;
-				currB = bStart;
-
-				//初始值需要裁剪
-				if (cxStart < 0)
-				{
-					currZ -= cxStart * dzdx;
-					currU -= cxStart * dudx;
-					currV -= cxStart * dvdx;
-					currA -= cxStart * dadx;
-					currR -= cxStart * drdx;
-					currG -= cxStart * dgdx;
-					currB -= cxStart * dbdx;
-
-					cxStart = 0;
-				}
-				if (cxStart == cxEnd)
-				{
-					pos = cxStart + ypos;
-					if(currZ < zBuffer[pos])
+					if ( cxStart == cxEnd )
 					{
-						gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-						zBuffer[pos] = currZ;
-					}
-				}
-				else
-				{
-					for ( xi = cxStart; xi <= cxEnd; xi ++ )
-					{
-						currU = currU > 1 ? 1 : currU;
-						currV = currV > 1 ? 1 : currV;
+						pos = cxStart + ypos;
 
-						pos = xi + ypos;
-						if(currZ < zBuffer[pos])
+						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-							zBuffer[pos] = currZ;
+							gfxBuffer[pos] = ((int)aStart << 24) + ((int)rStart << 16) + ((int)gStart << 8) + (int)bStart;
+							zBuffer[pos] = zStart;
+						}
+					}
+					else
+					{
+						dx = 1.0f / (xEnd - xStart);
+
+						/*AS3_Trace(AS3_String("other point"));
+						AS3_Trace(AS3_Int(cxEnd));
+						AS3_Trace(AS3_Int(cxStart));*/
+
+						dzdx = (zEnd - zStart) * dx;
+						dudx = (uEnd - uStart) * dx;
+						dvdx = (vEnd - vStart) * dx;
+						
+						dadx = (aEnd - aStart) * dx;
+						drdx = (rEnd - rStart) * dx;
+						dgdx = (gEnd - gStart) * dx;
+						dbdx = (bEnd - bStart) * dx;
+
+						currZ = zStart;
+						currU = uStart;
+						currV = vStart;
+						currA = aStart;
+						currR = rStart;
+						currG = gStart;
+						currB = bStart;
+
+						//初始值需要裁剪
+						if (cxStart < 0)
+						{
+							currZ -= cxStart * dzdx;
+							currU -= cxStart * dudx;
+							currV -= cxStart * dvdx;
+							currA -= cxStart * dadx;
+							currR -= cxStart * drdx;
+							currG -= cxStart * dgdx;
+							currB -= cxStart * dbdx;
+
+							cxStart = 0;
 						}
 
-						currZ += dzdx;
-						currU += dudx;
-						currV += dvdx;
-						currA += dadx;
-						currR += drdx;
-						currG += dgdx;
-						currB += dbdx;
+						for ( xi = cxStart; xi <= cxEnd; xi ++ )
+						{
+							currU = currU > 1 ? 1 : currU;
+							currV = currV > 1 ? 1 : currV;
+
+							pos = xi + ypos;
+							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
+							{
+								gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+								zBuffer[pos] = currZ;
+							}
+
+							currZ += dzdx;
+							currU += dudx;
+							currV += dvdx;
+							currA += dadx;
+							currR += drdx;
+							currG += dgdx;
+							currB += dbdx;
+						}
 					}
 				}
 
@@ -889,7 +850,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				zEnd += dzdyr;
 				uEnd += dudyr;
 				vEnd += dvdyr;
-				
+
 				aEnd += dadyr;
 				rEnd += drdyr;
 				gEnd += dgdyr;
@@ -898,6 +859,8 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				ypos += resX;
 
 				//转折点
+				/*AS3_Trace(AS3_Int(yi));
+				AS3_Trace(AS3_Int(ys));*/
 				if (yi == ys)
 				{
 					if (side == 0)
@@ -914,15 +877,15 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						dgdyl = (g2 - g1) * dyl;
 						dbdyl = (b2 - b1) * dyl;
 
-						xStart = x1 + dxdyl;
-						zStart = z1 + dzdyl;
-						uStart = u1 + dudyl;
-						vStart = v1 + dvdyl;
+						xStart = (float)x1;
+						zStart = z1;
+						uStart = u1;
+						vStart = v1;
 						
-						aStart = a1 + dadyl;
-						rStart = r1 + drdyl;
-						gStart = g1 + dgdyl;
-						bStart = b1 + dbdyl;
+						aStart = a1;
+						rStart = r1;
+						gStart = g1;
+						bStart = b1;
 					}
 					else
 					{
@@ -938,15 +901,15 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						dgdyr = (g1 - g2) * dyr;
 						dbdyr = (b1 - b2) * dyr;
 
-						xEnd = x2 + dxdyr;
-						zEnd = z2 + dzdyr;
-						uEnd = u2 + dudyr;
-						vEnd = v2 + dvdyr;
+						xEnd = (float)x2;
+						zEnd = z2;
+						uEnd = u2;
+						vEnd = v2;
 						
-						aEnd = a2 + dadyr;
-						rEnd = r2 + drdyr;
-						gEnd = g2 + dgdyr;
-						bEnd = b2 + dbdyr;
+						aEnd = a2;
+						rEnd = r2;
+						gEnd = g2;
+						bEnd = b2;
 					}
 				}
 			}
@@ -956,8 +919,8 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			//不需要裁剪
 			for ( yi = cyStart; yi <= cyEnd; yi ++ )
 			{
-				cxStart = (int)(xStart + 0.5);
-				cxEnd = (int)(xEnd + 0.5);
+				cxStart = (int)xStart;
+				cxEnd = (int)xEnd;
 
 				currZ = zStart;
 				currU = uStart;
@@ -970,7 +933,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				if (xStart == xEnd)
 				{
 					pos = cxStart + ypos;
-					if(currZ < zBuffer[pos])
+					if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 					{
 						gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 						zBuffer[pos] = currZ;
@@ -994,7 +957,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						currV = currV > 1 ? 1 : currV;
 
 						pos = xi + ypos;
-						if(currZ < zBuffer[pos])
+						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
 							gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 							zBuffer[pos] = currZ;
@@ -1092,14 +1055,12 @@ void rasterize(Viewport * view)
 {
 	Scene * scene;
 	SceneNode * sceneNode;
-	Camera * camera;
 	FaceNode * faceNode;
 	Vertex * (* vertex)[3];
 
 	resetBuffer( view );
 
 	scene = view->scene;
-	camera = view->camera;
 
 	sceneNode = scene->nodes;
 

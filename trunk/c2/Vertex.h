@@ -32,9 +32,7 @@ typedef struct Vertex
 //RW
 typedef struct RenderVertex
 {
-	float x, y, z, u, v;
-
-	Color * color;
+	float x, y, z, u, v, r, g, b, a;
 }RenderVertex;
 
 Vertex * newVertex( float x, float y, float z )

@@ -194,6 +194,9 @@ void vector3D_scaleBy( Vector3D * v, float value )
 Vector3D * g_X_AXIS;
 Vector3D * g_Y_AXIS;
 Vector3D * g_Z_AXIS;
+Vector3D * g_INV_X_AXIS;
+Vector3D * g_INV_Y_AXIS;
+Vector3D * g_INV_Z_AXIS;
 
 //void printfVector3D( Vector3D v )
 //{

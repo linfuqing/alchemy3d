@@ -264,9 +264,9 @@ void scene_update(Scene * scene)
 	VertexNode * vNode;
 	Matrix3D * world;
 
+	Vector3D * lightToLocals;
 	Lights * lights;
 	Light * light;
-	Vector3D dstns, * lightToLocals;
 	Color d;
 	float dot;
 	int i = 0;
@@ -347,34 +347,29 @@ void scene_update(Scene * scene)
 				//===================计算光照和顶点颜色值===================
 				lights = scene->lights;
 				//遍历光源
-				while ( LIGHT_ENABLE == 1 &&  entity->material != NULL && NULL != lights)
+				while ( LIGHT_ENABLE == 1 &&  NULL != entity->material && NULL != lights)
 				{
-					vector3D_subtract( & dstns, & lightToLocals[i], vNode->vertex->position );
-
-					vector3D_normalize( & dstns );
-					/*AS3_Trace(AS3_String("normal"));
-					AS3_Trace(AS3_Number(dstns.z));*/
-
 					//环境光
-					color_append( vNode->vertex->color, entity->material->ambient, light->ambient );					
-					/*AS3_Trace(AS3_String("vcolor"));
-					AS3_Trace(AS3_Number(vNode->vertex->color->red));*/
+					color_append( vNode->vertex->color, entity->material->ambient, light->ambient );
 
-					dot = vector3D_dotProduct( & dstns, vNode->vertex->normal );
+					//vector3D_subtract( & dstns, & lightToLocals[i], vNode->vertex->position );
 
-					if ( dot >= 0.0f )
+					//vector3D_normalize( & dstns );
+
+					//dot = vector3D_dotProduct( & dstns, vNode->vertex->normal );
+
+					vector3D_normalize( & lightToLocals[i] );
+
+					dot = vector3D_dotProduct( & lightToLocals[i], vNode->vertex->normal );
+
+					if ( dot > 0.0f )
 					{
 						//漫反射
 						color_append( & d, entity->material->diffuse, light->diffuse );
-						/*AS3_Trace(AS3_String("di.color"));
-						AS3_Trace(AS3_Number(d.red));*/
 
 						//反射光
 						color_add_self( vNode->vertex->color, color_scaleBy_self( & d, dot, dot, dot, 1 ) );
 					}
-					/*AS3_Trace(AS3_String("fanshe.color"));
-					AS3_Trace(AS3_Number(vNode->vertex->color->red));
-					AS3_Trace(AS3_Number(xxx));*/
 
 					lights = lights->next;
 				}
@@ -387,6 +382,7 @@ void scene_update(Scene * scene)
 	}
 
 	free( lightToLocals );
+	lightToLocals = NULL;
 }
 
 #endif

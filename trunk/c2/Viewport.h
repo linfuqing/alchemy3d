@@ -12,7 +12,7 @@
 
 typedef struct Viewport
 {
-	int wh, dirty, nRenderObjects;
+	int wh, dirty, nRenderVertex;
 
 	float width, height, offsetX, offsetY, aspect;
 
@@ -25,8 +25,6 @@ typedef struct Viewport
 	struct Scene * scene;
 
 	struct Camera * camera;
-
-	Entity * * renderObjects;
 
 	RenderVertex * screenVertices;
 }Viewport;
@@ -96,12 +94,7 @@ Viewport * newViewport( float width, float height, Scene * scene, Camera * camer
 
 	camera->isAttached = scene->isAttached = TRUE;
 
-	viewport->nRenderObjects = 0;
-
-	if( ( viewport->renderObjects = malloc( sizeof( int ) * scene->nNodes ) ) == NULL )
-	{
-		exit( TRUE );
-	}
+	viewport->nRenderVertex = 0;
 
 	if( ( viewport->screenVertices = ( RenderVertex * )malloc( sizeof( RenderVertex ) * scene->nVertices ) ) == NULL )
 	{
@@ -164,59 +157,24 @@ int clip_viewCulling(Matrix3D * proj_matrix, AABB aabb)
 	aabb_add( tmpAABB, & B_L_B_V );
 	aabb_add( tmpAABB, & B_R_B_V );
 
-	if ( tmpAABB->min->x < -1 )	code |= 0x01;
-	if ( tmpAABB->max->x > 1 )	code |= 0x02;
-	if ( tmpAABB->min->y < -1 )	code |= 0x04;
-	if ( tmpAABB->max->y > 1 )	code |= 0x08;
-	if ( tmpAABB->min->z < 0 )	code |= 0x10;
-	if ( tmpAABB->max->z > 1 )	code |= 0x20;
+	if ( tmpAABB->max->x < -1 )	code |= 0x01;
+	if ( tmpAABB->min->x > 1 )	code |= 0x02;
+	if ( tmpAABB->max->y < -1 )	code |= 0x04;
+	if ( tmpAABB->min->y > 1 )	code |= 0x08;
+	if ( tmpAABB->max->z < 0 )	code |= 0x10;
+	if ( tmpAABB->min->z > 1 )	code |= 0x20;
 
 	return code;
 }
 
-void backFaceCulling( Vector3D * pEye, Entity * entity )
-{
-	FaceNode * p;
-	Vector3D eyeToLocal, d;
-
-	vector3D_copy( & eyeToLocal, pEye );
-
-	matrix3D_transformVector( entity->worldInvert, & eyeToLocal );
-
-	p = entity->mesh->faces->nodes;
-
-	//面循环
-	while ( NULL != p )
-	{
-		vector3D_subtract( & d, & eyeToLocal, p->face->center );	//3减法
-
-		vector3D_normalize( & d );	//3乘法+3乘法+1开方+1除法
-
-		//如果夹角大于90或小于-90时
-		if ( vector3D_dotProduct( & d, p->face->normal ) <= 0.0f )	//3乘法+3加法
-		{
-			polygon_setBackFace( p->face );
-		}
-
-		p = p->next;
-	}
-	//总共：9乘法+1除法+6加减+1开方
-	//比较屏幕测试背面剔除
-	//顶点到裁剪空间的代价：12乘法+12加法
-	//顶点到屏幕空间的代价：2乘法+2加法
-	//总共：14乘法+14加法
-}
-
-static Matrix3D * proj_view_matrixPtr, * tmpMtr;
-static Vector3D * tmpViewPos;
-
 void viewport_project( Viewport * viewport )
 {
 	Scene * scene;
-	SceneNode * p;
+	SceneNode * sceneNode;
 	Camera * camera;
 	Entity * entity;
-	Matrix3D proj_matrix, * proj_matrixPtr, * camWorld;
+	Matrix3D view, proj_matrix, * proj_matrixPtr, * cam_world;
+	Vector3D viewPosition, eyeToLocal, d, * test;
 	VertexNode * vNode;
 	Vertex * vtx;
 	RenderVertex * screenVertices;
@@ -225,14 +183,12 @@ void viewport_project( Viewport * viewport )
 
 	scene = viewport->scene;
 	camera = viewport->camera;
-	camWorld = camera->eye->world;
+	cam_world = camera->eye->world;
 
 	//获得投影矩阵
 	if ( TRUE == camera->fnfDirty || TRUE == viewport->dirty)
 	{
-		proj_matrix = getPerspectiveFovLH( camera, viewport->aspect );
-
-		proj_matrixPtr = & proj_matrix;
+		proj_matrixPtr = getPerspectiveFovLH( & proj_matrix, camera, viewport->aspect );
 
 		matrix3D_copy(camera->projectionMatrix, proj_matrixPtr);
 
@@ -243,85 +199,108 @@ void viewport_project( Viewport * viewport )
 		proj_matrixPtr = camera->projectionMatrix;
 	}
 
-	if ( NULL == tmpMtr)
-		tmpMtr = newMatrix3D(NULL);
-
-	if ( NULL == proj_view_matrixPtr)
-		proj_view_matrixPtr = newMatrix3D(NULL);
-
-	if ( NULL == tmpViewPos )
-		tmpViewPos = newVector3D( 0, 0, 0, 1 );
-
 	//遍历场景
-	p = scene->nodes;
+	sceneNode = scene->nodes;
 
 	do
 	{
-		entity = p->entity;
+		entity = sceneNode->entity;
 
-		matrix3D_copy(tmpMtr, entity->world);
-		matrix3D_append(tmpMtr, camWorld);	//连接摄像机矩阵
+		matrix3D_copy( & view, entity->world );
+		matrix3D_append( & view, cam_world );			//连接摄像机矩阵
+		matrix3D_append4x4( & view, proj_matrixPtr );	//连接view矩阵和投影矩阵
 
-		//如果实体包含网格信息，则进行顶点变换
-		if ( NULL != entity->mesh )
+		/*test = newVector3D(0.0f, 150.0f, 0.0f, 1.0f );
+		matrix3D_transformVector( & view, test );*/
+
+		//视空间裁剪
+		if ( clip_viewCulling( & view, * entity->mesh->aabb ) > 0 )
 		{
-			//连接view矩阵和投影矩阵
-			matrix3D_copy( proj_view_matrixPtr, tmpMtr );
-			matrix3D_append4x4( proj_view_matrixPtr, proj_matrixPtr );
+			sceneNode = sceneNode->next;
 
-			//视空间裁剪
-			if ( FALSE == clip_viewCulling( proj_view_matrixPtr, * entity->mesh->aabb ) )
-			{
-				entity->offScreen = FALSE;
+			entity->offScreen = TRUE;
 
-				//背面剔除
-				if ( BACKFACE_CULLING_MODE == 1 )
-					backFaceCulling( camera->eye->position, entity );
-
-				//遍历顶点
-				vNode = entity->mesh->vertices->nodes;
-
-				while( NULL != vNode )
-				{
-					vtx = vNode->vertex;
-
-					if ( vtx->nContectedFaces == vtx->bFlag )
-					{
-						vNode = vNode->next;
-
-						continue;
-					}
-
-					vtx->index = i;
-
-					screenVertices = viewport->screenVertices;
-
-					vector3D_copy( tmpViewPos, vtx->position );
-
-					matrix3D_transformVector( proj_view_matrixPtr, tmpViewPos );
-
-					screenVertices[i].x = (tmpViewPos->x + 0.5f) * viewport->width;
-					screenVertices[i].y = (tmpViewPos->y + 0.5f) * viewport->height;
-					screenVertices[i].z = tmpViewPos->z;
-					screenVertices[i].u = vtx->uv->x;
-					screenVertices[i].v = vtx->uv->y;
-					screenVertices[i].color = color_scaleBy_self( vtx->color, 255, 255, 255, 255 );
-
-					/*AS3_Trace(AS3_String("screen..."));
-					AS3_Trace(AS3_Number(vtx->position->x));
-					AS3_Trace(AS3_Number(vtx->position->y));
-					AS3_Trace(AS3_Number(vtx->position->z));*/
-
-					i ++;
-
-					vNode = vNode->next;
-				}
-			}
+			continue;
 		}
 
-		p = p->next;
+		entity->offScreen = FALSE;
+
+		//背面剔除
+		if ( BACKFACE_CULLING_MODE == 1 )
+		{
+			FaceNode * sceneNode;
+
+			vector3D_copy( & eyeToLocal, camera->eye->position );
+
+			matrix3D_transformVector( entity->worldInvert, & eyeToLocal );
+
+			sceneNode = entity->mesh->faces->nodes;
+
+			//遍历面
+			while ( NULL != sceneNode )
+			{
+				vector3D_subtract( & d, & eyeToLocal, sceneNode->face->center );	//3减法
+
+				vector3D_normalize( & d );	//3乘法+3乘法+1开方+1除法
+
+				//如果夹角大于90或小于-90时
+				if ( vector3D_dotProduct( & d, sceneNode->face->normal ) <= 0.0f )	//3乘法+3加法
+				{
+					polygon_setBackFace( sceneNode->face );
+				}
+
+				sceneNode = sceneNode->next;
+			}
+			//总共：9乘法+1除法+6加减+1开方
+			//比较屏幕测试背面剔除
+			//顶点到裁剪空间的代价：12乘法+12加法
+			//顶点到屏幕空间的代价：2乘法+2加法
+			//总共：14乘法+14加法
+		}
+
+		//遍历顶点
+		vNode = entity->mesh->vertices->nodes;
+
+		while( NULL != vNode )
+		{
+			vtx = vNode->vertex;
+
+			//如果所有关联面都是背向摄像机
+			if ( vtx->nContectedFaces == vtx->bFlag )
+			{
+				vNode = vNode->next;
+
+				continue;
+			}
+
+			vtx->index = i;
+
+			screenVertices = viewport->screenVertices;
+
+			vector3D_copy( & viewPosition, vtx->position );
+
+			matrix3D_transformVector( & view, & viewPosition );
+
+			screenVertices[i].x = (viewPosition.x + 0.5f) * viewport->width;
+			screenVertices[i].y = (viewPosition.y + 0.5f) * viewport->height;
+			screenVertices[i].z = viewPosition.z;
+			screenVertices[i].u = vtx->uv->x;
+			screenVertices[i].v = vtx->uv->y;
+			screenVertices[i].r = vtx->color->red * 255.0f;
+			screenVertices[i].g = vtx->color->green * 255.0f;
+			screenVertices[i].b = vtx->color->blue * 255.0f;
+			screenVertices[i].a = vtx->color->alpha * 255.0f;
+
+			i ++;
+
+			viewport->nRenderVertex  = i;
+
+			vNode = vNode->next;
+		}
+
+		sceneNode = sceneNode->next;
 	}
-	while( NULL != p );
+	while( NULL != sceneNode && NULL != sceneNode->entity->mesh );
 }
 
 void resetBuffer(Viewport * view)

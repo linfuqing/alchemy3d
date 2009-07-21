@@ -165,7 +165,7 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 	if ( scene != FALSE ) scene_addEntity(scene, entity, parent);
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", entity, &entity->material, entity->position, entity->direction, entity->scale, entity->material, entity->texture, entity->mesh->vertices, entity->mesh->faces );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", entity, &entity->material, entity->position, entity->direction, entity->scale, entity->worldPosition, entity->material, entity->texture, entity->mesh->vertices, entity->mesh->faces );
 }
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
