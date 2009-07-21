@@ -5,6 +5,7 @@ package cn.alchemy3d.objects.primitives
 	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.Mesh3D;
+	import cn.alchemy3d.texture.Texture;
 	
 	import flash.geom.Point;
 	
@@ -23,9 +24,9 @@ package cn.alchemy3d.objects.primitives
 		 * @param segmentsHeight 垂直方向分段
 		 * @param name 名字
 		 */
-		public function Plane(material:Material = null, width:Number = 500, height:Number = 500, segmentsWidth:uint = 1, segmentsHeight:uint = 1, name:String = "")
+		public function Plane(material:Material = null, texture:Texture = null, width:Number = 500, height:Number = 500, segmentsWidth:uint = 1, segmentsHeight:uint = 1, name:String = "")
 		{
-			super(material, name);
+			super(material, texture, name);
 			
 			this.width = width;
 			this.height = height;

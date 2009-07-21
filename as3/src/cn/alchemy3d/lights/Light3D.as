@@ -201,12 +201,12 @@ package cn.alchemy3d.lights
 			lib = Alchemy3DLib.getInstance();
 			buffer = lib.buffer;
 			
-			this.source = source == null ? new Entity(null, "lightSource") : source;
+			this.source = source == null ? new Entity(null, null, "lightSource") : source;
 		}
 		
 		public function initialize(scenePtr:uint, parentPtr:uint):void
 		{
-			source.allotPtr(lib.alchemy3DLib.initializeEntity(0, 0, 0, 0, 0, 0));
+			source.initialize(0, 0);
 			
 			allotPtr(lib.alchemy3DLib.initializeLight(scenePtr, source.pointer, type));
 		}

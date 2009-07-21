@@ -5,6 +5,7 @@ package cn.alchemy3d.objects.primitives
 	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.Mesh3D;
+	import cn.alchemy3d.texture.Texture;
 	
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
@@ -18,9 +19,9 @@ package cn.alchemy3d.objects.primitives
 		public static  var MIN_SEGMENTSH :Number = 2;
 		public static  var MIN_SEGMENTSW :Number = 3;
 
-		public function Sphere(material:Material = null, radius:Number = 100, segmentsW:int = 8, segmentsH:int = 6, name:String = "")
+		public function Sphere(material:Material = null, texture:Texture = null, radius:Number = 100, segmentsW:int = 8, segmentsH:int = 6, name:String = "")
 		{
-			super(material, name);
+			super(material, texture, name);
 	
 			this.segmentsW = Math.max( MIN_SEGMENTSW, segmentsW || DEFAULT_SEGMENTSW); // Defaults to 8
 			this.segmentsH = Math.max( MIN_SEGMENTSH, segmentsH || DEFAULT_SEGMENTSH); // Defaults to 6

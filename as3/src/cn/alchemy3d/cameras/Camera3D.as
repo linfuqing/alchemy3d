@@ -113,12 +113,12 @@ package cn.alchemy3d.cameras
 			lib = Alchemy3DLib.getInstance();
 			buffer = lib.buffer;
 			
-			this.eye = eye == null ? new Entity(null, "camera") : eye;
+			this.eye = eye == null ? new Entity(null, null, "camera") : eye;
 		}
 		
 		public function initialize(devicePointer:uint):void
 		{
-			eye.allotPtr(lib.alchemy3DLib.initializeEntity(0, 0, 0, 0, 0, 0));
+			eye.initialize(0, 0);
 			
 			allotPtr(lib.alchemy3DLib.initializeCamera(devicePointer, eye.pointer, _fov, _near, _far));
 		}
