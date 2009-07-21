@@ -87,20 +87,23 @@ Light * newPointLight( int type, Entity * source, Color * color )
 //	return light;
 //}
 
+//更新光源矩阵
 void light_updateTransform(Light * light)
 {
 	Entity * source = light->source;
 
 	matrix3D_identity( source->transform );
 
+	//如果光源是方向光或者聚光灯，则更新旋转矩阵
 	if ( light->type == DIRECTIONAL_LIGHT || light->type == SPOT_LIGHT )
-		matrix3D_append( source->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( source->direction->y ), DEG2RAD( source->direction->x ), DEG2RAD( source->direction->z ) ) ) );
+		matrix3D_append_self( source->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( source->direction->y ), DEG2RAD( source->direction->x ), DEG2RAD( source->direction->z ) ) ) );
 
+	//如果光源是点光源或者聚光灯，则更新位置
 	if ( light->type == POINT_LIGHT || light->type == SPOT_LIGHT )
 		matrix3D_appendTranslation( source->transform, source->position->x, source->position->y, source->position->z );
 
 	matrix3D_copy( source->world, source->transform );
-
+	//从世界矩阵获得世界位置
 	matrix3D_getPosition( source->worldPosition, source->world );
 }
 

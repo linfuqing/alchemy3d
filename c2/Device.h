@@ -289,6 +289,8 @@ int device_removeSceneAt( Device * device, int i )
 //------------------------end Scene----------------------
 
 //----------------------Pipe Line-------------------
+//设备负责保存场景，摄像机，视口
+//这是里渲染入口
 void device_render(Device * device)
 {
 	Viewports * viewports;
@@ -306,6 +308,7 @@ void device_render(Device * device)
 	{
 		camera = cameras->camera;
 
+		//如果相机已经连接到视口，则更新，反之不做任何处理
 		if ( TRUE == camera->isAttached ) camera_updateTransform( camera );
 
 		cameras = cameras->next;
@@ -318,12 +321,13 @@ void device_render(Device * device)
 	{
 		scene = scenes->scene;
 
+		//如果场景已经连接到视口，则更新，反之不做任何处理
 		if ( TRUE == scene->isAttached ) scene_update( scene );
 
 		scenes = scenes->next;
 	}
 
-	//投影和光栅
+	//对所有视口进行投影和光栅化
 	viewports = device->viewports;
 
 	while( NULL != viewports )

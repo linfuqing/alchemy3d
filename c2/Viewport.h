@@ -134,14 +134,14 @@ int clip_viewCulling(Matrix3D * proj_matrix, AABB aabb)
 	B_L_B_V.x = min->x;	B_L_B_V.y = min->y;	B_L_B_V.z = max->z;	B_L_B_V.w = 1;
 	B_R_B_V.x = max->x;	B_R_B_V.y = min->y;	B_R_B_V.z = max->z;	B_R_B_V.w = 1;
 
-	matrix3D_transformVector( proj_matrix, & T_L_F_V );
-	matrix3D_transformVector( proj_matrix, & T_R_F_V );
-	matrix3D_transformVector( proj_matrix, & T_L_B_V );
-	matrix3D_transformVector( proj_matrix, & T_R_B_V );
-	matrix3D_transformVector( proj_matrix, & B_L_F_V );
-	matrix3D_transformVector( proj_matrix, & B_R_F_V );
-	matrix3D_transformVector( proj_matrix, & B_L_B_V );
-	matrix3D_transformVector( proj_matrix, & B_R_B_V );
+	matrix3D_transformVector_self( proj_matrix, & T_L_F_V );
+	matrix3D_transformVector_self( proj_matrix, & T_R_F_V );
+	matrix3D_transformVector_self( proj_matrix, & T_L_B_V );
+	matrix3D_transformVector_self( proj_matrix, & T_R_B_V );
+	matrix3D_transformVector_self( proj_matrix, & B_L_F_V );
+	matrix3D_transformVector_self( proj_matrix, & B_R_F_V );
+	matrix3D_transformVector_self( proj_matrix, & B_L_B_V );
+	matrix3D_transformVector_self( proj_matrix, & B_R_B_V );
 
 	if ( NULL == tmpAABB )
 		tmpAABB = newAABB();
@@ -173,8 +173,8 @@ void viewport_project( Viewport * viewport )
 	SceneNode * sceneNode;
 	Camera * camera;
 	Entity * entity;
-	Matrix3D view, proj_matrix, * proj_matrixPtr, * cam_world;
-	Vector3D viewPosition, eyeToLocal, d, * test;
+	Matrix3D view, * proj_matrixPtr;
+	Vector3D viewPosition, eyeToLocal, d;
 	VertexNode * vNode;
 	Vertex * vtx;
 	RenderVertex * screenVertices;
@@ -183,21 +183,17 @@ void viewport_project( Viewport * viewport )
 
 	scene = viewport->scene;
 	camera = viewport->camera;
-	cam_world = camera->eye->world;
 
-	//获得投影矩阵
+	//如果摄像机或者视口的属性改变
+	//则重新计算投影矩阵
 	if ( TRUE == camera->fnfDirty || TRUE == viewport->dirty)
 	{
-		proj_matrixPtr = getPerspectiveFovLH( & proj_matrix, camera, viewport->aspect );
-
-		matrix3D_copy(camera->projectionMatrix, proj_matrixPtr);
+		getPerspectiveFovLH( camera->projectionMatrix, camera, viewport->aspect );
 
 		camera->fnfDirty = viewport->dirty = FALSE;
 	}
-	else
-	{
-		proj_matrixPtr = camera->projectionMatrix;
-	}
+	
+	proj_matrixPtr = camera->projectionMatrix;
 
 	//遍历场景
 	sceneNode = scene->nodes;
@@ -205,10 +201,10 @@ void viewport_project( Viewport * viewport )
 	do
 	{
 		entity = sceneNode->entity;
-
-		matrix3D_copy( & view, entity->world );
-		matrix3D_append( & view, cam_world );			//连接摄像机矩阵
-		matrix3D_append4x4( & view, proj_matrixPtr );	//连接view矩阵和投影矩阵
+		//连接摄像机矩阵
+		matrix3D_append( & view, entity->world, camera->eye->world );
+		//连接投影矩阵
+		matrix3D_append4x4( & view, proj_matrixPtr );
 
 		/*test = newVector3D(0.0f, 150.0f, 0.0f, 1.0f );
 		matrix3D_transformVector( & view, test );*/
@@ -230,9 +226,7 @@ void viewport_project( Viewport * viewport )
 		{
 			FaceNode * sceneNode;
 
-			vector3D_copy( & eyeToLocal, camera->eye->position );
-
-			matrix3D_transformVector( entity->worldInvert, & eyeToLocal );
+			matrix3D_transformVector( & eyeToLocal, entity->worldInvert, camera->eye->position );
 
 			sceneNode = entity->mesh->faces->nodes;
 
@@ -277,9 +271,7 @@ void viewport_project( Viewport * viewport )
 
 			screenVertices = viewport->screenVertices;
 
-			vector3D_copy( & viewPosition, vtx->position );
-
-			matrix3D_transformVector( & view, & viewPosition );
+			matrix3D_transformVector( & viewPosition, & view, vtx->position );
 
 			screenVertices[i].x = (viewPosition.x + 0.5f) * viewport->width;
 			screenVertices[i].y = (viewPosition.y + 0.5f) * viewport->height;

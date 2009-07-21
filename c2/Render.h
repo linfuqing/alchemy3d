@@ -3,12 +3,7 @@
 
 #include "Viewport.h"
 #include "Scene.h"
-#include "Camera.h"
-#include "Entity.h"
-#include "Polygon.h"
 #include "Vertex.h"
-#include "Vector3D.h"
-#include "Color.h"
 
 //光栅化
 void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2 )
@@ -323,7 +318,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				cxStart = (int)xStart;
 				cxEnd = xEnd > nw ? nw : (int)xEnd;
 
-				if ( cxEnd >= 0 && cxStart <= nw )
+				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
 				{
 					if (cxStart == cxEnd)
 					{
@@ -419,61 +414,64 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 		}
 		else
 		{
-			//不需要裁剪的情况
+			//x不需要裁剪的情况
 			for ( yi = cyStart; yi <= cyEnd; yi ++ )
 			{
-				cxStart = (int)xStart;
-				cxEnd = (int)xEnd;
-
-				currZ = zStart;
-				currU = uStart;
-				currV = vStart;
-				currA = aStart;
-				currR = rStart;
-				currG = gStart;
-				currB = bStart;
-
-				if (cxStart == cxEnd)
+				if ( zStart > 0 || zEnd > 0 )
 				{
-					pos = cxStart + ypos;
-					if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
+					cxStart = (int)xStart;
+					cxEnd = (int)xEnd;
+
+					currZ = zStart;
+					currU = uStart;
+					currV = vStart;
+					currA = aStart;
+					currR = rStart;
+					currG = gStart;
+					currB = bStart;
+
+					if (cxStart == cxEnd)
 					{
-						gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-						zBuffer[pos] = currZ;
-					}
-				}
-				else
-				{
-					dx = 1.0f / (xEnd - xStart);
-
-					dzdx = (zEnd - zStart) * dx;
-					dudx = (uEnd - uStart) * dx;
-					dvdx = (vEnd - vStart) * dx;
-
-					dadx = (aEnd - aStart) * dx;
-					drdx = (rEnd - rStart) * dx;
-					dgdx = (gEnd - gStart) * dx;
-					dbdx = (bEnd - bStart) * dx;
-
-					for ( xi = cxStart; xi <= cxEnd; xi ++ )
-					{
-						currU = currU > 1 ? 1 : currU;
-						currV = currV > 1 ? 1 : currV;
-
-						pos = xi + ypos;
+						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
 							gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 							zBuffer[pos] = currZ;
 						}
+					}
+					else
+					{
+						dx = 1.0f / (xEnd - xStart);
 
-						currZ += dzdx;
-						currU += dudx;
-						currV += dvdx;
-						currA += dadx;
-						currR += drdx;
-						currG += dgdx;
-						currB += dbdx;
+						dzdx = (zEnd - zStart) * dx;
+						dudx = (uEnd - uStart) * dx;
+						dvdx = (vEnd - vStart) * dx;
+
+						dadx = (aEnd - aStart) * dx;
+						drdx = (rEnd - rStart) * dx;
+						dgdx = (gEnd - gStart) * dx;
+						dbdx = (bEnd - bStart) * dx;
+
+						for ( xi = cxStart; xi <= cxEnd; xi ++ )
+						{
+							currU = currU > 1 ? 1 : currU;
+							currV = currV > 1 ? 1 : currV;
+
+							pos = xi + ypos;
+							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
+							{
+								gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+								zBuffer[pos] = currZ;
+							}
+
+							currZ += dzdx;
+							currU += dudx;
+							currV += dvdx;
+							currA += dadx;
+							currR += drdx;
+							currG += dgdx;
+							currB += dbdx;
+						}
 					}
 				}
 
@@ -762,7 +760,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				cxStart = (int)xStart;
 				cxEnd = xEnd > nw ? nw :(int)xEnd;
 
-				if ( cxEnd >= 0 && cxStart <= nw )
+				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
 				{
 					if ( cxStart == cxEnd )
 					{
@@ -919,57 +917,60 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			//不需要裁剪
 			for ( yi = cyStart; yi <= cyEnd; yi ++ )
 			{
-				cxStart = (int)xStart;
-				cxEnd = (int)xEnd;
-
-				currZ = zStart;
-				currU = uStart;
-				currV = vStart;
-				currA = aStart;
-				currR = rStart;
-				currG = gStart;
-				currB = bStart;
-
-				if (xStart == xEnd)
+				if ( zStart > 0 || zEnd > 0 )
 				{
-					pos = cxStart + ypos;
-					if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
+					cxStart = (int)xStart;
+					cxEnd = (int)xEnd;
+
+					currZ = zStart;
+					currU = uStart;
+					currV = vStart;
+					currA = aStart;
+					currR = rStart;
+					currG = gStart;
+					currB = bStart;
+
+					if (xStart == xEnd)
 					{
-						gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-						zBuffer[pos] = currZ;
-					}
-				}
-				else
-				{
-					dx = 1.0f / (xEnd - xStart);
-					dzdx = (zEnd - zStart) * dx;
-					dudx = (uEnd - uStart) * dx;
-					dvdx = (vEnd - vStart) * dx;
-
-					dadx = (aEnd - aStart) * dx;
-					drdx = (rEnd - rStart) * dx;
-					dgdx = (gEnd - gStart) * dx;
-					dbdx = (bEnd - bStart) * dx;
-
-					for ( xi = cxStart; xi <= cxEnd; xi ++ )
-					{
-						currU = currU > 1 ? 1 : currU;
-						currV = currV > 1 ? 1 : currV;
-
-						pos = xi + ypos;
+						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
 							gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
 							zBuffer[pos] = currZ;
 						}
+					}
+					else
+					{
+						dx = 1.0f / (xEnd - xStart);
+						dzdx = (zEnd - zStart) * dx;
+						dudx = (uEnd - uStart) * dx;
+						dvdx = (vEnd - vStart) * dx;
 
-						currZ += dzdx;
-						currU += dudx;
-						currV += dvdx;
-						currA += dadx;
-						currR += drdx;
-						currG += dgdx;
-						currB += dbdx;
+						dadx = (aEnd - aStart) * dx;
+						drdx = (rEnd - rStart) * dx;
+						dgdx = (gEnd - gStart) * dx;
+						dbdx = (bEnd - bStart) * dx;
+
+						for ( xi = cxStart; xi <= cxEnd; xi ++ )
+						{
+							currU = currU > 1 ? 1 : currU;
+							currV = currV > 1 ? 1 : currV;
+
+							pos = xi + ypos;
+							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
+							{
+								gfxBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+								zBuffer[pos] = currZ;
+							}
+
+							currZ += dzdx;
+							currU += dudx;
+							currV += dvdx;
+							currA += dadx;
+							currR += drdx;
+							currG += dgdx;
+							currB += dbdx;
+						}
 					}
 				}
 

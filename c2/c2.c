@@ -17,6 +17,7 @@
 #include "AABB.h"
 #include "Color.h"
 #include "Material.h"
+#include "Texture.h"
 #include "Light.h"
 
 Device * device;
@@ -63,12 +64,15 @@ int main()
 	Vector * point, * point2;
 	Material * material, * material2;
 	Light * light;
+	Texture * texture;
 
 	float pos[16];
 	float pos2[16];
 
 	int i = 0;
 	int j = 0;
+
+	texture = newTexture(120, 120);
 
 	//初始化顶点链表
 	vertices = newVertices();
@@ -142,7 +146,7 @@ int main()
 							0.0f );
 
 	do3d = newEntity();
-	entity_setRotationX( do3d, 90.0f );
+	//entity_setRotationX( do3d, 90.0f );
 	//entity_setY(do3d, -180.0f);
 	entity_setZ(do3d, 500.0f);
 	entity_setMesh( do3d, newMesh(faces, vertices) );
@@ -162,9 +166,9 @@ int main()
 	light = newPointLight( POINT_LIGHT, lightSource, newColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 
 	scene = newScene();
-	//scene_addLight(scene, light);
+	scene_addLight(scene, light);
 	scene_addEntity(scene, do3d, NULL);
-	//scene_addEntity(scene, do3d2, NULL);
+	scene_addEntity(scene, do3d2, NULL);
 
 	view = newViewport( 600.0f, 400.0f, scene, camera );
 
