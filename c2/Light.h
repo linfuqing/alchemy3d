@@ -90,12 +90,14 @@ Light * newPointLight( int type, Entity * source, Color * color )
 void light_updateTransform(Light * light)
 {
 	Entity * source = light->source;
-	//单位化
+
 	matrix3D_identity( source->transform );
-	//旋转
-	matrix3D_append( source->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( source->direction->y ), DEG2RAD( source->direction->x ), DEG2RAD( source->direction->z ) ) ) );
-	//位移
-	matrix3D_appendTranslation( source->transform, source->position->x, source->position->y, source->position->z );
+
+	if ( light->type == DIRECTIONAL_LIGHT || light->type == SPOT_LIGHT )
+		matrix3D_append( source->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( source->direction->y ), DEG2RAD( source->direction->x ), DEG2RAD( source->direction->z ) ) ) );
+
+	if ( light->type == POINT_LIGHT || light->type == SPOT_LIGHT )
+		matrix3D_appendTranslation( source->transform, source->position->x, source->position->y, source->position->z );
 
 	matrix3D_copy( source->world, source->transform );
 

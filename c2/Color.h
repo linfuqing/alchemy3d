@@ -47,9 +47,9 @@ Color * newColor( float r, float g, float b, float a )
 	a = a < 0.0f ? 0.0f : a;
 
 	c->red = r;
-	c->green = r;
-	c->blue = r;
-	c->alpha = r;
+	c->green = g;
+	c->blue = b;
+	c->alpha = a;
 
 	return c;
 }

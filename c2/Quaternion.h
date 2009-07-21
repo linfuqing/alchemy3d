@@ -99,12 +99,7 @@ void quaternoin_setToRotateAboutAxis(Quaternion * q, Vector3D * axis, float thet
 */
 Quaternion * quaternoin_setFromEuler(Quaternion * output, float ay, float ax, float az)
 {
-	float sp;
-	float sb;
-	float sh;
-	float cp;
-	float cb;
-	float ch;
+	float sp, sb, sh, cp, cb, ch;
 
 	sp = sinf(ax * 0.5f); 
 	cp = cosf(ax * 0.5f); 
@@ -144,17 +139,20 @@ Matrix3D * quaternoin_toMatrix(Matrix3D * output, Quaternion * qua)
 	zw = z * w;
 
 	output->m11 = 1 - 2 * ( yy + zz );
-	output->m12 = 2 * ( xy + zw );
-	output->m13 = 2 * ( xz - yw );
+	output->m12 = 2 * ( xy - zw );
+	output->m13 = 2 * ( xz + yw );
 	output->m14 = 0;
-	output->m21 = 2 * ( xy - zw );
+
+	output->m21 = 2 * ( xy + zw );
 	output->m22 = 1 - 2 * ( xx + zz );
-	output->m23 = 2 * ( yz + xw );
+	output->m23 = 2 * ( yz - xw );
 	output->m24 = 0;
-	output->m31 = 2 * ( xz + yw );
-	output->m32 = 2 * ( yz - xw );
+
+	output->m31 = 2 * ( xz - yw );
+	output->m32 = 2 * ( yz + xw );
 	output->m33 = 1 - 2 * ( xx + yy );
 	output->m34 = 0;
+
 	output->m41 = 0;
 	output->m42 = 0;
 	output->m43 = 0;

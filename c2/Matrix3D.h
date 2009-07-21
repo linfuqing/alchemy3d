@@ -87,7 +87,7 @@ typedef struct Matrix3D
 将当前矩阵转换为恒等或单位矩阵。恒等矩阵中的主对角线位置上的元素的值为一，而所有其他元素的值为零。
 生成的结果是一个矩阵，其中，rawData 值为 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1，旋转设置为 Vector3D(0,0,0)，位置或平移设置为 Vector3D(0,0,0)，缩放设置为 Vector3D(1,1,1)。
 **/
-void matrix3D_identity( Matrix3D * m )
+Matrix3D *  matrix3D_identity( Matrix3D * m )
 {
 	m->m11 = 1.0f; m->m12 = 0.0f; m->m13 = 0.0f; m->m14 = 0.0f;
 
@@ -96,12 +96,14 @@ void matrix3D_identity( Matrix3D * m )
 	m->m31 = 0.0f; m->m32 = 0.0f; m->m33 = 1.0f; m->m34 = 0.0f;
 
 	m->m41 = 0.0f; m->m42 = 0.0f; m->m43 = 0.0f; m->m44 = 1.0f;
+
+	return m;
 }
 
 /**
 复制矩阵。
 **/
-void matrix3D_copy( Matrix3D * m, Matrix3D * src )
+Matrix3D * matrix3D_copy( Matrix3D * m, Matrix3D * src )
 {
 	m->m11 = src->m11; m->m12 = src->m12; m->m13 = src->m13; m->m14 = src->m14;
 
@@ -110,6 +112,10 @@ void matrix3D_copy( Matrix3D * m, Matrix3D * src )
 	m->m31 = src->m31; m->m32 = src->m32; m->m33 = src->m33; m->m34 = src->m34;
 
 	m->m41 = src->m41; m->m42 = src->m42; m->m43 = src->m43; m->m44 = src->m44;
+
+	//memcpy( m, src, sizeof( * src ) );
+
+	return m;
 }
 
 /**
@@ -588,7 +594,7 @@ thisMatrix = lhs * thisMatrix;
 append() 方法会将当前矩阵替换为后置的矩阵。
 如果要后置两个矩阵，而不更改当前矩阵，请使用 clone() 方法复制当前矩阵，然后对生成的副本应用 append() 方法。 
 **/
-void matrix3D_append( Matrix3D * thisMatrix, Matrix3D * lhs )
+Matrix3D * matrix3D_append( Matrix3D * thisMatrix, Matrix3D * lhs )
 {
 	float m11, m12, m13, m21, m22, m23, m31, m32, m33, m41, m42, m43, lhs_m11, lhs_m12, lhs_m13, lhs_m21, lhs_m22, lhs_m23, lhs_m31, lhs_m32, lhs_m33;
 
@@ -616,9 +622,11 @@ void matrix3D_append( Matrix3D * thisMatrix, Matrix3D * lhs )
 	thisMatrix->m41 = m41 * lhs_m11 + m42 * lhs_m21 + m43 * lhs_m31 + lhs->m41;
 	thisMatrix->m42 = m41 * lhs_m12 + m42 * lhs_m22 + m43 * lhs_m32 + lhs->m42;
 	thisMatrix->m43 = m41 * lhs_m13 + m42 * lhs_m23 + m43 * lhs_m33 + lhs->m43;
+
+	return thisMatrix;
 }
 
-void matrix3D_append4x4( Matrix3D * thisMatrix, Matrix3D * lhs )
+Matrix3D *  matrix3D_append4x4( Matrix3D * thisMatrix, Matrix3D * lhs )
 {
 	float m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44;
 	float lhs_m11, lhs_m12, lhs_m13, lhs_m14, lhs_m21, lhs_m22, lhs_m23, lhs_m24, lhs_m31, lhs_m32, lhs_m33, lhs_m34, lhs_m41, lhs_m42, lhs_m43, lhs_m44;
@@ -652,6 +660,8 @@ void matrix3D_append4x4( Matrix3D * thisMatrix, Matrix3D * lhs )
 	thisMatrix->m42 = m41 * lhs_m12 + m42 * lhs_m22 + m43 * lhs_m32 + lhs->m42;
 	thisMatrix->m43 = m41 * lhs_m13 + m42 * lhs_m23 + m43 * lhs_m33 + lhs->m43;
 	thisMatrix->m44 = m41 * lhs_m14 + m42 * lhs_m24 + m43 * lhs_m34 + lhs->m44;
+
+	return thisMatrix;
 }
 
 /**
