@@ -1,6 +1,10 @@
 #ifndef RENDER_H
 #define RENDER_H
 
+#define RENDER_MODE_STATIC  1
+#define RENDER_MODE_DYNAMIC 0
+
+
 #include "Viewport.h"
 
 typedef struct Screen
@@ -14,18 +18,19 @@ typedef struct
 {
 	Screen * screen;
 
+	Number * width;
+
+	Number * height;
+
 	Number * zBuffer;
 
-	Number * gfxBuffer;
+	int    * gfxBuffer;
 }RenderEngine;
 
 //光栅化
-void triangle_rasterize( Polygon * tri, Viewport * view )
+void triangle_rasterize( ScreenPolygon * tri, Viewport * v, RenderEngine * r )
 {
 	int resX, resY;
-
-	unsigned int * gfxBuffer;
-	Number * zBuffer;
 
 	int x0, y0, z0, x1, y1, z1, x2, y2, z2, nw, nh;
 	Number u0, v0, u1, v1, u2, v2;
@@ -33,7 +38,7 @@ void triangle_rasterize( Polygon * tri, Viewport * view )
 	int side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
 	Number xStart, xEnd, yStart, yEnd, zStart, zEnd, uStart, uEnd, vStart, vEnd, currZ, currU, currV, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dudyl, dudyr, dvdyl, dvdyr, dzdx, dudx, dvdx, temp2;
 
-	Polygon * triPtr;
+	ScreenPolygon * triPtr;
 	Vector * uvCoordinates;
 	Vector3D * screenPosition;
 
@@ -41,10 +46,12 @@ void triangle_rasterize( Polygon * tri, Viewport * view )
 
 	int i, j;
 
-	resX = (int)view->width;
-	resY = (int)view->height;
-	gfxBuffer = view->gfxBuffer;
-	zBuffer = view->zBuffer;
+	int * gfxBuffer; Number * zBuffer;
+
+	resX = (int)r -> width;
+	resY = (int)r -> height;
+	gfxBuffer = r -> gfxBuffer;
+	zBuffer   = r -> zBuffer;
 
 	i = -1;
 	j = -1;
@@ -53,17 +60,17 @@ void triangle_rasterize( Polygon * tri, Viewport * view )
 
 	while(triPtr != NULL)
 	{
-		screenPosition = triPtr->vertex->screenPosition;
-		uvCoordinates = triPtr->uv;
+		screenPosition = triPtr -> vertex -> screen;
+		uvCoordinates  = triPtr -> parent -> uv;
 
-		coordinates[++i] = screenPosition->x;
-		coordinates[++i] = screenPosition->y;
-		coordinates[++i] = screenPosition->z;
+		coordinates[++i] = screenPosition -> x;
+		coordinates[++i] = screenPosition -> y;
+		coordinates[++i] = screenPosition -> z;
 
-		uvDatas[++j] = uvCoordinates->x;
-		uvDatas[++j] = uvCoordinates->y;
+		uvDatas[++j]     = uvCoordinates -> x;
+		uvDatas[++j]     = uvCoordinates -> y;
 
-		triPtr = triPtr->next;
+		triPtr           = triPtr        -> next;
 	}
 
 	x0 = (int)(coordinates[0] + 0.5);
@@ -816,25 +823,40 @@ void triangle_rasterize( Polygon * tri, Viewport * view )
 	}
 }
 
-void renderPolygon( ScreenPolygon * f, Number * rgfxBuffer, Number * zBuffer )
+void polygon_rasterize( ScreenPolygon * pol, Viewport * v, RenderEngine * r )
 {
 }
 
+void renderPolygon( ScreenPolygon * f, Viewport * v, RenderEngine * r )
+{
+	if( polygon_isTriangle( f -> parent ) )
+	{
+		triangle_rasterize( f, v, r );
+	}
+	else
+	{
+		polygon_rasterize( f, v, r );
+	}
+}
+
 //改动:
-void render( RenderEngine * r )
+void render( RenderEngine * r, int mode )
 {
 	Screen      * vp = r -> screen;
 	ScreenFaces * graphics;
 
 	while( vp != NULL )
 	{
-		transformScene( vp -> viewport -> scene );
+		//这行不完美,需修改
+		transformScene( vp -> viewport -> scene, mode );
+
+		projectScene( vp -> viewport, mode );
 		
 		graphics = vp -> viewport -> graphics;
 
 		while( ( graphics = graphics -> next ) == NULL )
 		{
-			renderPolygon( graphics -> face, r -> gfxBuffer, r -> zBuffer );
+			renderPolygon( graphics -> face, vp -> viewport, r );
 		}
 
 		vp = vp -> next;

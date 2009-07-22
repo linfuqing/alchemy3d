@@ -103,13 +103,13 @@ int projectVertices( Matrix3D * transform, Vertices * vertices, ScreenVertices *
 
 	while( vs != NULL )
 	{
-		if( vs -> vertex != sv -> parent )
+		if( vs -> vertex != sv -> vertex -> parent )
 		{
 			return FALSE;
 		}
 
-		* ( sv -> screen ) = * ( vs -> vertex -> worldPosition );
-		matrix3D_projectVector( transform, sv -> screen );
+		* ( sv -> vertex -> screen ) = * ( vs -> vertex -> worldPosition );
+		matrix3D_projectVector( transform, sv -> vertex -> screen );
 
 		vs = vs -> next;
 		sv = sv -> next;
@@ -309,11 +309,11 @@ void viewport_updateProjectMatrix( Viewport * v )
 	}
 }
 
-void projectScene( Viewport * v )
+void projectScene( Viewport * v, int mode )
 {
 	viewport_updateProjectMatrix( v );
 
-	if( v -> scene -> move )
+	if( mode || v -> scene -> move )
 	{
 		if( !projectVertices( v -> transform, v -> scene -> mesh -> vertices, v -> projection -> vertices ) )
 		{

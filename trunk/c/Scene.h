@@ -328,9 +328,9 @@ void transformSceneChildren( Scene * s )
 /**
 包含根的变换.
 **/
-void transformScene( Scene * s )
+void transformScene( Scene * s, int mode )
 {
-	if( s -> visible && s -> camera -> move )
+	if( mode || s -> visible && s -> camera -> move )
 	{
 		s -> move = TRUE;
 		transformSceneMesh( s );
