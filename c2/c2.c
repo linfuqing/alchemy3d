@@ -163,7 +163,8 @@ int main()
 	lightSource = newEntity();
 	//lightSource->position->y = -500;
 	//lightSource->position->z = 200;
-	light = newPointLight( POINT_LIGHT, lightSource, newColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
+	light = newPointLight( POINT_LIGHT, lightSource );
+	setLightOnOff( light, TRUE );
 
 	scene = newScene();
 	scene_addLight(scene, light);
@@ -176,8 +177,6 @@ int main()
 	device_addViewport(device, view);
 	device_addCamera(device, camera);
 	device_addScene(device, scene);
-
-	//LIGHT_ENABLE = 1;
 
 	/*do3d1 = newEntity();
 	do3d1->direction->x = 45;

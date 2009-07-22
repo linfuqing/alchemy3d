@@ -105,7 +105,7 @@ void entity_setMesh( Entity * entity, Mesh * m )
 
 void entity_setMaterial( Entity * entity, Material * m )
 {
-	struct VertexNode * vNode;
+	/*struct VertexNode * vNode;
 
 	vNode = entity->mesh->vertices->nodes;
 
@@ -116,7 +116,7 @@ void entity_setMaterial( Entity * entity, Material * m )
 		color_copy( vNode->vertex->color, m->ambient );
 
 		vNode = vNode->next;
-	}
+	}*/
 
 	entity->material = m;
 }
