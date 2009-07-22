@@ -19,6 +19,8 @@ typedef unsigned long		ulong;
 #define MATRIX_INVERSE_EPSILON		1e-14
 #define MATRIX_EPSILON				1e-6
 
+#define ABS(x)	(((x) < 0) ? -(x) : (((x) > 0) ? (x) : 0))
+#define BOUND(x,a,b) (((x) < (a)) ? (a) : (((x) > (b)) ? (b) : (x)))
 #define MAX(a, b) (a > b) ? (a) : (b)
 #define MIN(a, b) (a < b) ? (a) : (b)
 
@@ -34,10 +36,5 @@ typedef unsigned long		ulong;
 //1：在世界空间进行背面测试
 //2：在屏幕空间进行背面测试
 int BACKFACE_CULLING_MODE = 1;
-
-//是否启用灯光
-//0：不启用
-//1：启用
-int LIGHT_ENABLE = 0;
 
 #endif
