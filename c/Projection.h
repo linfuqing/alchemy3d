@@ -1,21 +1,30 @@
 
 #include "Mesh.h"
 
+typedef struct ScreenVertex
+{
+	Vertex   * parent;
+
+	Vector3D * screen;
+}ScreenVertex;
+
 //N
 typedef struct ScreenVertices
 {
-	Vertex                * parent;
+	/*Vertex                * parent;
 
-	Vector3D              * screen;
+	Vector3D              * screen;*/
+
+	ScreenVertex          * vertex;
 
 	struct ScreenVertices * next;
 }ScreenVertices;
 
 typedef struct ScreenPolygon
 {
-	Vertex               * parent;
+	ScreenVertex         * vertex;
 
-	Vector3D             * screen;
+	Polygon              * parent;
 
 	struct ScreenPolygon * next;
 }ScreenPolygon;
@@ -23,6 +32,8 @@ typedef struct ScreenPolygon
 typedef struct ScreenFaces
 {
 	ScreenPolygon      * face;
+
+	Faces              * parent;
 
 	struct ScreenFaces * rear;
 
@@ -63,6 +74,8 @@ Projection * newProjection( Mesh * m, Projection * * from )
 	//投影
 	Projection     * projection;
 
+	ScreenVertex   * sv;
+
 	//屏幕顶点集,作为数组指针用
 	ScreenVertices * svs;
 
@@ -92,6 +105,7 @@ Projection * newProjection( Mesh * m, Projection * * from )
 	||  ( svs        = ( ScreenVertices * )malloc( sizeof( ScreenVertices ) * ( numVertices                        + 1        ) ) ) == NULL      //+1为头指针结点
 	||  ( sfs        = ( ScreenFaces    * )malloc( sizeof( ScreenFaces    ) * ( numFaces                           + 1        ) ) ) == NULL
 	||  ( vs         = ( Vector3D       * )malloc( sizeof( Vector3D       ) * ( numVertices                                   ) ) ) == NULL      //包括screen和view
+	||  ( sv         = ( ScreenVertex   * )malloc( sizeof( ScreenVertex   ) * ( numVertices                                   ) ) ) == NULL
 	||  ( sp         = ( ScreenPolygon  * )malloc( sizeof( ScreenPolygon  ) * ( faces_verticesLength( m -> faces ) + numFaces ) ) ) == NULL )    //面所包含的所有顶点加上所有的头结点
 	{
 		exit( TRUE );
@@ -112,20 +126,22 @@ Projection * newProjection( Mesh * m, Projection * * from )
 
 	vp = m -> vertices;
 
-	svs -> parent = vp -> vertex;
+	//接入第一个父级
+	sv -> parent = vp -> vertex;
 
 	//2D顶点装载向量,从第一个结点开始
 	for( i = 1; i <= numVertices; i ++ )
 	{
 		vi = i - 1;
 
-		( svs + i  ) -> parent = ( vp = vp -> next ) -> vertex;
-		( svs + i  ) -> screen = vs  + vi;
+		( sv + i   ) -> parent = ( vp = vp -> next ) -> vertex;
+		( sv + i   ) -> screen = vs  + vi;
+		( svs + i  ) -> vertex = sv  + i;
 		( svs + vi ) -> next   = svs + i;  
 	}
 
 	//置空尾指针
-	( svs + i ) -> next    = NULL;
+	( svs + i - 1 ) -> next    = NULL;
 
 	//接入头指针
 	projection -> vertices = svs;
@@ -141,9 +157,15 @@ Projection * newProjection( Mesh * m, Projection * * from )
 	//面指针指向第一个网格面结点
 	fp = m -> faces -> next;
 
+	//对接父级
+	sfs -> parent = m -> faces;
+
 	//装载面
 	for( i = 1; i <= numFaces; i ++ )
 	{
+		//对接父级
+		( sfs + i ) -> parent = fp;
+
 		//无面则不投影
 		if( fp -> face == NULL )
 		{
@@ -169,8 +191,8 @@ Projection * newProjection( Mesh * m, Projection * * from )
 				//依照网格顺序对接投影面构造,并链接面链表
 				++ sp;
 
-				sp -> screen       = ( svs + vi ) -> screen;
-				sp -> parent       = ( svs + vi ) -> parent;
+				sp -> vertex       = ( svs + vi ) -> vertex;
+				sp -> parent       = pp;
 
 				( sp - 1 ) -> next = sp;
 			
@@ -197,13 +219,13 @@ Projection * newProjection( Mesh * m, Projection * * from )
 	}
 
 	//置空链表尾
-	( sfs + i ) -> next  = NULL;
+	( sfs + i - 1 ) -> next  = NULL;
 
 	//尾指针对接
-	sfs         -> rear  = i ? sfs + i : NULL;
+	sfs             -> rear  = i ? sfs + i - 1 : NULL;
 
 	//对接面头结点
-	projection  -> faces = sfs;
+	projection      -> faces = sfs;
 
 	return projection;
 }
