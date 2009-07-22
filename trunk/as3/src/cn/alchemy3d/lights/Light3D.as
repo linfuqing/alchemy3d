@@ -14,8 +14,13 @@ package cn.alchemy3d.lights
 		protected var buffer:ByteArray;
 		protected var lib:Alchemy3DLib;
 		
-		protected var type:int;			//定义灯光类型，我们能够使用下面三种类型之一：D3DLIGHT_POINT, D3DLIGHT_SPOT, D3DLIGHT_DIRECTIONAL
+		public var _mode:int;			//光照模式
+		public var _bOnOff:int;			//灯光是否开启
+		public var _type:int;			//定义灯光类型，我们能够使用下面三种类型之一：D3DLIGHT_POINT, D3DLIGHT_SPOT, D3DLIGHT_DIRECTIONAL
 		
+		public var modePtr:uint;
+		public var bOnOffPtr:uint;
+		public var typePtr:uint;
 		public var ambientPtr:uint;
 		public var diffusePtr:uint;
 		public var specularPtr:uint;
@@ -42,6 +47,51 @@ package cn.alchemy3d.lights
 		private var _attenuation2:Number;
 		
 		public var source:Entity;
+		
+		public function get mode():int
+		{
+			return this._mode;
+		}
+		
+		public function set mode(mode:int):void
+		{
+			if (!checkInitialized()) return;
+			
+			this._mode = mode;
+			
+			buffer.position = modePtr;
+			buffer.writeInt(mode);
+		}
+		
+		public function get bOnOff():int
+		{
+			return this._bOnOff;
+		}
+		
+		public function set bOnOff(bOnOff:int):void
+		{
+			if (!checkInitialized()) return;
+			
+			this._bOnOff = bOnOff;
+			
+			buffer.position = bOnOffPtr;
+			buffer.writeInt(bOnOff);
+		}
+		
+		public function get type():int
+		{
+			return this._type;
+		}
+		
+		public function set type(type:int):void
+		{
+			if (!checkInitialized()) return;
+			
+			this._type = type;
+			
+			buffer.position = typePtr;
+			buffer.writeInt(type);
+		}
 		
 		public function get ambient():ColorTransform
 		{
@@ -194,6 +244,9 @@ package cn.alchemy3d.lights
 		
 		public function Light3D()
 		{
+			_mode = LightType.EASY_MODE;
+			_bOnOff = LightType.LIGHT_OFF;
+			
 			_ambient = new ColorTransform(0.4, 0.4, 0.4, 1);
 			_diffuse = new ColorTransform(1, 1, 1, 1);
 			_specular = new ColorTransform(0.6, 0.6, 0.6, 1);
@@ -208,22 +261,25 @@ package cn.alchemy3d.lights
 		{
 			source.initialize(0, 0);
 			
-			allotPtr(lib.alchemy3DLib.initializeLight(scenePtr, source.pointer, type));
+			allotPtr(lib.alchemy3DLib.initializeLight(scenePtr, source.pointer, _type));
 		}
 		
 		public function allotPtr(ps:Array):void
 		{
 			pointer = ps[0];
-			ambientPtr = ps[1];
-			diffusePtr = ps[2];
-			specularPtr = ps[3];
-			rangePtr = ps[4];
-			falloffPtr = ps[5];
-			thetaPtr = ps[6];
-			phiPtr = ps[7];
-			attenuation0Ptr = ps[8];
-			attenuation1Ptr = ps[9];
-			attenuation2Ptr = ps[10];
+			modePtr = ps[1];
+			bOnOffPtr = ps[2];
+			typePtr = ps[3];
+			ambientPtr = ps[4];
+			diffusePtr = ps[5];
+			specularPtr = ps[6];
+			rangePtr = ps[7];
+			falloffPtr = ps[8];
+			thetaPtr = ps[9];
+			phiPtr = ps[10];
+			attenuation0Ptr = ps[11];
+			attenuation1Ptr = ps[12];
+			attenuation2Ptr = ps[13];
 		}
 		
 		protected function checkInitialized():Boolean
