@@ -1148,7 +1148,7 @@ Matrix3D * lookAt( Matrix3D * output, Vector3D * pEye, Vector3D * pAt, Vector3D 
 
 	vector3D_normalize(&vec);
 
-	vector3D_crossProduct(&right, pUp, &vec);
+	vector3D_crossProduct(&right, &vec, pUp);
 	vector3D_crossProduct(&up, &vec, &right);
 
 	vector3D_normalize(&right);

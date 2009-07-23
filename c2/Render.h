@@ -5,6 +5,10 @@
 #include "Scene.h"
 #include "Vertex.h"
 
+#define FLAT_TOP_TRIANGLE		0	//平顶三角形
+#define FLAT_BOTTOM_TRIANGLE	1	//平底三角形
+#define GENERAL_TRIANGLE		2	//一般三角形
+
 //光栅化
 void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2 )
 {
@@ -68,7 +72,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	//判断三角形的类型
 	if (ver0->y == ver1->y)
 	{
-		tri_type = 0;
+		tri_type = FLAT_TOP_TRIANGLE;
 
 		if (ver1->x < ver0->x)
 		{
@@ -79,7 +83,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	}
 	else if (ver1->y == ver2->y)
 	{
-		tri_type = 1;
+		tri_type = FLAT_BOTTOM_TRIANGLE;
 
 		if (ver2->x < ver1->x)
 		{
@@ -90,7 +94,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	}
 	else
 	{
-		tri_type = 2;
+		tri_type = GENERAL_TRIANGLE;
 	}
 
 	x0 = (int)ver0->x;
@@ -150,9 +154,9 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	ys = y1;
 
 	//转折点y坐标
-	if (tri_type == 0 || tri_type == 1)
+	if (tri_type == FLAT_TOP_TRIANGLE || tri_type == FLAT_BOTTOM_TRIANGLE)
 	{
-		if (tri_type == 0)
+		if (tri_type == FLAT_TOP_TRIANGLE)
 		{
 			dy = 1.0f / (y2 - y0);
 
@@ -365,10 +369,10 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							cxStart = 0;
 						}
 						//绘制扫描线
-						for ( xi = cxStart; xi <= cxEnd; xi ++ )
+						for ( xi = cxStart; xi < cxEnd; xi ++ )
 						{
-							currU = currU > 1 ? 1 : currU;
-							currV = currV > 1 ? 1 : currV;
+							/*MIN( currU, uEnd );
+							MIN( currV, vEnd );*/
 
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
@@ -384,6 +388,13 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							currR += drdx;
 							currG += dgdx;
 							currB += dbdx;
+						}
+
+						pos = cxEnd + ypos;
+						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
+						{
+							gfxBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
+							zBuffer[pos] = zEnd;
 						}
 					}
 				}
@@ -452,10 +463,10 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						dgdx = (gEnd - gStart) * dx;
 						dbdx = (bEnd - bStart) * dx;
 
-						for ( xi = cxStart; xi <= cxEnd; xi ++ )
+						for ( xi = cxStart; xi < cxEnd; xi ++ )
 						{
-							currU = currU > 1 ? 1 : currU;
-							currV = currV > 1 ? 1 : currV;
+							/*MIN( currU, uEnd );
+							MIN( currV, vEnd );*/
 
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
@@ -471,6 +482,13 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							currR += drdx;
 							currG += dgdx;
 							currB += dbdx;
+						}
+
+						pos = cxEnd + ypos;
+						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
+						{
+							gfxBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
+							zBuffer[pos] = zEnd;
 						}
 					}
 				}
@@ -811,10 +829,10 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							cxStart = 0;
 						}
 
-						for ( xi = cxStart; xi <= cxEnd; xi ++ )
+						for ( xi = cxStart; xi < cxEnd; xi ++ )
 						{
-							currU = currU > 1 ? 1 : currU;
-							currV = currV > 1 ? 1 : currV;
+							/*MIN( currU, uEnd );
+							MIN( currV, vEnd );*/
 
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
@@ -830,6 +848,13 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							currR += drdx;
 							currG += dgdx;
 							currB += dbdx;
+						}
+
+						pos = cxEnd + ypos;
+						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
+						{
+							gfxBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
+							zBuffer[pos] = zEnd;
 						}
 					}
 				}
@@ -951,10 +976,10 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						dgdx = (gEnd - gStart) * dx;
 						dbdx = (bEnd - bStart) * dx;
 
-						for ( xi = cxStart; xi <= cxEnd; xi ++ )
+						for ( xi = cxStart; xi < cxEnd; xi ++ )
 						{
-							currU = currU > 1 ? 1 : currU;
-							currV = currV > 1 ? 1 : currV;
+							/*MIN( currU, uEnd );
+							MIN( currV, vEnd );*/
 
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
@@ -970,6 +995,13 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							currR += drdx;
 							currG += dgdx;
 							currB += dbdx;
+						}
+
+						pos = cxEnd + ypos;
+						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
+						{
+							gfxBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
+							zBuffer[pos] = zEnd;
 						}
 					}
 				}

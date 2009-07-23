@@ -62,6 +62,7 @@ int main()
 	Vector3D * v3d;
 	Entity * entity, entity1;
 	Faces * faces;
+	float d = 10.0f;
 
 	Vector3D tv;
 
@@ -102,7 +103,9 @@ int main()
 		//memcpy(&entity1, entity, sizeof( * entity));
 		//matrix3D_invert4x4(&testM);
 		//matrix3D_invert(testMP);
-		sqrtf(16.0);
+		d = d > 1.0f ? 1.0f : d;
+		//MAX(d, 1.0f);
+		//if ( d > 1.0f ) d = 1.0f;
 	}
 	
 	te=clock();

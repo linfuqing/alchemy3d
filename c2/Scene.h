@@ -46,9 +46,7 @@ Scene * newScene()
 
 //------------------------Entity----------------------
 SceneNode * scene_findEntity( SceneNode * node, Entity * entity )
-{   
-	node = node->next;
-
+{
 	if ( node == NULL )
 	{
 		return NULL;
@@ -66,13 +64,13 @@ SceneNode * scene_findEntity( SceneNode * node, Entity * entity )
 	}
 }
 
-void scene_addEntity(Scene * scene, Entity * entity, Entity * parent)
+void scene_addEntity( Scene * scene, Entity * entity, Entity * parent )
 {
 	SceneNode * sceneNode, * n;
 
 	if (parent != NULL)
 	{
-		sceneNode = scene_findEntity(scene->nodes, parent);
+		sceneNode = scene_findEntity( scene->nodes, parent );
 
 		if (sceneNode == NULL)
 		{
@@ -361,7 +359,8 @@ void scene_update(Scene * scene)
 				color_zero( fColor );
 
 				//基于在效率和真实感之间取得一个平衡，不考虑全局环境光的贡献，直接使用材质的环境光反射系数作为最终颜色
-				color_add_self( lastColor, entity->material->ambient );
+				if ( NULL != entity->material )
+					color_add_self( lastColor, entity->material->ambient );
 
 				lights = scene->lights;
 
@@ -398,7 +397,7 @@ void scene_update(Scene * scene)
 							fc1 = light->attenuation1;
 							fc2 = light->attenuation2;
 
-							if((fc1 > 0.0001f) || (fc2 > 0.0001f))
+							if ( ( fc1 > 0.0001f ) || ( fc2 > 0.0001f ) )
 							{
 								//求顶点至光源的距离
 								vector3D_subtract( & vFDist, & vLightsToObject[i], vNode->vertex->position );
@@ -408,11 +407,11 @@ void scene_update(Scene * scene)
 								fAttenuCoef += (fc1 * sqrtf( fDist ) + fc2 * fDist);
 							}
 
-							if(fAttenuCoef < 0.0001f) fAttenuCoef = 0.0001f;
+							if ( fAttenuCoef < 0.0001f ) fAttenuCoef = 0.0001f;
 							fAttenuCoef = 1.0f / fAttenuCoef;
 
 							//衰减系数不得大于1.0
-							fAttenuCoef = MIN(1.0f,  fAttenuCoef);
+							fAttenuCoef = MIN( 1.0f,  fAttenuCoef );
 						}
 
 						//计算聚光因子

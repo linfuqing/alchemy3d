@@ -141,7 +141,7 @@ void camera_updateTransform(Camera * camera)
 		else
 		{
 			//获得指向目标位置的旋转矩阵
-			lookAt( eye->world, eye->position, camera->target, INV_Y_AXIS );
+			lookAt( eye->world, eye->position, camera->target, Y_AXIS );
 			//从世界矩阵获得世界位置
 			matrix3D_getPosition( eye->worldPosition, eye->world );
 		}
