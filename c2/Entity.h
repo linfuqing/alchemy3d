@@ -83,6 +83,8 @@ void entity_setMesh( Entity * entity, Mesh * m )
 
 		vector3D_normalize( nv );
 
+		vector3D_copy( vNode->vertex->normal, nv );
+
 		vector3D_copy( & posN, vNode->vertex->position );
 
 		d = 1.0f / vNode->vertex->nContectedFaces;
@@ -95,7 +97,7 @@ void entity_setMesh( Entity * entity, Mesh * m )
 
 		vector3D_normalize( nv );
 
-		vNode->vertex->normal = nv;
+		vNode->vertex->normal2 = nv;
 
 		vNode = vNode->next;
 	}

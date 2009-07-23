@@ -11,8 +11,15 @@
 #define DIRECTIONAL_LIGHT	1
 #define SPOT_LIGHT			2
 
+#define EASY_MODE			0
+#define HIGH_MODE			1
+
+//光局部视点
+#define M_LOCAL_VIEWRT		0
+
 typedef struct Light
 {
+	int mode;			//光照模式
 	int type;			//定义灯光类型，我们能够使用下面三种类型之一：D3DLIGHT_POINT, D3DLIGHT_SPOT, D3DLIGHT_DIRECTIONAL
 	int bOnOff;			//灯光是否开启
 
@@ -41,6 +48,7 @@ Light * newPointLight( int type, Entity * source )
 	}
 
 	//缺省光源为一全向白色点光源
+	light->mode = EASY_MODE;
 	light->type = type;
 	light->bOnOff = FALSE;
 	light->ambient = newColor( 0.0f, 0.0f, 0.0f, 1.0f );
@@ -110,12 +118,11 @@ void light_updateTransform(Light * light)
 	matrix3D_identity( source->transform );
 
 	//如果光源是平行光或者聚光灯，则更新旋转矩阵
-	if ( light->type == DIRECTIONAL_LIGHT || light->type == SPOT_LIGHT )
+	if ( light->type == SPOT_LIGHT )
 		matrix3D_append_self( source->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( source->direction->y ), DEG2RAD( source->direction->x ), DEG2RAD( source->direction->z ) ) ) );
 
-	//如果光源是点光源或者聚光灯，则更新位置
-	if ( light->type == POINT_LIGHT || light->type == SPOT_LIGHT )
-		matrix3D_appendTranslation( source->transform, source->position->x, source->position->y, source->position->z );
+	//更新位置
+	matrix3D_appendTranslation( source->transform, source->position->x, source->position->y, source->position->z );
 
 	matrix3D_copy( source->world, source->transform );
 	//从世界矩阵获得世界位置

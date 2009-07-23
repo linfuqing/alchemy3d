@@ -25,6 +25,14 @@ typedef struct Color
 	};
 }Color;
 
+void color_normalize( Color * c )
+{
+	c->red = (c->red < 0.0f) ? 0.0f : ((c->red > 1.0f) ? 1.0f : c->red);
+	c->green = (c->green < 0.0f) ? 0.0f : ((c->green > 1.0f) ? 1.0f : c->green);
+	c->blue = (c->blue < 0.0f) ? 0.0f : ((c->blue > 1.0f) ? 1.0f : c->blue);
+	c->alpha = (c->alpha < 0.0f) ? 0.0f : ((c->alpha > 1.0f) ? 1.0f : c->alpha);
+}
+
 Color * newColor( float r, float g, float b, float a )
 {
 	Color * c;
@@ -33,23 +41,13 @@ Color * newColor( float r, float g, float b, float a )
 	{
 		exit( TRUE );
 	}
-	
-	r = r > 1.0f ? 1.0f : r;
-	r = r < 0.0f ? 0.0f : r;
-
-	g = g > 1.0f ? 1.0f : g;
-	g = g < 0.0f ? 0.0f : g;
-
-	b = b > 1.0f ? 1.0f : b;
-	b = b < 0.0f ? 0.0f : b;
-
-	a = a > 1.0f ? 1.0f : a;
-	a = a < 0.0f ? 0.0f : a;
 
 	c->red = r;
 	c->green = g;
 	c->blue = b;
 	c->alpha = a;
+
+	color_normalize( c );
 
 	return c;
 }
@@ -73,11 +71,6 @@ Color * color_add( Color * output, Color * c1, Color * c2 )
 	output->red = c1->red + c2->red;
 	output->green = c1->green + c2->green;
 	output->blue = c1->blue + c2->blue;
-
-	output->alpha = output->alpha > 1.0f ? 1.0f : output->alpha;
-	output->red = output->red > 1.0f ? 1.0f : output->red;
-	output->green = output->green > 1.0f ? 1.0f : output->green;
-	output->blue = output->blue > 1.0f ? 1.0f : output->blue;
 
 	return output;
 }
@@ -111,11 +104,6 @@ Color * color_add_self( Color * c1, Color * c2 )
 	c1->green += c2->green;
 	c1->blue += c2->blue;
 
-	c1->alpha = c1->alpha > 1.0f ? 1.0f : c1->alpha;
-	c1->red = c1->red > 1.0f ? 1.0f : c1->red;
-	c1->green = c1->green > 1.0f ? 1.0f : c1->green;
-	c1->blue = c1->blue > 1.0f ? 1.0f : c1->blue;
-
 	return c1;
 }
 
@@ -137,6 +125,11 @@ Color * color_append_self( Color * c1, Color * c2 )
 	c1->blue *= c2->blue;
 
 	return c1;
+}
+
+void color_zero( Color * c )
+{
+	c->red = c->green = c->blue = c->alpha = 0.0f;
 }
 
 #endif

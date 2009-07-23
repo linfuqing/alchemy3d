@@ -265,15 +265,18 @@ void scene_update(Scene * scene)
 	VertexNode * vNode;
 	Matrix3D * world;
 
-	Vector3D * lightDirs, vFDist;
+	Vector3D vFDist, * vLightsToObject, vLightToVertex, vVertexToLight;
 	Lights * lights;
 	Light * light;
-	Color d;
+	Color * fColor, * lastColor, outPutColor;
 	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor;
 	int i;
 
+	lastColor = newColor( 0.0f, 0.0f, 0.0f, 0.0f );
+	fColor = newColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
 	//此数组用于记录以本地作为参考点的光源方向
-	if( ( lightDirs = ( Vector3D * )calloc( scene->nLights, sizeof( Vector3D ) ) ) == NULL )
+	if( ( vLightsToObject = ( Vector3D * )calloc( scene->nLights, sizeof( Vector3D ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
@@ -282,10 +285,13 @@ void scene_update(Scene * scene)
 	lights = scene->lights;
 
 	//遍历光源
-	while ( TRUE == lights->light->bOnOff && NULL != lights)
+	while ( NULL != lights)
 	{
-		//更新光源矩阵
-		light_updateTransform(lights->light);
+		if ( TRUE == lights->light->bOnOff )
+		{
+			//更新光源矩阵
+			light_updateTransform(lights->light);
+		}
 
 		lights = lights->next;
 	}
@@ -312,12 +318,13 @@ void scene_update(Scene * scene)
 		lights = scene->lights;
 
 		//遍历光源
-		while ( TRUE == lights->light->bOnOff && NULL != lights)
+		while ( NULL != lights)
 		{
-			//用实体的世界逆矩阵变换光源的位置得到以实体为参考点的光源的方向，保存在数组
-			matrix3D_transformVector( & lightDirs[i], entity->worldInvert, lights->light->source->worldPosition );
-
-			vector3D_normalize( & lightDirs[i] );
+			if ( TRUE == lights->light->bOnOff )
+			{
+				//用实体的世界逆矩阵变换光源的位置得到以实体为参考点的光源的位置，保存在数组
+				matrix3D_transformVector( & vLightsToObject[i], entity->worldInvert, lights->light->source->worldPosition );
+			}
 
 			lights = lights->next;
 
@@ -348,106 +355,188 @@ void scene_update(Scene * scene)
 				//用世界矩阵把顶点变换到世界坐标系
 				matrix3D_transformVector( vNode->vertex->worldPosition, world, vNode->vertex->position );
 
-				//全局环境光的贡献
-				//全局环境光 * 材质对环境光的反射系数 ----- 
-				//分量对应相乘后, 累积至最后的颜色之中.
-				//基于在效率和真实感之间取得一个平衡，由于该贡献是常量，因此忽略全局环境光，直接使用材质的环境光反射系数
-				color_copy( vNode->vertex->color, entity->material->ambient );
-
 				//===================光照和顶点颜色值===================
+				//清零
+				color_zero( lastColor );
+				color_zero( fColor );
+
+				//基于在效率和真实感之间取得一个平衡，不考虑全局环境光的贡献，直接使用材质的环境光反射系数作为最终颜色
+				color_add_self( lastColor, entity->material->ambient );
+
 				lights = scene->lights;
 
 				//来自于光源的贡献
-				//如果光源是开启的
-				while ( TRUE == lights->light->bOnOff &&  NULL != entity->material && NULL != lights)
+				while ( NULL != entity->material && NULL != lights)
 				{
-					light = lights->light;
-
-					//光源和顶点的夹角
-					dot = vector3D_dotProduct( & lightDirs[i], vNode->vertex->normal );
-
-					//其一, 计算衰减系数
-
-					//衰减系数.等于1.0则不衰减
-					fAttenuCoef = 1.0f;
-
-					//如果是点光源
-					if ( light->type == POINT_LIGHT )
+					//如果光源是关闭的
+					if ( FALSE == lights->light->bOnOff )
 					{
-						//常数衰减系数
-						fAttenuCoef = light->attenuation0;
+						lights = lights->next;
 
-						//一次衰减系数与二次衰减系数
-						fc1 = light->attenuation1;
-						fc2 = light->attenuation2;
+						i ++;
 
-						if((fc1 > 0.0001f) || (fc2 > 0.0001f))
-						{
-							//求顶点至光源的距离
-							vector3D_subtract( & vFDist, & lightDirs[i], vNode->vertex->position );
-							fDist = vector3D_lengthSquared( & vFDist );
-
-							//加入一次和二次因子
-							fAttenuCoef += (fc1 * sqrtf( fDist ) + fc2 * fDist);
-						}
-
-						if(fAttenuCoef < 0.0001f) fAttenuCoef = 0.0001f;
-						fAttenuCoef = 1.0f / fAttenuCoef;
-
-						//衰减系数不得大于1.0
-						fAttenuCoef = MIN(1.0f,  fAttenuCoef);
+						continue;
 					}
 
-					//计算聚光因子
+					light = lights->light;	
 
-					//聚光产生的条件:第一, 光源为聚光灯; 第二, 光的发散半角小于或等于90度
-					if ( ( light->type == SPOT_LIGHT ) && ( light->spotCutoff < 90.0001f ) )
+					//如果启用高级光照算法
+					if ( light->mode == HIGH_MODE )
 					{
+						//其一, 计算衰减系数
+
+						//衰减系数.等于1.0则不衰减
+						fAttenuCoef = 1.0f;
+
+						//如果是点光源
+						if ( light->type == POINT_LIGHT )
+						{
+							//常数衰减系数
+							fAttenuCoef = light->attenuation0;
+
+							//一次衰减系数与二次衰减系数
+							fc1 = light->attenuation1;
+							fc2 = light->attenuation2;
+
+							if((fc1 > 0.0001f) || (fc2 > 0.0001f))
+							{
+								//求顶点至光源的距离
+								vector3D_subtract( & vFDist, & vLightsToObject[i], vNode->vertex->position );
+								fDist = vector3D_lengthSquared( & vFDist );
+
+								//加入一次和二次因子
+								fAttenuCoef += (fc1 * sqrtf( fDist ) + fc2 * fDist);
+							}
+
+							if(fAttenuCoef < 0.0001f) fAttenuCoef = 0.0001f;
+							fAttenuCoef = 1.0f / fAttenuCoef;
+
+							//衰减系数不得大于1.0
+							fAttenuCoef = MIN(1.0f,  fAttenuCoef);
+						}
+
+						//计算聚光因子
+						
 						//聚光因子, 一般点光源的聚光因子为 1.0f, (发散半角为180度)
 						fSpotFactor = 1.0f;
 
-						//如果顶点位于光锥之外, 则不会有聚光光线照射到物体上
-						if( dot < light->spotCutoff )
-							fSpotFactor = 0.0f;
-						else
+						//聚光产生的条件:第一, 光源为聚光灯; 第二, 光的发散半角小于或等于90度
+						if ( ( light->type == SPOT_LIGHT ) && ( light->spotCutoff < 90.0001f ) )
 						{
-							//利用聚光指数进行计算
-							fSpotFactor = powf( dot, light->spotExp );
+							//光源的真实位置已经为(xLight,  yLight,  zLight), 
+							//定向光源不产生聚光效果
+							
+							//向量: 聚光位置指向照射顶点
+							vector3D_subtract( & vLightToVertex, vNode->vertex->position, & vLightsToObject[i] );
+
+							//单位化
+							vector3D_normalize( & vLightToVertex );
+
+							//聚光照射方向(已经是一个单位向量) 与 向量 vLightToVertex 夹角的余弦
+							dot = vector3D_dotProduct( & vLightToVertex, light->source->direction );
+
+							//如果顶点位于光锥之外, 则不会有聚光光线照射到物体上
+							if( dot < light->spotCutoff )
+								fSpotFactor = 0.0f;
+							else
+							{
+								//利用聚光指数进行计算
+								fSpotFactor = powf( dot, light->spotExp );
+							}
 						}
+						// 计算来自光源的贡献(现在已经有足够的条件了)
+
+						//加入环境反射部分:
+						color_append( fColor, entity->material->ambient, light->ambient );
+
+						//其次, 计算漫反射部分
+				
+						//顶点指向光源的向量
+						vector3D_subtract( & vVertexToLight, & vLightsToObject[i], vNode->vertex->position );
+						
+						//如果光源为平行光源(定位光源)
+						if ( light->type == DIRECTIONAL_LIGHT )
+						{
+							//光源的位置就是照射方向, 因而顶点至光源的向量就是光源位置向量的相反向量
+							vVertexToLight.x = -vLightsToObject[i].x;
+							vVertexToLight.y = -vLightsToObject[i].y;
+							vVertexToLight.z = -vLightsToObject[i].z;
+						}
+						
+						//单位化
+						vector3D_normalize( & vVertexToLight );
+
+						//顶点法线向量与 vVertexToLight 向量的夹角的余弦
+						//顶点法线应是单位向量, 这在建模时已经或必须保证的
+						dot = vector3D_dotProduct( & vVertexToLight, vNode->vertex->normal );
+
+						if ( dot > 0.0f )
+						{
+							//加入漫反射部分的贡献
+							color_add_self( fColor, color_scaleBy_self( color_append( & outPutColor, entity->material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
+						}
+
+						//计算高光部分需要在视口进行计算-------------
+
+						//最后乘以衰减和聚光因子，第 j 个光对物体的第个顶点的照射:
+						fSpotFactor *= fAttenuCoef;
+
+						color_scaleBy_self( fColor, fSpotFactor, fSpotFactor, fSpotFactor, 1.0f );
+
+						//累加至最后颜色:
+						color_add_self( lastColor, fColor );
 					}
-
-					//加入环境反射部分
-					color_append( vNode->vertex->color, entity->material->ambient, light->ambient );
-
-					/*vector3D_subtract( & dstns, & lightDirs[i], vNode->vertex->position );
-					vector3D_normalize( & dstns );
-					dot = vector3D_dotProduct( & dstns, vNode->vertex->normal );*/
-
-
-					//如果夹角大于0，即夹角范围在(-90, 90)之间
-					if ( dot > 0.0f )
+					else
 					{
-						//漫反射部分的贡献
-						color_append( & d, entity->material->diffuse, light->diffuse );
+						vector3D_normalize( & vLightsToObject[i] );
 
-						//反射光（根据夹角大小对 d 进行颜色的缩放，最后和顶点当前颜色值相加）
-						color_add_self( vNode->vertex->color, color_scaleBy_self( & d, dot, dot, dot, 1 ) );
+						//光源和顶点的夹角
+						dot = vector3D_dotProduct( & vLightsToObject[i], vNode->vertex->normal2 );
+
+						//加入环境反射部分
+						color_append( fColor, entity->material->ambient, light->ambient );
+
+
+						//如果夹角大于0，即夹角范围在(-90, 90)之间
+						if ( dot > 0.0f )
+						{
+							//漫反射部分的贡献
+							color_add_self( fColor, color_scaleBy_self( color_append( & outPutColor, entity->material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
+						}
+
+						//累加至最后颜色:
+						color_add_self( lastColor, fColor );
 					}
 
 					lights = lights->next;
 
 					i ++;
-				}
+				}//end light
+
+				//作颜色归一化处理
+				color_normalize( lastColor );
+
+				//颜色赋值
+				color_copy( vNode->vertex->color, lastColor );
+
+				//对于alpha, 这里简单地用材质漫反射属性来代替
+				vNode->vertex->color->alpha = entity->material->diffuse->alpha;
 
 				vNode = vNode -> next;
-			}
+			}//end vertex
 		}
 
 		sceneNode = sceneNode->next;
-	}
+	}//end entity
 
-	free( lightDirs );
-	lightDirs = NULL;
+	free( vLightsToObject );
+	vLightsToObject = NULL;
+
+	free( lastColor );
+	lastColor = NULL;
+
+	free( fColor );
+	fColor = NULL;
 }
 
 #endif
