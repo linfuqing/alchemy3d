@@ -16,6 +16,7 @@ package
 	import flash.display.StageQuality;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.MouseEvent;
 	import flash.geom.ColorTransform;
 	
 	import gs.TweenLite;
@@ -98,17 +99,17 @@ package
 			p.y = -180;
 			p.z = 800;
 			
-			s = new Sphere(m1, null, 180, 16, 12)
+			s = new Sphere(m1, null, 180, 18, 16)
 			scene.addEntity(s);
 			s.z = 1100;
 			
-			s2 = new Sphere(m2, null, 120, 16, 12)
+			s2 = new Sphere(m2, null, 120, 18, 16)
 			scene.addEntity(s2);
 			s2.x = -130;
 			s2.y = -60;
 			s2.z = 750;
 
-			s3 = new Sphere(m3, null, 120, 16, 12)
+			s3 = new Sphere(m3, null, 120, 18, 16)
 			scene.addEntity(s3);
 			s3.x = 150;
 			s3.y = -60;
@@ -120,6 +121,7 @@ package
 //			p2.rotationY = 25;
 //			p2.z = 700;
 			
+			addEventListener(MouseEvent.CLICK, lightOnOff);
 			startRendering();
 			
 			moveLight(1);
@@ -127,6 +129,11 @@ package
 			
 			var fps:FPS = new FPS(scene);
 			addChild(fps);
+		}
+		
+		protected function lightOnOff(e:MouseEvent):void
+		{
+			light.bOnOff = !light.bOnOff;
 		}
 		
 		protected function moveLight(dir:int = 1):void
@@ -153,7 +160,8 @@ package
 //			p.rotationY ++;
 //			p.rotationZ ++;
 
-//			s2.rotationZ ++;
+//			s2.rotationX ++;
+//			s2.z++;
 //			
 //			camera.eye.z ++;
 //			p.rotationX++;

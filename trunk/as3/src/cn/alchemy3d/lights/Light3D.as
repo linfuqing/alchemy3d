@@ -14,10 +14,6 @@ package cn.alchemy3d.lights
 		protected var buffer:ByteArray;
 		protected var lib:Alchemy3DLib;
 		
-		public var _mode:int;			//光照模式
-		public var _bOnOff:int;			//灯光是否开启
-		public var _type:int;			//定义灯光类型，我们能够使用下面三种类型之一：D3DLIGHT_POINT, D3DLIGHT_SPOT, D3DLIGHT_DIRECTIONAL
-		
 		public var modePtr:uint;
 		public var bOnOffPtr:uint;
 		public var typePtr:uint;
@@ -31,6 +27,10 @@ package cn.alchemy3d.lights
 		public var attenuation0Ptr:uint;
 		public var attenuation1Ptr:uint;
 		public var attenuation2Ptr:uint;
+		
+		private var _mode:int;			//光照模式
+		private var _bOnOff:Boolean;			//灯光是否开启
+		private var _type:int;			//定义灯光类型，我们能够使用下面三种类型之一：D3DLIGHT_POINT, D3DLIGHT_SPOT, D3DLIGHT_DIRECTIONAL
 		
 		private var _ambient:ColorTransform;		//此光源发出的环境光颜色
 		private var _diffuse:ColorTransform;		//此光源发出的漫射光颜色
@@ -63,19 +63,22 @@ package cn.alchemy3d.lights
 			buffer.writeInt(mode);
 		}
 		
-		public function get bOnOff():int
+		public function get bOnOff():Boolean
 		{
 			return this._bOnOff;
 		}
 		
-		public function set bOnOff(bOnOff:int):void
+		public function set bOnOff(bOnOff:Boolean):void
 		{
 			if (!checkInitialized()) return;
 			
 			this._bOnOff = bOnOff;
 			
 			buffer.position = bOnOffPtr;
-			buffer.writeInt(bOnOff);
+			if (bOnOff)
+				buffer.writeInt(1);
+			else
+				buffer.writeInt(0);
 		}
 		
 		public function get type():int
