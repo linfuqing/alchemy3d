@@ -171,7 +171,7 @@ int main()
 	scene = newScene();
 	scene_addLight(scene, light);
 	scene_addEntity(scene, do3d, NULL);
-	scene_addEntity(scene, do3d2, NULL);
+	scene_addEntity(scene, do3d2, do3d);
 
 	view = newViewport( 600.0f, 400.0f, scene, camera );
 
