@@ -9,7 +9,7 @@ package cn.alchemy3d.lights
 		public static const EASY_MODE:int = 0;
 		public static const HIGH_MODE:int = 1;
 		
-		public static const LIGHT_OFF:int = 0;
-		public static const LIGHT_ON:int = 1;
+		public static const LIGHT_OFF:Boolean = false;
+		public static const LIGHT_ON:Boolean = true;
 	}
 }

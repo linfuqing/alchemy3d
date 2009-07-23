@@ -6,6 +6,8 @@ package cn.alchemy3d.objects
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.texture.Texture;
 	
+	import flash.geom.Point;
+	
 	public class Mesh3D extends Entity implements ISceneNode
 	{
 		public function Mesh3D(material:Material = null, texture:Texture = null, name:String = "")
@@ -84,6 +86,20 @@ package cn.alchemy3d.objects
 		override public function clone():Entity
 		{
 			return null;
+		}
+		
+		public function flipFaces():void
+		{
+			for each(var f:Triangle3D in this.faces)
+			{
+				var tmp:int = f.p0Index;
+				f.p0Index = f.p2Index;
+				f.p2Index = tmp;
+				
+				var tmpUV:Point = f.uv0;
+				f.uv0 = f.uv2;
+				f.uv2 = tmpUV;
+			}
 		}
 	}
 }
