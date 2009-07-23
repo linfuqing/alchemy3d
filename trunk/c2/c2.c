@@ -161,10 +161,12 @@ int main()
 	camera_setTarget( camera, do3d->worldPosition );
 
 	lightSource = newEntity();
-	//lightSource->position->y = -500;
-	//lightSource->position->z = 200;
+	entity_setZ(lightSource, -300);
 	light = newPointLight( POINT_LIGHT, lightSource );
 	setLightOnOff( light, TRUE );
+	light->mode = HIGH_MODE;
+	light->attenuation1 = .5;
+	light->attenuation2 = .5;
 
 	scene = newScene();
 	scene_addLight(scene, light);

@@ -123,8 +123,8 @@ AS3_Val initializeLight( void* self, AS3_Val args )
 	light = newPointLight( type, source );
 	scene_addLight( scene, light );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-		light, &light->bOnOff, light->ambient, light->diffuse, light->specular,
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+		light, &light->mode, &light->bOnOff, &light->type, light->ambient, light->diffuse, light->specular,
 		&light->range, &light->falloff, &light->theta, &light->phi, &light->attenuation0, &light->attenuation1, &light->attenuation2 );
 }
 

@@ -20,7 +20,7 @@ typedef struct Vertex
 {
 	int index, nContectedFaces, bFlag;
 
-	Vector3D * position, * worldPosition, * normal;
+	Vector3D * position, * worldPosition, * normal, * normal2;
 
 	Vector * uv;
 
@@ -45,12 +45,13 @@ Vertex * newVertex( float x, float y, float z )
 	}
 
 	v->contectedFaces = NULL;
-	v->normal = NULL;
+	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
+	v->normal2 = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	v->uv = newVector( 0.0f, 0.0f );
 	v->position = newVector3D(x, y, z, 1.0f);
 	v->worldPosition = newVector3D(x, y, z, 1.0f);
-	v->color = newColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	v->color = newColor( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	v->nContectedFaces = FALSE;
 	v->bFlag = FALSE;
