@@ -1,7 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-//verson 1.3
+//verson 1.4
 
 # include "Mesh.h"
 # include "Camera.h"
@@ -40,13 +40,14 @@ Scene * newScene( Mesh * mesh )
 		exit( TRUE );
 	}
 
-	scene -> camera   = newCamera( NULL, NULL, NULL );
-	scene -> mesh     = mesh;
-	scene -> visible  = TRUE;
-	scene -> children = NULL;
-	scene -> next     = NULL;
-	scene -> ID       = 0;
-	scene -> move     = FALSE;
+	scene -> camera         = newCamera( NULL, NULL, NULL );
+	scene -> camera -> move = MOVE_TYPE_ADDED_SCENE;
+	scene -> mesh           = mesh;
+	scene -> visible        = TRUE;
+	scene -> children       = NULL;
+	scene -> next           = NULL;
+	scene -> ID             = 0;
+	scene -> move           = FALSE;
 
 	return scene;
 }
@@ -208,6 +209,13 @@ void scene_addChild( Scene * s, Scene * child )
 void transformSceneMesh( Scene * s )
 {
 	Scene * p = s -> children, * head = p;
+
+	if( head == NULL )
+	{
+		camera_getTransform( s -> camera );
+
+		return;
+	}
 	
 	//此时S是P的父级,这里的世界矩阵是不包含本地变换的.
 	* ( head -> camera -> world ) = * camera_getTransform( s -> camera );
@@ -330,7 +338,7 @@ void transformSceneChildren( Scene * s )
 **/
 void transformScene( Scene * s, int mode )
 {
-	if( mode || s -> visible && s -> camera -> move )
+	if( mode || ( s -> visible && s -> camera -> move ) )
 	{
 		s -> move = TRUE;
 		transformSceneMesh( s );

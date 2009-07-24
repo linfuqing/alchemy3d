@@ -322,6 +322,9 @@ void projectScene( Viewport * v, int mode )
 			projectVertices( v -> transform, v -> scene -> mesh -> vertices, v -> projection -> vertices );
 		}
 
+		v -> graphics -> next = v -> projection -> faces -> next;
+		v -> graphics -> rear = v -> projection -> faces -> rear;
+
 		projectSceneMesh( v -> transform, v -> scene, v -> projection, v -> graphics );
 	}
 	else

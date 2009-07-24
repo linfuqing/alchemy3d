@@ -7,6 +7,8 @@
 
 #include "Viewport.h"
 
+//N
+
 typedef struct Screen
 {
 	Viewport * viewport;
@@ -18,14 +20,52 @@ typedef struct
 {
 	Screen * screen;
 
-	Number * width;
+	Number   width;
 
-	Number * height;
+	Number   height;
 
 	Number * zBuffer;
 
 	int    * gfxBuffer;
 }RenderEngine;
+
+RenderEngine * newRenderEngine( Number width, Number height )
+{
+	RenderEngine * r;
+
+	int        total = ( int )( width * height );
+
+	if( ( r              = ( RenderEngine * )malloc( sizeof( RenderEngine )         ) ) == NULL ||
+		( r -> gfxBuffer = ( int          * )malloc( sizeof( int          ) * total ) ) == NULL ||
+		( r -> zBuffer   = ( Number       * )malloc( sizeof( Number       ) * total ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	r -> width  = width;
+
+	r -> height = height;
+
+	r -> screen = NULL;
+
+	return r;
+}
+
+void renderEngine_addViewport( RenderEngine * r, Viewport * v )
+{
+	Screen * s;
+
+	if( ( s = ( Screen * )malloc( sizeof( Screen ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	s -> viewport = v;
+
+	s -> next     = r -> screen;
+
+	r -> screen   = s;
+}
 
 //¹âÕ¤»¯
 void triangle_rasterize( ScreenPolygon * tri, Viewport * v, RenderEngine * r )
@@ -56,7 +96,7 @@ void triangle_rasterize( ScreenPolygon * tri, Viewport * v, RenderEngine * r )
 	i = -1;
 	j = -1;
 
-	triPtr = tri;
+	triPtr = tri -> next;
 
 	while(triPtr != NULL)
 	{
@@ -67,8 +107,8 @@ void triangle_rasterize( ScreenPolygon * tri, Viewport * v, RenderEngine * r )
 		coordinates[++i] = screenPosition -> y;
 		coordinates[++i] = screenPosition -> z;
 
-		uvDatas[++j]     = uvCoordinates -> x;
-		uvDatas[++j]     = uvCoordinates -> y;
+		uvDatas[++j]     = uvCoordinates == NULL ? 0 : uvCoordinates -> x;
+		uvDatas[++j]     = uvCoordinates == NULL ? 0 : uvCoordinates -> y;
 
 		triPtr           = triPtr        -> next;
 	}
@@ -827,15 +867,15 @@ void polygon_rasterize( ScreenPolygon * pol, Viewport * v, RenderEngine * r )
 {
 }
 
-void renderPolygon( ScreenPolygon * f, Viewport * v, RenderEngine * r )
+void renderPolygon( ScreenFaces * f, Viewport * v, RenderEngine * r )
 {
-	if( polygon_isTriangle( f -> parent ) )
+	if( polygon_isTriangle( f -> parent -> face ) )
 	{
-		triangle_rasterize( f, v, r );
+		triangle_rasterize( f -> face, v, r );
 	}
 	else
 	{
-		polygon_rasterize( f, v, r );
+		polygon_rasterize( f -> face, v, r );
 	}
 }
 
@@ -854,9 +894,9 @@ void render( RenderEngine * r, int mode )
 		
 		graphics = vp -> viewport -> graphics;
 
-		while( ( graphics = graphics -> next ) == NULL )
+		while( ( graphics = graphics -> next ) != NULL )
 		{
-			renderPolygon( graphics -> face, vp -> viewport, r );
+			renderPolygon( graphics, vp -> viewport, r );
 		}
 
 		vp = vp -> next;
