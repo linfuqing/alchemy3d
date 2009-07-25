@@ -352,7 +352,7 @@ void transformScene( Scene * s, int mode )
 
 void scene_destroy( Scene * * s )
 {
-	scene_previousOrder( * s, free );
+	//scene_previousOrder( * s, free );
 
 	* s = NULL;
 }
