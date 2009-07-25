@@ -1,176 +1,154 @@
 #include <stdlib.h>
 #include <AS3.h>
 
-#include "Base.h"
-#include "DisplayObject3D.h"
-#include "Scene.h"
-#include "Viewport.h"
-#include "Polygon.h"
-#include "Vertices.h"
-#include "Faces.h"
-#include "Mesh.h"
-#include "DisplayObject3D.h"
-#include "Vector3D.h"
 #include "Render.h"
+
+
+AS3_Val initializeDevice( void* self, AS3_Val args )
+{
+	return 0;
+}
+
+AS3_Val initializeCamera( void* self, AS3_Val args )
+{
+	return 0;
+}
+
+AS3_Val initializeEngine( void* self, AS3_Val args )
+{
+	Viewport * view;
+	RenderEngine * r;
+	Number width, height;
+
+	AS3_ArrayValue( args, "DoubleType, DoubleType", &width, &height, &view );
+
+	r    = newRenderEngine( 800, 600 );
+
+	renderEngine_addViewport( r, view );
+
+	return AS3_Array( "PtrType", r );
+}
 
 //初始化场景
 //返回该对象的起始指针
 AS3_Val initializeViewport( void* self, AS3_Val args )
 {
-	Camera * camera;
 	Viewport * view;
-	Scene * scene;
+	Scene    * s;
 
-	Number width, height, fov, nearClip, farClip;
+	Number left, right, top, bottom, far, near;
 
-	AS3_ArrayValue(args, "DoubleType, DoubleType, DoubleType, DoubleType, DoubleType, DoubleType", &width, &height, &fov, &nearClip, &farClip);
+	AS3_ArrayValue( args, "DoubleType, DoubleType, DoubleType, DoubleType, DoubleType, DoubleType, PtrType", &left, &right, &top, &bottom, &far, &near, &s );
 
-	scene = newScene();
-	camera = newCamera(fov, nearClip, farClip);
-	view = newViewport(width, height, scene, camera);
+	view = newViewport( left, right, top, bottom, far, near, s );
 
-	return AS3_Array("PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", view, view->gfxBuffer, scene, camera, camera->fov, camera->nearClip, camera->farClip);
+	return AS3_Array( "PtrType", view );
 }
 
-//渲染视口
-AS3_Val renderViewport( void* self, AS3_Val args )
+AS3_Val initializeMaterial( void* self, AS3_Val args )
 {
-	Viewport * view;
+	return 0;
+}
 
-	AS3_ArrayValue(args, "PtrType", &view);
+AS3_Val initializeTexture( void* self, AS3_Val args )
+{
+	return 0;
+}
 
-	project(view);
-
-	render(view);
-
-	//AS3_Trace(AS3_Int(view->gfxBuffer[189206]));
-
+//初始化光源
+//返回该对象起始指针
+AS3_Val initializeLight( void* self, AS3_Val args )
+{
 	return 0;
 }
 
 //创建几何实体
 //返回该对象的起始指针
-AS3_Val createEntity( void* self, AS3_Val args )
+AS3_Val initializeEntity( void* self, AS3_Val args )
 {
-	Scene * scene;
-	Faces * faces;
-	Vertices * vertices;
-	Polygon * tri;
-	DisplayObject3D * do3d, * parent;
-	Mesh * mesh;
+	Number * tmpBuff;
+	Polygon * p;
+	Faces    * f;
+	Vertices * v;
+	Mesh     * m;
+	Scene    * s;
 
-	int vNum, fNum, vLen, fLen, i, j;
-	Number * vBuf, * fBuf;
+	int vNum, fNum, vLen, i, j, k;
 
-	AS3_Val input_vertices, input_faces, input_vLength, input_fLength;
+	AS3_ArrayValue( args, "PtrType, IntType, IntType", &tmpBuff, &vNum, &fNum );
 
-	AS3_ArrayValue(args, "PtrType, PtrType, AS3ValType, AS3ValType", &scene, &parent, &input_vertices, &input_faces);
-	
-	input_vLength = AS3_GetS(input_vertices, "length");
-	input_fLength = AS3_GetS(input_faces, "length");
-
-	vLen = AS3_IntValue(input_vLength);
-	fLen = AS3_IntValue(input_fLength);
-
-	vNum = vLen / VERTEX_SIZE_ELEMENT;
-	fNum = fLen / FACE_SIZE_ELEMENT;
-
-	Vertex * vArr[vNum];
-	Vertex * v;
-
-	do3d = newDisplayObject3D();
-
-	if (vLen != 0 && fLen != 0)
+	if (vNum != 0 && fNum != 0)
 	{
-		vBuf = (Number *)calloc(vNum, VERTEX_SIZE_ELEMENT);
-		fBuf = (Number *)calloc(fNum, FACE_SIZE_ELEMENT);
-		
-		AS3_ByteArray_seek(input_vertices, 0, SEEK_SET);
-		AS3_ByteArray_seek(input_faces, 0, SEEK_SET);
+		faces_initiate( & f );
+		vertices_initiate( & v );
 
-		AS3_ByteArray_readBytes((void*)vBuf, input_vertices, vLen);
-		AS3_ByteArray_readBytes((void*)fBuf, input_faces, fLen);
-
-		AS3_Release(input_vertices);
-		AS3_Release(input_faces);
-		AS3_Release(input_vLength);
-		AS3_Release(input_fLength);
+		vLen = vNum * VERTEX_SIZE;
 
 		i = 0;
 		j = 0;
+		k = vLen;
 
-		//初始化顶点链表
-		vertices = newVertices();
-		//初始化面链表
-		faces = newFaces();
-
-		for (; i < vNum; i ++)
+		for ( ; i < vNum; i ++, k, j+= VERTEX_SIZE * 3 )
 		{
-			j = i * VERTEX_SIZE;
-
-			v = newVertex(newVector3D(vBuf[j], vBuf[j + 1], vBuf[j + 2], vBuf[j + 3]));
-
-			vertices_push(vertices, v);
-
-			vArr[i] = v;
+			faces_push( f, ( p = newTriangle3D(	newVertex( newVector3D( tmpBuff[j], tmpBuff[j+1], tmpBuff[j+2], tmpBuff[j+3] ) ),
+												newVertex( newVector3D( tmpBuff[j+4], tmpBuff[j+5], tmpBuff[j+6], tmpBuff[j+7] ) ),
+												newVertex( newVector3D( tmpBuff[j+8], tmpBuff[j+9], tmpBuff[j+10], tmpBuff[j+11] ) ),
+												newVector( tmpBuff[k + 3 + FACE_SIZE * i], tmpBuff[k + 4 + FACE_SIZE * i] ),
+												newVector( tmpBuff[k + 5 + FACE_SIZE * i], tmpBuff[k + 6 + FACE_SIZE * i] ),
+												newVector( tmpBuff[k + 7 + FACE_SIZE * i], tmpBuff[k + 8 + FACE_SIZE * i] ) ) ) );
 		}
 
-		for (i = 0; i < fNum; i ++)
-		{
-			j = i * FACE_SIZE;
+		vertices_push( v, p -> next -> vertex );
+		vertices_push( v, p -> next -> next -> vertex );
+		vertices_push( v, p -> next -> next -> next -> vertex );
 
-			tri = newTriangle3D(vArr[(int)fBuf[j]], vArr[(int)fBuf[j + 1]], vArr[(int)fBuf[j + 2]], newVector(fBuf[j + 3], fBuf[j + 4]), newVector(fBuf[j + 5], fBuf[j + 6]), newVector(fBuf[j + 7], fBuf[j + 8]));
+		m = newMesh( f, v );
 
-			faces_push(faces, tri);
-		}
+		s    = newScene( newMesh( f, v ) );
 
-		mesh = newMesh(faces, vertices);
-		do3d->mesh = mesh;
+		free( tmpBuff );
 	}
 
-	free(vBuf);
-	free(fBuf);
+	tmpBuff = NULL;
 
-	vBuf = NULL;
-	fBuf = NULL;
+	return AS3_Array( "PtrType", s );
+}
 
-	if (parent == 0)
+AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
+{
+	int len, size;
+
+	void * tmpBuff;
+
+	AS3_ArrayValue( args, "IntType, IntType", &size, &len );
+
+	if( ( tmpBuff = calloc( len, size ) ) == NULL )
 	{
-		parent = NULL;
+		exit( TRUE );
 	}
 
-	scene_addChild(scene, do3d, parent);
+	return AS3_Ptr( tmpBuff );
+}
 
-	return AS3_Array("PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", do3d, do3d->position, do3d->direction, do3d->scale, do3d->mesh->vertices, do3d->mesh->faces);
+//渲染
+AS3_Val beginRender( void* self, AS3_Val args )
+{
+	RenderEngine * r;
+
+	AS3_ArrayValue( args, "PtrType", &r );
+
+	render( r, RENDER_MODE_DYNAMIC );
+
+	return 0;
 }
 
 //测试函数
 AS3_Val test( void* self, AS3_Val args )
 {
-	/*do3d_updateTransform(&do3d);
+	/*entity_updateTransform(&entity);
 
-	AS3_Trace(AS3_Number(do3d.position.x));
-	AS3_Trace(AS3_Number(do3d.position.y));
-	AS3_Trace(AS3_Number(do3d.position.z));
-	AS3_Trace(AS3_Number(do3d.scale.x));
-	AS3_Trace(AS3_Number(do3d.scale.y));
-	AS3_Trace(AS3_Number(do3d.scale.z));
-	AS3_Trace(AS3_Number(do3d.transform.m11));
-	AS3_Trace(AS3_Number(do3d.transform.m12));
-	AS3_Trace(AS3_Number(do3d.transform.m13));
-	AS3_Trace(AS3_Number(do3d.transform.m14));
-	AS3_Trace(AS3_Number(do3d.transform.m21));
-	AS3_Trace(AS3_Number(do3d.transform.m22));
-	AS3_Trace(AS3_Number(do3d.transform.m23));
-	AS3_Trace(AS3_Number(do3d.transform.m24));
-	AS3_Trace(AS3_Number(do3d.transform.m31));
-	AS3_Trace(AS3_Number(do3d.transform.m32));
-	AS3_Trace(AS3_Number(do3d.transform.m33));
-	AS3_Trace(AS3_Number(do3d.transform.m34));
-	AS3_Trace(AS3_Number(do3d.transform.m41));
-	AS3_Trace(AS3_Number(do3d.transform.m42));
-	AS3_Trace(AS3_Number(do3d.transform.m43));
-	AS3_Trace(AS3_Number(do3d.transform.m44));*/
+	AS3_Trace(AS3_Number(entity.position.x));
+	AS3_Trace(AS3_Number(entity.position.y));*/
 
 	return 0;
 }
@@ -178,21 +156,35 @@ AS3_Val test( void* self, AS3_Val args )
 //入口
 int main()
 {
+	AS3_Val initializeDeviceMethod = AS3_Function( NULL, initializeDevice );
+	AS3_Val initializeCameraMethod = AS3_Function( NULL, initializeCamera );
+	AS3_Val initializeEngineMethod = AS3_Function( NULL, initializeEngine );
 	AS3_Val initializeViewportMethod = AS3_Function( NULL, initializeViewport );
-	AS3_Val renderViewportMethod = AS3_Function( NULL, renderViewport );
-	AS3_Val createEntityMethod = AS3_Function( NULL, createEntity );
+	AS3_Val initializeMaterialMethod = AS3_Function( NULL, initializeMaterial );
+	AS3_Val initializeTextureMethod = AS3_Function( NULL, initializeTexture );
+	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
+	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
+	AS3_Val applyForTmpBufferMethod = AS3_Function( NULL, applyForTmpBuffer );
+	AS3_Val beginRenderMethod = AS3_Function( NULL, beginRender );
 	AS3_Val testMethod = AS3_Function( NULL, test );
 
 
 
-	AS3_Val result = AS3_Object( "initializeViewport:AS3ValType, renderViewport:AS3ValType, createEntity:AS3ValType, test:AS3ValType",
-		initializeViewportMethod, renderViewportMethod, createEntityMethod, testMethod );
+	AS3_Val result = AS3_Object( "initializeDevice:AS3ValType, initializeCamera:AS3ValType, initializeEngine:AS3ValType, initializeViewport:AS3ValType, initializeMaterial:AS3ValType, initializeTexture:AS3ValType, initializeLight:AS3ValType, initializeEntity:AS3ValType, applyForTmpBuffer:AS3ValType, beginRender:AS3ValType, test:AS3ValType",
+		initializeDeviceMethod, initializeCameraMethod, initializeEngineMethod, initializeViewportMethod, initializeMaterialMethod, initializeTextureMethod, initializeLightMethod, initializeEntityMethod, applyForTmpBufferMethod, beginRenderMethod, testMethod );
 
 
 
+	AS3_Release( initializeDeviceMethod );
+	AS3_Release( initializeCameraMethod );
+	AS3_Release( initializeEngineMethod );
 	AS3_Release( initializeViewportMethod );
-	AS3_Release( renderViewportMethod );
-	AS3_Release( createEntityMethod );
+	AS3_Release( initializeMaterialMethod );
+	AS3_Release( initializeTextureMethod );
+	AS3_Release( initializeLightMethod );
+	AS3_Release( initializeEntityMethod );
+	AS3_Release( applyForTmpBufferMethod );
+	AS3_Release( beginRenderMethod );
 	AS3_Release( testMethod );
 
 
