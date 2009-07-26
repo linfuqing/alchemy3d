@@ -17,12 +17,14 @@ package cn.alchemy3d.materials
 		public var specularPtr:uint;
 		public var emissivePtr:uint;
 		public var powerPtr:uint;
+		public var doubleSidePtr:uint;
 		
 		private var _ambient:ColorTransform;	//指定此表面反射的环境光数量
 		private var _diffuse:ColorTransform;	//指定此表面反射的漫射光数量
 		private var _specular:ColorTransform;	//指定此表面反射的镜面光数量
 		private var _emissive:ColorTransform;	//这个是被用来给表面添加颜色，它使得物体看起来就象是它自己发出的光一样
 		private var _power:Number;				//指定锐利的镜面高光；它的值是高光的锐利值
+		private var _doubleSide:Boolean;
 		
 		public function get ambient():ColorTransform
 		{
@@ -104,6 +106,24 @@ package cn.alchemy3d.materials
 			_power = value;
 			buffer.position = powerPtr;
 			buffer.writeFloat(value);
+		}
+		
+		public function get doubleSide():Boolean
+		{
+			return this._doubleSide;
+		}
+		
+		public function set doubleSide(bool:Boolean):void
+		{
+			if (!checkInitialized()) return;
+			
+			_doubleSide = bool;
+			buffer.position = doubleSidePtr;
+			
+			if (bool)
+				buffer.writeFloat(1);
+			else
+				buffer.writeFloat(0);
 		}
 		
 		public function Material()

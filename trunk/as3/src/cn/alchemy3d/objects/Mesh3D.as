@@ -61,7 +61,7 @@ package cn.alchemy3d.objects
 		
 		protected function applyForTmpBuffer():void
 		{
-			tmpBuffPointer = lib.alchemy3DLib.applyForTmpBuffer(vertices.length * 4 + faces.length * 9);
+			tmpBuffPointer = lib.alchemy3DLib.applyForTmpBuffer(4, (vertices.length * 4 + faces.length * 9) * 4);
 		}
 		
 		override public function initialize(scenePtr:uint, parentPtr:uint):void

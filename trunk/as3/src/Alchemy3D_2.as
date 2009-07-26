@@ -18,6 +18,8 @@ package
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.ColorTransform;
+	import flash.text.TextField;
+	import flash.text.TextFormat;
 	
 	import gs.TweenLite;
 	import gs.easing.Linear;
@@ -48,28 +50,43 @@ package
 			stage.quality = StageQuality.BEST;
 			stage.frameRate = 60;
 			
+			var tformat:TextFormat = new TextFormat("arial", 16, 0xffffff);
+			var tf:TextField = new TextField();
+			tf.defaultTextFormat = tformat;
+			tf.autoSize = "left";
+			tf.text = "Left click to turn on/off light";
+			tf.x = 200;
+			addChild(tf);
+			
+			t = new Texture();
+			t.load("asset/earth.jpg");
+			
+			t.addEventListener(Event.COMPLETE, init);
+		}
+		
+		protected function init(e:Event = null):void
+		{
+			t.removeEventListener(Event.COMPLETE, init);
+			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(0, 0.03, 0, 1);
-			m.diffuse = new ColorTransform(.5, .9, .3, 1);
+			m.ambient = new ColorTransform(0.05, 0.05, 0.05, 1);
+			m.diffuse = new ColorTransform(.3, .8, .6, 1);
 			m.specular = new ColorTransform(1, 0, 0, 1);
 			
 			var m1:Material = new Material();
 			m1.ambient = new ColorTransform(.1, 0, 0, 1);
-			m1.diffuse = new ColorTransform(0.8, .2, 0.2, 1);
+			m1.diffuse = new ColorTransform(1, .8, 1, 1);
 			m1.specular = new ColorTransform(1, 0, 0, 1);
 			
 			var m2:Material = new Material();
-			m2.ambient = new ColorTransform(0, 0.05, 0, 1);
-			m2.diffuse = new ColorTransform(0, .4, 1, 1);
+			m2.ambient = new ColorTransform(0.1, 0.1, 0.1, 1);
+			m2.diffuse = new ColorTransform(0.2, 1, .2, 1);
 			m2.specular = new ColorTransform(1, 0, 0, 1);
 			
 			var m3:Material = new Material();
 			m3.ambient = new ColorTransform(0, 0, 0, 1);
 			m3.diffuse = new ColorTransform(.5, .5, .5, 1);
 			m3.specular = new ColorTransform(1, 0, 0, 1);
-			
-//			t = new Texture();
-//			t.load("asset/earth.jpg");
 			
 			scene = new Scene3D();
 			addScene(scene);
@@ -85,8 +102,8 @@ package
 			light.type = LightType.POINT_LIGHT;
 			light.mode = LightType.HIGH_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
-			light.source.y = 300;
-			light.source.x = 300;
+			light.source.y = 120;
+			light.source.x = 200;
 			light.source.z = -2300;
 			light.ambient = new ColorTransform(0, 0, 0, 1);
 			light.diffuse = new ColorTransform(1, 1, 1, 1);
@@ -99,17 +116,17 @@ package
 			p.y = -180;
 			p.z = 800;
 			
-			s = new Sphere(m1, null, 180, 18, 16)
+			s = new Sphere(m1, t, 180, 16, 12)
 			scene.addEntity(s);
 			s.z = 1100;
 			
-			s2 = new Sphere(m2, null, 120, 18, 16)
+			s2 = new Sphere(m2, t, 120, 16, 12)
 			scene.addEntity(s2);
 			s2.x = -130;
 			s2.y = -60;
 			s2.z = 750;
 
-			s3 = new Sphere(m3, null, 120, 18, 16)
+			s3 = new Sphere(m3, null, 120, 16, 12)
 			scene.addEntity(s3);
 			s3.x = 150;
 			s3.y = -60;
@@ -160,7 +177,7 @@ package
 //			p.rotationY ++;
 //			p.rotationZ ++;
 
-//			s2.rotationX ++;
+			s.rotationX ++;
 //			s2.z++;
 //			
 //			camera.eye.z ++;
