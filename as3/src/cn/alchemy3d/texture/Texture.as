@@ -18,13 +18,35 @@ package cn.alchemy3d.texture
 		protected var buffer:ByteArray;
 		protected var lib:Alchemy3DLib;
 		
+		public var name:String;
+		public var bitmapDataPtr:uint;
+		public var doubleSidePtr:uint;
+		
+		private var _doubleSide:Boolean;
 		private var loader:Loader;
 		private var bitmapdata:BitmapData;
 		
-		public function Texture(bitmapdata:BitmapData = null)
+		public function get doubleSide():Boolean
+		{
+			return this._doubleSide;
+		}
+		
+		public function set doubleSide(bool:Boolean):void
+		{
+			_doubleSide = bool;
+			buffer.position = doubleSidePtr;
+			
+			if (bool)
+				buffer.writeFloat(1);
+			else
+				buffer.writeFloat(0);
+		}
+		
+		public function Texture(bitmapdata:BitmapData = null, name:String = "")
 		{
 			super();
 			
+			this.name = name;
 			this.bitmapdata = bitmapdata;
 			
 			lib = Alchemy3DLib.getInstance();
@@ -38,11 +60,33 @@ package cn.alchemy3d.texture
 			if (!this.bitmapdata)
 				return;
 			
-			var ps:Array = lib.alchemy3DLib.initializeTexture(bitmapdata.width, bitmapdata.height);
+			var byte:ByteArray = bitmapdata.getPixels(bitmapdata.rect);
+			byte.position = 0;
+			
+			var i:int = 0, j:int = bitmapdata.width * bitmapdata.height;
+			bitmapDataPtr = lib.alchemy3DLib.applyForTmpBuffer(4, j * 4);
+			buffer.position = bitmapDataPtr;
+			var a:Number, r:Number, g:Number, b:Number;
+			var uint32:uint;
+			var d:Number = 1 / 255;
+			for (; i < j; i ++)
+			{
+				uint32 = byte.readUnsignedInt();
+				
+				a = ((uint32 >> 24) & 0xff) * d;
+				r = ((uint32 >> 16) & 0xff) * d;
+				g = ((uint32 >> 8) & 0xff) * d;
+				b = (uint32 & 0xff) * d;
+				
+				buffer.writeFloat(a);
+				buffer.writeFloat(r);
+				buffer.writeFloat(g);
+				buffer.writeFloat(b);
+			}
+			
+			var ps:Array = lib.alchemy3DLib.initializeTexture(bitmapdata.width, bitmapdata.height, bitmapDataPtr);
 			pointer = ps[0];
 			buffer.position = ps[1];
-			var b:ByteArray = bitmapdata.getPixels(bitmapdata.rect);
-			buffer.writeBytes(b, 0, b.length);
 		}
 		
 		public function load(url:String):void

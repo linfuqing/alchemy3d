@@ -7,10 +7,11 @@ package cn.alchemy3d.objects
 	import cn.alchemy3d.texture.Texture;
 	import cn.alchemy3d.tools.Alchemy3DLog;
 	
+	import flash.events.EventDispatcher;
 	import flash.geom.Vector3D;
 	import flash.utils.ByteArray;
 	
-	public class Entity implements ISceneNode
+	public class Entity extends EventDispatcher implements ISceneNode
 	{
 		public function Entity(material:Material = null, texture:Texture = null, name:String = "")
 		{
