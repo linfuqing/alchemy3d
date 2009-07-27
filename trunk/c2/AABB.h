@@ -58,7 +58,7 @@ typedef struct AABB
 // "Empty" the box, by setting the values to really
 // large/small numbers
 
-void aabb_empty(AABB * aabb)
+INLINE void aabb_empty(AABB * aabb)
 {
 	aabb->min->x = aabb->min->y = aabb->min->z = FLT_MAX;
 	aabb->max->x = aabb->max->y = aabb->max->z = -FLT_MAX;
@@ -79,7 +79,7 @@ AABB * newAABB()
 	return aabb;
 }
 
-Vector3D * aabb_corner(Vector3D * output, AABB * aabb, int i)
+INLINE Vector3D * aabb_corner(Vector3D * output, AABB * aabb, int i)
 {
 	if (i < 0 || i > 7) return NULL;
 
@@ -96,7 +96,7 @@ Vector3D * aabb_corner(Vector3D * output, AABB * aabb, int i)
 //
 // Add a point to the box
 
-void aabb_add(AABB * aabb, Vector3D * p)
+INLINE void aabb_add(AABB * aabb, Vector3D * p)
 {
 	if (p->x < aabb->min->x) aabb->min->x = p->x;
 	if (p->x > aabb->max->x) aabb->max->x = p->x;
@@ -106,7 +106,7 @@ void aabb_add(AABB * aabb, Vector3D * p)
 	if (p->z > aabb->max->z) aabb->max->z = p->z;
 }
 
-AABB * aabb_createFromAABB(AABB * box)
+INLINE AABB * aabb_createFromAABB(AABB * box)
 {
 	AABB * aabb;
 	Vector3D * p;
@@ -122,7 +122,7 @@ AABB * aabb_createFromAABB(AABB * box)
 	return aabb;
 }
 
-void aabb_createFromSelf(AABB * * aabb)
+INLINE void aabb_createFromSelf(AABB * * aabb)
 {
 	Vector3D min;
 	Vector3D max;
@@ -138,7 +138,7 @@ void aabb_createFromSelf(AABB * * aabb)
 	aabb_add( * aabb, & max );
 }
 
-void aabb_copy(AABB * aabb, AABB * src)
+INLINE void aabb_copy(AABB * aabb, AABB * src)
 {
 	vector3D_copy(aabb->min, src->min);
 	vector3D_copy(aabb->max, src->max);
@@ -149,7 +149,7 @@ void aabb_copy(AABB * aabb, AABB * src)
 //
 // Return true if the box is enmpty
 
-int aabb_isEmpty(AABB * aabb)
+INLINE int aabb_isEmpty(AABB * aabb)
 {
 	return (aabb->min->x > aabb->max->x) || (aabb->min->y > aabb->max->y) || (aabb->min->z > aabb->max->z);
 }

@@ -10,9 +10,16 @@
 #include "Matrix3D.h"
 #include "Vector3D.h"
 
+typedef struct RenderList
+{
+	Entity * entity;
+
+	float screenDepth;
+}RenderList;
+
 typedef struct Viewport
 {
-	int wh, dirty, nRenderVertex;
+	int wh, dirty, nRenderVertex, nRenderList;
 
 	float width, height, offsetX, offsetY, aspect;
 
@@ -25,6 +32,8 @@ typedef struct Viewport
 	struct Scene * scene;
 
 	struct Camera * camera;
+
+	struct RenderList * renderList;
 
 	RenderVertex * screenVertices;
 }Viewport;
@@ -94,9 +103,14 @@ Viewport * newViewport( float width, float height, Scene * scene, Camera * camer
 
 	camera->isAttached = scene->isAttached = TRUE;
 
-	viewport->nRenderVertex = 0;
+	viewport->nRenderVertex = viewport->nRenderList = 0;
 
 	if( ( viewport->screenVertices = ( RenderVertex * )malloc( sizeof( RenderVertex ) * scene->nVertices ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	if( ( viewport->renderList = ( RenderList * )malloc( sizeof( RenderList ) * scene->nNodes ) ) == NULL )
 	{
 		exit( TRUE );
 	}
@@ -104,21 +118,59 @@ Viewport * newViewport( float width, float height, Scene * scene, Camera * camer
 	return viewport;
 }
 
-static Vector3D T_L_F_V;
-static Vector3D T_R_F_V;
-static Vector3D T_L_B_V;
-static Vector3D T_R_B_V;
-static Vector3D B_L_F_V;
-static Vector3D B_R_F_V;
-static Vector3D B_L_B_V;
-static Vector3D B_R_B_V;
-static AABB * tmpAABB;
+void viewport_updateBeforeRender( Viewport * viewport )
+{
+	float * zBuf = viewport->zBuffer;
+	uint32 * gfxBuf = viewport->gfxBuffer;
+
+	int wh = viewport->wh;
+
+	int m = 0;
+
+	for ( ; m < wh; m ++ )
+	{
+		zBuf[m] = FLT_MAX;
+		gfxBuf[m] = 0;
+	}
+
+	if ( TRUE == viewport->scene->dirty )
+	{
+		free( viewport->screenVertices );
+		free( viewport->renderList );
+
+		if( ( viewport->screenVertices = ( RenderVertex * )malloc( sizeof( RenderVertex ) * viewport->scene->nVertices ) ) == NULL )
+		{
+			exit( TRUE );
+		}
+
+		if( ( viewport->renderList = ( RenderList * )malloc( sizeof( RenderList ) * viewport->scene->nNodes ) ) == NULL )
+		{
+			exit( TRUE );
+		}
+	}
+
+	viewport->nRenderList = 0;
+}
+
+void viewport_updateAfterRender( Viewport * viewport )
+{
+	
+}
 
 //基于AABB包围盒的视空间裁剪
 //输出码为非零侧物体离屏
-int clip_viewCulling(Matrix3D * proj_matrix, AABB aabb)
+INLINE int clip_viewCulling(Matrix3D * proj_matrix, AABB aabb)
 {
 	Vector3D * min, * max;
+	Vector3D T_L_F_V;
+	Vector3D T_R_F_V;
+	Vector3D T_L_B_V;
+	Vector3D T_R_B_V;
+	Vector3D B_L_F_V;
+	Vector3D B_R_F_V;
+	Vector3D B_L_B_V;
+	Vector3D B_R_B_V;
+	AABB * tmpAABB = newAABB();
 
 	int code = 0;
 
@@ -143,10 +195,7 @@ int clip_viewCulling(Matrix3D * proj_matrix, AABB aabb)
 	matrix3D_transformVector_self( proj_matrix, & B_L_B_V );
 	matrix3D_transformVector_self( proj_matrix, & B_R_B_V );
 
-	if ( NULL == tmpAABB )
-		tmpAABB = newAABB();
-	else
-		aabb_empty( tmpAABB );
+	aabb_empty( tmpAABB );
 
 	aabb_add( tmpAABB, & T_L_F_V );
 	aabb_add( tmpAABB, & T_R_F_V );
@@ -177,9 +226,10 @@ void viewport_project( Viewport * viewport )
 	Vector3D viewPosition, eyeToLocal, d;
 	VertexNode * vNode;
 	Vertex * vtx;
+	RenderList * renderList;
 	RenderVertex * screenVertices;
 
-	int i = 0;
+	int i = 0, n = 0, m = 0;
 
 	scene = viewport->scene;
 	camera = viewport->camera;
@@ -195,6 +245,8 @@ void viewport_project( Viewport * viewport )
 	
 	proj_matrixPtr = camera->projectionMatrix;
 
+	renderList = viewport->renderList;
+
 	//遍历场景
 	sceneNode = scene->nodes;
 
@@ -206,9 +258,6 @@ void viewport_project( Viewport * viewport )
 		//连接投影矩阵
 		matrix3D_append4x4( & view, proj_matrixPtr );
 
-		/*test = newVector3D(0.0f, 150.0f, 0.0f, 1.0f );
-		matrix3D_transformVector( & view, test );*/
-
 		//视空间裁剪
 		if ( clip_viewCulling( & view, * entity->mesh->aabb ) > 0 )
 		{
@@ -219,11 +268,51 @@ void viewport_project( Viewport * viewport )
 			continue;
 		}
 
+		//========================如果物体没有离屏则继续如下操作======================
+
+		//加入渲染列表并按深度进行排序
+		//计算实体的视空间坐标
+		matrix3D_transformVector( & viewPosition, & view, entity->position );
+
+		if ( n == 0)
+		{
+			renderList[0].entity = entity;
+			renderList[0].screenDepth = viewPosition.z;
+		}
+		else
+		{
+			for ( m = 0; m < n; m ++ )
+			{
+				if ( viewPosition.z < renderList[m].screenDepth )
+				{
+					renderList[n].entity = renderList[m].entity;
+					renderList[n].screenDepth = renderList[m].screenDepth;
+					renderList[m].entity = entity;
+					renderList[m].screenDepth = viewPosition.z;
+
+					break;
+				}
+			}
+
+			if ( m == n )
+			{
+				renderList[m].entity = entity;
+				renderList[m].screenDepth = viewPosition.z;
+			}
+		}
+
+		viewport->nRenderList ++;
+
 		entity->offScreen = FALSE;
 
 		//背面剔除
 		if ( BACKFACE_CULLING_MODE == 1 )
 		{
+			//总共：9乘法+1除法+6加减+1开方
+			//比较屏幕测试背面剔除
+			//顶点到裁剪空间的代价：12乘法+12加法
+			//顶点到屏幕空间的代价：2乘法+2加法
+			//总共：14乘法+14加法
 			FaceNode * sceneNode;
 
 			matrix3D_transformVector( & eyeToLocal, entity->worldInvert, camera->eye->position );
@@ -245,12 +334,7 @@ void viewport_project( Viewport * viewport )
 
 				sceneNode = sceneNode->next;
 			}
-			//总共：9乘法+1除法+6加减+1开方
-			//比较屏幕测试背面剔除
-			//顶点到裁剪空间的代价：12乘法+12加法
-			//顶点到屏幕空间的代价：2乘法+2加法
-			//总共：14乘法+14加法
-		}
+		}//背面剔除完成
 
 		//遍历顶点
 		vNode = entity->mesh->vertices->nodes;
@@ -288,26 +372,93 @@ void viewport_project( Viewport * viewport )
 			viewport->nRenderVertex  = i;
 
 			vNode = vNode->next;
-		}
+		}//结束遍历顶点
 
 		sceneNode = sceneNode->next;
+
+		n ++;
 	}
 	while( NULL != sceneNode && NULL != sceneNode->entity->mesh );
 }
 
-void resetBuffer(Viewport * view)
+void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2 );
+void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2, Texture * texture );
+void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2 );
+void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2, Texture * texture );
+
+void viewport_render(Viewport * view)
 {
-	float * zBuf = view->zBuffer;
-	uint32 * gfxBuf = view->gfxBuffer;
+	Scene * scene;
+	FaceNode * faceNode;
+	Entity * entity;
+	Vertex * (* vertex)[3];
+	int i = 0;
 
-	int wh = view->wh;
+	scene = view->scene;
 
-	int m = 0;
-
-	for ( ; m < wh; m ++ )
+	//遍历实体
+	//while( sceneNode != NULL )
+	for ( ; i < view->nRenderList; i ++ )
 	{
-		zBuf[m] = FLT_MAX;
-		gfxBuf[m] = 0;
+		entity = view->renderList[i].entity;
+		faceNode =entity->mesh->faces->nodes;
+
+		//遍历面
+		while( faceNode != NULL )
+		{
+			//如果面背向摄像机，不用光栅化
+			if ( TRUE == faceNode->face->isBackFace )
+			{
+				polygon_resetBackFace( faceNode->face );
+
+				faceNode = faceNode->next;
+
+				continue;
+			}
+
+			vertex = & faceNode->face->vertex;
+			
+			if ( scene->lightOn == FALSE )
+			{
+				if ( NULL == entity->texture )
+				{
+					triangle_rasterize( view,
+										& view->screenVertices[( * vertex)[0]->index],
+										& view->screenVertices[( * vertex)[1]->index],
+										& view->screenVertices[( * vertex)[2]->index] );
+				}
+				else
+				{
+					triangle_rasterize_texture( view,
+											& view->screenVertices[( * vertex)[0]->index],
+											& view->screenVertices[( * vertex)[1]->index],
+											& view->screenVertices[( * vertex)[2]->index],
+											entity->texture );
+				}
+			}
+			else
+			{
+				if ( NULL == entity->texture )
+				{
+					triangle_rasterize_light( view,
+											& view->screenVertices[( * vertex)[0]->index],
+											& view->screenVertices[( * vertex)[1]->index],
+											& view->screenVertices[( * vertex)[2]->index] );
+				}
+				else
+				{
+					triangle_rasterize_light_texture( view, 
+													& view->screenVertices[( * vertex)[0]->index],
+													& view->screenVertices[( * vertex)[1]->index],
+													& view->screenVertices[( * vertex)[2]->index],
+													entity->texture );
+				}
+			}
+
+			polygon_resetBackFace( faceNode->face );
+
+			faceNode = faceNode->next;
+		}
 	}
 }
 

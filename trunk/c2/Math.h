@@ -62,6 +62,7 @@ const float M_RAD2DEG		= 57.2957795130823208768f;
 const float M_SEC2MS		= 1000.0f;
 const float INFINITY		= 1e30f;
 const float FLT_EPSILON		= 1.192092896e-07f;
+const float INV_255			= 0.00392156862745098039f;
 
 enum
 {
@@ -80,7 +81,7 @@ union _flint
 	float					f;
 };
 
-void swapf(float * x, float * y)
+INLINE void swapf(float * x, float * y)
 {
 	float temp;
 	temp = *x;
@@ -88,7 +89,7 @@ void swapf(float * x, float * y)
 	*y = temp;
 }
 
-void swap(int * x, int * y)
+INLINE void swap(int * x, int * y)
 {
 	int temp;
 	temp = *x;

@@ -32,13 +32,13 @@ Quaternion * newQuaternion()
 	return q;
 }
 
-void quaternoin_identity(Quaternion * q)
+INLINE void quaternoin_identity(Quaternion * q)
 {
 	q->x = q->y = q->z = 0;
 	q->w = 1;
 }
 
-float safeAcos(float x)
+INLINE float safeAcos(float x)
 {
 	if (x <= -1.0f)
 	{
@@ -53,7 +53,7 @@ float safeAcos(float x)
 	return acosf(x);
 }
 
-void quaternoin_setToRotateAboutX(Quaternion * q, float theta)
+INLINE void quaternoin_setToRotateAboutX(Quaternion * q, float theta)
 {
 	float thetaOver2 = theta * 0.5f;
 
@@ -63,7 +63,7 @@ void quaternoin_setToRotateAboutX(Quaternion * q, float theta)
 	q->z = 0.0f;
 }
 
-void quaternoin_setToRotateAboutY(Quaternion * q, float theta)
+INLINE void quaternoin_setToRotateAboutY(Quaternion * q, float theta)
 {
 	float thetaOver2 = theta * 0.5f;
 
@@ -73,7 +73,7 @@ void quaternoin_setToRotateAboutY(Quaternion * q, float theta)
 	q->z = 0.0f;
 }
 
-void quaternoin_setToRotateAboutZ(Quaternion * q, float theta)
+INLINE void quaternoin_setToRotateAboutZ(Quaternion * q, float theta)
 {
 	float thetaOver2 = theta * 0.5f;
 
@@ -83,7 +83,7 @@ void quaternoin_setToRotateAboutZ(Quaternion * q, float theta)
 	q->z = sinf(thetaOver2);
 }
 
-void quaternoin_setToRotateAboutAxis(Quaternion * q, Vector3D * axis, float theta)
+INLINE void quaternoin_setToRotateAboutAxis(Quaternion * q, Vector3D * axis, float theta)
 {
 	float thetaOver2 = theta * 0.5f;
 	float sinThetaOver2 = sinf(thetaOver2);
@@ -97,7 +97,7 @@ void quaternoin_setToRotateAboutAxis(Quaternion * q, Vector3D * axis, float thet
 /**
 * 从指定欧拉角构造四元数
 */
-Quaternion * quaternoin_setFromEuler(Quaternion * output, float ay, float ax, float az)
+INLINE Quaternion * quaternoin_setFromEuler(Quaternion * output, float ay, float ax, float az)
 {
 	float sp, sb, sh, cp, cb, ch;
 
@@ -119,7 +119,7 @@ Quaternion * quaternoin_setFromEuler(Quaternion * output, float ay, float ax, fl
 /**
 * 从四元数返回矩阵
 */
-Matrix3D * quaternoin_toMatrix(Matrix3D * output, Quaternion * qua)
+INLINE Matrix3D * quaternoin_toMatrix(Matrix3D * output, Quaternion * qua)
 {
 	float x, y, z, w, xx, xy, xz, xw, yy, yz, yw, zz, zw;
 
@@ -161,7 +161,7 @@ Matrix3D * quaternoin_toMatrix(Matrix3D * output, Quaternion * qua)
 	return output;
 }
 
-Vector3D quaternion_toEuler( Vector3D q )
+INLINE Vector3D quaternion_toEuler( Vector3D q )
 {
 	Vector3D euler;
 			
@@ -192,7 +192,7 @@ Vector3D quaternion_toEuler( Vector3D q )
 	return euler;
 }
 
-void quaternion_normalize(Quaternion * q)
+INLINE void quaternion_normalize(Quaternion * q)
 {
 	float mag, oneOverMag;
 	
@@ -213,14 +213,14 @@ void quaternion_normalize(Quaternion * q)
 	}
 }
 
-float quaternion_getRotationAngle(Quaternion * q)
+INLINE float quaternion_getRotationAngle(Quaternion * q)
 {
 	float thetaOver2 = safeAcos(q->w);
 
 	return thetaOver2 * 2.0f;
 }
 
-Vector3D * quaternion_getRotationAxis(Quaternion * q)
+INLINE Vector3D * quaternion_getRotationAxis(Quaternion * q)
 {
 	float sinThetaOver2Sq, oneOverSinThetaOver2;
 
@@ -241,7 +241,7 @@ Vector3D * quaternion_getRotationAxis(Quaternion * q)
 		);
 }
 
-void quaternion_rotationMatrix(Quaternion * pout, Matrix3D * pm)
+INLINE void quaternion_rotationMatrix(Quaternion * pout, Matrix3D * pm)
 {
 	int maxi;
 	float maxdiag, s, trace;
@@ -298,12 +298,12 @@ void quaternion_rotationMatrix(Quaternion * pout, Matrix3D * pm)
 	}
 }
 
-float quaternion_dotProduct(Quaternion * a, Quaternion * b)
+INLINE float quaternion_dotProduct(Quaternion * a, Quaternion * b)
 {
     return a->w * b->w + a->x * b->x + a->y * b->y + a->z * b->z;
 }
 
-Quaternion * quaternion_slerp(Quaternion * q0, Quaternion * q1, float t)
+INLINE Quaternion * quaternion_slerp(Quaternion * q0, Quaternion * q1, float t)
 {
 	Quaternion * result;
 
@@ -360,7 +360,7 @@ Quaternion * quaternion_slerp(Quaternion * q0, Quaternion * q1, float t)
 	return result;
 }
 
-Quaternion * quaternion_conjugate(Quaternion * q)
+INLINE Quaternion * quaternion_conjugate(Quaternion * q)
 {
 	Quaternion * result;
 
@@ -375,7 +375,7 @@ Quaternion * quaternion_conjugate(Quaternion * q)
 	return result;
 }
 
-Quaternion * quaternion_pow(Quaternion * q, float exponent)
+INLINE Quaternion * quaternion_pow(Quaternion * q, float exponent)
 {
 	Quaternion * result;
 

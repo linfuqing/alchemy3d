@@ -334,11 +334,25 @@ void device_render(Device * device)
 	{
 		viewport = viewports->viewport;
 
-		viewport_project(viewport);
+		viewport_updateBeforeRender( viewport );
 
-		rasterize(viewport);
+		viewport_project( viewport );
+
+		viewport_render( viewport );
 
 		viewports = viewports->next;
+	}
+
+	//ÖØÖÃ
+	scenes = device->scenes;
+
+	while( NULL != scenes )
+	{
+		scene = scenes->scene;
+		
+		scene_updateAfterRender( scene );
+
+		scenes = scenes->next;
 	}
 }
 

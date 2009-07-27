@@ -87,7 +87,7 @@ typedef struct Matrix3D
 将当前矩阵转换为恒等或单位矩阵。恒等矩阵中的主对角线位置上的元素的值为一，而所有其他元素的值为零。
 生成的结果是一个矩阵，其中，rawData 值为 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1，旋转设置为 Vector3D(0,0,0)，位置或平移设置为 Vector3D(0,0,0)，缩放设置为 Vector3D(1,1,1)。
 **/
-Matrix3D *  matrix3D_identity( Matrix3D * m )
+INLINE Matrix3D *  matrix3D_identity( Matrix3D * m )
 {
 	m->m11 = 1.0f; m->m12 = 0.0f; m->m13 = 0.0f; m->m14 = 0.0f;
 
@@ -103,7 +103,7 @@ Matrix3D *  matrix3D_identity( Matrix3D * m )
 /**
 复制矩阵。
 **/
-Matrix3D * matrix3D_copy( Matrix3D * m, Matrix3D * src )
+INLINE Matrix3D * matrix3D_copy( Matrix3D * m, Matrix3D * src )
 {
 	m->m11 = src->m11; m->m12 = src->m12; m->m13 = src->m13; m->m14 = src->m14;
 
@@ -128,7 +128,7 @@ transpose() 方法会将当前矩阵替换为转置矩阵。
 
 正交矩阵是一个正方形矩阵，该矩阵的转置矩阵和逆矩阵相同。
 **/
-void matrix3D_transpose( Matrix3D * m )
+INLINE void matrix3D_transpose( Matrix3D * m )
 {
 	float m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44;
 
@@ -151,12 +151,12 @@ Matrix3D 对象必须是可逆的。可以使用 determinant 属性确保 Matrix3D 对象是可逆的。
 例如，如果矩阵的整个行或列为零，或如果两个行或列相等，则行列式为零。
 行列式还可用于对一系列方程进行求解。 
 **/
-float matrix3D_determinant( Matrix3D * m )
+INLINE float matrix3D_determinant( Matrix3D * m )
 {
 	return m->m11 * ( m->m22 * m->m33 - m->m23 * m->m32 ) + m->m12 * ( m->m23 * m->m31 - m->m21 * m->m33 ) + m->m13 * ( m->m21 * m->m32 - m->m22 * m->m31 );
 }
 
-float matrix3D_determinant4x4( Matrix3D * m )
+INLINE float matrix3D_determinant4x4( Matrix3D * m )
 {
 	float det2_01_01, det2_01_02, det2_01_03, det2_01_12, det2_01_13, det2_01_23, det3_201_012, det3_201_013, det3_201_023, det3_201_123;
 
@@ -175,7 +175,7 @@ float matrix3D_determinant4x4( Matrix3D * m )
 	return ( - det3_201_123 * m->m41 + det3_201_023 * m->m42 - det3_201_013 * m->m43 + det3_201_012 * m->m44 );
 }
 
-int matrix3D_invert4x4( Matrix3D * m )
+INLINE int matrix3D_invert4x4( Matrix3D * m )
 {
 	float det2_01_01, det2_01_02, det2_01_03, det2_01_12, det2_01_13, det2_01_23, det3_201_012, det3_201_013, det3_201_023, det3_201_123;
 	float det2_03_01, det2_03_02, det2_03_03, det2_03_12, det2_03_13, det2_03_23, det2_13_01, det2_13_02, det2_13_03, det2_13_12, det2_13_13, det2_13_23, det3_203_012, det3_203_013, det3_203_023, det3_203_123, det3_213_012, det3_213_013, det3_213_023, det3_213_123, det3_301_012, det3_301_013, det3_301_023, det3_301_123;
@@ -257,7 +257,7 @@ int matrix3D_invert4x4( Matrix3D * m )
 	return TRUE;
 }
 
-int matrix3D_fastInvert4x4( Matrix3D * m )
+INLINE int matrix3D_fastInvert4x4( Matrix3D * m )
 {
 	Matrix2D r0, r1, r2, r3;
 	float a, det, invDet;
@@ -362,7 +362,7 @@ invert() 方法会将当前矩阵替换为逆矩阵。
 
 Matrix3D 对象必须是可逆的。
 **/
-int matrix3D_invert( Matrix3D * m )
+INLINE int matrix3D_invert( Matrix3D * m )
 {
 	float m11, m12, m13, m21, m22, m23, m31, m32, m33, m41, m42, m43;
 
@@ -398,7 +398,7 @@ int matrix3D_invert( Matrix3D * m )
 	return TRUE;
 }
 
-int matrix3D_fastInvert( Matrix3D * m )
+INLINE int matrix3D_fastInvert( Matrix3D * m )
 {
 	float det, invDet, det_00, det_10, det_20, det_01, det_02, det_11, det_12, det_21, det_22;
 	float m11, m12, m13, m21, m22, m23, m31, m32, m33, m41, m42, m43;
@@ -451,31 +451,34 @@ int matrix3D_fastInvert( Matrix3D * m )
 
 如果 rawData 属性设置为一个不可逆的矩阵，则会引发异常。Matrix3D 对象必须是可逆的。
 **/
-float ( * matrix3D_getRawData( Matrix3D * m ) )[16]
+INLINE float * matrix3D_getRawData( Matrix3D * m )
 {
-	float ( * rawData )[16];
+	float * rawData;
 
-	rawData = calloc( 16, sizeof( float ) );
+	if( ( rawData = (float *)malloc( sizeof( float ) * 16 ) ) == NULL )
+	{
+		exit( TRUE );
+	}
 
-	( * rawData )[0]  = m->m11;
-	( * rawData )[1]  = m->m21;
-	( * rawData )[2]  = m->m31;
-	( * rawData )[3]  = m->m41;
+	rawData[0]  = m->m11;
+	rawData[1]  = m->m21;
+	rawData[2]  = m->m31;
+	rawData[3]  = m->m41;
 	
-	( * rawData )[4]  = m->m12;
-	( * rawData )[5]  = m->m22;
-	( * rawData )[6]  = m->m32;
-	( * rawData )[7]  = m->m42;
+	rawData[4]  = m->m12;
+	rawData[5]  = m->m22;
+	rawData[6]  = m->m32;
+	rawData[7]  = m->m42;
 
-	( * rawData )[8]  = m->m13;
-	( * rawData )[9]  = m->m23;
-	( * rawData )[10] = m->m33;
-	( * rawData )[11] = m->m43;
+	rawData[8]  = m->m13;
+	rawData[9]  = m->m23;
+	rawData[10] = m->m33;
+	rawData[11] = m->m43;
 
-	( * rawData )[12] = m->m14;
-	( * rawData )[13] = m->m24;
-	( * rawData )[14] = m->m34;
-	( * rawData )[15] = m->m44;
+	rawData[12] = m->m14;
+	rawData[13] = m->m24;
+	rawData[14] = m->m34;
+	rawData[15] = m->m44;
 
 	return rawData;
 }
@@ -485,7 +488,7 @@ float ( * matrix3D_getRawData( Matrix3D * m ) )[16]
 
 如果 rawData 属性设置为一个不可逆的矩阵，则会引发异常。Matrix3D 对象必须是可逆的。
 **/
-void matrix3D_setRawData( Matrix3D * m, float ( * rawData )[16] )
+INLINE void matrix3D_setRawData( Matrix3D * m, float ( * rawData )[16] )
 {
 	m->m11 = ( * rawData )[0];
 	m->m12 = ( * rawData )[1];
@@ -543,7 +546,7 @@ Matrix3D * newMatrix3D( float ( * rawData )[16] )
 	return m;
 }
 
-void sinCos(float *returnSin, float *returnCos, float theta)
+INLINE void sinCos(float *returnSin, float *returnCos, float theta)
 { 
 	*returnSin = sinf(theta); 
 	*returnCos = cosf(theta); 
@@ -555,7 +558,7 @@ void sinCos(float *returnSin, float *returnCos, float theta)
 
 利用 position 属性，可以获取和设置转换矩阵的平移元素。
 **/
-Vector3D * matrix3D_getPosition( Vector3D * output, Matrix3D * m )
+INLINE Vector3D * matrix3D_getPosition( Vector3D * output, Matrix3D * m )
 {
 	output->x = m->m41;
 	output->y = m->m42;
@@ -571,7 +574,7 @@ Vector3D * matrix3D_getPosition( Vector3D * output, Matrix3D * m )
 
 利用 position 属性，可以获取和设置转换矩阵的平移元素。
 **/
-void matrix3D_setPosition( Matrix3D * m, Vector3D * v )
+INLINE void matrix3D_setPosition( Matrix3D * m, Vector3D * v )
 {
 	m->m41 = v->x;
 	m->m42 = v->y;
@@ -594,7 +597,7 @@ thisMatrix = lhs * thisMatrix;
 append() 方法会将当前矩阵替换为后置的矩阵。
 如果要后置两个矩阵，而不更改当前矩阵，请使用 clone() 方法复制当前矩阵，然后对生成的副本应用 append() 方法。 
 **/
-Matrix3D * matrix3D_append( Matrix3D * output, Matrix3D * m1, Matrix3D * m2 )
+INLINE Matrix3D * matrix3D_append( Matrix3D * output, Matrix3D * m1, Matrix3D * m2 )
 {
 	output->m11 = m1->m11 * m2->m11 + m1->m12 * m2->m21 + m1->m13 * m2->m31;
 	output->m12 = m1->m11 * m2->m12 + m1->m12 * m2->m22 + m1->m13 * m2->m32;
@@ -615,7 +618,7 @@ Matrix3D * matrix3D_append( Matrix3D * output, Matrix3D * m1, Matrix3D * m2 )
 	return output;
 }
 
-Matrix3D * matrix3D_append_self( Matrix3D * thisMatrix, Matrix3D * lhs )
+INLINE Matrix3D * matrix3D_append_self( Matrix3D * thisMatrix, Matrix3D * lhs )
 {
 	float m11, m12, m13, m21, m22, m23, m31, m32, m33, m41, m42, m43, lhs_m11, lhs_m12, lhs_m13, lhs_m21, lhs_m22, lhs_m23, lhs_m31, lhs_m32, lhs_m33;
 
@@ -647,7 +650,7 @@ Matrix3D * matrix3D_append_self( Matrix3D * thisMatrix, Matrix3D * lhs )
 	return thisMatrix;
 }
 
-Matrix3D *  matrix3D_append4x4( Matrix3D * thisMatrix, Matrix3D * lhs )
+INLINE Matrix3D *  matrix3D_append4x4( Matrix3D * thisMatrix, Matrix3D * lhs )
 {
 	float m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44;
 	float lhs_m11, lhs_m12, lhs_m13, lhs_m14, lhs_m21, lhs_m22, lhs_m23, lhs_m24, lhs_m31, lhs_m32, lhs_m33, lhs_m34, lhs_m41, lhs_m42, lhs_m43, lhs_m44;
@@ -688,7 +691,7 @@ Matrix3D *  matrix3D_append4x4( Matrix3D * thisMatrix, Matrix3D * lhs )
 /**
 获取一个位移矩阵。
 **/
-Matrix3D * translationMatrix3D( Matrix3D * output, float x, float y, float z )
+INLINE Matrix3D * translationMatrix3D( Matrix3D * output, float x, float y, float z )
 {
 	output->m12 = output->m13 = output->m14 = output->m21 = output->m23 = output->m24 = output->m31 = output->m32 = output->m34 = 0;
 	output->m11= output->m22 = output->m33 = output->m44 =  1;
@@ -713,14 +716,14 @@ Matrix3D * translationMatrix3D( Matrix3D * output, float x, float y, float z )
 若要确保对转换矩阵进行绝对更改，请使用 recompose() 方法。转换的顺序也很重要。
 先平移再旋转的转换所产生的效果与先旋转再平移所产生的效果不同。 
 **/
-void matrix3D_appendTranslation( Matrix3D * m, float x, float y, float z )
+INLINE void matrix3D_appendTranslation( Matrix3D * m, float x, float y, float z )
 {
 	Matrix3D input;
 
 	matrix3D_append_self( m, translationMatrix3D( &input, x, y, z ) );
 }
 
-Matrix3D * rotationMatrix3D( Matrix3D * output,  float degrees, int axis )
+INLINE Matrix3D * rotationMatrix3D( Matrix3D * output,  float degrees, int axis )
 {
 	float angle = DEG2RAD(degrees);
 	float s = sinf( angle );
@@ -759,7 +762,7 @@ Matrix3D * rotationMatrix3D( Matrix3D * output,  float degrees, int axis )
 /**
 获取一个旋转矩阵.
 **/
-Matrix3D * rotationMatrix3DByAxis( Matrix3D * output,  float degrees, Vector3D * axis )
+INLINE Matrix3D * rotationMatrix3DByAxis( Matrix3D * output,  float degrees, Vector3D * axis )
 {
 	float angle = DEG2RAD(degrees);
 	float s = sinf( angle );
@@ -808,14 +811,14 @@ Matrix3D * rotationMatrix3DByAxis( Matrix3D * output,  float degrees, Vector3D *
 旋转效果不是绝对效果。
 此效果与对象有关，它与原始位置和方向的参照帧相对。若要确保对转换进行绝对更改，请使用 recompose() 方法。
 **/
-void matrix3D_appendRotation( Matrix3D * m, float degrees, int axis )
+INLINE void matrix3D_appendRotation( Matrix3D * m, float degrees, int axis )
 {
 	Matrix3D input;
 
 	matrix3D_append_self( m, rotationMatrix3D( &input,  degrees, axis ) );
 }
 
-void matrix3D_appendRotationByAxis( Matrix3D * m, float degrees, Vector3D * axis )
+INLINE void matrix3D_appendRotationByAxis( Matrix3D * m, float degrees, Vector3D * axis )
 {
 	Matrix3D input;
 
@@ -825,7 +828,7 @@ void matrix3D_appendRotationByAxis( Matrix3D * m, float degrees, Vector3D * axis
 /**
 生成一个缩放矩阵.
 **/
-Matrix3D * scaleMatrix3D( Matrix3D * output, float xScale, float yScale, float zScale )
+INLINE Matrix3D * scaleMatrix3D( Matrix3D * output, float xScale, float yScale, float zScale )
 {
 	output->m11 = xScale; output->m12 = 0.0f; output->m13 = 0.0f;
 	output->m21 = 0.0f; output->m22 = yScale; output->m23 = 0.0f;
@@ -854,7 +857,7 @@ appendScale() 方法可用于调整大小和管理扭曲（例如显示对象的拉伸或收缩），或用于某
 先调整大小再平移的转换所产生的效果与先平移再调整大小的转换所产生的效果不同。
 **/
 
-void matrix3D_appendScale( Matrix3D * m, float xScale, float yScale, float zScale )
+INLINE void matrix3D_appendScale( Matrix3D * m, float xScale, float yScale, float zScale )
 {
 	Matrix3D input;
 
@@ -864,7 +867,7 @@ void matrix3D_appendScale( Matrix3D * m, float xScale, float yScale, float zScal
 /**
 生成一个绕X轴旋转矩阵。
 **/
-Matrix3D * rotationXMatrix3D( Matrix3D * output, float theta )
+INLINE Matrix3D * rotationXMatrix3D( Matrix3D * output, float theta )
 {
 	float c, s;
 	sinCos(&s, &c, theta);
@@ -882,7 +885,7 @@ Matrix3D * rotationXMatrix3D( Matrix3D * output, float theta )
 /**
 生成一个绕Y轴旋转矩阵。
 **/
-Matrix3D * rotationYMatrix3D( Matrix3D * output, float theta )
+INLINE Matrix3D * rotationYMatrix3D( Matrix3D * output, float theta )
 {
 	float c, s;
 	sinCos(&s, &c, theta);
@@ -900,7 +903,7 @@ Matrix3D * rotationYMatrix3D( Matrix3D * output, float theta )
 /**
 生成一个绕Z轴旋转矩阵。
 **/
-Matrix3D * rotationZMatrix3D( Matrix3D * output, float theta )
+INLINE Matrix3D * rotationZMatrix3D( Matrix3D * output, float theta )
 {
 	float c, s;
 	sinCos(&s, &c, theta);
@@ -918,7 +921,7 @@ Matrix3D * rotationZMatrix3D( Matrix3D * output, float theta )
 /**
 后置X轴旋转.
 **/
-void matrix3D_appendRotationX( Matrix3D * m, float angle )
+INLINE void matrix3D_appendRotationX( Matrix3D * m, float angle )
 {
 	Matrix3D rotMtr;
 
@@ -933,7 +936,7 @@ void matrix3D_appendRotationX( Matrix3D * m, float angle )
 /**
 后置Y轴旋转.
 **/
-void matrix3D_appendRotationY( Matrix3D * m, float angle )
+INLINE void matrix3D_appendRotationY( Matrix3D * m, float angle )
 {
 	Matrix3D rotMtr;
 
@@ -948,7 +951,7 @@ void matrix3D_appendRotationY( Matrix3D * m, float angle )
 /**
 后置Z轴旋转.
 **/
-void matrix3D_appendRotationZ( Matrix3D * m, float angle )
+INLINE void matrix3D_appendRotationZ( Matrix3D * m, float angle )
 {
 	Matrix3D rotMtr;
 
@@ -968,7 +971,7 @@ void matrix3D_appendRotationZ( Matrix3D * m, float angle )
 第二个 Vector3D 对象容纳缩放元素。
 第三个 Vector3D 对象容纳旋转元素。 
 **/
-void matrix3D_decompose( Matrix3D * m, Vector3D * position, Quaternion * rotation, Vector3D * scale )
+INLINE void matrix3D_decompose( Matrix3D * m, Vector3D * position, Quaternion * rotation, Vector3D * scale )
 {
 	Matrix3D normalized;
 
@@ -1056,7 +1059,7 @@ recompose() 方法将覆盖矩阵转换。
 若要使用绝对父级参照帧来修改矩阵转换，请使用 decompose() 方法检索设置，然后做出适当的更改。
 然后，可以使用 recompose() 方法将 Matrix3D 对象设置为修改后的转换。 
 **/
-void matrix3D_recompose( Matrix3D * m, Vector3D * position, Vector3D * scale, Vector3D * rotation )
+INLINE void matrix3D_recompose( Matrix3D * m, Vector3D * position, Vector3D * scale, Vector3D * rotation )
 {
 	m = translationMatrix3D( m, position->x, position->y, position->z );
 
@@ -1074,7 +1077,7 @@ void matrix3D_recompose( Matrix3D * m, Vector3D * position, Vector3D * scale, Ve
 返回的 Vector3D 对象将容纳转换后的新坐标。
 将对 Vector3D 对象中应用所有矩阵转换（包括平移）。 
 **/
-Vector3D * matrix3D_transformVector( Vector3D * output, Matrix3D * m, Vector3D * v )
+INLINE Vector3D * matrix3D_transformVector( Vector3D * output, Matrix3D * m, Vector3D * v )
 {
 	//普通变换 12次乘法 + 12次加法
 	//投影变换 12次乘法 + 12次加法 + 3次除法
@@ -1099,7 +1102,7 @@ Vector3D * matrix3D_transformVector( Vector3D * output, Matrix3D * m, Vector3D *
 	return output;
 }
 
-void matrix3D_transformVector_self( Matrix3D * m, Vector3D * v )
+INLINE void matrix3D_transformVector_self( Matrix3D * m, Vector3D * v )
 {
 	//普通变换 12次乘法 + 12次加法
 	//投影变换 12次乘法 + 12次加法 + 3次除法
@@ -1140,7 +1143,7 @@ lookAt() 方法可使缓存的显示对象旋转属性值无效。
 然后，此方法将重新组成（更新）显示对象的矩阵，这将执行转换。
 如果该对象指向正在移动的目标（例如正在移动的对象位置），则对于每个后续调用，此方法都会让对象朝正在移动的目标旋转。 
 **/
-Matrix3D * lookAt( Matrix3D * output, Vector3D * pEye, Vector3D * pAt, Vector3D * pUp )
+INLINE Matrix3D * lookAt( Matrix3D * output, Vector3D * pEye, Vector3D * pAt, Vector3D * pUp )
 {
 	Vector3D right, up, vec;
 
@@ -1148,8 +1151,8 @@ Matrix3D * lookAt( Matrix3D * output, Vector3D * pEye, Vector3D * pAt, Vector3D 
 
 	vector3D_normalize(&vec);
 
-	vector3D_crossProduct(&right, &vec, pUp);
-	vector3D_crossProduct(&up, &vec, &right);
+	vector3D_crossProduct(&right, pUp, &vec);
+	vector3D_crossProduct(&up, &right, &vec);
 
 	vector3D_normalize(&right);
 	vector3D_normalize(&up);

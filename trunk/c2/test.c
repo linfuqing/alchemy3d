@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define INLINE
+
 #include "Base.h"
 #include "Math.h"
 #include "Device.h"
@@ -18,6 +20,7 @@
 #include "AABB.h"
 #include "Color.h"
 #include "Material.h"
+#include "Texture.h"
 #include "Light.h"
 
 int main()
@@ -62,7 +65,7 @@ int main()
 	Vector3D * v3d;
 	Entity * entity, entity1;
 	Faces * faces;
-	float d = 10.0f;
+	float * d;
 
 	Vector3D tv;
 
@@ -93,7 +96,7 @@ int main()
 
 	ts=clock();
 
-	for (i = 0; i < 100000000; i ++)
+	for (i = 0; i < 10000; i ++)
 	{
 		//newVector3D(100, 200, 0, 1);
 		//matrix3D_transformVector(&testM, v3d);
@@ -103,7 +106,11 @@ int main()
 		//memcpy(&entity1, entity, sizeof( * entity));
 		//matrix3D_invert4x4(&testM);
 		//matrix3D_invert(testMP);
-		d = d > 1.0f ? 1.0f : d;
+		if( (d = ( float * )malloc( sizeof( float ) ) ) == NULL)
+		{
+			exit( TRUE );
+		}
+		free(d);
 		//MAX(d, 1.0f);
 		//if ( d > 1.0f ) d = 1.0f;
 	}

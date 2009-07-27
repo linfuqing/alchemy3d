@@ -5,14 +5,15 @@
 
 typedef struct Texture
 {
-	int width, height;
+	int width, height, * bitmapDataP;
 	
-	uint32 * datas;
+	float * bitmapData;
 }Texture;
 
-Texture * newTexture( int width, int height )
+Texture * newTexture( int width, int height, float * bitmapData )
 {
 	Texture * texture;
+	int i, j, len, * bitmapDataP;
 
 	if( ( texture = ( Texture * )malloc( sizeof( Texture ) ) ) == NULL )
 	{
@@ -21,19 +22,33 @@ Texture * newTexture( int width, int height )
 
 	texture->width = width;
 	texture->height = height;
+	texture->bitmapData = bitmapData;
 
-	if( ( texture->datas = ( uint32 * )malloc( sizeof( uint32 ) * width * height ) ) == NULL )
+	if( ( bitmapDataP = ( int * )calloc( width * height, sizeof( int ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
+
+	i = j = 0;
+	len = width * height * 4;
+
+	for (; i < len; i += 4)
+	{
+		bitmapDataP[j++] = i;
+	}
+
+	texture->bitmapDataP = bitmapDataP;
 
 	return texture;
 }
 
 void dispose( Texture * texture )
 {
-	free( texture->datas );
-	texture->datas = NULL;
+	free( texture->bitmapData );
+	texture->bitmapData = NULL;
+
+	free( texture->bitmapDataP );
+	texture->bitmapDataP = NULL;
 }
 
 #endif
