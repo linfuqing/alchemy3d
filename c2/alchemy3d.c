@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <AS3.h>
 
+#define INLINE inline
+
 #include "Base.h"
 #include "Device.h"
 #include "Screen.h"
@@ -101,12 +103,13 @@ AS3_Val initializeTexture( void* self, AS3_Val args )
 {
 	Texture * texture;
 	int width, height;
+	float * bitmapData;
 
-	AS3_ArrayValue( args, "IntType, IntType", &width, &height );
+	AS3_ArrayValue( args, "IntType, IntType, IntType", &width, &height, &bitmapData );
 
-	texture = newTexture( width, height );
+	texture = newTexture( width, height, bitmapData );
 
-	return AS3_Array( "PtrType, PtrType", texture, texture->datas );
+	return AS3_Array( "PtrType", texture );
 }
 
 //初始化光源
@@ -184,20 +187,16 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
 {
-	int len = 0, size = 0;
+	int len, size;
 
-	float * tmpBuff;
+	void * tmpBuff;
 
-	AS3_ArrayValue( args, "IntType", &len );
+	AS3_ArrayValue( args, "IntType, IntType", &size, &len );
 
-	size = sizeof( float ) * len;
-
-	if( ( tmpBuff = ( float * )malloc( size ) ) == NULL )
+	if( ( tmpBuff = calloc( len, size ) ) == NULL )
 	{
 		exit( TRUE );
 	}
-
-	memset( tmpBuff, 10.0f, size );
 
 	return AS3_Ptr( tmpBuff );
 }

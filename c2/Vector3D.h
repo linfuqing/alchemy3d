@@ -31,17 +31,17 @@ typedef struct Vector3D
  **__________________________________________________________________________________**
  **************************************************************************************/
 
-float vector3D_lengthSquared( Vector3D * v )
+INLINE float vector3D_lengthSquared( Vector3D * v )
 {
 	return v->x * v->x + v->y * v->y + v->z * v->z;
 }
 
-float vector3D_length( Vector3D * v )
+INLINE float vector3D_length( Vector3D * v )
 {
 	return sqrtf( vector3D_lengthSquared( v ) );
 }
 
-void vector3D_set( Vector3D * v, float x, float y, float z, float w )
+INLINE void vector3D_set( Vector3D * v, float x, float y, float z, float w )
 {
 	v->x = x;
 	v->y = y;
@@ -63,7 +63,7 @@ Vector3D * newVector3D( float x, float y, float z, float w )
 	return v;
 }
 
-void vector3D_copy( Vector3D * v, Vector3D * src )
+INLINE void vector3D_copy( Vector3D * v, Vector3D * src )
 {
 	v->x = src->x;
 	v->y = src->y;
@@ -71,7 +71,7 @@ void vector3D_copy( Vector3D * v, Vector3D * src )
 	v->w = src->w;
 }
 
-Vector3D * vector3D_add( Vector3D * output, Vector3D * v1, Vector3D * v2 )
+INLINE Vector3D * vector3D_add( Vector3D * output, Vector3D * v1, Vector3D * v2 )
 {
 	output->x = v1->x + v2->x;
 	output->y = v1->y + v2->y;
@@ -81,7 +81,7 @@ Vector3D * vector3D_add( Vector3D * output, Vector3D * v1, Vector3D * v2 )
 	return output;
 }
 
-Vector3D * vector3D_subtract( Vector3D * output, Vector3D * v1, Vector3D * v2 )
+INLINE Vector3D * vector3D_subtract( Vector3D * output, Vector3D * v1, Vector3D * v2 )
 {
 	output->x = v1->x - v2->x;
 	output->y = v1->y - v2->y;
@@ -91,7 +91,7 @@ Vector3D * vector3D_subtract( Vector3D * output, Vector3D * v1, Vector3D * v2 )
 	return output;
 }
 
-Vector3D * vector3D_crossProduct( Vector3D * output, Vector3D * v1, Vector3D * v2 )
+INLINE Vector3D * vector3D_crossProduct( Vector3D * output, Vector3D * v1, Vector3D * v2 )
 {
 	output->x = v1->y * v2->z - v1->z * v2->y;
 	output->y = v1->z * v2->x - v1->x * v2->z;
@@ -101,46 +101,41 @@ Vector3D * vector3D_crossProduct( Vector3D * output, Vector3D * v1, Vector3D * v
 	return output;
 }
 
-float vector3D_distance( Vector3D * v1, Vector3D * v2 )
+INLINE float vector3D_distance( Vector3D * v1, Vector3D * v2 )
 {
 	Vector3D result;
 
 	return vector3D_length( vector3D_subtract(&result, v2, v1 ) );
 }
 
-float vector3D_dotProduct( Vector3D * v1, Vector3D * v2 )
+INLINE float vector3D_dotProduct( Vector3D * v1, Vector3D * v2 )
 {
 	return v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
 }
 
-//float vector3D_dotProduct( Vector3D * v1, Vector3D * v2 )
-//{
-//	return vector3D_dotMetrix( v1, v2 ) / ( vector3D_length( v1 ) * vector3D_length( v2 ) );
-//}
-
-float vector3D_angleBetween( Vector3D * v1, Vector3D * v2 )
+INLINE float vector3D_angleBetween( Vector3D * v1, Vector3D * v2 )
 {
 	return acosf( vector3D_dotProduct( v1, v2 ) );
 }
 
-int vector3D_equals( Vector3D * v1, Vector3D * v2, int allFour )
+INLINE int vector3D_equals( Vector3D * v1, Vector3D * v2, int allFour )
 {
 	return v1->x == v2->x && v1->y == v2->y && v1->z == v2->z && ( !allFour || v1->w == v2->w );
 }
 
-int vector3D_nearEquals( Vector3D * v1, Vector3D * v2, float lerance, int allFour )
+INLINE int vector3D_nearEquals( Vector3D * v1, Vector3D * v2, float lerance, int allFour )
 {
 	return ( fabs( v1->x - v2->x ) < lerance ) && ( fabs( v1->y - v2->y ) < lerance ) && ( fabs( v1->z - v2->z ) < lerance ) && ( !allFour || ( fabs( v1->w - v2->w ) < lerance ) );
 }
 
-void vector3D_negate( Vector3D * v )
+INLINE void vector3D_negate( Vector3D * v )
 {
 	v->x *= -1;
 	v->y *= -1;
 	v->z *= -1;
 }
 
-float vector3D_normalize( Vector3D * v )
+INLINE float vector3D_normalize( Vector3D * v )
 {
 	float len, oneOverMag;
 
@@ -162,7 +157,7 @@ float vector3D_normalize( Vector3D * v )
 	return len;
 }
 
-void vector3D_project( Vector3D * v )
+INLINE void vector3D_project( Vector3D * v )
 {
 	float oneOverMag = 1.0f / v->w;
 
@@ -172,7 +167,7 @@ void vector3D_project( Vector3D * v )
 	v->w  = 1;
 }
 
-void vector3D_scaleBy( Vector3D * v, float value )
+INLINE void vector3D_scaleBy( Vector3D * v, float value )
 {
 	v->x *= value;
 	v->y *= value;

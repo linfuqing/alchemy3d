@@ -68,7 +68,7 @@ Light * newPointLight( int type, Entity * source )
 	return light;
 }
 
-void setLightOnOff( Light * light, int OnOff )
+INLINE void setLightOnOff( Light * light, int OnOff )
 {
 	light->bOnOff = OnOff;
 }

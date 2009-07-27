@@ -20,7 +20,7 @@ typedef struct SceneNode
 
 typedef struct Scene
 {
-	int nNodes, nVertices, nFaces, nLights, isAttached;
+	int nNodes, nVertices, nFaces, nLights, lightOn, isAttached, dirty;
 
 	struct SceneNode * nodes;
 
@@ -36,9 +36,10 @@ Scene * newScene()
 		exit( TRUE );
 	}
 
-	scene->nFaces = scene->nNodes = scene->nVertices = scene->nLights = 0;
+	scene->nFaces = scene->nNodes = scene->nVertices = scene->nLights = scene->lightOn = 0;
 	scene->nodes = NULL;
 	scene->lights = NULL;
+	scene->dirty = FALSE;
 	scene->isAttached = FALSE;
 
 	return scene;
@@ -113,6 +114,7 @@ void scene_addEntity( Scene * scene, Entity * entity, Entity * parent )
 	}
 
 	scene->nNodes ++;
+	scene->dirty = TRUE;
 	scene->nFaces += n->entity->mesh->nFaces;
 	scene->nVertices += n->entity->mesh->nVertices;
 }
@@ -149,6 +151,7 @@ int scene_removeEntityAt( Scene * scene, int i )
 	}
 
 	scene->nFaces --;
+	scene->dirty = TRUE;
 
 	free(s);
 
@@ -365,6 +368,7 @@ void scene_update(Scene * scene)
 				lights = scene->lights;
 
 				//来自于光源的贡献
+				//如果有光源
 				while ( NULL != entity->material && NULL != lights)
 				{
 					//如果光源是关闭的
@@ -376,6 +380,8 @@ void scene_update(Scene * scene)
 
 						continue;
 					}
+
+					scene->lightOn = TRUE;
 
 					light = lights->light;	
 
@@ -536,6 +542,12 @@ void scene_update(Scene * scene)
 
 	free( fColor );
 	fColor = NULL;
+}
+
+void scene_updateAfterRender( Scene * scene )
+{
+	scene->lightOn = FALSE;
+	scene->dirty = FALSE;
 }
 
 #endif

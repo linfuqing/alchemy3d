@@ -49,13 +49,13 @@ Camera * newCamera( float fov, float nearClip, float farClip, Entity * eye )
 	return cam;
 }
 
-void camera_setTarget( Camera * camera, Vector3D * target )
+INLINE void camera_setTarget( Camera * camera, Vector3D * target )
 {
 	camera->target = target;
 	camera->hasTarget = TRUE;
 }
 
-void camera_setNullTarget( Camera * camera, int setFree )
+INLINE void camera_setNullTarget( Camera * camera, int setFree )
 {
 	if ( TRUE == setFree ) free( camera->target );
 
@@ -63,7 +63,7 @@ void camera_setNullTarget( Camera * camera, int setFree )
 }
 
 //根据上下左右远近截面获得投影矩阵
-Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float bottom, float left, float right, float near, float far )
+INLINE Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float bottom, float left, float right, float near, float far )
 {
 	float fn;
 
@@ -99,7 +99,7 @@ Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float bottom, floa
 }
 
 //根据远近截面、宽高比和视角获得投影矩阵
-Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float aspect )
+INLINE Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float aspect )
 {
 	float top = camera->nearClip * tanf( DEG2RAD( camera->fov * 0.5 ) );
 	float bottom = -top;
@@ -110,7 +110,7 @@ Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float aspect
 }
 
 //更新摄像机矩阵
-void camera_updateTransform(Camera * camera)
+INLINE void camera_updateTransform(Camera * camera)
 {
 	Entity * eye = camera->eye;
 

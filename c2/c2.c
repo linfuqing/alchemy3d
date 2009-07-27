@@ -1,6 +1,8 @@
 #include <malloc.h>
 #include <stdlib.h>
 
+#define INLINE
+
 #include "Base.h"
 #include "Math.h"
 #include "Device.h"
@@ -72,7 +74,18 @@ int main()
 	int i = 0;
 	int j = 0;
 
-	texture = newTexture(120, 120);
+	float * bitmapData;
+
+	if( ( bitmapData = ( float * )calloc( 400, sizeof( float ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+	bitmapData[0] = 1.0f;
+	bitmapData[1] = 0.4941176474094391f;
+	bitmapData[2] = 0.8078431487083435f;
+	bitmapData[3] = 0.9137254953384399f;
+
+	texture = newTexture(10, 10, bitmapData);
 
 	//初始化顶点链表
 	vertices = newVertices();
@@ -151,10 +164,12 @@ int main()
 	entity_setZ(do3d, 500.0f);
 	entity_setMesh( do3d, newMesh(faces, vertices) );
 	entity_setMaterial( do3d, material );
+	entity_setTexture( do3d, texture );
 
 	do3d2 = newEntity();
-	entity_setZ(do3d2, 500);
+	entity_setZ(do3d2, 300.0f);
 	entity_setMesh( do3d2, newMesh(faces2, vertices2) );
+	entity_setMaterial( do3d2, material );
 	entity_setMaterial( do3d2, material2 );
 
 	camera = newCamera( 90.0f, 100.0f, 5000.0f, newEntity() );
@@ -171,7 +186,7 @@ int main()
 	scene = newScene();
 	scene_addLight(scene, light);
 	scene_addEntity(scene, do3d, NULL);
-	scene_addEntity(scene, do3d2, do3d);
+	scene_addEntity(scene, do3d2, NULL);
 
 	view = newViewport( 600.0f, 400.0f, scene, camera );
 
@@ -186,9 +201,9 @@ int main()
 
 	device_render(device);
 	device_render(device);
+	/*device_render(device);
 	device_render(device);
-	device_render(device);
-	device_render(device);
+	device_render(device);*/
 
 	//printf("%x", view->gfxBuffer[189206]);
 

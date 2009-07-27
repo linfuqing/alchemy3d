@@ -25,12 +25,12 @@ typedef struct Color
 	};
 }Color;
 
-void color_normalize( Color * c )
+INLINE void color_normalize( Color * c )
 {
-	c->red = (c->red < 0.0f) ? 0.0f : ((c->red > 1.0f) ? 1.0f : c->red);
-	c->green = (c->green < 0.0f) ? 0.0f : ((c->green > 1.0f) ? 1.0f : c->green);
-	c->blue = (c->blue < 0.0f) ? 0.0f : ((c->blue > 1.0f) ? 1.0f : c->blue);
-	c->alpha = (c->alpha < 0.0f) ? 0.0f : ((c->alpha > 1.0f) ? 1.0f : c->alpha);
+	c->red = MIN( MAX( c->red, 0 ), 1.0f );
+	c->green = MIN( MAX( c->green, 0 ), 1.0f );
+	c->blue = MIN( MAX( c->blue, 0 ), 1.0f );
+	c->alpha = MIN( MAX( c->alpha, 0 ), 1.0f );
 }
 
 Color * newColor( float r, float g, float b, float a )
@@ -52,12 +52,12 @@ Color * newColor( float r, float g, float b, float a )
 	return c;
 }
 
-uint32 colorToUint32( Color * c )
+INLINE uint32 colorToUint32( Color * c )
 {
 	return ( (int)(c->alpha * 255) << 24 ) + ( (int)(c->red * 255) << 16 ) + ( (int)(c->green * 255) << 8 ) + (int)(c->blue * 255);
 }
 
-void color_copy( Color * c, Color * src )
+INLINE void color_copy( Color * c, Color * src )
 {
 	c->red = src->red;
 	c->green = src->green;
@@ -65,7 +65,7 @@ void color_copy( Color * c, Color * src )
 	c->alpha = src->alpha;
 }
 
-Color * color_add( Color * output, Color * c1, Color * c2 )
+INLINE Color * color_add( Color * output, Color * c1, Color * c2 )
 {
 	output->alpha = c1->alpha + c2->alpha;
 	output->red = c1->red + c2->red;
@@ -75,7 +75,7 @@ Color * color_add( Color * output, Color * c1, Color * c2 )
 	return output;
 }
 
-Color * color_scaleBy( Color * output, Color * c, float r, float g, float b, float a )
+INLINE Color * color_scaleBy( Color * output, Color * c, float r, float g, float b, float a )
 {
 	output->alpha = c->alpha * a;
 	output->red = c->red * r;
@@ -85,7 +85,7 @@ Color * color_scaleBy( Color * output, Color * c, float r, float g, float b, flo
 	return output;
 }
 
-Color * color_append( Color * output, Color * c1, Color * c2 )
+INLINE Color * color_append( Color * output, Color * c1, Color * c2 )
 {
 	output->alpha = c1->alpha * c2->alpha;
 	output->red = c1->red * c2->red;
@@ -97,7 +97,7 @@ Color * color_append( Color * output, Color * c1, Color * c2 )
 
 //================================================================================================
 
-Color * color_add_self( Color * c1, Color * c2 )
+INLINE Color * color_add_self( Color * c1, Color * c2 )
 {
 	c1->alpha += c2->alpha;
 	c1->red += c2->red;
@@ -107,7 +107,7 @@ Color * color_add_self( Color * c1, Color * c2 )
 	return c1;
 }
 
-Color * color_scaleBy_self( Color * c, float r, float g, float b, float a )
+INLINE Color * color_scaleBy_self( Color * c, float r, float g, float b, float a )
 {
 	c->alpha *= a;
 	c->red *= r;
@@ -117,7 +117,7 @@ Color * color_scaleBy_self( Color * c, float r, float g, float b, float a )
 	return c;
 }
 
-Color * color_append_self( Color * c1, Color * c2 )
+INLINE Color * color_append_self( Color * c1, Color * c2 )
 {
 	c1->alpha *= c2->alpha;
 	c1->red *= c2->red;
@@ -127,7 +127,7 @@ Color * color_append_self( Color * c1, Color * c2 )
 	return c1;
 }
 
-void color_zero( Color * c )
+INLINE void color_zero( Color * c )
 {
 	c->red = c->green = c->blue = c->alpha = 0.0f;
 }
