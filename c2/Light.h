@@ -38,6 +38,13 @@ typedef struct Light
 	Entity * source;
 }Light;
 
+typedef struct Lights
+{
+	Light * light;
+
+	struct Lights * next;
+}Lights;
+
 Light * newPointLight( int type, Entity * source )
 {
 	Light * light;
@@ -55,9 +62,6 @@ Light * newPointLight( int type, Entity * source )
 	light->diffuse = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
 	light->specular = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
-	/*color_scaleBy( light->ambient, color, 0.4f, 0.4f, 0.4f, 1 );
-	color_scaleBy( light->specular, color, 0.6f, 0.6f, 0.6f, 1 );*/
-
 	light->attenuation0 = 1.0f;
 	light->attenuation1 = light->attenuation2 = 0.0f;
 	light->spotExp = 1.0f;
@@ -66,6 +70,11 @@ Light * newPointLight( int type, Entity * source )
 	light->source = source;
 
 	return light;
+}
+
+void light_dispose( Light * light )
+{
+	free( light );
 }
 
 INLINE void setLightOnOff( Light * light, int OnOff )

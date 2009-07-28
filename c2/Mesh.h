@@ -47,4 +47,11 @@ Mesh * newMesh( Faces * faces, Vertices * vertices )
 	return m;
 }
 
+void mesh_dispose( Mesh * mesh )
+{
+	aabb_dispose( mesh->aabb );
+	aabb_dispose( mesh->worldAABB );
+	free( mesh );
+}
+
 #endif

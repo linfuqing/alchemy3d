@@ -250,7 +250,7 @@ void viewport_project( Viewport * viewport )
 	//遍历场景
 	sceneNode = scene->nodes;
 
-	do
+	while( NULL != sceneNode && NULL != sceneNode->entity->mesh )
 	{
 		entity = sceneNode->entity;
 		//连接摄像机矩阵
@@ -262,8 +262,6 @@ void viewport_project( Viewport * viewport )
 		if ( clip_viewCulling( & view, * entity->mesh->aabb ) > 0 )
 		{
 			sceneNode = sceneNode->next;
-
-			entity->offScreen = TRUE;
 
 			continue;
 		}
@@ -302,8 +300,6 @@ void viewport_project( Viewport * viewport )
 		}
 
 		viewport->nRenderList ++;
-
-		entity->offScreen = FALSE;
 
 		//背面剔除
 		if ( BACKFACE_CULLING_MODE == 1 )
@@ -378,7 +374,6 @@ void viewport_project( Viewport * viewport )
 
 		n ++;
 	}
-	while( NULL != sceneNode && NULL != sceneNode->entity->mesh );
 }
 
 void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2 );

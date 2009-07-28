@@ -42,7 +42,7 @@ Texture * newTexture( int width, int height, float * bitmapData )
 	return texture;
 }
 
-void dispose( Texture * texture )
+void texture_dispose( Texture * texture )
 {
 	free( texture->bitmapData );
 	texture->bitmapData = NULL;

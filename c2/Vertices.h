@@ -37,6 +37,10 @@ Vertices * newVertices()
 	return v;
 }
 
+void vertices_dispose( Vertices * v )
+{
+}
+
 int vertices_push( Vertices * head, Vertex * vertex )
 {
 	VertexNode * p, * q;

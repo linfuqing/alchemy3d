@@ -106,6 +106,14 @@ INLINE void aabb_add(AABB * aabb, Vector3D * p)
 	if (p->z > aabb->max->z) aabb->max->z = p->z;
 }
 
+void aabb_dispose( AABB * aabb )
+{
+	free( aabb->max );
+	free( aabb->min );
+	aabb->max = NULL;
+	aabb->min = NULL;
+}
+
 INLINE AABB * aabb_createFromAABB(AABB * box)
 {
 	AABB * aabb;

@@ -4,20 +4,6 @@
 #include "Entity.h"
 #include "Light.h"
 
-typedef struct Lights
-{
-	Light * light;
-
-	struct Lights * next;
-}Lights;
-
-typedef struct SceneNode
-{
-	Entity * entity;
-
-	struct SceneNode * next;
-}SceneNode;
-
 typedef struct Scene
 {
 	int nNodes, nVertices, nFaces, nLights, lightOn, isAttached, dirty;
@@ -65,6 +51,25 @@ SceneNode * scene_findEntity( SceneNode * node, Entity * entity )
 	}
 }
 
+SceneNode * scene_findEntity2( SceneNode * node, Entity * entity )
+{
+	if ( node == NULL )
+	{
+		return NULL;
+	}
+	else
+	{
+		if ( entity == node->next->entity )
+		{
+			return node;
+		}
+		else
+		{
+			return scene_findEntity( node->next, entity );
+		}
+	}
+}
+
 void scene_addEntity( Scene * scene, Entity * entity, Entity * parent )
 {
 	SceneNode * sceneNode, * n;
@@ -79,6 +84,7 @@ void scene_addEntity( Scene * scene, Entity * entity, Entity * parent )
 		}
 
 		entity->parent = parent;
+		entity_addChild( parent, entity );
 	}
 	else
 	{
@@ -99,6 +105,7 @@ void scene_addEntity( Scene * scene, Entity * entity, Entity * parent )
 	}
 
 	n->entity = entity;
+	n->entity->scene = scene;
 
 	if (NULL == sceneNode)
 	{
@@ -117,6 +124,43 @@ void scene_addEntity( Scene * scene, Entity * entity, Entity * parent )
 	scene->dirty = TRUE;
 	scene->nFaces += n->entity->mesh->nFaces;
 	scene->nVertices += n->entity->mesh->nVertices;
+}
+
+void scene_removeEntity( Scene * scene, Entity * entity )
+{
+	SceneNode * sceneNode, * s;
+
+	if ( NULL != entity->children )
+	{
+		s = entity->children;
+
+		while ( NULL != s )
+		{
+			scene_removeEntity( scene, s->entity );
+
+			s = s->next;
+		}
+	}
+
+	sceneNode = scene->nodes;
+
+	if ( sceneNode->entity == entity )
+	{
+		scene->nodes = scene->nodes->next;
+	}
+	else
+	{
+		s = scene_findEntity2( sceneNode, entity );
+
+		s->next = s->next->next;
+	}
+
+	entity->scene = NULL;
+
+	scene->nNodes --;
+	scene->dirty = TRUE;
+	scene->nFaces -= entity->mesh->nFaces;
+	scene->nVertices -= entity->mesh->nVertices;
 }
 
 int scene_removeEntityAt( Scene * scene, int i )
@@ -150,10 +194,10 @@ int scene_removeEntityAt( Scene * scene, int i )
 		sceneNode->next = s->next;
 	}
 
-	scene->nFaces --;
+	scene->nNodes --;
 	scene->dirty = TRUE;
-
-	free(s);
+	scene->nFaces -= s->entity->mesh->nFaces;
+	scene->nVertices -= s->entity->mesh->nVertices;
 
 	return TRUE;
 }
@@ -162,15 +206,15 @@ int scene_removeEntityAt( Scene * scene, int i )
 //------------------------Light----------------------
 int scene_addLight(Scene * scene, Light * light)
 {
-	Lights * sceneNode, * q;
+	Lights * lights, * q;
 
-	sceneNode = scene->lights;
+	lights = scene->lights;
 
-	if (NULL != sceneNode)
+	if (NULL != lights)
 	{
-		while( NULL != sceneNode->next )
+		while( NULL != lights->next )
 		{
-			sceneNode = sceneNode->next;
+			lights = lights->next;
 		}
 	}
 
@@ -183,13 +227,13 @@ int scene_addLight(Scene * scene, Light * light)
 
 	q->next = NULL;
 
-	if (NULL == sceneNode)
+	if (NULL == lights)
 	{
 		scene->lights = q;
 	}
 	else
 	{
-		sceneNode->next = q;
+		lights->next = q;
 	}
 
 	scene->nLights ++;
@@ -197,9 +241,48 @@ int scene_addLight(Scene * scene, Light * light)
 	return TRUE;
 }
 
+Lights * scene_findLight( Lights * node, Light * light )
+{
+	if ( node == NULL )
+	{
+		return NULL;
+	}
+	else
+	{
+		if ( light == node->next->light )
+		{
+			return node;
+		}
+		else
+		{
+			return scene_findLight( node->next, light );
+		}
+	}
+}
+
+void scene_removeLight( Scene * scene, Light * light )
+{
+	Lights * lights, * s;
+
+	lights = scene->lights;
+
+	if ( lights->light == light )
+	{
+		scene->lights = scene->lights->next;
+	}
+	else
+	{
+		s = scene_findLight( lights, light );
+
+		s->next = s->next->next;
+	}
+
+	scene->nLights --;
+}
+
 int scene_removeLightAt( Scene * scene, int i )
 {
-	Lights * sceneNode, * s;
+	Lights * lights, * s;
 
 	int j = 1;
 
@@ -216,29 +299,28 @@ int scene_removeLightAt( Scene * scene, int i )
 	}
 	else
 	{
-		sceneNode = scene->lights;
+		lights = scene->lights;
 
 		for (; j < i; j ++)
 		{
-			sceneNode = sceneNode->next;
+			lights = lights->next;
 		}
 
-		s = sceneNode->next;
+		s = lights->next;
 
-		sceneNode->next = s->next;
+		lights->next = s->next;
 	}
 
 	scene->nLights --;
-
-	free(s);
 
 	return TRUE;
 }
 //------------------------end Light----------------------
 
-void scene_destroy( Scene * * head )
+void scene_dispose( Scene * head )
 {
-	SceneNode * sceneNode, * p1;
+	/*SceneNode * sceneNode, * p1;
+	Lights * lights, * p2;
 
 	sceneNode = (* head)->nodes;
 
@@ -251,9 +333,20 @@ void scene_destroy( Scene * * head )
 		free( p1 );
 	}
 
-	free(* head);
+	lights = (* head)->lights;
 
-	* head = NULL;
+	while( lights != NULL )
+	{
+		p2 = lights;
+
+		lights = lights->next;
+
+		free( p2 );
+	}*/
+
+	free(head);
+
+	head = NULL;
 }
 
 //¸üÐÂ³¡¾°
