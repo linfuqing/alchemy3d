@@ -6,6 +6,7 @@
 
 
 #include "Viewport.h"
+#include "Scene.h"
 
 //N
 
