@@ -3,39 +3,67 @@
 
 #include "Render.h"
 
-
-AS3_Val initializeDevice( void* self, AS3_Val args )
+AS3_Val initializeVertex( void * self, AS3_Val args )
 {
-	return 0;
+	Vertex * v;
+
+	AS3_ArrayValue( args, "PtrType", v );
+
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", & ( v -> position -> x ), & ( v -> position -> y ), & ( v -> position -> z ), & ( v -> worldPosition -> x ), & ( v -> worldPosition -> y ), & ( v -> worldPosition -> z ) ); 
 }
 
-AS3_Val initializeCamera( void* self, AS3_Val args )
+AS3_Val initializeVertices( void * self, AS3_Val args )
 {
-	Camera * camera;
+	Vertices * vs;
 
-	camera = newCamera( NULL, NULL, NULL );
+	Vertex   * v;
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", camera, camera->position, camera->direction, camera->scale );
+	Vector3D * v3d, * vp;
+
+	Number   * vertices;
+
+	int      length, i, vi;
+
+	AS3_ArrayValue( args, "PtrType, IntType", vertices, & length );
+
+	if( ( vs  = ( Vertices * )malloc( sizeof( Vertices ) * length + 1 ) ) == NULL
+	 || ( v   = ( Vertex   * )malloc( sizeof( Vertex   ) * length     ) ) == NULL
+	 || ( v3d = ( Vector3D * )malloc( sizeof( Vector3D ) * length * 2 ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	for( i = 1; i <= length; i ++ )
+	{
+		vi                                = i - 1;
+
+		vp                                = v3d + 2 * i - 1;
+		vp -> x                           = vertices[i];
+		vp -> y                           = vertices[i + 1];
+		vp -> z                           = vertices[i + 2];
+		vp -> w                           = 1;
+
+		* ( vp + 1 )                      = * vp;
+
+		
+		  ( v  + vi ) -> position      = vp;
+		  ( v  + vi ) -> worldPosition = vp  + 1;
+		  ( vs + i  ) -> vertex        = v   + vi;
+		  ( vs + vi ) -> next          = vs  + i;
+	}
+
+	free( vertices );
+
+	return AS3_Array( "PtrType, PtrType",vs, v );
 }
 
-AS3_Val initializeEngine( void* self, AS3_Val args )
+AS3_Val initializeFaces( void * self, AS3_Val args )
 {
-	Viewport * view;
-	RenderEngine * r;
-	Number width, height;
-
-	AS3_ArrayValue( args, "DoubleType, DoubleType, PtrType", &width, &height, &view );
-
-	r    = newRenderEngine( 800, 600 );
-
-	renderEngine_addViewport( r, view );
-
-	return AS3_Array( "PtrType", r );
 }
 
 //初始化场景
 //返回该对象的起始指针
-AS3_Val initializeViewport( void* self, AS3_Val args )
+AS3_Val initializeViewport( void * self, AS3_Val args )
 {
 	Viewport * view;
 	Scene    * s;
@@ -46,96 +74,11 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 
 	view = newViewport( left, right, top, bottom, far, near, s );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", view, &view->left, &view->right, &view->top, &view->bottom, &view->far, &view->near, &view->scene );
-}
-
-AS3_Val initializeMaterial( void* self, AS3_Val args )
-{
-	return 0;
-}
-
-AS3_Val initializeTexture( void* self, AS3_Val args )
-{
-	return 0;
-}
-
-//初始化光源
-//返回该对象起始指针
-AS3_Val initializeLight( void* self, AS3_Val args )
-{
-	return 0;
-}
-
-//创建几何实体
-//返回该对象的起始指针
-AS3_Val initializeEntity( void* self, AS3_Val args )
-{
-	Number * tmpBuff;
-	Polygon * p;
-	Faces    * f;
-	Vertices * v;
-	Mesh     * m;
-	Scene    * s;
-
-	int vNum, fNum, vLen, i, j, k;
-
-	AS3_ArrayValue( args, "PtrType, IntType, IntType", &tmpBuff, &vNum, &fNum );
-
-	if (vNum != 0 && fNum != 0)
-	{
-		faces_initiate( & f );
-		vertices_initiate( & v );
-
-		vLen = vNum * VERTEX_SIZE;
-
-		i = 0;
-		j = 0;
-		k = vLen;
-
-		for ( ; i < vNum; i ++, k, j+= VERTEX_SIZE * 3 )
-		{
-			faces_push( f, ( p = newTriangle3D(	newVertex( newVector3D( tmpBuff[j], tmpBuff[j+1], tmpBuff[j+2], tmpBuff[j+3] ) ),
-												newVertex( newVector3D( tmpBuff[j+4], tmpBuff[j+5], tmpBuff[j+6], tmpBuff[j+7] ) ),
-												newVertex( newVector3D( tmpBuff[j+8], tmpBuff[j+9], tmpBuff[j+10], tmpBuff[j+11] ) ),
-												newVector( tmpBuff[k + 3 + FACE_SIZE * i], tmpBuff[k + 4 + FACE_SIZE * i] ),
-												newVector( tmpBuff[k + 5 + FACE_SIZE * i], tmpBuff[k + 6 + FACE_SIZE * i] ),
-												newVector( tmpBuff[k + 7 + FACE_SIZE * i], tmpBuff[k + 8 + FACE_SIZE * i] ) ) ) );
-		}
-
-		vertices_push( v, p -> next -> vertex );
-		vertices_push( v, p -> next -> next -> vertex );
-		vertices_push( v, p -> next -> next -> next -> vertex );
-
-		m = newMesh( f, v );
-
-		s    = newScene( newMesh( f, v ) );
-
-		free( tmpBuff );
-	}
-
-	tmpBuff = NULL;
-
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", s, &s->visible, s->mesh->vertices, s->mesh->faces );
-}
-
-AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
-{
-	int len, size;
-
-	void * tmpBuff;
-
-	AS3_ArrayValue( args, "IntType, IntType", &size, &len );
-
-	if( ( tmpBuff = calloc( len, size ) ) == NULL )
-	{
-		exit( TRUE );
-	}
-
-	return AS3_Ptr( tmpBuff );
+	return AS3_Array( "PtrType", view );
 }
 
 //渲染
-AS3_Val beginRender( void* self, AS3_Val args )
+AS3_Val beginRender( void * self, AS3_Val args )
 {
 	RenderEngine * r;
 
@@ -144,6 +87,32 @@ AS3_Val beginRender( void* self, AS3_Val args )
 	render( r, RENDER_MODE_DYNAMIC );
 
 	return 0;
+}
+
+AS3_Val applyForTmpBuffer( void * self, AS3_Val args )
+{
+	int size;
+
+	void * tmpBuffer;
+
+	AS3_ArrayValue( args, "IntType", &size );
+
+	if( ( tmpBuffer = malloc( size ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	return AS3_Ptr( tmpBuffer );
+}
+
+AS3_Val doubleTypeSize( void * self, AS3_Val args )
+{
+	return AS3_Int( sizeof( Double ) );
+}
+
+AS3_Val intTypeSize( void * self, AS3_Val args )
+{
+	return AS3_Int( sizeof( int ) );
 }
 
 //测试函数

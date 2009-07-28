@@ -9,18 +9,15 @@ N :·â×°
 #ifndef BASE_H
 #define BASE_H
 
-#include <math.h>
+# include < math.h >
 
-#define TRUE      1
-#define FALSE     0
-#define PI        3.1415926
-#define TODEGREES 180 / PI
-#define TORADIANS PI / 180
-#define VERTEX_SIZE		4
-#define FACE_SIZE		9
+# define TRUE      1
+# define FALSE     0
+# define PI        3.1415926
+# define TODEGREES 180 / PI
+# define TORADIANS PI / 180
 
 typedef double Number;
-
 
 /*int toInt( Number n )
 {
