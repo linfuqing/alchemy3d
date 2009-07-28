@@ -11,7 +11,11 @@ AS3_Val initializeDevice( void* self, AS3_Val args )
 
 AS3_Val initializeCamera( void* self, AS3_Val args )
 {
-	return 0;
+	Camera * camera;
+
+	camera = newCamera( NULL, NULL, NULL );
+
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", camera, camera->position, camera->direction, camera->scale );
 }
 
 AS3_Val initializeEngine( void* self, AS3_Val args )
@@ -20,7 +24,7 @@ AS3_Val initializeEngine( void* self, AS3_Val args )
 	RenderEngine * r;
 	Number width, height;
 
-	AS3_ArrayValue( args, "DoubleType, DoubleType", &width, &height, &view );
+	AS3_ArrayValue( args, "DoubleType, DoubleType, PtrType", &width, &height, &view );
 
 	r    = newRenderEngine( 800, 600 );
 
@@ -42,7 +46,7 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 
 	view = newViewport( left, right, top, bottom, far, near, s );
 
-	return AS3_Array( "PtrType", view );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", view, &view->left, &view->right, &view->top, &view->bottom, &view->far, &view->near, &view->scene );
 }
 
 AS3_Val initializeMaterial( void* self, AS3_Val args )
@@ -111,7 +115,7 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 	tmpBuff = NULL;
 
-	return AS3_Array( "PtrType", s );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", s, &s->visible, s->mesh->vertices, s->mesh->faces );
 }
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
