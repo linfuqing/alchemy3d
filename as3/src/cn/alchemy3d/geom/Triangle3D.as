@@ -4,7 +4,6 @@ package cn.alchemy3d.geom
 	import cn.alchemy3d.objects.Entity;
 	
 	import flash.geom.Point;
-	import flash.geom.Vector3D;
 	
 	public class Triangle3D extends AbstractRenderable
 	{
@@ -30,8 +29,6 @@ package cn.alchemy3d.geom
 			uvtData[5] = uvc.y;
 		}
 		
-		public var normal:Vector3D;
-		
 		public var p0Index:int;
 		public var p1Index:int;
 		public var p2Index:int;
@@ -41,6 +38,11 @@ package cn.alchemy3d.geom
 		public var uv2:Point;
 		
 		public var uvtData:Vector.<Number>;
+		
+//		public function clone():Triangle3D
+//		{
+//			return new Triangle3D(p0Index:int
+//		}
 		
 		public function destroy():void
 		{

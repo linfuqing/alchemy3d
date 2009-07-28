@@ -277,7 +277,7 @@ package cn.alchemy3d.objects
 			var tPtr:uint = texture == null ? 0 : texture.pointer;
 			var mPtr:uint = material == null ? 0 : material.pointer;
 			
-			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0, 0));
+			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0));
 		}
 		
 		public function allotPtr(ps:Array):void
