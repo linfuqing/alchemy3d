@@ -22,9 +22,6 @@ typedef struct Scene
 	int            move;
 
 	//N
-	int            ID;
-
-	//N
 	struct Scene * next;
 
 	//N
@@ -46,7 +43,6 @@ Scene * newScene( Mesh * mesh )
 	scene -> visible        = TRUE;
 	scene -> children       = NULL;
 	scene -> next           = NULL;
-	scene -> ID             = 0;
 	scene -> move           = FALSE;
 
 	return scene;
@@ -352,7 +348,7 @@ void transformScene( Scene * s, int mode )
 
 void scene_destroy( Scene * * s )
 {
-	//scene_previousOrder( * s, free );
+	scene_previousOrder( * s, free );
 
 	* s = NULL;
 }

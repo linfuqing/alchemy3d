@@ -186,7 +186,7 @@ Projection * newProjection( Mesh * m, Projection * * from )
 		while( pp != NULL )
 		{
 			//如果获取不到面顶点的索引值,则判断网格为不匹配网格,无法投影
-			if( vi == vertices_index( m -> vertices, pp -> vertex ) )
+			if( vi = vertices_index( m -> vertices, pp -> vertex ) )
 			{
 				//依照网格顺序对接投影面构造,并链接面链表
 				++ sp;
