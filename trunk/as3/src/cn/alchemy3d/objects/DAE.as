@@ -533,7 +533,7 @@ package cn.alchemy3d.objects
 			
 			// link the skins
 			//TODO
-			linkSkins();
+//			linkSkins();
 			
 			this.addChild(_rootNode);
 			
@@ -541,25 +541,25 @@ package cn.alchemy3d.objects
 			
 			dispatchEvent(new LoadEvent(LoadEvent.GEOMETRY_BUILD_COMPLETE));
 
-			// animation stuff
-			_currentFrame = 0;
-			_totalFrames = 0;
-			_startTime = _endTime = 0;
-			_channels = new Vector.<AbstractChannel3D>;
-			_isAnimated = false;
-			_isPlaying = false;
-			
-			//读取动画
-			if(document.numQueuedAnimations)
-			{
-				_isAnimated = true;
-				
-				this.parser.addEventListener(Event.COMPLETE, onParseAnimationsComplete);
-				this.parser.addEventListener(ProgressEvent.PROGRESS, onParseAnimationsProgress);
-				this.parser.readAnimations();
-			}
-			//场景建立完毕
-			//dispatchEvent(new LoadEvent(LoadEvent.LOAD_COMPLETE));
+//			// animation stuff
+//			_currentFrame = 0;
+//			_totalFrames = 0;
+//			_startTime = _endTime = 0;
+//			_channels = new Vector.<AbstractChannel3D>;
+//			_isAnimated = false;
+//			_isPlaying = false;
+//			
+//			//读取动画
+//			if(document.numQueuedAnimations)
+//			{
+//				_isAnimated = true;
+//				
+//				this.parser.addEventListener(Event.COMPLETE, onParseAnimationsComplete);
+//				this.parser.addEventListener(ProgressEvent.PROGRESS, onParseAnimationsProgress);
+//				this.parser.readAnimations();
+//			}
+//			//场景建立完毕
+//			//dispatchEvent(new LoadEvent(LoadEvent.LOAD_COMPLETE));
 		}
 
 		/**
@@ -876,7 +876,7 @@ package cn.alchemy3d.objects
 			else
 			{
 				// no Geometry3D, simply create a Joint3D
-				instance = new Entity(node.name);
+				instance = new Entity(null, null, node.name);
 			}
 			
 			// recurse node instances
@@ -905,17 +905,6 @@ package cn.alchemy3d.objects
 		}
 		
 		/**
-		 * 建立颜色
-		 */
-		private function buildColor( rgb:Array ):uint
-		{
-			var r:uint = rgb[0] * 0xff;
-			var g:uint = rgb[1] * 0xff;
-			var b:uint = rgb[2] * 0xff;
-			return (r<<16|g<<8|b);
-		}
-		
-		/**
 		 * 建立结点变换数组
 		 * 
 		 * Builds a Matrix3D from a node's transform array. @see org.ascollada.core.DaeNode#transforms
@@ -933,210 +922,210 @@ package cn.alchemy3d.objects
 			return matrix;
 		}
 		
-		/**
-		 * 建立结点变换数组集
-		 * 
-		 * @param	node
-		 * @return
-		 */
-		private function buildMatrixStack(node:DaeNode):Array
-		{
-			var stack:Array = [];	
-			for( var i:int = 0; i < node.transforms.length; i++ ) 
-				stack.push(buildMatrixFromTransform(node.transforms[i]));
-			return stack;
-		}
-		
-				
-		/**
-		 * 从变换提取数组
-		 * 
-		 * @param	node
-		 * @return
-		 */
-		private function buildMatrixFromTransform(transform:DaeTransform):Matrix3D
-		{
-			var matrix:Matrix3D = new Matrix3D();
-			var v:Array = transform.values;
-			
-			switch(transform.type)
-			{
-				case ASCollada.DAE_ROTATE_ELEMENT:
-					matrix.appendRotation( v[3],new Vector3D( v[0], v[1], v[2] ));
-					break;
-				case ASCollada.DAE_SCALE_ELEMENT:
-					matrix.appendScale(v[0], v[1], v[2]);
-					break;
-				case ASCollada.DAE_TRANSLATE_ELEMENT:
-					matrix.appendTranslation(v[0], v[1], v[2]);
-					break;
-				case ASCollada.DAE_MATRIX_ELEMENT:
-					var rawData:Vector.<Number> = Vector.<Number>(v);
-					matrix = new Matrix3D(rawData);
-					matrix.transpose();
-					break;
-				default:
-					throw new Error("Unknown transform type: " + transform.type);
-			}
-			return matrix;
-		}
-		
-		/**
-		 * 建立骨骼
-		 * 
-		 * Builds a skin.
-		 * 
-		 * @param	instance
-		 * @param	colladaSkin
-		 * @param	skeletons
-		 */ 
-		private function buildSkin(instance:Skin3D, colladaSkin:DaeSkin, skeletons:Array, node:DaeNode):void
-		{
-			var geom:Geometry3D = _geometries[ colladaSkin.source ];
-			if(!geom)
-			{
-				// geometry can be inside a morph controller
-				var morphController:DaeController = this.document.controllers[colladaSkin.source];
-				if(morphController && morphController.morph)
-				{
-					var morph:DaeMorph = morphController.morph;
-					
-					// fetch Geometry3D
-					geom = _geometries[morph.source];
-
-					// fetch target geometries
-					for(var j:int = 0; j < morph.targets.length; j++)
-					{
-						var targetGeometry:Geometry3D = _geometries[morph.targets[j]];
-					}
-				}
-				if(!geom)
-					throw new Error("no geometry for source: " + colladaSkin.source);
-			}
-			
-			mergeGeometries(instance.geometry, geom.clone(instance));
-			
-			_skins[ instance ] = colladaSkin;
-		}
-		
-				
-		/**
-		 * 合并几何体
-		 * 
-		 * Merge geometries.
-		 * 
-		 * @param target The target Geometry3D to merge to.
-		 * @param source The source Geometry3D
-		 * @param Texture Optional Texture for triangles, only used when a triangle has no Texture.
-		 */ 
-//		private function mergeGeometries(targetGeom:Geometry3D, sourceGeom:Geometry3D, materialInstances:Array=null):void
-		private function mergeGeometries(targetV:Vector.<Vertex3D>, targetF:Vector.<Triangle3D>, sourceV:Vector.<Vertex3D>, sourceF:Vector.<Triangle3D>, materialInstances:Array=null):void
-		{
-			if(materialInstances && materialInstances.length)
-			{
-				var firstMaterial:Texture = materialInstances[0];
-				var texture:Texture;
-				var triangle:Triangle3D;
-				for each(triangle in sourceF)
-				{
-					var correctMaterial:Boolean = false;
-					for each (texture in materialInstances)
-					{
-						if(texture === triangle.texture)
-						{
-							correctMaterial = true;
-							break;
-						}
-					}
-					triangle.texture = correctMaterial ? triangle.texture : firstMaterial;
-				}
-			}
-			targetV = targetV.concat(sourceV);
-			targetF = targetF.concat(sourceF);
-			
-			_allVertices = _allVertices.concat(sourceV);
-			_allFaces = _allFaces.concat(sourceF);
-		}
-				
-		/**
-		 * 安装骨骼控制器.
-		 * Setup the skin controllers.
-		 */ 
-		private function linkSkins():void
-		{
-			_numSkins = 0;
-			
-			for(var object:* in _skins)
-			{
-				var instance:Skin3D = object as Skin3D;
-				
-				if(!instance)
-					throw new Error("Not a Skin3D?");
-				
-				//确保skin在所有bones最后，以便更新顶点
-				var index:int = _rootNode.children.indexOf(instance);
-				if(index > -1)
-				{
-					_rootNode.children.splice(index, 1);
-					_rootNode.children.push(instance);
-				}
-				else
-					throw new Error("RootNode do not have this Skin3D?");
-				
-				linkSkin(instance, _skins[object]);
-				_numSkins++;
-			}
-		}
-		
-		/**
-		 * 安装骨骼控制器.
-		 * Setup the skin controllers.
-		 */ 
-		protected function linkSkin(instance:Skin3D, skin:DaeSkin):void
-		{			
-			var i:int;
-			var found:Object = new Object();
-			
-			var bindShapeMatrix:Matrix3D = new Matrix3D(Vector.<Number>(skin.bind_shape_matrix));
-			bindShapeMatrix.transpose();
-			
-			var joints:Array = [];
-			var invBindMatrices:Array = [];
-			var vertexWeights:Array = [];
-			
-			for(i = 0; i < skin.joints.length; i++)
-			{
-				var jointId:String = skin.joints[i];
-				
-				if(found[jointId])
-					continue;
-					
-				var joint:Entity = _colladaIDToObject[jointId];
-				if(!joint)
-					joint = _colladaSIDToObject[jointId];
-				if(!joint)
-					throw new Error("Couldn't find the joint id = " + jointId);
-
-				var vertexWeight:Array = skin.findJointVertexWeightsByIDOrSID(jointId);
-				if(!vertexWeight)
-					throw new Error("Could not find vertex weights for joint with id = " + jointId);
-					
-				var bindMatrix:Array = skin.findJointBindMatrix2(jointId);
-				if(!bindMatrix || bindMatrix.length != 16)
-					throw new Error("Could not find inverse bind matrix for joint with id = " + jointId);
-				
-				var invBindMatrice:Matrix3D = new Matrix3D(Vector.<Number>(bindMatrix));
-				invBindMatrice.transpose();
-				invBindMatrices.push(invBindMatrice);
-				joints.push(joint);
-				vertexWeights.push(vertexWeight);
-				
-				found[jointId] = true;
-			}
-			
-			instance.setJointsData(bindShapeMatrix, joints, vertexWeights, invBindMatrices);
-		}
-		
+//		/**
+//		 * 建立结点变换数组集
+//		 * 
+//		 * @param	node
+//		 * @return
+//		 */
+//		private function buildMatrixStack(node:DaeNode):Array
+//		{
+//			var stack:Array = [];	
+//			for( var i:int = 0; i < node.transforms.length; i++ ) 
+//				stack.push(buildMatrixFromTransform(node.transforms[i]));
+//			return stack;
+//		}
+//		
+//				
+//		/**
+//		 * 从变换提取数组
+//		 * 
+//		 * @param	node
+//		 * @return
+//		 */
+//		private function buildMatrixFromTransform(transform:DaeTransform):Matrix3D
+//		{
+//			var matrix:Matrix3D = new Matrix3D();
+//			var v:Array = transform.values;
+//			
+//			switch(transform.type)
+//			{
+//				case ASCollada.DAE_ROTATE_ELEMENT:
+//					matrix.appendRotation( v[3],new Vector3D( v[0], v[1], v[2] ));
+//					break;
+//				case ASCollada.DAE_SCALE_ELEMENT:
+//					matrix.appendScale(v[0], v[1], v[2]);
+//					break;
+//				case ASCollada.DAE_TRANSLATE_ELEMENT:
+//					matrix.appendTranslation(v[0], v[1], v[2]);
+//					break;
+//				case ASCollada.DAE_MATRIX_ELEMENT:
+//					var rawData:Vector.<Number> = Vector.<Number>(v);
+//					matrix = new Matrix3D(rawData);
+//					matrix.transpose();
+//					break;
+//				default:
+//					throw new Error("Unknown transform type: " + transform.type);
+//			}
+//			return matrix;
+//		}
+//		
+//		/**
+//		 * 建立骨骼
+//		 * 
+//		 * Builds a skin.
+//		 * 
+//		 * @param	instance
+//		 * @param	colladaSkin
+//		 * @param	skeletons
+//		 */ 
+//		private function buildSkin(instance:Skin3D, colladaSkin:DaeSkin, skeletons:Array, node:DaeNode):void
+//		{
+//			var geom:Geometry3D = _geometries[ colladaSkin.source ];
+//			if(!geom)
+//			{
+//				// geometry can be inside a morph controller
+//				var morphController:DaeController = this.document.controllers[colladaSkin.source];
+//				if(morphController && morphController.morph)
+//				{
+//					var morph:DaeMorph = morphController.morph;
+//					
+//					// fetch Geometry3D
+//					geom = _geometries[morph.source];
+//
+//					// fetch target geometries
+//					for(var j:int = 0; j < morph.targets.length; j++)
+//					{
+//						var targetGeometry:Geometry3D = _geometries[morph.targets[j]];
+//					}
+//				}
+//				if(!geom)
+//					throw new Error("no geometry for source: " + colladaSkin.source);
+//			}
+//			
+//			mergeGeometries(instance.geometry, geom.clone(instance));
+//			
+//			_skins[ instance ] = colladaSkin;
+//		}
+//		
+//				
+//		/**
+//		 * 合并几何体
+//		 * 
+//		 * Merge geometries.
+//		 * 
+//		 * @param target The target Geometry3D to merge to.
+//		 * @param source The source Geometry3D
+//		 * @param Texture Optional Texture for triangles, only used when a triangle has no Texture.
+//		 */ 
+////		private function mergeGeometries(targetGeom:Geometry3D, sourceGeom:Geometry3D, materialInstances:Array=null):void
+//		private function mergeGeometries(targetV:Vector.<Vertex3D>, targetF:Vector.<Triangle3D>, sourceV:Vector.<Vertex3D>, sourceF:Vector.<Triangle3D>, materialInstances:Array=null):void
+//		{
+//			if(materialInstances && materialInstances.length)
+//			{
+//				var firstMaterial:Texture = materialInstances[0];
+//				var texture:Texture;
+//				var triangle:Triangle3D;
+//				for each(triangle in sourceF)
+//				{
+//					var correctMaterial:Boolean = false;
+//					for each (texture in materialInstances)
+//					{
+//						if(texture === triangle.texture)
+//						{
+//							correctMaterial = true;
+//							break;
+//						}
+//					}
+//					triangle.texture = correctMaterial ? triangle.texture : firstMaterial;
+//				}
+//			}
+//			targetV = targetV.concat(sourceV);
+//			targetF = targetF.concat(sourceF);
+//			
+//			_allVertices = _allVertices.concat(sourceV);
+//			_allFaces = _allFaces.concat(sourceF);
+//		}
+//				
+//		/**
+//		 * 安装骨骼控制器.
+//		 * Setup the skin controllers.
+//		 */ 
+//		private function linkSkins():void
+//		{
+//			_numSkins = 0;
+//			
+//			for(var object:* in _skins)
+//			{
+//				var instance:Skin3D = object as Skin3D;
+//				
+//				if(!instance)
+//					throw new Error("Not a Skin3D?");
+//				
+//				//确保skin在所有bones最后，以便更新顶点
+//				var index:int = _rootNode.children.indexOf(instance);
+//				if(index > -1)
+//				{
+//					_rootNode.children.splice(index, 1);
+//					_rootNode.children.push(instance);
+//				}
+//				else
+//					throw new Error("RootNode do not have this Skin3D?");
+//				
+//				linkSkin(instance, _skins[object]);
+//				_numSkins++;
+//			}
+//		}
+//		
+//		/**
+//		 * 安装骨骼控制器.
+//		 * Setup the skin controllers.
+//		 */ 
+//		protected function linkSkin(instance:Skin3D, skin:DaeSkin):void
+//		{			
+//			var i:int;
+//			var found:Object = new Object();
+//			
+//			var bindShapeMatrix:Matrix3D = new Matrix3D(Vector.<Number>(skin.bind_shape_matrix));
+//			bindShapeMatrix.transpose();
+//			
+//			var joints:Array = [];
+//			var invBindMatrices:Array = [];
+//			var vertexWeights:Array = [];
+//			
+//			for(i = 0; i < skin.joints.length; i++)
+//			{
+//				var jointId:String = skin.joints[i];
+//				
+//				if(found[jointId])
+//					continue;
+//					
+//				var joint:Entity = _colladaIDToObject[jointId];
+//				if(!joint)
+//					joint = _colladaSIDToObject[jointId];
+//				if(!joint)
+//					throw new Error("Couldn't find the joint id = " + jointId);
+//
+//				var vertexWeight:Array = skin.findJointVertexWeightsByIDOrSID(jointId);
+//				if(!vertexWeight)
+//					throw new Error("Could not find vertex weights for joint with id = " + jointId);
+//					
+//				var bindMatrix:Array = skin.findJointBindMatrix2(jointId);
+//				if(!bindMatrix || bindMatrix.length != 16)
+//					throw new Error("Could not find inverse bind matrix for joint with id = " + jointId);
+//				
+//				var invBindMatrice:Matrix3D = new Matrix3D(Vector.<Number>(bindMatrix));
+//				invBindMatrice.transpose();
+//				invBindMatrices.push(invBindMatrice);
+//				joints.push(joint);
+//				vertexWeights.push(vertexWeight);
+//				
+//				found[jointId] = true;
+//			}
+//			
+//			instance.setJointsData(bindShapeMatrix, joints, vertexWeights, invBindMatrices);
+//		}
+//		
 		/**
 		 * Called when a Texture failed to load.
 		 * 
@@ -1157,504 +1146,504 @@ package cn.alchemy3d.objects
 			loadNextMaterial();	
 			trace("load Texture error!");
 		}
-			
-		/**
-		 * 动画读取完成时调用
-		 * 
-		 * Called when the parser completed parsing animations.
-		 * 
-		 * @param	event
-		 */ 
-		private function onParseAnimationsComplete(event:Event):void
-		{	
-			buildAnimationChannels();
-					
-			_channels = this.getAnimationChannels() || new Vector.<AbstractChannel3D>;	
-			_currentFrame = _totalFrames = 0;
-			_startTime = _endTime = 0;
-			
-			var channel:AbstractChannel3D;
-			for each(channel in _channels)
-			{
-				_totalFrames = Math.max(_totalFrames, channel.keyFrames.length);	
-				_startTime = Math.min(_startTime, channel.startTime);
-				_endTime = Math.max(_endTime, channel.endTime);
-				channel.updateToTime(0);
-			}
-			
-			trace( "animations COMPLETE (#channels: " + _channels.length + " #frames: " + _totalFrames + ", startTime: " + _startTime + " endTime: " + _endTime+ ")");
-			
-			dispatchEvent(new LoadEvent(LoadEvent.ANIMATIONS_COMPLETE));
-			
-			if(_autoPlay)
-				play();
-		}
-		
-		/**
-		 * Plays the animation.
-		 * 
-		 * @param 	clip	Optional clip name.
-		 */ 
-		public function play(clip:String=null):void
-		{
-			_currentFrame = 0;
-			_currentTime = getTimer();
-			_isPlaying = (_isAnimated && _channels && _channels.length);
-		}
-		
-		/**
-		 * 建立动画控制器
-		 * 
-		 * Build all animation channels.
-		 */ 
-		private function buildAnimationChannels():void
-		{
-			var target:Entity;
-			var channel:DaeChannel;
-			var channelsByObject:Dictionary = new Dictionary(true);
-			var i:int;
-			
-			_channelsByTarget = new Dictionary(true);
-			
-			var animation:DaeAnimation
-			for each(animation in this.document.animations)
-			{
-				for(i = 0; i < animation.channels.length; i++)
-				{
-					channel = animation.channels[i];
-					
-					target = _colladaIDToObject[channel.syntax.targetID];
-					if(!target)
-						throw new Error("damn");
-						
-					if(!channelsByObject[target])
-						channelsByObject[target] = new Array();
-					
-					channelsByObject[target].push(channel);
-				}
-			}
-			
-			for(var object:* in channelsByObject)
-			{
-				target = object as Entity;
-							
-				var channels:Array = channelsByObject[object];
-				var node:DaeNode = _objectToNode[target];
-					
-				if(!node)
-					throw new Error("Couldn't find the targeted object with name '" + node.name + "'");
-					
-				node.channels = channels;
-				
-				if(!channels.length)
-					continue;
-				
-				channel = channels[0];
-				
-				var transform:DaeTransform = node.findMatrixBySID(channel.syntax.targetSID);
-				
-				if(!transform)
-				{
-					trace("Could not find a transform with SID=" + channel.syntax.targetSID);
-					continue;
-				}
-	
-				// the object has a single <matrix> channel
-				if(channels.length == 1 && transform.type == ASCollada.DAE_MATRIX_ELEMENT)
-				{
-					_channelsByTarget[target] = buildAnimationChannel(target, channel);
-					continue;
-				}
-				
-				// the object has multiple channels, lets bake 'm into a single channel
-				var allTimes:Array = new Array();
-				var times:Array = new Array();
-				var lastTime:Number;
-				
-				// fetch all times for all channels
-				for each(channel in channels)
-					allTimes = allTimes.concat(channel.input);
-				allTimes.sort(Array.NUMERIC);
-				
-				// make array with unique times
-				for(i = 0; i < allTimes.length; i++)
-				{
-					var t:Number = allTimes[i];
-					if(i == 0)
-						times.push(t);
-					else if(t - lastTime > 0.01)
-						times.push(t);
-					lastTime = t;	
-				}
-				
-				// build the MatrixChannel3D's for this object
-				var mcs:Object = new Object();
-				for each(channel in channels)
-				{
-					var animationChannel:MatrixChannel3D = buildAnimationChannel(target, channel);
-					if(animationChannel) 
-						mcs[ channel.syntax.targetSID ] = buildAnimationChannel(target, channel);
-				}
-				
-				var bakedChannel:MatrixChannel3D = new MatrixChannel3D(target);
-				
-				// build a baked channel
-				for(i = 0; i < times.length; i++)
-				{
-					var keyframeTime:Number = times[i];
-					var bakedMatrix:Matrix3D = new Matrix3D();
-					bakedMatrix.identity();
-					
-					// loop over the DaeNode's transform-stack
-					for(var j:int = 0; j < node.transforms.length; j++)
-					{
-						transform = node.transforms[j];
-						
-						var matrixChannel:MatrixChannel3D = mcs[ transform.sid ];
-						
-						if(matrixChannel)
-						{
-							// this transform is animated, so lets determine the matrix for the current keyframeTime
-							var time:Number;
-							if(keyframeTime < matrixChannel.startTime)
-								time = 0;
-							else if(keyframeTime > matrixChannel.endTime)
-								time = 1;
-							else
-								time = keyframeTime / (matrixChannel.endTime - matrixChannel.startTime);
-								
-							// update the channel by time, so the matrix for the current keyframe is setup
-							matrixChannel.updateToTime(time);
-							
-							// bake the matrix
-							bakedMatrix.prepend( target.transform );
-						}
-						else
-						{
-							// this transform isn't animated, simply bake the transform into the matrix
-							bakedMatrix.prepend( buildMatrixFromTransform(transform));
-						}
-					}
-					
-					// now we can add the baked matrix as a new keyframe
-					bakedChannel.addKeyFrame(new AnimationKeyFrame3D("frame_" + i, keyframeTime, [bakedMatrix]));
-				}
-				
-				_channelsByTarget[target] = bakedChannel;
-			}
-		}
-				
-		/**
-		 * 建立单个动画控制器
-		 * 
-		 * Builds a animation channel for an object.
-		 * 
-		 * @param	matrixStackChannel	the target object's channel
-		 * @param	target	The target object
-		 * @param	channel	The DaeChannel
-		 */ 
-		private function buildAnimationChannel(target:Entity, channel:DaeChannel):MatrixChannel3D
-		{
-			//TODO
-			var node:DaeNode = _objectToNode[target];
-					
-			if(!node)
-				throw new Error("Couldn't find the targeted object!");
-					
-			var matrixChannel:MatrixChannel3D = new MatrixChannel3D(target, channel.syntax.targetSID);
-			
-			var transform:DaeTransform = node.findMatrixBySID(channel.syntax.targetSID);
-					
-			if(!transform)
-			{
-				trace("Couldn't find the targeted object's transform: " + channel.syntax.targetSID);
-				return null;
-			}
-			
-			var matrix:Matrix3D = new Matrix3D();
-			var matrixProp:String;
-			var arrayMember:String;
-			var data:Array;
-			var val:Number;
-			var i:int;
-					
-			switch(transform.type)
-			{
-				case "matrix":
-					if(channel.syntax.isFullAccess)
-					{
-						for(i = 0; i < channel.input.length; i++)
-						{
-							data = channel.output[i];
-							matrix.rawData = Vector.<Number>(data);
-							matrix.transpose();
-							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-						}
-					}
-					else if(channel.syntax.isArrayAccess)
-					{
-						arrayMember = channel.syntax.arrayMember.join("");
-						matrix = target.transform.clone();
-						var rawData:Vector.<Number> = new Vector.<Number>(16, true);
-						var n:int;
-						
-						switch(arrayMember)
-						{
-							case "(0)(0)":
-								n = 0; 
-								break;
-							case "(0)(1)":
-								n = 1; 
-								break;
-							case "(0)(2)":
-								n = 2; 
-								break;
-							case "(0)(3)":
-								n = 3; 
-								break;
-							case "(1)(0)":
-								n = 4; 
-								break;
-							case "(1)(1)":
-								n = 5; 
-								break;
-							case "(1)(2)":
-								n = 6; 
-								break;
-							case "(1)(3)":
-								n = 7; 
-								break;
-							case "(2)(0)":
-								n = 8; 
-								break;
-							case "(2)(1)":
-								n = 9; 
-								break;
-							case "(2)(2)":
-								n = 10; 
-								break;
-							case "(2)(3)":
-								n = 11; 
-								break;
-							case "(3)(0)":
-								n = 12; 
-								break;
-							case "(3)(1)":
-								n = 13; 
-								break;
-							case "(3)(2)":
-								n = 14; 
-								break;
-							case "(3)(3)":
-								n = 15; 
-								break;
-							default:
-								throw new Error(arrayMember);
-						}
-						
-						for(i = 0; i < channel.input.length; i++)
-						{
-							rawData[n] = channel.output[i];
-							matrix.rawData = rawData;
-							matrix.transpose();
-							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [new Matrix3D(rawData)]));
-						}
-					}
-					else
-					{
-						throw new Error("Don't know how to handle this channel: " + channel.syntax);
-					}
-					break;
-				case "rotate":
-					if(channel.syntax.isFullAccess)
-					{
-						for(i = 0; i < channel.input.length; i++)
-						{
-							data = channel.output[i];
-							matrix.rawData = Vector.<Number>(data);
-							matrix.transpose();
-							matrix.appendRotation( data[3],new Vector3D( data[0], data[1], data[2] ) );
-							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-						}
-					}
-					else if(channel.syntax.isDotAccess)
-					{
-						switch(channel.syntax.member)
-						{
-							case "ANGLE":
-								for(i = 0; i < channel.input.length; i++)
-								{
-									matrix.identity();
-									matrix.appendRotation( channel.output[i],new Vector3D( transform.values[0], transform.values[1], transform.values[2] ) );
-									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-								}
-								break;
-							default:
-								throw new Error("Don't know how to handle this channel: " + channel.syntax);
-						}
-					}
-					else
-					{
-						throw new Error("Don't know how to handle this channel: " + channel.syntax);
-					}	
-					break;
-				case "scale":
-					if(channel.syntax.isFullAccess)
-					{
-						for(i = 0; i < channel.input.length; i++)
-						{
-							data = channel.output[i];
-							matrix.identity();
-							matrix.appendScale(data[0], data[1], data[2]);
-							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-						}
-					}
-					else if(channel.syntax.isDotAccess)
-					{
-						for(i = 0; i < channel.input.length; i++)
-						{
-							val = channel.output[i];
-							matrix.identity();
-							switch(channel.syntax.member)
-							{
-								case "X":
-									matrix.appendScale(val, 0, 0);
-									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-									break;
-								case "Y":
-									matrix.appendScale(0, val, 0);
-									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-									break;
-								case "Z":
-									matrix.appendScale(0, 0, val);
-									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-									break;
-								default:
-									break;		
-							}
-						}
-					}
-					else
-					{
-						throw new Error("Don't know how to handle this channel: " + channel.syntax);
-					}
-					break;
-				case "translate":
-					if(channel.syntax.isFullAccess)
-					{
-						for(i = 0; i < channel.input.length; i++)
-						{
-							data = channel.output[i];
-							matrix.identity();
-							matrix.appendTranslation(data[0], data[1], data[2]);
-							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-						}
-					}	
-					else if(channel.syntax.isDotAccess)
-					{
-						for(i = 0; i < channel.input.length; i++)
-						{
-							val = channel.output[i];
-							matrix.identity();
-							switch(channel.syntax.member)
-							{
-								case "X":
-									matrix.appendTranslation(val, 0, 0);
-									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-									break;
-								case "Y":
-									matrix.appendTranslation(0, val, 0);
-									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-									break;
-								case "Z":
-									matrix.appendTranslation(0, 0, val);
-									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
-									break;
-								default:
-									break;		
-							}
-						}
-					}
-					else
-					{
-						throw new Error("Don't know how to handle this channel: " + channel.syntax);
-					}		
-					break;
-				default:
-					throw new Error("Unknown transform type!");	
-			}
-				
-			return matrixChannel;
-		}
-		
-		/**
-		 * 获取动画控制器
-		 * 
-		 * @param	target	The target to get the channels for.
-		 * 
-		 * @return	Array of AnimationChannel3D.
-		 */ 
-		public function getAnimationChannels():Vector.<AbstractChannel3D>
-		{
-			var channels:Vector.<AbstractChannel3D> = new Vector.<AbstractChannel3D>;
-			
-			var channel:AbstractChannel3D
-			for each(channel in _channelsByTarget)
-				channels.push(channel);
-				
-			return channels;
-		}
-		
-		public function getAnimationChannelsByTarget(target:Entity):AbstractChannel3D
-		{
-			return _channelsByTarget[target];
-		}
-		
-		/**
-		 * Called on parse animations progress.
-		 * 
-		 * @param	event
-		 */ 
-		protected function onParseAnimationsProgress(event:ProgressEvent):void
-		{
-			dispatchEvent(event);
-			trace("animations #" + event.bytesLoaded + " of " + event.bytesTotal);
-		}
-		
-//		override protected function project(renderData:RenderData):void
-//		{
+//			
+//		/**
+//		 * 动画读取完成时调用
+//		 * 
+//		 * Called when the parser completed parsing animations.
+//		 * 
+//		 * @param	event
+//		 */ 
+//		private function onParseAnimationsComplete(event:Event):void
+//		{	
+//			buildAnimationChannels();
+//					
+//			_channels = this.getAnimationChannels() || new Vector.<AbstractChannel3D>;	
+//			_currentFrame = _totalFrames = 0;
+//			_startTime = _endTime = 0;
+//			
 //			var channel:AbstractChannel3D;
-//			if(_isPlaying && _channels)
+//			for each(channel in _channels)
 //			{
-//				var secs:Number = _currentTime * 0.001;
-//				var duration:Number = _endTime - _startTime;
-//				var elapsed:Number = (getTimer() * 0.001) - secs;
-//				
-//				if(elapsed > duration)
+//				_totalFrames = Math.max(_totalFrames, channel.keyFrames.length);	
+//				_startTime = Math.min(_startTime, channel.startTime);
+//				_endTime = Math.max(_endTime, channel.endTime);
+//				channel.updateToTime(0);
+//			}
+//			
+//			trace( "animations COMPLETE (#channels: " + _channels.length + " #frames: " + _totalFrames + ", startTime: " + _startTime + " endTime: " + _endTime+ ")");
+//			
+//			dispatchEvent(new LoadEvent(LoadEvent.ANIMATIONS_COMPLETE));
+//			
+//			if(_autoPlay)
+//				play();
+//		}
+//		
+//		/**
+//		 * Plays the animation.
+//		 * 
+//		 * @param 	clip	Optional clip name.
+//		 */ 
+//		public function play(clip:String=null):void
+//		{
+//			_currentFrame = 0;
+//			_currentTime = getTimer();
+//			_isPlaying = (_isAnimated && _channels && _channels.length);
+//		}
+//		
+//		/**
+//		 * 建立动画控制器
+//		 * 
+//		 * Build all animation channels.
+//		 */ 
+//		private function buildAnimationChannels():void
+//		{
+//			var target:Entity;
+//			var channel:DaeChannel;
+//			var channelsByObject:Dictionary = new Dictionary(true);
+//			var i:int;
+//			
+//			_channelsByTarget = new Dictionary(true);
+//			
+//			var animation:DaeAnimation
+//			for each(animation in this.document.animations)
+//			{
+//				for(i = 0; i < animation.channels.length; i++)
 //				{
-//					_currentTime = getTimer();
-//					secs = _currentTime * 0.001;
-//					elapsed = 0;
-//				}
-//				var time:Number = elapsed / duration;
-//
-//				if (time == 0 && !_loop)
-//					stop();
-//				else
-//				{
-//					for each(channel in _channels)
-//						channel.updateToTime(time);
+//					channel = animation.channels[i];
+//					
+//					target = _colladaIDToObject[channel.syntax.targetID];
+//					if(!target)
+//						throw new Error("damn");
+//						
+//					if(!channelsByObject[target])
+//						channelsByObject[target] = new Array();
+//					
+//					channelsByObject[target].push(channel);
 //				}
 //			}
-//
-//			super.project(renderData);	
+//			
+//			for(var object:* in channelsByObject)
+//			{
+//				target = object as Entity;
+//							
+//				var channels:Array = channelsByObject[object];
+//				var node:DaeNode = _objectToNode[target];
+//					
+//				if(!node)
+//					throw new Error("Couldn't find the targeted object with name '" + node.name + "'");
+//					
+//				node.channels = channels;
+//				
+//				if(!channels.length)
+//					continue;
+//				
+//				channel = channels[0];
+//				
+//				var transform:DaeTransform = node.findMatrixBySID(channel.syntax.targetSID);
+//				
+//				if(!transform)
+//				{
+//					trace("Could not find a transform with SID=" + channel.syntax.targetSID);
+//					continue;
+//				}
+//	
+//				// the object has a single <matrix> channel
+//				if(channels.length == 1 && transform.type == ASCollada.DAE_MATRIX_ELEMENT)
+//				{
+//					_channelsByTarget[target] = buildAnimationChannel(target, channel);
+//					continue;
+//				}
+//				
+//				// the object has multiple channels, lets bake 'm into a single channel
+//				var allTimes:Array = new Array();
+//				var times:Array = new Array();
+//				var lastTime:Number;
+//				
+//				// fetch all times for all channels
+//				for each(channel in channels)
+//					allTimes = allTimes.concat(channel.input);
+//				allTimes.sort(Array.NUMERIC);
+//				
+//				// make array with unique times
+//				for(i = 0; i < allTimes.length; i++)
+//				{
+//					var t:Number = allTimes[i];
+//					if(i == 0)
+//						times.push(t);
+//					else if(t - lastTime > 0.01)
+//						times.push(t);
+//					lastTime = t;	
+//				}
+//				
+//				// build the MatrixChannel3D's for this object
+//				var mcs:Object = new Object();
+//				for each(channel in channels)
+//				{
+//					var animationChannel:MatrixChannel3D = buildAnimationChannel(target, channel);
+//					if(animationChannel) 
+//						mcs[ channel.syntax.targetSID ] = buildAnimationChannel(target, channel);
+//				}
+//				
+//				var bakedChannel:MatrixChannel3D = new MatrixChannel3D(target);
+//				
+//				// build a baked channel
+//				for(i = 0; i < times.length; i++)
+//				{
+//					var keyframeTime:Number = times[i];
+//					var bakedMatrix:Matrix3D = new Matrix3D();
+//					bakedMatrix.identity();
+//					
+//					// loop over the DaeNode's transform-stack
+//					for(var j:int = 0; j < node.transforms.length; j++)
+//					{
+//						transform = node.transforms[j];
+//						
+//						var matrixChannel:MatrixChannel3D = mcs[ transform.sid ];
+//						
+//						if(matrixChannel)
+//						{
+//							// this transform is animated, so lets determine the matrix for the current keyframeTime
+//							var time:Number;
+//							if(keyframeTime < matrixChannel.startTime)
+//								time = 0;
+//							else if(keyframeTime > matrixChannel.endTime)
+//								time = 1;
+//							else
+//								time = keyframeTime / (matrixChannel.endTime - matrixChannel.startTime);
+//								
+//							// update the channel by time, so the matrix for the current keyframe is setup
+//							matrixChannel.updateToTime(time);
+//							
+//							// bake the matrix
+//							bakedMatrix.prepend( target.transform );
+//						}
+//						else
+//						{
+//							// this transform isn't animated, simply bake the transform into the matrix
+//							bakedMatrix.prepend( buildMatrixFromTransform(transform));
+//						}
+//					}
+//					
+//					// now we can add the baked matrix as a new keyframe
+//					bakedChannel.addKeyFrame(new AnimationKeyFrame3D("frame_" + i, keyframeTime, [bakedMatrix]));
+//				}
+//				
+//				_channelsByTarget[target] = bakedChannel;
+//			}
 //		}
-		
-		public function stop():void
-		{
-			trace("STOP CALLED ON DAE");
-			_isPlaying = false;	
-			dispatchEvent(new AnimationEvent(AnimationEvent.ANIMATION_COMPLETE, _currentFrame, _totalFrames));
-		}
+//				
+//		/**
+//		 * 建立单个动画控制器
+//		 * 
+//		 * Builds a animation channel for an object.
+//		 * 
+//		 * @param	matrixStackChannel	the target object's channel
+//		 * @param	target	The target object
+//		 * @param	channel	The DaeChannel
+//		 */ 
+//		private function buildAnimationChannel(target:Entity, channel:DaeChannel):MatrixChannel3D
+//		{
+//			//TODO
+//			var node:DaeNode = _objectToNode[target];
+//					
+//			if(!node)
+//				throw new Error("Couldn't find the targeted object!");
+//					
+//			var matrixChannel:MatrixChannel3D = new MatrixChannel3D(target, channel.syntax.targetSID);
+//			
+//			var transform:DaeTransform = node.findMatrixBySID(channel.syntax.targetSID);
+//					
+//			if(!transform)
+//			{
+//				trace("Couldn't find the targeted object's transform: " + channel.syntax.targetSID);
+//				return null;
+//			}
+//			
+//			var matrix:Matrix3D = new Matrix3D();
+//			var matrixProp:String;
+//			var arrayMember:String;
+//			var data:Array;
+//			var val:Number;
+//			var i:int;
+//					
+//			switch(transform.type)
+//			{
+//				case "matrix":
+//					if(channel.syntax.isFullAccess)
+//					{
+//						for(i = 0; i < channel.input.length; i++)
+//						{
+//							data = channel.output[i];
+//							matrix.rawData = Vector.<Number>(data);
+//							matrix.transpose();
+//							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//						}
+//					}
+//					else if(channel.syntax.isArrayAccess)
+//					{
+//						arrayMember = channel.syntax.arrayMember.join("");
+//						matrix = target.transform.clone();
+//						var rawData:Vector.<Number> = new Vector.<Number>(16, true);
+//						var n:int;
+//						
+//						switch(arrayMember)
+//						{
+//							case "(0)(0)":
+//								n = 0; 
+//								break;
+//							case "(0)(1)":
+//								n = 1; 
+//								break;
+//							case "(0)(2)":
+//								n = 2; 
+//								break;
+//							case "(0)(3)":
+//								n = 3; 
+//								break;
+//							case "(1)(0)":
+//								n = 4; 
+//								break;
+//							case "(1)(1)":
+//								n = 5; 
+//								break;
+//							case "(1)(2)":
+//								n = 6; 
+//								break;
+//							case "(1)(3)":
+//								n = 7; 
+//								break;
+//							case "(2)(0)":
+//								n = 8; 
+//								break;
+//							case "(2)(1)":
+//								n = 9; 
+//								break;
+//							case "(2)(2)":
+//								n = 10; 
+//								break;
+//							case "(2)(3)":
+//								n = 11; 
+//								break;
+//							case "(3)(0)":
+//								n = 12; 
+//								break;
+//							case "(3)(1)":
+//								n = 13; 
+//								break;
+//							case "(3)(2)":
+//								n = 14; 
+//								break;
+//							case "(3)(3)":
+//								n = 15; 
+//								break;
+//							default:
+//								throw new Error(arrayMember);
+//						}
+//						
+//						for(i = 0; i < channel.input.length; i++)
+//						{
+//							rawData[n] = channel.output[i];
+//							matrix.rawData = rawData;
+//							matrix.transpose();
+//							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [new Matrix3D(rawData)]));
+//						}
+//					}
+//					else
+//					{
+//						throw new Error("Don't know how to handle this channel: " + channel.syntax);
+//					}
+//					break;
+//				case "rotate":
+//					if(channel.syntax.isFullAccess)
+//					{
+//						for(i = 0; i < channel.input.length; i++)
+//						{
+//							data = channel.output[i];
+//							matrix.rawData = Vector.<Number>(data);
+//							matrix.transpose();
+//							matrix.appendRotation( data[3],new Vector3D( data[0], data[1], data[2] ) );
+//							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//						}
+//					}
+//					else if(channel.syntax.isDotAccess)
+//					{
+//						switch(channel.syntax.member)
+//						{
+//							case "ANGLE":
+//								for(i = 0; i < channel.input.length; i++)
+//								{
+//									matrix.identity();
+//									matrix.appendRotation( channel.output[i],new Vector3D( transform.values[0], transform.values[1], transform.values[2] ) );
+//									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//								}
+//								break;
+//							default:
+//								throw new Error("Don't know how to handle this channel: " + channel.syntax);
+//						}
+//					}
+//					else
+//					{
+//						throw new Error("Don't know how to handle this channel: " + channel.syntax);
+//					}	
+//					break;
+//				case "scale":
+//					if(channel.syntax.isFullAccess)
+//					{
+//						for(i = 0; i < channel.input.length; i++)
+//						{
+//							data = channel.output[i];
+//							matrix.identity();
+//							matrix.appendScale(data[0], data[1], data[2]);
+//							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//						}
+//					}
+//					else if(channel.syntax.isDotAccess)
+//					{
+//						for(i = 0; i < channel.input.length; i++)
+//						{
+//							val = channel.output[i];
+//							matrix.identity();
+//							switch(channel.syntax.member)
+//							{
+//								case "X":
+//									matrix.appendScale(val, 0, 0);
+//									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//									break;
+//								case "Y":
+//									matrix.appendScale(0, val, 0);
+//									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//									break;
+//								case "Z":
+//									matrix.appendScale(0, 0, val);
+//									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//									break;
+//								default:
+//									break;		
+//							}
+//						}
+//					}
+//					else
+//					{
+//						throw new Error("Don't know how to handle this channel: " + channel.syntax);
+//					}
+//					break;
+//				case "translate":
+//					if(channel.syntax.isFullAccess)
+//					{
+//						for(i = 0; i < channel.input.length; i++)
+//						{
+//							data = channel.output[i];
+//							matrix.identity();
+//							matrix.appendTranslation(data[0], data[1], data[2]);
+//							matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//						}
+//					}	
+//					else if(channel.syntax.isDotAccess)
+//					{
+//						for(i = 0; i < channel.input.length; i++)
+//						{
+//							val = channel.output[i];
+//							matrix.identity();
+//							switch(channel.syntax.member)
+//							{
+//								case "X":
+//									matrix.appendTranslation(val, 0, 0);
+//									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//									break;
+//								case "Y":
+//									matrix.appendTranslation(0, val, 0);
+//									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//									break;
+//								case "Z":
+//									matrix.appendTranslation(0, 0, val);
+//									matrixChannel.addKeyFrame(new AnimationKeyFrame3D("keyframe_" + i, channel.input[i], [matrix.clone()]));
+//									break;
+//								default:
+//									break;		
+//							}
+//						}
+//					}
+//					else
+//					{
+//						throw new Error("Don't know how to handle this channel: " + channel.syntax);
+//					}		
+//					break;
+//				default:
+//					throw new Error("Unknown transform type!");	
+//			}
+//				
+//			return matrixChannel;
+//		}
+//		
+//		/**
+//		 * 获取动画控制器
+//		 * 
+//		 * @param	target	The target to get the channels for.
+//		 * 
+//		 * @return	Array of AnimationChannel3D.
+//		 */ 
+//		public function getAnimationChannels():Vector.<AbstractChannel3D>
+//		{
+//			var channels:Vector.<AbstractChannel3D> = new Vector.<AbstractChannel3D>;
+//			
+//			var channel:AbstractChannel3D
+//			for each(channel in _channelsByTarget)
+//				channels.push(channel);
+//				
+//			return channels;
+//		}
+//		
+//		public function getAnimationChannelsByTarget(target:Entity):AbstractChannel3D
+//		{
+//			return _channelsByTarget[target];
+//		}
+//		
+//		/**
+//		 * Called on parse animations progress.
+//		 * 
+//		 * @param	event
+//		 */ 
+//		protected function onParseAnimationsProgress(event:ProgressEvent):void
+//		{
+//			dispatchEvent(event);
+//			trace("animations #" + event.bytesLoaded + " of " + event.bytesTotal);
+//		}
+//		
+////		override protected function project(renderData:RenderData):void
+////		{
+////			var channel:AbstractChannel3D;
+////			if(_isPlaying && _channels)
+////			{
+////				var secs:Number = _currentTime * 0.001;
+////				var duration:Number = _endTime - _startTime;
+////				var elapsed:Number = (getTimer() * 0.001) - secs;
+////				
+////				if(elapsed > duration)
+////				{
+////					_currentTime = getTimer();
+////					secs = _currentTime * 0.001;
+////					elapsed = 0;
+////				}
+////				var time:Number = elapsed / duration;
+////
+////				if (time == 0 && !_loop)
+////					stop();
+////				else
+////				{
+////					for each(channel in _channels)
+////						channel.updateToTime(time);
+////				}
+////			}
+////
+////			super.project(renderData);	
+////		}
+//		
+//		public function stop():void
+//		{
+//			trace("STOP CALLED ON DAE");
+//			_isPlaying = false;	
+//			dispatchEvent(new AnimationEvent(AnimationEvent.ANIMATION_COMPLETE, _currentFrame, _totalFrames));
+//		}
 	}
 }
