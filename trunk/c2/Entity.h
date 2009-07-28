@@ -14,9 +14,13 @@
 typedef struct Entity
 {
 	//RW
-	int visible, transformDirty, offScreen;
+	int visible, transformDirty, nChildren;
+	//N
+	struct SceneNode * children;
 	//N
 	struct Entity * parent;
+	//N
+	struct Scene * scene;
 	//RW
 	Vector3D * position, * direction, * scale, * worldPosition;
 	//R
@@ -29,6 +33,13 @@ typedef struct Entity
 	Texture * texture;
 
 }Entity;
+
+typedef struct SceneNode
+{
+	Entity * entity;
+
+	struct SceneNode * next;
+}SceneNode;
 
 Entity * newEntity()
 {
@@ -48,22 +59,118 @@ Entity * newEntity()
 	entity->world			= newMatrix3D(NULL);
 	entity->worldInvert		= newMatrix3D(NULL);
 
+	entity->children		= NULL;
 	entity->parent			= NULL;
 	entity->material		= NULL;
 	entity->texture			= NULL;
+	entity->scene			= NULL;
 
-	entity->visible = entity->transformDirty = entity->offScreen = TRUE;
+	entity->visible = entity->transformDirty = TRUE;
+
+	entity->nChildren = 0;
 
 	return entity;
 }
 
-static Vector3D posN;
+SceneNode * entity_findChild( SceneNode * childNode, Entity * child )
+{
+	if ( childNode == NULL )
+	{
+		return NULL;
+	}
+	else
+	{
+		if ( child == childNode->next->entity )
+		{
+			return childNode;
+		}
+		else
+		{
+			return entity_findChild( childNode->next, child );
+		}
+	}
+}
+
+void entity_addChild( Entity * parent, Entity * child )
+{
+	SceneNode * sceneNode, * n;
+
+	sceneNode = parent->children;
+
+	if (NULL != sceneNode)
+	{
+		while( NULL != sceneNode->next )
+		{
+			sceneNode = sceneNode->next;
+		}
+	}
+
+	if( ( n = ( SceneNode * )malloc( sizeof( SceneNode ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	n->entity = child;
+
+	if (NULL == sceneNode)
+	{
+		n->next = NULL;
+
+		parent->children = n;
+	}
+	else
+	{
+		n->next = sceneNode->next;
+
+		sceneNode->next = n;
+	}
+
+	n->entity->parent = parent;
+
+	parent->nChildren ++;
+}
+
+void entity_removeChild( Entity * entity, Entity * child )
+{
+	SceneNode * sceneNode, * s;
+
+	sceneNode = entity->children;
+
+	if ( sceneNode->entity == child )
+	{
+		entity->children = entity->children->next;
+	}
+	else
+	{
+		s = entity_findChild( sceneNode, child );
+
+		s->next = s->next->next;
+	}
+
+	entity->nChildren --;
+
+	free( child );
+
+	child =NULL;
+}
+
+void entity_dispose( Entity * entity )
+{
+	vector3D_dispose( entity->position );
+	vector3D_dispose( entity->worldPosition );
+	vector3D_dispose( entity->direction );
+	vector3D_dispose( entity->scale );
+	matrix3D_dispose( entity->transform );
+	matrix3D_dispose( entity->world );
+	matrix3D_dispose( entity->worldInvert );
+	free( entity );
+}
 
 void entity_setMesh( Entity * entity, Mesh * m )
 {
 	VertexNode * vNode;
 	ContectedFaces * cf;
-	Vector3D * nv;
+	Vector3D * nv, posN;
 	float d;
 
 	vNode = m->vertices->nodes;

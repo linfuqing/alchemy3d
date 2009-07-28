@@ -52,6 +52,11 @@ Color * newColor( float r, float g, float b, float a )
 	return c;
 }
 
+void color_dispose( Color * color )
+{
+	free( color );
+}
+
 INLINE uint32 colorToUint32( Color * c )
 {
 	return ( (int)(c->alpha * 255) << 24 ) + ( (int)(c->red * 255) << 16 ) + ( (int)(c->green * 255) << 8 ) + (int)(c->blue * 255);

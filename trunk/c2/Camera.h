@@ -14,8 +14,6 @@ typedef struct Camera
 
 	Matrix3D * projectionMatrix;
 
-	Matrix3D * projectionMatrixInvert;
-
 	float fov, nearClip, farClip;
 
 	int fnfDirty, isAttached, hasTarget;
@@ -38,15 +36,20 @@ Camera * newCamera( float fov, float nearClip, float farClip, Entity * eye )
 	cam->eye->position->z = -nearClip;
 
 	cam->projectionMatrix = newMatrix3D(NULL);
-	cam->projectionMatrixInvert = newMatrix3D(NULL);
 
-	cam->target = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+	cam->target = NULL;
 
 	cam->fnfDirty = TRUE;
 	cam->isAttached = FALSE;
 	cam->hasTarget = FALSE;
 
 	return cam;
+}
+
+void camera_dispose( Camera * camera )
+{
+	matrix3D_dispose( camera->projectionMatrix );
+	free( camera );
 }
 
 INLINE void camera_setTarget( Camera * camera, Vector3D * target )

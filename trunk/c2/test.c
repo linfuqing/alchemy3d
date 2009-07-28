@@ -89,6 +89,8 @@ int main()
 	v3d = newVector3D(100, 200, 0, 1);
 
 	entity = newEntity();
+	free( entity );
+
 	entity_setRotationX(entity, 45.0);
 
 	translationMatrix3D(&testM, 100, 200, 300);

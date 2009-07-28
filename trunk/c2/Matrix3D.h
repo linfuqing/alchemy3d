@@ -512,7 +512,7 @@ INLINE void matrix3D_setRawData( Matrix3D * m, float ( * rawData )[16] )
 
 	if( !matrix3D_determinant( m ) )
 	{
-		exit( FALSE );
+		exit( TRUE );
 	}
 }
 
@@ -544,6 +544,12 @@ Matrix3D * newMatrix3D( float ( * rawData )[16] )
 	}
 
 	return m;
+}
+
+void matrix3D_dispose( Matrix3D * m )
+{
+	free( m );
+	m = NULL;
 }
 
 INLINE void sinCos(float *returnSin, float *returnCos, float theta)

@@ -32,6 +32,14 @@ Polygon * polygon_initiate()
 	return p;
 }
 
+void triangle3D_dispose( Polygon * p )
+{
+	vector3D_dispose( p->normal );
+	vector3D_dispose( p->center );
+	free ( p->vertex );
+	free( p );
+}
+
 void polygon_normal( Vector3D * normal, Vertex * v1, Vertex * v2, Vertex * v3 )
 {	
 	Vector3D * a, * b, * c, ca, bc;

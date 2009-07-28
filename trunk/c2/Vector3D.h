@@ -63,6 +63,12 @@ Vector3D * newVector3D( float x, float y, float z, float w )
 	return v;
 }
 
+void vector3D_dispose( Vector3D * v )
+{
+	free( v );
+	v = NULL;
+}
+
 INLINE void vector3D_copy( Vector3D * v, Vector3D * src )
 {
 	v->x = src->x;

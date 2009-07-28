@@ -32,4 +32,14 @@ Material * newMaterial( Color * ambient, Color * diffuse, Color * specular, Colo
 	return m;
 }
 
+void material_dispose( Material * m )
+{
+	m->ambient = NULL;
+	m->diffuse = NULL;
+	m->emissive = NULL;
+	m->specular = NULL;
+	free( m );
+	m = NULL;
+}
+
 #endif

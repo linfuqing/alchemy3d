@@ -6,8 +6,8 @@
 #include "Base.h"
 #include "Math.h"
 #include "Device.h"
-#include "Entity.h"
 #include "Scene.h"
+#include "Entity.h"
 #include "Viewport.h"
 #include "Vertices.h"
 #include "Polygon.h"
@@ -186,7 +186,10 @@ int main()
 	scene = newScene();
 	scene_addLight(scene, light);
 	scene_addEntity(scene, do3d, NULL);
-	scene_addEntity(scene, do3d2, NULL);
+	scene_addEntity(scene, do3d2, do3d);
+	scene_removeEntity( scene, do3d );
+	entity_dispose( do3d );
+	entity_dispose( do3d2 );
 
 	view = newViewport( 600.0f, 400.0f, scene, camera );
 
