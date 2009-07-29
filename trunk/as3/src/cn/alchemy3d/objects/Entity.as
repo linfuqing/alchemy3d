@@ -82,7 +82,10 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			buffer.position = texturePtr;
-			buffer.writeUnsignedInt(texture.pointer);
+			if (texture)
+				buffer.writeUnsignedInt(texture.pointer);
+			else
+				buffer.writeUnsignedInt(0);
 		}
 		
 		public function get direction():Vector3D

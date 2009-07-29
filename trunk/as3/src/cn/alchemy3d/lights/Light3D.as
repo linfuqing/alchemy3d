@@ -1,6 +1,7 @@
 package cn.alchemy3d.lights
 {
 	import cn.alchemy3d.lib.Library;
+	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.ISceneNode;
 	import cn.alchemy3d.tools.Alchemy3DLog;
@@ -245,7 +246,7 @@ package cn.alchemy3d.lights
 			buffer.writeFloat(value);
 		}
 		
-		public function Light3D()
+		public function Light3D(source:Entity)
 		{
 			_mode = LightType.EASY_MODE;
 			_bOnOff = LightType.LIGHT_OFF;
@@ -257,13 +258,11 @@ package cn.alchemy3d.lights
 			lib = Library.getInstance();
 			buffer = lib.buffer;
 			
-			this.source = source == null ? new Entity(null, null, "lightSource") : source;
+			this.source = source;
 		}
 		
 		public function initialize(scenePtr:uint, parentPtr:uint):void
 		{
-			source.initialize(0, 0);
-			
 			allotPtr(lib.alchemy3DLib.initializeLight(scenePtr, source.pointer, _type));
 		}
 		

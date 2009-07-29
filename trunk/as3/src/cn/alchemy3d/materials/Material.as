@@ -132,7 +132,7 @@ package cn.alchemy3d.materials
 			_diffuse = new ColorTransform(0, 0, 0, 1);
 			_specular = new ColorTransform(0, 0, 0, 1);
 			_emissive = new ColorTransform(0, 0, 0, 1);
-			_power = 0;
+			_power = 4;
 			
 			lib = Library.getInstance();
 			buffer = lib.buffer;
