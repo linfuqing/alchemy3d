@@ -1,7 +1,7 @@
 package cn.alchemy3d.objects
 {
 
-	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.texture.Texture;
@@ -26,13 +26,13 @@ package cn.alchemy3d.objects
 			this._scale = new Vector3D();
 			this._worldPosition = new Vector3D();
 			
-			lib = Alchemy3DLib.getInstance();
+			lib = Library.getInstance();
 			
 			buffer = lib.buffer;
 		}
 		
 		public var pointer:uint;
-		protected var lib:Alchemy3DLib;	
+		protected var lib:Library;	
 		protected var buffer:ByteArray;
 		
 		public var directionPtr:uint;

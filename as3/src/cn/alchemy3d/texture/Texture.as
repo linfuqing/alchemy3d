@@ -1,6 +1,6 @@
 package cn.alchemy3d.texture
 {
-	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.lib.Library;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -16,7 +16,7 @@ package cn.alchemy3d.texture
 	{
 		public var pointer:uint = 0;
 		protected var buffer:ByteArray;
-		protected var lib:Alchemy3DLib;
+		protected var lib:Library;
 		
 		public var name:String;
 		public var bitmapDataPtr:uint;
@@ -49,7 +49,7 @@ package cn.alchemy3d.texture
 			this.name = name;
 			this.bitmapdata = bitmapdata;
 			
-			lib = Alchemy3DLib.getInstance();
+			lib = Library.getInstance();
 			buffer = lib.buffer;
 			
 			initialize();

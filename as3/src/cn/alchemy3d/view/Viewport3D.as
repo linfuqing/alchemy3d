@@ -2,7 +2,7 @@ package cn.alchemy3d.view
 {
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.device.IDevice;
-	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.scene.Scene3D;
 	
 	import flash.display.Bitmap;
@@ -24,7 +24,7 @@ package cn.alchemy3d.view
 		protected var gfx:BitmapData;
 		protected var wh:int;
 		
-		protected var lib:Alchemy3DLib;
+		protected var lib:Library;
 		
 		override public function get mouseX():Number
 		{
@@ -66,7 +66,7 @@ package cn.alchemy3d.view
 			gfx = new BitmapData(width, height, true, 0);
 			addChild(new Bitmap(gfx, PixelSnapping.NEVER, false));
 			
-			lib = Alchemy3DLib.getInstance();
+			lib = Library.getInstance();
 			
 			//初始化场景
 			//返回该对象起始指针

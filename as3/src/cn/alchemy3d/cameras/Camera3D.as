@@ -1,7 +1,7 @@
 package cn.alchemy3d.cameras
 {
 	import cn.alchemy3d.device.IDevice;
-	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.objects.Entity;
 	
 	import flash.geom.Vector3D;
@@ -10,7 +10,7 @@ package cn.alchemy3d.cameras
 	public class Camera3D implements IDevice
 	{
 		public var pointer:uint = 0;
-		protected var lib:Alchemy3DLib;
+		protected var lib:Library;
 		protected var buffer:ByteArray;
 		
 		public var targetPtr:uint;
@@ -110,7 +110,7 @@ package cn.alchemy3d.cameras
 			this._near = near;
 			this._far = far;
 			
-			lib = Alchemy3DLib.getInstance();
+			lib = Library.getInstance();
 			buffer = lib.buffer;
 			
 			this.eye = eye == null ? new Entity(null, null, "camera") : eye;
