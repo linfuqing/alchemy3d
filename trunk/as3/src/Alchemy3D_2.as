@@ -1,5 +1,8 @@
 package
 {
+	import br.com.stimuli.loading.BulkLoader;
+	import br.com.stimuli.loading.BulkProgressEvent;
+	
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.device.Device;
 	import cn.alchemy3d.lights.Light3D;
@@ -39,7 +42,9 @@ package
 		protected var s2:Sphere;
 		protected var s3:Sphere;
 		
-		private var t:Texture;
+		private var t1:Texture;
+		private var t2:Texture;
+		private var bl:BulkLoader;
 		
 		public function Alchemy3D_2()
 		{
@@ -58,15 +63,19 @@ package
 			tf.x = 200;
 			addChild(tf);
 			
-			t = new Texture();
-			t.load("asset/earth.jpg");
-			
-			t.addEventListener(Event.COMPLETE, init);
+			bl = new BulkLoader("main-site");
+			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
+			bl.add("asset/earth.jpg", {id:"0"});
+			bl.add("asset/metal.jpg", {id:"1"});
+			bl.start();
 		}
 		
 		protected function init(e:Event = null):void
 		{
-			t.removeEventListener(Event.COMPLETE, init);
+			bl.removeEventListener(BulkProgressEvent.COMPLETE, init);
+			
+			t1 = new Texture(bl.getBitmapData("0"));
+			t2 = new Texture(bl.getBitmapData("1"));
 			
 			var m:Material = new Material();
 			m.ambient = new ColorTransform(0.05, 0.05, 0.05, 1);
@@ -110,17 +119,17 @@ package
 			light.attenuation1 = .001;
 			light.attenuation2 = .0000001;
 			
-			p = new Plane(m, null, 800, 800, 1, 1);
+			p = new Plane(m, t2, 800, 800, 1, 1);
 			scene.addEntity(p);
 			p.rotationX = 90;
 			p.y = -180;
 			p.z = 800;
 			
-			s = new Sphere(m1, t, 180, 16, 12)
+			s = new Sphere(m1, t1, 180, 16, 12)
 			scene.addEntity(s);
 			s.z = 1100;
 			
-			s2 = new Sphere(m2, t, 120, 16, 12)
+			s2 = new Sphere(m2, t2, 120, 16, 12)
 			scene.addEntity(s2);
 			s2.x = -130;
 			s2.y = -60;
@@ -167,17 +176,17 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
-			camera.target = s.worldPosition;
-			var mx:Number = viewport.mouseX / 200;
-			var my:Number = - viewport.mouseY / 200;
-			
-			camera.hover(mx, my, 10);
+//			camera.target = s.worldPosition;
+//			var mx:Number = viewport.mouseX / 200;
+//			var my:Number = - viewport.mouseY / 200;
+//			
+//			camera.hover(mx, my, 10);
 //			
 //			p.rotationX ++;
 //			p.rotationY ++;
 //			p.rotationZ ++;
 
-			s.rotationX ++;
+			s.rotationY ++;
 //			s2.z++;
 //			
 //			camera.eye.z ++;

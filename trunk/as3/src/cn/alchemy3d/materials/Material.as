@@ -1,6 +1,6 @@
 package cn.alchemy3d.materials
 {
-	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.geom.ColorTransform;
@@ -10,7 +10,7 @@ package cn.alchemy3d.materials
 	{
 		public var pointer:uint = 0;
 		protected var buffer:ByteArray;
-		protected var lib:Alchemy3DLib;
+		protected var lib:Library;
 		
 		public var ambientPtr:uint;
 		public var diffusePtr:uint;
@@ -134,7 +134,7 @@ package cn.alchemy3d.materials
 			_emissive = new ColorTransform(0, 0, 0, 1);
 			_power = 0;
 			
-			lib = Alchemy3DLib.getInstance();
+			lib = Library.getInstance();
 			buffer = lib.buffer;
 			
 			var ps:Array = lib.alchemy3DLib.initializeMaterial();

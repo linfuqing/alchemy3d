@@ -2,7 +2,7 @@ package cn.alchemy3d.scene
 {
 
 	import cn.alchemy3d.device.IDevice;
-	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.Mesh3D;
@@ -16,7 +16,7 @@ package cn.alchemy3d.scene
 			children = new Dictionary();
 			lights = new Vector.<Light3D>();
 			
-			lib = Alchemy3DLib.getInstance();
+			lib = Library.getInstance();
 		}
 		
 		public var pointer:uint = 0;
@@ -27,7 +27,7 @@ package cn.alchemy3d.scene
 		public var facesNum:int = 0;
 		public var verticesNum:int = 0;
 		
-		protected var lib:Alchemy3DLib;
+		protected var lib:Library;
 		
 		public function initialize(devicePointer:uint):void
 		{	

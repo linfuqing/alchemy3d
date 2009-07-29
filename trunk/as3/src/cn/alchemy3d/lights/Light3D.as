@@ -1,6 +1,6 @@
 package cn.alchemy3d.lights
 {
-	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.ISceneNode;
 	import cn.alchemy3d.tools.Alchemy3DLog;
@@ -12,7 +12,7 @@ package cn.alchemy3d.lights
 	{
 		public var pointer:uint = 0;
 		protected var buffer:ByteArray;
-		protected var lib:Alchemy3DLib;
+		protected var lib:Library;
 		
 		public var modePtr:uint;
 		public var bOnOffPtr:uint;
@@ -254,7 +254,7 @@ package cn.alchemy3d.lights
 			_diffuse = new ColorTransform(1, 1, 1, 1);
 			_specular = new ColorTransform(0.6, 0.6, 0.6, 1);
 			
-			lib = Alchemy3DLib.getInstance();
+			lib = Library.getInstance();
 			buffer = lib.buffer;
 			
 			this.source = source == null ? new Entity(null, null, "lightSource") : source;

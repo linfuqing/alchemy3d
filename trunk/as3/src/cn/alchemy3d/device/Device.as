@@ -1,7 +1,7 @@
 package cn.alchemy3d.device
 {
 	import cn.alchemy3d.cameras.Camera3D;
-	import cn.alchemy3d.lib.Alchemy3DLib;
+	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Viewport3D;
@@ -18,7 +18,7 @@ package cn.alchemy3d.device
 		public var cameras:Vector.<Camera3D>;
 		public var lights:Vector.<Light3D>;
 		
-		protected var lib:Alchemy3DLib;
+		protected var lib:Library;
 		
 		public function Device()
 		{
@@ -29,7 +29,7 @@ package cn.alchemy3d.device
 			cameras = new Vector.<Camera3D>();
 			lights = new Vector.<Light3D>();
 			
-			lib = Alchemy3DLib.getInstance();
+			lib = Library.getInstance();
 			
 			this.pointer = lib.alchemy3DLib.initializeDevice();
 		}
