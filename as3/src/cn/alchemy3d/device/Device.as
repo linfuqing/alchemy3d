@@ -34,6 +34,11 @@ package cn.alchemy3d.device
 			this.pointer = lib.alchemy3DLib.initializeDevice();
 		}
 		
+		public function propertySetting(property:int, value:int):void
+		{
+			lib.alchemy3DLib.propertySetting(property, value);
+		}
+		
 		public function addViewport(viewport:Viewport3D):void
 		{
 			viewports.push(viewport);
@@ -56,7 +61,6 @@ package cn.alchemy3d.device
 		public function addLight(light:Light3D):void
 		{
 			lights.push(light);
-			
 		}
 		
 		public function startRendering():void
