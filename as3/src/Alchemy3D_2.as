@@ -155,6 +155,15 @@ package
 			viewport = new Viewport3D(600, 400, scene, camera);
 			addViewport(viewport);
 			
+			lightObj = new Sphere(lightM, null, 20, 3, 2)
+			scene.addEntity(lightObj);
+			
+			lightObj2 = new Sphere(lightM2, null, 20, 3, 2)
+			scene.addEntity(lightObj2);
+			
+			lightObj3 = new Sphere(lightM3, null, 20, 3, 2)
+			scene.addEntity(lightObj3);
+			
 			p = new Plane(m, null, 800, 800, 1, 1);
 			scene.addEntity(p);
 			p.rotationX = 90;
@@ -177,19 +186,10 @@ package
 			s3.y = -60;
 			s3.z = 700;
 			
-			lightObj = new Sphere(lightM, null, 20, 3, 2)
-			scene.addEntity(lightObj);
-			
-			lightObj2 = new Sphere(lightM2, null, 20, 3, 2)
-			scene.addEntity(lightObj2);
-			
-			lightObj3 = new Sphere(lightM3, null, 20, 3, 2)
-			scene.addEntity(lightObj3);
-			
 			light = new Light3D(lightObj);
 			scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
-			light.mode = LightType.HIGH_MODE;
+			light.mode = LightType.MID_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
 			light.source.y = 120;
 			light.source.x = 400;
@@ -203,7 +203,7 @@ package
 			light2 = new Light3D(lightObj2);
 			scene.addLight(light2);
 			light2.type = LightType.POINT_LIGHT;
-			light2.mode = LightType.HIGH_MODE;
+			light2.mode = LightType.MID_MODE;
 			light2.bOnOff = LightType.LIGHT_ON;
 			light2.source.y = 350;
 			light2.source.x = -900;
@@ -217,11 +217,11 @@ package
 			light3 = new Light3D(lightObj3);
 			scene.addLight(light3);
 			light3.type = LightType.POINT_LIGHT;
-			light3.mode = LightType.HIGH_MODE;
+			light3.mode = LightType.MID_MODE;
 			light3.bOnOff = LightType.LIGHT_ON;
 			light3.source.y = -500;
-			light3.source.x = -300;
-			light3.source.z = 1100;
+			light3.source.x = -400;
+			light3.source.z = 800;
 			light3.ambient = new ColorTransform(0, 0, 0, 1);
 			light3.diffuse = new ColorTransform(0, 0, 1, 1);
 			light3.specular = new ColorTransform(0, 0, .6, 1);
