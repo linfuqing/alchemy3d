@@ -2,9 +2,10 @@ package cn.alchemy3d.geom
 {
 	import __AS3__.vec.Vector;
 	
-	import cn.alchemy3d.base.Instance;
+	import cn.alchemy3d.base.Library;
+	import cn.alchemy3d.base.Pointer;
 	
-	public class Mesh extends Instance
+	public class Mesh extends Pointer
 	{
 		private var _vertices:uint;
 		private var _faces   :uint;
@@ -13,71 +14,108 @@ package cn.alchemy3d.geom
 		{
 			var v     :Vertex; 
 			var vertex:Array;
-				
+			
 			var vl    :uint = vs.length;
-			var vp    :uint = instance.library.applyForTmpBuffer( vl * 3 * instance.library.doubleTypeSize() );
+			var vp    :uint = Library.instance().methods.applyForTmpBuffer( vl * 3 * Library.instance().doubleTypeSize );
 			 
 			if( _vertices )
 			{
-				instance.library.destoryVertices( _vertices );
+				Library.instance().methods.destoryVertices( _vertices );
 			}
 
-			instance.buffer.position = vp;
+			Library.instance().buffer.position = vp;
 			
 			for each ( v in vs )
 			{
-				instance.buffer.writeDouble( v.x );
-				instance.buffer.writeDouble( v.y );
-				instance.buffer.writeDouble( v.z );
+				Library.instance().buffer.writeDouble( v.x );
+				Library.instance().buffer.writeDouble( v.y );
+				Library.instance().buffer.writeDouble( v.z );
 			}
 			
-			var pointer:Array        = instance.library.initializeVertices( vp, vl );
+			var pointer:Array        = Library.instance().methods.initializeVertices( vp, vl );
 			
 			_vertices                = pointer[0];
 			
-			instance.buffer.position = pointer[1];
+			Library.instance().buffer.position = pointer[1];
 
 			for each( v in vs )
 			{
-				v.pointer       = instance.buffer.readUnsignedInt();
-				
-				vertex          = instance.library.initializeVertex( v.pointer );
-				
-				v.xPointer      = vertex[0];
-				v.yPointer      = vertex[1];
-				v.zPointer      = vertex[2];
-				
-				v.worldXPointer = vertex[3];
-				v.worldYPointer = vertex[4];
-				v.worldZPointer = vertex[5];
-				
-				instance.buffer.position ++;
+				v.setPointer( Library.instance().buffer.readUnsignedInt() );
 			}
 		}
 		
 		private function set faces( fs:Vector.<Polygon> ):void
 		{
-			buffer.position = tmpBuffPointer + vertices.length * 4 * sizeOfType;
+			var f     :Polygon;
+			var i     :uint;
+			var vertex:Vertex;
+			var uv    :UV;
 			
-			var f:Polygon;
-			var i:uint;
-			var fl:uint;
+			var vl    :uint = 0;
+			
+			var fl    :uint = fs.length;
+			
+			var vp    :uint = Library.instance().methods.applyForTmpBuffer( fl     * Library.instance().intTypeSize()    );
+			var uvp   :uint = Library.instance().methods.applyForTmpBuffer( fl * 2 * Library.instance().doubleTypeSize() );
+			var lp    :uint = Library.instance().methods.applyForTmpBuffer( fl     * Library.instance().intTypeSize()    );
+			
+			Library.instance().buffer.position = vp;
+			
+			for each ( f in faces )
+			{
+				for( vertex in f.vertices )
+				{
+					if( !vertex.pointer )
+					{
+						throw new Error( "Do not match vertices!" );
+					}
+					
+					Library.instance().buffer.writeUnsignedInt( vertex.pointer );
+					
+					vl ++;
+				}
+			}
+			
+			Library.instance().buffer.position = uvp;
 			
 			for each ( f in faces )
 			{
 				fl = f.vertices.length;
 				
-				for( i = 0; i < fl; i ++ )
+				for each( uv in f.uvs )
 				{
-					if( !f.vertices[i].pointer )
-					{
-						throw new Error( "Do not match vertices!" );
-					}
-					
-					instance.buffer.writeUnsignedInt( f.vertices[i].pointer );
-					
-					instance.buffer.writeDouble( f.uvs[i].u );
-					instance.buffer.writeDouble( f.uvs[i].v );
+					Library.instance().buffer.writeDouble( uv.u );
+					Library.instance().buffer.writeDouble( uv.v );
+				}
+			}
+			
+			Library.instance().buffer.position = lp;
+			
+			for each ( f in faces )
+			{
+				Library.instance().buffer.writeUnsignedInt( f.vertices.length );
+			}
+			
+			var pointer:Array = Library.instance().methods.initializeFaces( vp, uvp, lp, fl, vl );
+			
+			faces = pointer[0];
+			
+			Library.instance().buffer.position = pointer[1];
+			
+			for each ( f in faces )
+			{
+				f.setPointer( Library.instance().buffer.readUnsignedInt() );
+			}
+			
+			Library.instance().buffer.position = pointer[2];
+			
+			for each ( f in faces )
+			{
+				fl = f.vertices.length;
+
+				for each( uv in f.uvs )
+				{
+					uv.setPointer( Library.instance().buffer.readUnsignedInt() );
 				}
 			}
 		}
@@ -94,7 +132,7 @@ package cn.alchemy3d.geom
 			this.vertices = vertices;
 			this.faces    =    faces;
 			
-			pointer       = instance.library.initializeMesh( _vertices, _faces );
+			_pointer      = Library.instance().methods.initializeMesh( _vertices, _faces );
 		}
 	}
 }

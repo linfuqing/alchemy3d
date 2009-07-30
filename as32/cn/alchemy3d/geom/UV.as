@@ -1,8 +1,9 @@
 package cn.alchemy3d.geom
 {
-	import cn.alchemy3d.base.Instance;
+	import cn.alchemy3d.base.Library;
+	import cn.alchemy3d.base.Pointer;
 
-	public class UV extends Instance
+	public class UV extends Pointer
 	{
 		private var _u:Number;
 		private var _v:Number;
@@ -16,9 +17,14 @@ package cn.alchemy3d.geom
 			
 			if( pointer )
 			{
-				instance.buffer.position = uPointer;
+				if( uPointer == NULL )
+				{
+					setPointers();
+				}
 				
-				instance.buffer.writeDouble( _u );
+				Library.instance().buffer.position = uPointer;
+				
+				Library.instance().buffer.writeDouble( _u );
 			}
 		}
 		
@@ -33,9 +39,14 @@ package cn.alchemy3d.geom
 			
 			if( pointer )
 			{
-				instance.buffer.position = uPointer;
+				if( vPointer == NULL )
+				{
+					setPointers();
+				}
 				
-				instance.buffer.writeDouble( _v );
+				Library.instance().buffer.position = vPointer;
+				
+				Library.instance().buffer.writeDouble( _v );
 			}
 		}
 		
@@ -50,7 +61,27 @@ package cn.alchemy3d.geom
 			
 			_u = u;
 			_v = v;
+			
+			init();
 		}
 		
+		private function init():void
+		{
+			uPointer = NULL;
+			vPointer = NULL;
+		}
+		
+		private function setPointers():void
+		{
+			var uv:Array = Library.instance().methods.initializeVector( f.uvs[i].pointer );
+					
+			uPointer     = uv[0];
+			vPointer     = uv[1];
+		}
+		
+		internal function setPointer( value:uint ):void
+		{
+			_pointer = value;
+		}
 	}
 }

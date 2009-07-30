@@ -29,6 +29,10 @@ package cn.alchemy3d.geom
 			this.vertices = vertices;
 			this.uvs      = uvs;
 		}
-
+		
+		internal function setPointer( value:uint ):void
+		{
+			_pointer = value;
+		}
 	}
 }

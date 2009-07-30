@@ -1,30 +1,36 @@
 package cn.alchemy3d.geom
 {	
-	import cn.alchemy3d.base.Instance;
+	import cn.alchemy3d.base.Library;
+	import cn.alchemy3d.base.Pointer;
 	
-	public class Vertex extends Instance
+	public class Vertex extends Pointer
 	{
 		private var _x:Number;
 		private var _y:Number;
 		private var _z:Number;
 		
-		internal var xPointer:uint;
-		internal var yPointer:uint;
-		internal var zPointer:uint;
+		private var xPointer:uint;
+		private var yPointer:uint;
+		private var zPointer:uint;
 		
-		internal var worldXPointer:uint;
-		internal var worldYPointer:uint;
-		internal var worldZPointer:uint;
+		private var worldXPointer:uint;
+		private var worldYPointer:uint;
+		private var worldZPointer:uint;
 		
 		public function set x( value:Number ):void
 		{
 			_x = value;
 			
-			if( pointer )
+			if( _pointer )
 			{
-				instance.buffer.position = xPointer;
+				if( xPointer == NULL )
+				{
+					setPointers();
+				}
 				
-				instance.buffer.writeDouble( _x );
+				Library.instance().buffer.position = xPointer;
+				
+				Library.instance().buffer.writeDouble( _x );
 			}
 		}
 		
@@ -37,11 +43,16 @@ package cn.alchemy3d.geom
 		{
 			_y = value;
 			
-			if( pointer )
+			if( _pointer )
 			{
-				instance.buffer.position = yPointer;
+				if( yPointer == NULL )
+				{
+					setPointers();
+				}
 				
-				instance.buffer.writeDouble( _y );
+				Library.instance().buffer.position = yPointer;
+				
+				Library.instance().buffer.writeDouble( _y );
 			}
 		}
 		
@@ -54,11 +65,16 @@ package cn.alchemy3d.geom
 		{
 			_z = value;
 			
-			if( pointer )
+			if( _pointer )
 			{
-				instance.buffer.position = zPointer;
+				if( zPointer == NULL )
+				{
+					setPointers();
+				}
 				
-				instance.buffer.writeDouble( _z );
+				Library.instance().buffer.position = zPointer;
+				
+				Library.instance().buffer.writeDouble( _z );
 			}
 		}
 		
@@ -69,11 +85,16 @@ package cn.alchemy3d.geom
 		
 		public function get worldX():Number
 		{
-			if( pointer )
+			if( _pointer )
 			{
-				instance.buffer.position = worldXPointer;
+				if( worldXPointer == NULL )
+				{
+					setPointers();
+				}
 				
-				return instance.buffer.readDouble();
+				Library.instance().buffer.position = worldXPointer;
+				
+				return Library.instance().buffer.readDouble();
 			}
 			
 			return 0;
@@ -81,11 +102,16 @@ package cn.alchemy3d.geom
 		
 		public function get worldY():Number
 		{
-			if( pointer )
+			if( _pointer )
 			{
-				instance.buffer.position = worldYPointer;
+				if( worldYPointer == NULL )
+				{
+					setPointers();
+				}
 				
-				return instance.buffer.readDouble();
+				Library.instance().buffer.position = worldYPointer;
+				
+				return Library.instance().buffer.readDouble();
 			}
 			
 			return 0;
@@ -93,11 +119,16 @@ package cn.alchemy3d.geom
 		
 		public function get worldZ():Number
 		{
-			if( pointer )
+			if( _pointer )
 			{
-				instance.buffer.position = worldZPointer;
+				if( worldZPointer == NULL )
+				{
+					setPointers();
+				}
 				
-				return instance.buffer.readDouble();
+				Library.instance().buffer.position = worldZPointer;
+				
+				return Library.instance().buffer.readDouble();
 			}
 			
 			return 0;
@@ -110,6 +141,40 @@ package cn.alchemy3d.geom
 			_x = x;
 			_y = y;
 			_z = z;
+			
+			init();
+		}
+		
+		private function init():void
+		{
+			xPointer = NULL;
+			yPointer = NULL;
+			zPointer = NULL;
+			
+			worldXPointer = NULL;
+			worldYPointer = NULL;
+			worldZPointer = NULL;
+		}
+		
+		private function setPointers():void
+		{
+			if( _pointer )
+			{
+				var vertex:Array = instance.library.initializeVertex( v.pointer );
+				
+				xPointer         = vertex[0];
+				yPointer         = vertex[1];
+				zPointer         = vertex[2];
+				
+				worldXPointer    = vertex[3];
+				worldYPointer    = vertex[4];
+				worldZPointer    = vertex[5];
+			}
+		}
+		
+		internal function setPointer( value:uint ):void
+		{
+			_pointer = value;
 		}
 		
 		public function toString():String
