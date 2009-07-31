@@ -67,8 +67,8 @@ package cn.alchemy3d.scene
 			
 			if (child is Mesh3D)
 			{
-				verticesNum += Mesh3D(child).vertices.length;
-				facesNum += Mesh3D(child).faces.length;
+				verticesNum += Mesh3D(child).nVertices;
+				facesNum += Mesh3D(child).nFaces;
 			}
 			/*var arr:Array;
 			if (child is Mesh3D)
