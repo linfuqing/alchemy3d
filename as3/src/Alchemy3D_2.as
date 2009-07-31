@@ -21,25 +21,24 @@ package
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.geom.ColorTransform;
+	import flash.geom.Vector3D;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	
 	import gs.TweenLite;
-	import gs.easing.Linear;
 
 	[SWF(width="600",height="400",backgroundColor="#000000",frameRate="60")]
 	public class Alchemy3D_2 extends Device
 	{
-		private var viewport:Viewport3D;
-		private var camera:Camera3D;
-		private var scene:Scene3D;
+		protected var viewport:Viewport3D;
+		protected var camera:Camera3D;
+		protected var scene:Scene3D;
 		
-		private var light:Light3D;
-		private var light2:Light3D;
-		private var light3:Light3D;
+		protected var light:Light3D;
+		protected var light2:Light3D;
+		protected var light3:Light3D;
 		
 		protected var p:Plane;
-		protected var p2:Plane;
 		
 		protected var s:Sphere;
 		protected var s2:Sphere;
@@ -49,9 +48,9 @@ package
 		protected var lightObj2:Sphere;;
 		protected var lightObj3:Sphere;
 		
-		private var t1:Texture;
-		private var t2:Texture;
-		private var bl:BulkLoader;
+		protected var t1:Texture;
+		protected var t2:Texture;
+		protected var bl:BulkLoader;
 		
 		private var _lightMoving:Boolean = true;
 		private var _usingTexture:Boolean = true;
@@ -228,15 +227,14 @@ package
 			light3.attenuation1 = .001;
 			light3.attenuation2 = .0000001;
 			
+			showInfo();
+			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, lightOnOff);
 			startRendering();
 			
 			moveLight1(1);
 			moveLight2(1);
 			moveLight3(1);
-//			movePlane(1);
-			
-			showInfo();
 		}
 		
 		protected function lightOnOff(e:KeyboardEvent):void
@@ -331,12 +329,6 @@ package
 			TweenLite.to(lightObj3, 4, { y:target, onComplete:moveLight3, onCompleteParams:[dir * -1]});
 		}
 		
-		protected function movePlane(dir:int = 1):void
-		{
-			var target:int = 80 * dir;
-			TweenLite.to(p2, 4, { rotationX:target, onComplete:movePlane, onCompleteParams:[dir * -1], ease:Linear.easeInOut});
-		}
-		
 		override protected function onRenderTick(e:Event = null):void
 		{
 			camera.target = s.worldPosition;
@@ -344,21 +336,8 @@ package
 			var my:Number = - viewport.mouseY / 200;
 			
 			camera.hover(mx, my, 10);
-//			
-//			p.rotationX ++;
-//			p.rotationY ++;
-//			p.rotationZ ++;
 
 			s.rotationY ++;
-//			s2.z++;
-//			
-//			camera.eye.z ++;
-//			p.rotationX++;
-//			
-//			p2.rotationX --;
-//			p2.rotationY --;
-//			p2.rotationZ --;
-//			light.source.x ++;
 			
 			super.onRenderTick(e);
 		}

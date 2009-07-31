@@ -7,6 +7,7 @@ package cn.alchemy3d.objects
 	import cn.alchemy3d.texture.Texture;
 	
 	import flash.geom.Point;
+	import flash.geom.Vector3D;
 	
 	public class Mesh3D extends Entity implements ISceneNode
 	{
@@ -18,15 +19,44 @@ package cn.alchemy3d.objects
 			faces = new Vector.<Triangle3D>();
 		}
 		
-		public var faces:Vector.<Triangle3D>;
-		public var vertices:Vector.<Vertex3D>;
-		public var tmpBuffPointer:uint;
+		protected var faces:Vector.<Triangle3D>;
+		protected var vertices:Vector.<Vertex3D>;
+		
+		public var meshBuffPointer:uint;
 		public var verticesPointer:uint;
 		public var facesPointer:uint;
 		
+		protected var sizeOfVertex:int;
+		protected var sizeOfFace:int;
+		
+		public function get nFaces():int
+		{
+			return faces.length;
+		}
+		
+		public function get nVertices():int
+		{
+			return vertices.length;
+		}
+		
+		public function setVertices(index:int, v:Vector3D):void
+		{
+			buffer.position = meshBuffPointer + index * sizeOfVertex;
+			trace(buffer.readFloat());
+			trace(buffer.readFloat());
+			trace(buffer.readFloat());
+			trace(buffer.readFloat());
+			
+			buffer.position = meshBuffPointer + index * sizeOfVertex;
+			buffer.writeFloat(v.x);
+			buffer.writeFloat(v.y);
+			buffer.writeFloat(v.z);
+			buffer.writeFloat(v.w);
+		}
+		
 		public function fillVerticesToBuffer():void
 		{
-			buffer.position = tmpBuffPointer;
+			buffer.position = meshBuffPointer;
 			
 			var v:Vertex3D;
 			
@@ -41,7 +71,7 @@ package cn.alchemy3d.objects
 		
 		public function fillFacesToBuffer():void
 		{
-			buffer.position = tmpBuffPointer + vertices.length * 4 * sizeOfType;
+			buffer.position = meshBuffPointer + vertices.length * 4 * sizeOfType;
 			
 			var f:Triangle3D;
 			
@@ -61,7 +91,7 @@ package cn.alchemy3d.objects
 		
 		protected function applyForTmpBuffer():void
 		{
-			tmpBuffPointer = lib.alchemy3DLib.applyForTmpBuffer(4, (vertices.length * 4 + faces.length * 9) * 4);
+			meshBuffPointer = lib.alchemy3DLib.applyForTmpBuffer(4, (vertices.length * 4 + faces.length * 9) * 4);
 		}
 		
 		override public function initialize(scenePtr:uint, parentPtr:uint):void
@@ -72,15 +102,17 @@ package cn.alchemy3d.objects
 			var tPtr:uint = texture == null ? 0 : texture.pointer;
 			var mPtr:uint = material == null ? 0 : material.pointer;
 			
-			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, tmpBuffPointer, vertices.length, faces.length));
+			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, meshBuffPointer, vertices.length, faces.length));
 		}
 		
 		override public function allotPtr(ps:Array):void
 		{
 			super.allotPtr(ps);
 			
-			verticesPointer = ps[7];
-			facesPointer = ps[8];
+			verticesPointer	= ps[7];
+			facesPointer	= ps[8];
+			sizeOfVertex	= ps[9];
+			sizeOfFace		= ps[10];
 		}
 		
 		override public function clone():Entity
