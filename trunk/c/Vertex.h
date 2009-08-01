@@ -5,7 +5,7 @@
 # include <malloc.h>
 # include <stdlib.h>
 
-# include "Matrix.h"
+# include "Matrix3D.h"
 
 //RW
 typedef struct

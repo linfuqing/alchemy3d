@@ -4,9 +4,9 @@
 
 /**************************************************************************************
  **----------------------------------------------------------------------------------**
- **                               |Matrix3D verson 1.5|                              **
+ **                               |Matrix3D verson 2.0F|                             **
  **----------------------------------------------------------------------------------**
- **                           include< stdlib.h, Vector3D.h>                         **
+ **                                include<Quaternion.h>                             **
  **__________________________________________________________________________________**
  **************************************************************************************/
 
@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "Vector3D.h"
+#include "Quaternion.h"
 
 //RW
 typedef struct
@@ -40,6 +40,8 @@ typedef struct
 	Number m44;
 }Matrix3D;
 
+Matrix3D temp;
+
 /**************************************************************************************
  **----------------------------------------------------------------------------------**
  **                                    |matrix3D|                                    **
@@ -52,26 +54,26 @@ typedef struct
 **/
 void matrix3D_identity( Matrix3D * m )
 {
-	( * m ).m11 = 1.0; ( * m ).m12 = 0.0; ( * m ).m13 = 0.0; ( * m ).m14 = 0.0;
+	m -> m11 = 1.0; m -> m12 = 0.0; m -> m13 = 0.0; m -> m14 = 0.0;
 
-	( * m ).m21 = 0.0; ( * m ).m22 = 1.0; ( * m ).m23 = 0.0; ( * m ).m24 = 0.0;
+	m -> m21 = 0.0; m -> m22 = 1.0; m -> m23 = 0.0; m -> m24 = 0.0;
 
-	( * m ).m31 = 0.0; ( * m ).m32 = 0.0; ( * m ).m33 = 1.0; ( * m ).m34 = 0.0;
+	m -> m31 = 0.0; m -> m32 = 0.0; m -> m33 = 1.0; m -> m34 = 0.0;
 
-	( * m ).m41 = 0.0; ( * m ).m42 = 0.0; ( * m ).m43 = 0.0; ( * m ).m44 = 1.0;
+	m -> m41 = 0.0; m -> m42 = 0.0; m -> m43 = 0.0; m -> m44 = 1.0;
 }
 /**
 ¸´ÖÆ¾ØÕó¡£
 **/
-void matrix3D_copy( Matrix3D * m, Matrix3D c )
+void matrix3D_copy( Matrix3D * m, Matrix3D * c )
 {
-	( * m ).m11 = c.m11; ( * m ).m12 = c.m12; ( * m ).m13 = c.m13; ( * m ).m14 = c.m14;
+	m -> m11 = c -> m11; m -> m12 = c -> m12; m -> m13 = c -> m13; m -> m14 = c -> m14;
 
-	( * m ).m21 = c.m21; ( * m ).m22 = c.m22; ( * m ).m23 = c.m23; ( * m ).m24 = c.m24;
+	m -> m21 = c -> m21; m -> m22 = c -> m22; m -> m23 = c -> m23; m -> m24 = c -> m24;
 
-	( * m ).m31 = c.m31; ( * m ).m32 = c.m32; ( * m ).m33 = c.m33; ( * m ).m34 = c.m34;
+	m -> m31 = c -> m31; m -> m32 = c -> m32; m -> m33 = c -> m33; m -> m34 = c -> m34;
 
-	( * m ).m41 = c.m41; ( * m ).m42 = c.m42; ( * m ).m43 = c.m43; ( * m ).m44 = c.m44;
+	m -> m41 = c -> m41; m -> m42 = c -> m42; m -> m43 = c -> m43; m -> m44 = c -> m44;
 }
 /**
 Ò»¸öÓÃÓÚÈ·¶¨¾ØÕóÊÇ·ñ¿ÉÄæµÄÊý×Ö¡£ 
@@ -81,9 +83,9 @@ Matrix3D ¶ÔÏó±ØÐëÊÇ¿ÉÄæµÄ¡£¿ÉÒÔÊ¹ÓÃ determinant ÊôÐÔÈ·±£ Matrix3D ¶ÔÏóÊÇ¿ÉÄæµÄ¡£
 ÀýÈç£¬Èç¹û¾ØÕóµÄÕû¸öÐÐ»òÁÐÎªÁã£¬»òÈç¹ûÁ½¸öÐÐ»òÁÐÏàµÈ£¬ÔòÐÐÁÐÊ½ÎªÁã¡£
 ÐÐÁÐÊ½»¹¿ÉÓÃÓÚ¶ÔÒ»ÏµÁÐ·½³Ì½øÐÐÇó½â¡£ 
 **/
-Number matrix3D_determinant( Matrix3D m )
+Number matrix3D_determinant( Matrix3D * m )
 {
-	return ( m.m11 * m.m22 - m.m21 * m.m12 ) * m.m33 - ( m.m11 * m.m32 - m.m31 * m.m12 ) * m.m23 + ( m.m21 * m.m32 - m.m31 * m.m22 ) * m.m13;
+	return ( m -> m11 * m -> m22 - m -> m21 * m -> m12 ) * m -> m33 - ( m -> m11 * m -> m32 - m -> m31 * m -> m12 ) * m -> m23 + ( m -> m21 * m -> m32 - m -> m31 * m -> m22 ) * m -> m13;
 }
 
 /**
@@ -91,31 +93,31 @@ Number matrix3D_determinant( Matrix3D m )
 
 Èç¹û rawData ÊôÐÔÉèÖÃÎªÒ»¸ö²»¿ÉÄæµÄ¾ØÕó£¬Ôò»áÒý·¢Òì³£¡£Matrix3D ¶ÔÏó±ØÐëÊÇ¿ÉÄæµÄ¡£
 **/
-Number ( * matrix3D_getRawData( Matrix3D m ) )[16]
+Number ( * matrix3D_getRawData( Matrix3D * m ) )[16]
 {
 	Number ( * rawData )[16];
 
 	rawData = calloc( 16, sizeof( Number ) );
 
-	( * rawData )[0]  = m.m11;
-	( * rawData )[1]  = m.m21;
-	( * rawData )[2]  = m.m31;
-	( * rawData )[3]  = m.m41;
+	( * rawData )[0]  = m -> m11;
+	( * rawData )[1]  = m -> m21;
+	( * rawData )[2]  = m -> m31;
+	( * rawData )[3]  = m -> m41;
 	
-	( * rawData )[4]  = m.m12;
-	( * rawData )[5]  = m.m22;
-	( * rawData )[6]  = m.m32;
-	( * rawData )[7]  = m.m42;
+	( * rawData )[4]  = m -> m12;
+	( * rawData )[5]  = m -> m22;
+	( * rawData )[6]  = m -> m32;
+	( * rawData )[7]  = m -> m42;
 
-	( * rawData )[8]  = m.m13;
-	( * rawData )[9]  = m.m23;
-	( * rawData )[10] = m.m33;
-	( * rawData )[11] = m.m43;
+	( * rawData )[8]  = m -> m13;
+	( * rawData )[9]  = m -> m23;
+	( * rawData )[10] = m -> m33;
+	( * rawData )[11] = m -> m43;
 
-	( * rawData )[12] = m.m14;
-	( * rawData )[13] = m.m24;
-	( * rawData )[14] = m.m34;
-	( * rawData )[15] = m.m44;
+	( * rawData )[12] = m -> m14;
+	( * rawData )[13] = m -> m24;
+	( * rawData )[14] = m -> m34;
+	( * rawData )[15] = m -> m44;
 
 	return rawData;
 }
@@ -127,29 +129,29 @@ Number ( * matrix3D_getRawData( Matrix3D m ) )[16]
 **/
 void matrix3D_setRawData( Matrix3D * m, Number ( * rawData )[16] )
 {
-	( * m ).m11 = ( * rawData )[0];
-	( * m ).m21 = ( * rawData )[1];
-	( * m ).m31 = ( * rawData )[2];
-	( * m ).m41 = ( * rawData )[3];
+	m -> m11 = ( * rawData )[0];
+	m -> m21 = ( * rawData )[1];
+	m -> m31 = ( * rawData )[2];
+	m -> m41 = ( * rawData )[3];
 
-	( * m ).m12 = ( * rawData )[4];
-	( * m ).m22 = ( * rawData )[5];
-	( * m ).m32 = ( * rawData )[6];
-	( * m ).m42 = ( * rawData )[7];
+	m -> m12 = ( * rawData )[4];
+	m -> m22 = ( * rawData )[5];
+	m -> m32 = ( * rawData )[6];
+	m -> m42 = ( * rawData )[7];
 
-	( * m ).m13 = ( * rawData )[8];
-	( * m ).m23 = ( * rawData )[9];
-	( * m ).m33 = ( * rawData )[10];
-	( * m ).m43 = ( * rawData )[11];
+	m -> m13 = ( * rawData )[8];
+	m -> m23 = ( * rawData )[9];
+	m -> m33 = ( * rawData )[10];
+	m -> m43 = ( * rawData )[11];
 
-	( * m ).m14 = ( * rawData )[12];
-	( * m ).m24 = ( * rawData )[13];
-	( * m ).m34 = ( * rawData )[14];
-	( * m ).m44 = ( * rawData )[15];
+	m -> m14 = ( * rawData )[12];
+	m -> m24 = ( * rawData )[13];
+	m -> m34 = ( * rawData )[14];
+	m -> m44 = ( * rawData )[15];
 
-	if( !matrix3D_determinant( * m ) )
+	if( !matrix3D_determinant( m ) )
 	{
-		exit( FALSE );
+		matrix3D_identity( m );
 	}
 }
 
@@ -209,16 +211,12 @@ Matrix3D * matrix3D_clone( Matrix3D * src )
 
 ÀûÓÃ position ÊôÐÔ£¬¿ÉÒÔ»ñÈ¡ºÍÉèÖÃ×ª»»¾ØÕóµÄÆ½ÒÆÔªËØ¡£
 **/
-Vector3D matrix3D_getPosition( Matrix3D m )
+void matrix3D_getPosition( Matrix3D * m, Vector3D * pos )
 {
-	Vector3D v;
-
-	v.x = m.m14;
-	v.y = m.m24;
-	v.z = m.m34;
-	v.w = m.m44;
-
-	return v;
+	pos -> x = m -> m14;
+	pos -> y = m -> m24;
+	pos -> z = m -> m34;
+	pos -> w = m -> m44;
 }
 
 /**
@@ -227,76 +225,104 @@ Vector3D matrix3D_getPosition( Matrix3D m )
 
 ÀûÓÃ position ÊôÐÔ£¬¿ÉÒÔ»ñÈ¡ºÍÉèÖÃ×ª»»¾ØÕóµÄÆ½ÒÆÔªËØ¡£
 **/
-void matrix3D_setPosition( Matrix3D * m, Vector3D v )
+void matrix3D_setPosition( Matrix3D * m, Vector3D * v )
 {
-	( * m ).m14 = v.x;
-	( * m ).m24 = v.y;
-	( * m ).m34 = v.z;
-	( * m ).m44 = v.w;
+	m -> m14 = v -> x;
+	m -> m24 = v -> y;
+	m -> m34 = v -> z;
+	m -> m44 = v -> w;
 }
 
 /**
 ¾ØÕóÏà³Ë¡£
 **/
-Matrix3D matrix3D_multiply( Matrix3D m1, Matrix3D m2 )
+/*Matrix3D * matrix3D_multiply( Matrix3D * m1, Matrix3D * m2 )
 {
-	Matrix3D m;
+	Matrix3D * m;
 
-	m.m11 = m1.m11 * m2.m11 + m1.m12 * m2.m21 + m1.m13 * m2.m31;
-	m.m12 = m1.m11 * m2.m12 + m1.m12 * m2.m22 + m1.m13 * m2.m32;
-	m.m13 = m1.m11 * m2.m13 + m1.m12 * m2.m23 + m1.m13 * m2.m33;
-	m.m14 = m1.m11 * m2.m14 + m1.m12 * m2.m24 + m1.m13 * m2.m34 + m1.m14;
+	if( ( m = ( Matrix3D * )malloc( sizeof( Matrix3D ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
 
-	m.m21 = m1.m21 * m2.m11 + m1.m22 * m2.m21 + m1.m23 * m2.m31;
-	m.m22 = m1.m21 * m2.m12 + m1.m22 * m2.m22 + m1.m23 * m2.m32;
-	m.m23 = m1.m21 * m2.m13 + m1.m22 * m2.m23 + m1.m23 * m2.m33;
-	m.m24 = m1.m21 * m2.m14 + m1.m22 * m2.m24 + m1.m23 * m2.m34 + m1.m24;
+	m -> m11 = m1 -> m11 * m2 -> m11 + m1 -> m12 * m2 -> m21 + m1 -> m13 * m2 -> m31;
+	m -> m12 = m1 -> m11 * m2 -> m12 + m1 -> m12 * m2 -> m22 + m1 -> m13 * m2 -> m32;
+	m -> m13 = m1 -> m11 * m2 -> m13 + m1 -> m12 * m2 -> m23 + m1 -> m13 * m2 -> m33;
+	m -> m14 = m1 -> m11 * m2 -> m14 + m1 -> m12 * m2 -> m24 + m1 -> m13 * m2 -> m34 + m1 -> m14;
 
-	m.m31 = m1.m31 * m2.m11 + m1.m32 * m2.m21 + m1.m33 * m2.m31;
-	m.m32 = m1.m31 * m2.m12 + m1.m32 * m2.m22 + m1.m33 * m2.m32;
-	m.m33 = m1.m31 * m2.m13 + m1.m32 * m2.m23 + m1.m33 * m2.m33;
-	m.m34 = m1.m31 * m2.m14 + m1.m32 * m2.m24 + m1.m33 * m2.m34 + m1.m34;
+	m -> m21 = m1 -> m21 * m2 -> m11 + m1 -> m22 * m2 -> m21 + m1 -> m23 * m2 -> m31;
+	m -> m22 = m1 -> m21 * m2 -> m12 + m1 -> m22 * m2 -> m22 + m1 -> m23 * m2 -> m32;
+	m -> m23 = m1 -> m21 * m2 -> m13 + m1 -> m22 * m2 -> m23 + m1 -> m23 * m2 -> m33;
+	m -> m24 = m1 -> m21 * m2 -> m14 + m1 -> m22 * m2 -> m24 + m1 -> m23 * m2 -> m34 + m1 -> m24;
+
+	m -> m31 = m1 -> m31 * m2 -> m11 + m1 -> m32 * m2 -> m21 + m1 -> m33 * m2 -> m31;
+	m -> m32 = m1 -> m31 * m2 -> m12 + m1 -> m32 * m2 -> m22 + m1 -> m33 * m2 -> m32;
+	m -> m33 = m1 -> m31 * m2 -> m13 + m1 -> m32 * m2 -> m23 + m1 -> m33 * m2 -> m33;
+	m -> m34 = m1 -> m31 * m2 -> m14 + m1 -> m32 * m2 -> m24 + m1 -> m33 * m2 -> m34 + m1 -> m34;
 
 
 	/*m.m41 = m1.m41 * m2.m11 + m1.m42 * m2.m21 + m1.m43 * m2.m31;
 	m.m42 = m1.m41 * m2.m12 + m1.m42 * m2.m22 + m1.m43 * m2.m32;
 	m.m43 = m1.m41 * m2.m13 + m1.m42 * m2.m23 + m1.m43 * m2.m33;
-	m.m44 = m1.m41 * m2.m14 + m1.m42 * m2.m24 + m1.m43 * m2.m34 + m1.m44;*/
-
-	m.m41 = 0;
-	m.m42 = 0;
-	m.m43 = 0;
-	m.m44 = 1;
-
-	return m;
-}
-
-Matrix3D matrix3D_project( Matrix3D m1, Matrix3D m2 )
-{
-	Matrix3D m;
-
-	m.m11 = m1.m11 * m2.m11 + m1.m12 * m2.m21 + m1.m13 * m2.m31;
-	m.m12 = m1.m11 * m2.m12 + m1.m12 * m2.m22 + m1.m13 * m2.m32;
-	m.m13 = m1.m11 * m2.m13 + m1.m12 * m2.m23 + m1.m13 * m2.m33;
-	m.m14 = m1.m11 * m2.m14 + m1.m12 * m2.m24 + m1.m13 * m2.m34 + m1.m14;
-
-	m.m21 = m1.m21 * m2.m11 + m1.m22 * m2.m21 + m1.m23 * m2.m31;
-	m.m22 = m1.m21 * m2.m12 + m1.m22 * m2.m22 + m1.m23 * m2.m32;
-	m.m23 = m1.m21 * m2.m13 + m1.m22 * m2.m23 + m1.m23 * m2.m33;
-	m.m24 = m1.m21 * m2.m14 + m1.m22 * m2.m24 + m1.m23 * m2.m34 + m1.m24;
-
-	m.m31 = m1.m31 * m2.m11 + m1.m32 * m2.m21 + m1.m33 * m2.m31;
-	m.m32 = m1.m31 * m2.m12 + m1.m32 * m2.m22 + m1.m33 * m2.m32;
-	m.m33 = m1.m31 * m2.m13 + m1.m32 * m2.m23 + m1.m33 * m2.m33;
-	m.m34 = m1.m31 * m2.m14 + m1.m32 * m2.m24 + m1.m33 * m2.m34 + m1.m34;
-
-
-	m.m41 = m1.m41 * m2.m11 + m1.m42 * m2.m21 + m1.m43 * m2.m31;
-	m.m42 = m1.m41 * m2.m12 + m1.m42 * m2.m22 + m1.m43 * m2.m32;
-	m.m43 = m1.m41 * m2.m13 + m1.m42 * m2.m23 + m1.m43 * m2.m33;
 	m.m44 = m1.m41 * m2.m14 + m1.m42 * m2.m24 + m1.m43 * m2.m34 + m1.m44;
 
+	m -> m41 = 0;
+	m -> m42 = 0;
+	m -> m43 = 0;
+	m -> m44 = 1;
+
 	return m;
+}*/
+
+void matrix3D_prependProject( Matrix3D * thisMatrix, Matrix3D * lhs )
+{
+	Matrix3D m = * thisMatrix;
+
+	thisMatrix -> m11 = m.m11 * lhs -> m11 + m.m12 * lhs -> m21 + m.m13 * lhs -> m31;
+	thisMatrix -> m12 = m.m11 * lhs -> m12 + m.m12 * lhs -> m22 + m.m13 * lhs -> m32;
+	thisMatrix -> m13 = m.m11 * lhs -> m13 + m.m12 * lhs -> m23 + m.m13 * lhs -> m33;
+	thisMatrix -> m14 = m.m11 * lhs -> m14 + m.m12 * lhs -> m24 + m.m13 * lhs -> m34 + m.m14;
+
+	thisMatrix -> m21 = m.m21 * lhs -> m11 + m.m22 * lhs -> m21 + m.m23 * lhs -> m31;
+	thisMatrix -> m22 = m.m21 * lhs -> m12 + m.m22 * lhs -> m22 + m.m23 * lhs -> m32;
+	thisMatrix -> m23 = m.m21 * lhs -> m13 + m.m22 * lhs -> m23 + m.m23 * lhs -> m33;
+	thisMatrix -> m24 = m.m21 * lhs -> m14 + m.m22 * lhs -> m24 + m.m23 * lhs -> m34 + m.m24;
+
+	thisMatrix -> m31 = m.m31 * lhs -> m11 + m.m32 * lhs -> m21 + m.m33 * lhs -> m31;
+	thisMatrix -> m32 = m.m31 * lhs -> m12 + m.m32 * lhs -> m22 + m.m33 * lhs -> m32;
+	thisMatrix -> m33 = m.m31 * lhs -> m13 + m.m32 * lhs -> m23 + m.m33 * lhs -> m33;
+	thisMatrix -> m34 = m.m31 * lhs -> m14 + m.m32 * lhs -> m24 + m.m33 * lhs -> m34 + m.m34;
+
+	thisMatrix -> m41 = m.m41 * lhs -> m11 + m.m42 * lhs -> m21 + m.m43 * lhs -> m31;
+	thisMatrix -> m42 = m.m41 * lhs -> m12 + m.m42 * lhs -> m22 + m.m43 * lhs -> m32;
+	thisMatrix -> m43 = m.m41 * lhs -> m13 + m.m42 * lhs -> m23 + m.m43 * lhs -> m33;
+	thisMatrix -> m44 = m.m41 * lhs -> m14 + m.m42 * lhs -> m24 + m.m43 * lhs -> m34 + m.m44;
+}
+
+void matrix3D_apprendProject( Matrix3D * thisMatrix, Matrix3D * lhs )
+{
+	Matrix3D m = * thisMatrix;
+
+	thisMatrix -> m11 = lhs -> m11 * m.m11 + lhs -> m12 * m.m21 + lhs -> m13 * m.m31;
+	thisMatrix -> m12 = lhs -> m11 * m.m12 + lhs -> m12 * m.m22 + lhs -> m13 * m.m32;
+	thisMatrix -> m13 = lhs -> m11 * m.m13 + lhs -> m12 * m.m23 + lhs -> m13 * m.m33;
+	thisMatrix -> m14 = lhs -> m11 * m.m14 + lhs -> m12 * m.m24 + lhs -> m13 * m.m34 + lhs -> m14;
+
+	thisMatrix -> m21 = lhs -> m21 * m.m11 + lhs -> m22 * m.m21 + lhs -> m23 * m.m31;
+	thisMatrix -> m22 = lhs -> m21 * m.m12 + lhs -> m22 * m.m22 + lhs -> m23 * m.m32;
+	thisMatrix -> m23 = lhs -> m21 * m.m13 + lhs -> m22 * m.m23 + lhs -> m23 * m.m33;
+	thisMatrix -> m24 = lhs -> m21 * m.m14 + lhs -> m22 * m.m24 + lhs -> m23 * m.m34 + lhs -> m24;
+
+	thisMatrix -> m31 = lhs -> m31 * m.m11 + lhs -> m32 * m.m21 + lhs -> m33 * m.m31;
+	thisMatrix -> m32 = lhs -> m31 * m.m12 + lhs -> m32 * m.m22 + lhs -> m33 * m.m32;
+	thisMatrix -> m33 = lhs -> m31 * m.m13 + lhs -> m32 * m.m23 + lhs -> m33 * m.m33;
+	thisMatrix -> m34 = lhs -> m31 * m.m14 + lhs -> m32 * m.m24 + lhs -> m33 * m.m34 + lhs -> m34;
+
+
+	thisMatrix -> m41 = lhs -> m41 * m.m11 + lhs -> m42 * lhs -> m21 + m.m43 * m.m31;
+	thisMatrix -> m42 = lhs -> m41 * m.m12 + lhs -> m42 * lhs -> m22 + m.m43 * m.m32;
+	thisMatrix -> m43 = lhs -> m41 * m.m13 + lhs -> m42 * lhs -> m23 + m.m43 * m.m33;
+	thisMatrix -> m44 = lhs -> m41 * m.m14 + lhs -> m42 * lhs -> m24 + m.m43 * m.m34 + lhs -> m44;
 }
 
 /**
@@ -314,47 +340,45 @@ thisMatrix = lhs * thisMatrix;
 append() ·½·¨»á½«µ±Ç°¾ØÕóÌæ»»ÎªºóÖÃµÄ¾ØÕó¡£
 Èç¹ûÒªºóÖÃÁ½¸ö¾ØÕó£¬¶ø²»¸ü¸Äµ±Ç°¾ØÕó£¬ÇëÊ¹ÓÃ clone() ·½·¨¸´ÖÆµ±Ç°¾ØÕó£¬È»ºó¶ÔÉú³ÉµÄ¸±±¾Ó¦ÓÃ append() ·½·¨¡£ 
 **/
-void matrix3D_apprend( Matrix3D * thisMatrix, Matrix3D lhs )
+void matrix3D_prepend( Matrix3D * thisMatrix, Matrix3D * lhs )
 {
-	* thisMatrix = matrix3D_multiply( * thisMatrix, lhs );
+	Matrix3D m = * thisMatrix;
+
+	thisMatrix -> m11 = m.m11 * lhs -> m11 + m.m12 * lhs -> m21 + m.m13 * lhs -> m31;
+	thisMatrix -> m12 = m.m11 * lhs -> m12 + m.m12 * lhs -> m22 + m.m13 * lhs -> m32;
+	thisMatrix -> m13 = m.m11 * lhs -> m13 + m.m12 * lhs -> m23 + m.m13 * lhs -> m33;
+	thisMatrix -> m14 = m.m11 * lhs -> m14 + m.m12 * lhs -> m24 + m.m13 * lhs -> m34 + m.m14;
+
+	thisMatrix -> m21 = m.m21 * lhs -> m11 + m.m22 * lhs -> m21 + m.m23 * lhs -> m31;
+	thisMatrix -> m22 = m.m21 * lhs -> m12 + m.m22 * lhs -> m22 + m.m23 * lhs -> m32;
+	thisMatrix -> m23 = m.m21 * lhs -> m13 + m.m22 * lhs -> m23 + m.m23 * lhs -> m33;
+	thisMatrix -> m24 = m.m21 * lhs -> m14 + m.m22 * lhs -> m24 + m.m23 * lhs -> m34 + m.m24;
+
+	thisMatrix -> m31 = m.m31 * lhs -> m11 + m.m32 * lhs -> m21 + m.m33 * lhs -> m31;
+	thisMatrix -> m32 = m.m31 * lhs -> m12 + m.m32 * lhs -> m22 + m.m33 * lhs -> m32;
+	thisMatrix -> m33 = m.m31 * lhs -> m13 + m.m32 * lhs -> m23 + m.m33 * lhs -> m33;
+	thisMatrix -> m34 = m.m31 * lhs -> m14 + m.m32 * lhs -> m24 + m.m33 * lhs -> m34 + m.m34;
 }
 
-/**
-Í¨¹ý½«µ±Ç° Matrix3D ¶ÔÏóÓëÁíÒ»¸ö Matrix3D ¶ÔÏóÏà³ËÀ´Ç°ÖÃÒ»¸ö¾ØÕó¡£
-µÃµ½µÄ½á¹û½«ºÏ²¢Á½¸ö¾ØÕó×ª»»¡£ 
 
-¾ØÕó³Ë·¨ÔËËãÓë¾ØÕó¼Ó·¨ÔËËã²»Í¬¡£¾ØÕó³Ë·¨ÔËËãÊÇ²»¿É½»»»µÄ¡£
-»»¾ä»°Ëµ£¬A ³ËÒÔ B ²¢²»µÈÓÚ B ³ËÒÔ A¡£
-ÔÚÊ¹ÓÃ prepend() ·½·¨Ê±£¬³Ë·¨ÔËËã½«´ÓÓÒ²à¿ªÊ¼£¬ÕâÒâÎ¶×Å rhs Matrix3D ¶ÔÏóÎ»ÓÚ³Ë·¨ÔËËã·ûµÄÓÒ²à¡£ 
-
-thisMatrix = thisMatrix * rhs 
-prepend() ·½·¨Ëù×öµÄÐÞ¸ÄÓë¶ÔÏó¿Õ¼äÏà¹Ø¡£
-»»¾ä»°Ëµ£¬ÕâÐ©ÐÞ¸ÄÊ¼ÖÕÓë¶ÔÏóµÄ³õÊ¼²ÎÕÕÖ¡Ïà¹Ø¡£ 
-
-prepend() ·½·¨»á½«µ±Ç°¾ØÕóÌæ»»ÎªÇ°ÖÃµÄ¾ØÕó¡£
-Èç¹ûÒªÇ°ÖÃÁ½¸ö¾ØÕó£¬¶ø²»¸ü¸Äµ±Ç°¾ØÕó£¬ÇëÏÈÊ¹ÓÃ clone() ·½·¨¸´ÖÆµ±Ç°¾ØÕó£¬È»ºó¶ÔÉú³ÉµÄ¸±±¾Ó¦ÓÃ prepend() ·½·¨¡£
-**/
-void matrix3D_prepend( Matrix3D * thisMatrix, Matrix3D lhs )
+void matrix3D_apprend( Matrix3D * thisMatrix, Matrix3D * lhs )
 {
-	* thisMatrix = matrix3D_multiply( lhs, * thisMatrix );
-}
+	Matrix3D m = * thisMatrix;
 
-/**
-»ñÈ¡Ò»¸öÎ»ÒÆ¾ØÕó¡£
-**/
-Matrix3D translationMatrix3D( Number x, Number y, Number z )
-{
-	Matrix3D tran;
+	thisMatrix -> m11 = lhs -> m11 * m.m11 + lhs -> m12 * m.m21 + lhs -> m13 * m.m31;
+	thisMatrix -> m12 = lhs -> m11 * m.m12 + lhs -> m12 * m.m22 + lhs -> m13 * m.m32;
+	thisMatrix -> m13 = lhs -> m11 * m.m13 + lhs -> m12 * m.m23 + lhs -> m13 * m.m33;
+	thisMatrix -> m14 = lhs -> m11 * m.m14 + lhs -> m12 * m.m24 + lhs -> m13 * m.m34 + lhs -> m14;
 
-	tran.m11 = 1.0; tran.m12 = 0.0; tran.m13 = 0.0; tran.m14 = x;
+	thisMatrix -> m21 = lhs -> m21 * m.m11 + lhs -> m22 * m.m21 + lhs -> m23 * m.m31;
+	thisMatrix -> m22 = lhs -> m21 * m.m12 + lhs -> m22 * m.m22 + lhs -> m23 * m.m32;
+	thisMatrix -> m23 = lhs -> m21 * m.m13 + lhs -> m22 * m.m23 + lhs -> m23 * m.m33;
+	thisMatrix -> m24 = lhs -> m21 * m.m14 + lhs -> m22 * m.m24 + lhs -> m23 * m.m34 + lhs -> m24;
 
-	tran.m21 = 0.0; tran.m22 = 1.0; tran.m23 = 0.0; tran.m24 = y;
-
-	tran.m31 = 0.0; tran.m32 = 0.0; tran.m33 = 1.0; tran.m34 = z;
-
-	tran.m41 = 0.0; tran.m42 = 0.0; tran.m43 = 0.0; tran.m44 = 1.0;
-
-	return tran;
+	thisMatrix -> m31 = lhs -> m31 * m.m11 + lhs -> m32 * m.m21 + lhs -> m33 * m.m31;
+	thisMatrix -> m32 = lhs -> m31 * m.m12 + lhs -> m32 * m.m22 + lhs -> m33 * m.m32;
+	thisMatrix -> m33 = lhs -> m31 * m.m13 + lhs -> m32 * m.m23 + lhs -> m33 * m.m33;
+	thisMatrix -> m34 = lhs -> m31 * m.m14 + lhs -> m32 * m.m24 + lhs -> m33 * m.m34 + lhs -> m34;
 }
 
 /**
@@ -370,9 +394,13 @@ Matrix3D translationMatrix3D( Number x, Number y, Number z )
 ÈôÒªÈ·±£¶Ô×ª»»¾ØÕó½øÐÐ¾ø¶Ô¸ü¸Ä£¬ÇëÊ¹ÓÃ recompose() ·½·¨¡£×ª»»µÄË³ÐòÒ²ºÜÖØÒª¡£
 ÏÈÆ½ÒÆÔÙÐý×ªµÄ×ª»»Ëù²úÉúµÄÐ§¹ûÓëÏÈÐý×ªÔÙÆ½ÒÆËù²úÉúµÄÐ§¹û²»Í¬¡£ 
 **/
-void matrix3D_apprendTranslation( Matrix3D * m, Number x, Number y, Number z )
+void matrix3D_prependTranslation( Matrix3D * m, Number x, Number y, Number z )
 {
-	matrix3D_apprend( m, translationMatrix3D( x, y, z ) );
+	Number mx = m -> m41, my = m -> m42, mz = m -> m43;
+
+	m -> m14 = m -> m11 * x + m -> m12 * y + m -> m13 * z + mx;
+	m -> m24 = m -> m21 * x + m -> m22 * y + m -> m23 * z + my;
+	m -> m34 = m -> m31 * x + m -> m32 * y + m -> m33 * z + mz;
 }
 
 /**
@@ -393,15 +421,29 @@ prependTranslation() ·½·¨½«Æ½ÒÆÉèÖÃÎªÑØÈý¸öÖá£¨x¡¢y¡¢z£©½øÐÐµÄÈý¸öÔöÁ¿¸ü¸Ä¼¯¡£
 ÀýÈç£¬Èç¹ûÏÔÊ¾¶ÔÏóÃæÏòµÄÊÇÕýÏò x Öá£¬Ôò¸Ã¶ÔÏó½«¼ÌÐø°´ÕÕ prependTranslation() ·½·¨Ö¸¶¨µÄ·½ÏòÒÆ¶¯£¬ÕâÓë¶ÔÏóÐý×ªµÄ·½Ê½ÎÞ¹Ø¡£
 ÈôÒªÈÃÆ½ÒÆ¸ü¸ÄÔÚÆäËû×ª»»Ö®ºó·¢Éú£¬ÇëÊ¹ÓÃ appendTranslation() ·½·¨¡£ 
 **/
-void matrix3D_prependTranslation( Matrix3D * m, Number x, Number y, Number z )
+void matrix3D_apprendTranslation( Matrix3D * m, Number x, Number y, Number z )
 {
-	matrix3D_prepend( m, translationMatrix3D( x, y, z ) );
+	m -> m14 = m -> m14 + x;
+	m -> m24 = m -> m24 + y;
+	m -> m34 = m -> m34 + z;
 }
 
 /**
-»ñÈ¡Ò»¸öÐý×ª¾ØÕó.
+ÔÚ Matrix3D ¶ÔÏóÉÏÇ°ÖÃÒ»¸öÔöÁ¿Ðý×ª¡£
+ÔÚ½« Matrix3D ¶ÔÏóÓ¦ÓÃÓÚÏÔÊ¾¶ÔÏóÊ±£¬¾ØÕó»áÔÚ Matrix3D ¶ÔÏóÖÐÏÈÖ´ÐÐÐý×ª£¬È»ºóÔÙÖ´ÐÐÆäËû×ª»»¡£ 
+
+ÏÔÊ¾¶ÔÏóµÄÐý×ªÓÉÒÔÏÂÔªËØ¶¨Òå£ºÒ»¸öÖá¡¢ÈÆ¸ÃÖáÐý×ªµÄÔöÁ¿½Ç¶ÈºÍ¶ÔÏóÐý×ªÖÐÐÄµÄ¿ÉÑ¡Öáµã¡£
+Öá¿ÉÒÔÊÇÈÎºÎ³£¹æ·½Ïò¡£
+³£¼ûµÄÖáÎª XAXIS (Vector3D(1,0,0))¡¢YAXIS (Vector3D(0,1,0)) ºÍ ZAXIS (Vector3D(0,0,1))¡£
+ÔÚº½¿ÕÊõÓïÖÐ£¬ÓÐ¹Ø y ÖáµÄÐý×ª³ÆÎªÆ«º½¡£ÓÐ¹Ø x ÖáµÄÐý×ª³ÆÎª¸©Ñö¡£ÓÐ¹Ø z ÖáµÄÐý×ª³ÆÎª·­¹ö¡£ 
+
+×ª»»µÄË³ÐòºÜÖØÒª¡£
+ÏÈÐý×ªÔÙÆ½ÒÆµÄ×ª»»Ëù²úÉúµÄÐ§¹ûÓëÏÈÆ½ÒÆÔÙÐý×ªËù²úÉúµÄÐ§¹û²»Í¬¡£
+
+Ðý×ªÐ§¹û²»ÊÇ¾ø¶ÔÐ§¹û¡£
+´ËÐ§¹ûÓë¶ÔÏóÓÐ¹Ø£¬ËüÓëÔ­Ê¼Î»ÖÃºÍ·½ÏòµÄ²ÎÕÕÖ¡Ïà¶Ô¡£ÈôÒªÈ·±£¶Ô×ª»»½øÐÐ¾ø¶Ô¸ü¸Ä£¬ÇëÊ¹ÓÃ recompose() ·½·¨¡£
 **/
-Matrix3D rotationMatrix3D(  Number degrees, Vector3D axis )
+void matrix3D_apprendRotation( Matrix3D * m, Number degrees,Vector3D * axis )
 {
 	Number angle = degrees * TORADIANS;
 	Number c     = cos( angle );
@@ -409,17 +451,78 @@ Matrix3D rotationMatrix3D(  Number degrees, Vector3D axis )
 
 	Number _c    = 1 - c;
 
-	Number xx    = axis.x * axis.x;
-	Number yy    = axis.y * axis.y;
-	Number zz    = axis.z * axis.z;
+	Number xx    = axis -> x * axis -> x;
+	Number yy    = axis -> y * axis -> y;
+	Number zz    = axis -> z * axis -> z;
 
-	Number xy    = axis.x * axis.y;
-	Number xz    = axis.x * axis.z;
-	Number yz    = axis.y * axis.z;
+	Number xy    = axis -> x * axis -> y;
+	Number xz    = axis -> x * axis -> z;
+	Number yz    = axis -> y * axis -> z;
 
-	Number xs    = axis.x * s;
-	Number zs    = axis.z * s;
-	Number ys    = axis.y * s;
+	Number xs    = axis -> x * s;
+	Number zs    = axis -> z * s;
+	Number ys    = axis -> y * s;
+
+	Number xx_c  = xx * _c;
+	Number yy_c  = yy * _c;
+	Number zz_c  = zz * _c;
+
+	Number xy_c  = xy * _c;
+	Number xz_c  = xz * _c;
+	Number yz_c  = yz * _c;
+
+	Matrix3D rot;
+
+	rot.m11 = c + xx_c;
+	rot.m12 = xy_c - zs;
+	rot.m13 = xz_c + ys;
+
+	rot.m21 = xy_c + zs;
+	rot.m22 = c + yy_c;
+	rot.m23 = yz_c - xs;
+
+	rot.m31 = xz_c - ys;
+	rot.m32 = yz_c + xs;
+	rot.m33 = c + zz_c;
+
+	matrix3D_apprend( m, &rot );
+}
+
+/**
+ÔÚ Matrix3D ¶ÔÏóÉÏÇ°ÖÃÒ»¸öÔöÁ¿Ðý×ª¡£
+ÔÚ½« Matrix3D ¶ÔÏóÓ¦ÓÃÓÚÏÔÊ¾¶ÔÏóÊ±£¬¾ØÕó»áÔÚ Matrix3D ¶ÔÏóÖÐÏÈÖ´ÐÐÐý×ª£¬È»ºóÔÙÖ´ÐÐÆäËû×ª»»¡£ 
+
+ÏÔÊ¾¶ÔÏóµÄÐý×ªÓÉÒÔÏÂÔªËØ¶¨Òå£ºÒ»¸öÖá¡¢ÈÆ¸ÃÖáÐý×ªµÄÔöÁ¿½Ç¶ÈºÍ¶ÔÏóÐý×ªÖÐÐÄµÄ¿ÉÑ¡Öáµã¡£
+Öá¿ÉÒÔÊÇÈÎºÎ³£¹æ·½Ïò¡£
+³£¼ûµÄÖáÎª XAXIS (Vector3D(1,0,0))¡¢YAXIS (Vector3D(0,1,0)) ºÍ ZAXIS (Vector3D(0,0,1))¡£
+ÔÚº½¿ÕÊõÓïÖÐ£¬ÓÐ¹Ø y ÖáµÄÐý×ª³ÆÎªÆ«º½¡£ÓÐ¹Ø x ÖáµÄÐý×ª³ÆÎª¸©Ñö¡£ÓÐ¹Ø z ÖáµÄÐý×ª³ÆÎª·­¹ö¡£ 
+
+×ª»»µÄË³ÐòºÜÖØÒª¡£
+ÏÈÐý×ªÔÙÆ½ÒÆµÄ×ª»»Ëù²úÉúµÄÐ§¹ûÓëÏÈÆ½ÒÆÔÙÐý×ªËù²úÉúµÄÐ§¹û²»Í¬¡£
+
+Ðý×ªÐ§¹û²»ÊÇ¾ø¶ÔÐ§¹û¡£
+´ËÐ§¹ûÓë¶ÔÏóÓÐ¹Ø£¬ËüÓëÔ­Ê¼Î»ÖÃºÍ·½ÏòµÄ²ÎÕÕÖ¡Ïà¶Ô¡£
+ÈôÒªÈ·±£¶Ô×ª»»½øÐÐ¾ø¶Ô¸ü¸Ä£¬ÇëÊ¹ÓÃ recompose() ·½·¨¡£ 
+**/
+void matrix3D_prependRotation( Matrix3D * m, Number degrees,Vector3D * axis )
+{
+	Number angle = degrees * TORADIANS;
+	Number c     = cos( angle );
+	Number s     = sin( angle );
+
+	Number _c    = 1 - c;
+
+	Number xx    = axis -> x * axis -> x;
+	Number yy    = axis -> y * axis -> y;
+	Number zz    = axis -> z * axis -> z;
+
+	Number xy    = axis -> x * axis -> y;
+	Number xz    = axis -> x * axis -> z;
+	Number yz    = axis -> y * axis -> z;
+
+	Number xs    = axis -> x * s;
+	Number zs    = axis -> z * s;
+	Number ys    = axis -> y * s;
 
 	Number xx_c  = xx * _c;
 	Number yy_c  = yy * _c;
@@ -446,83 +549,7 @@ Matrix3D rotationMatrix3D(  Number degrees, Vector3D axis )
 	rot.m33 = c + zz_c;
 	rot.m34 = 0.0;
 
-	rot.m41 = 0.0;
-	rot.m42 = 0.0;
-	rot.m43 = 0.0;
-	rot.m44 = 1.0;
-
-	return rot;
-}
-
-/**
-ÔÚ Matrix3D ¶ÔÏóÉÏÇ°ÖÃÒ»¸öÔöÁ¿Ðý×ª¡£
-ÔÚ½« Matrix3D ¶ÔÏóÓ¦ÓÃÓÚÏÔÊ¾¶ÔÏóÊ±£¬¾ØÕó»áÔÚ Matrix3D ¶ÔÏóÖÐÏÈÖ´ÐÐÐý×ª£¬È»ºóÔÙÖ´ÐÐÆäËû×ª»»¡£ 
-
-ÏÔÊ¾¶ÔÏóµÄÐý×ªÓÉÒÔÏÂÔªËØ¶¨Òå£ºÒ»¸öÖá¡¢ÈÆ¸ÃÖáÐý×ªµÄÔöÁ¿½Ç¶ÈºÍ¶ÔÏóÐý×ªÖÐÐÄµÄ¿ÉÑ¡Öáµã¡£
-Öá¿ÉÒÔÊÇÈÎºÎ³£¹æ·½Ïò¡£
-³£¼ûµÄÖáÎª XAXIS (Vector3D(1,0,0))¡¢YAXIS (Vector3D(0,1,0)) ºÍ ZAXIS (Vector3D(0,0,1))¡£
-ÔÚº½¿ÕÊõÓïÖÐ£¬ÓÐ¹Ø y ÖáµÄÐý×ª³ÆÎªÆ«º½¡£ÓÐ¹Ø x ÖáµÄÐý×ª³ÆÎª¸©Ñö¡£ÓÐ¹Ø z ÖáµÄÐý×ª³ÆÎª·­¹ö¡£ 
-
-×ª»»µÄË³ÐòºÜÖØÒª¡£
-ÏÈÐý×ªÔÙÆ½ÒÆµÄ×ª»»Ëù²úÉúµÄÐ§¹ûÓëÏÈÆ½ÒÆÔÙÐý×ªËù²úÉúµÄÐ§¹û²»Í¬¡£
-
-Ðý×ªÐ§¹û²»ÊÇ¾ø¶ÔÐ§¹û¡£
-´ËÐ§¹ûÓë¶ÔÏóÓÐ¹Ø£¬ËüÓëÔ­Ê¼Î»ÖÃºÍ·½ÏòµÄ²ÎÕÕÖ¡Ïà¶Ô¡£ÈôÒªÈ·±£¶Ô×ª»»½øÐÐ¾ø¶Ô¸ü¸Ä£¬ÇëÊ¹ÓÃ recompose() ·½·¨¡£
-**/
-void matrix3D_apprendRotation( Matrix3D * m, Number degrees,Vector3D axis )
-{
-	matrix3D_apprend( m, rotationMatrix3D(  degrees, axis ) );
-}
-
-/**
-ÔÚ Matrix3D ¶ÔÏóÉÏÇ°ÖÃÒ»¸öÔöÁ¿Ðý×ª¡£
-ÔÚ½« Matrix3D ¶ÔÏóÓ¦ÓÃÓÚÏÔÊ¾¶ÔÏóÊ±£¬¾ØÕó»áÔÚ Matrix3D ¶ÔÏóÖÐÏÈÖ´ÐÐÐý×ª£¬È»ºóÔÙÖ´ÐÐÆäËû×ª»»¡£ 
-
-ÏÔÊ¾¶ÔÏóµÄÐý×ªÓÉÒÔÏÂÔªËØ¶¨Òå£ºÒ»¸öÖá¡¢ÈÆ¸ÃÖáÐý×ªµÄÔöÁ¿½Ç¶ÈºÍ¶ÔÏóÐý×ªÖÐÐÄµÄ¿ÉÑ¡Öáµã¡£
-Öá¿ÉÒÔÊÇÈÎºÎ³£¹æ·½Ïò¡£
-³£¼ûµÄÖáÎª XAXIS (Vector3D(1,0,0))¡¢YAXIS (Vector3D(0,1,0)) ºÍ ZAXIS (Vector3D(0,0,1))¡£
-ÔÚº½¿ÕÊõÓïÖÐ£¬ÓÐ¹Ø y ÖáµÄÐý×ª³ÆÎªÆ«º½¡£ÓÐ¹Ø x ÖáµÄÐý×ª³ÆÎª¸©Ñö¡£ÓÐ¹Ø z ÖáµÄÐý×ª³ÆÎª·­¹ö¡£ 
-
-×ª»»µÄË³ÐòºÜÖØÒª¡£
-ÏÈÐý×ªÔÙÆ½ÒÆµÄ×ª»»Ëù²úÉúµÄÐ§¹ûÓëÏÈÆ½ÒÆÔÙÐý×ªËù²úÉúµÄÐ§¹û²»Í¬¡£
-
-Ðý×ªÐ§¹û²»ÊÇ¾ø¶ÔÐ§¹û¡£
-´ËÐ§¹ûÓë¶ÔÏóÓÐ¹Ø£¬ËüÓëÔ­Ê¼Î»ÖÃºÍ·½ÏòµÄ²ÎÕÕÖ¡Ïà¶Ô¡£
-ÈôÒªÈ·±£¶Ô×ª»»½øÐÐ¾ø¶Ô¸ü¸Ä£¬ÇëÊ¹ÓÃ recompose() ·½·¨¡£ 
-**/
-void matrix3D_prependRotation( Matrix3D * m, Number degrees,Vector3D axis )
-{
-	matrix3D_prepend( m, rotationMatrix3D(  degrees, axis ) );
-}
-
-/**
-Éú³ÉÒ»¸öËõ·Å¾ØÕó.
-**/
-Matrix3D scaleMatrix3D( Number xScale, Number yScale, Number zScale )
-{
-	Matrix3D sca;
-	
-	sca.m11 = xScale;
-	sca.m12 = 0.0;
-	sca.m13 = 0.0;
-	sca.m14 = 0.0;
-
-	sca.m21 = 0.0;
-	sca.m22 = yScale;
-	sca.m23 = 0.0;
-	sca.m24 = 0.0;
-
-	sca.m31 = 0.0;
-	sca.m32 = 0.0;
-	sca.m33 = zScale;
-	sca.m34 = 0.0;
-
-	sca.m41 = 0.0;
-	sca.m42 = 0.0;
-	sca.m43 = 0.0;
-	sca.m44 = 1.0;
-
-	return sca;
+	matrix3D_prepend( m, & rot );
 }
 
 /**
@@ -542,9 +569,19 @@ appendScale() ·½·¨¿ÉÓÃÓÚµ÷Õû´óÐ¡ºÍ¹ÜÀíÅ¤Çú£¨ÀýÈçÏÔÊ¾¶ÔÏóµÄÀ­Éì»òÊÕËõ£©£¬»òÓÃÓÚÄ³
 ÏÈµ÷Õû´óÐ¡ÔÙÆ½ÒÆµÄ×ª»»Ëù²úÉúµÄÐ§¹ûÓëÏÈÆ½ÒÆÔÙµ÷Õû´óÐ¡µÄ×ª»»Ëù²úÉúµÄÐ§¹û²»Í¬¡£
 **/
 
-void matrix3D_apprendScale( Matrix3D * m, Number xScale, Number yScale, Number zScale )
+void matrix3D_prependScale( Matrix3D * m, Number xScale, Number yScale, Number zScale )
 {
-	matrix3D_apprend( m, scaleMatrix3D( xScale, yScale, zScale ) );
+	m -> m11 = m -> m11 * xScale;
+	m -> m12 = m -> m12 * yScale;
+	m -> m13 = m -> m13 * zScale;
+
+	m -> m21 = m -> m21 * xScale;
+	m -> m22 = m -> m22 * yScale;
+	m -> m23 = m -> m23 * zScale;
+
+	m -> m31 = m -> m31 * xScale;
+	m -> m32 = m -> m32 * yScale;
+	m -> m33 = m -> m33 * zScale;
 }
 
 /**
@@ -566,9 +603,22 @@ prependScale() ·½·¨¿ÉÓÃÓÚµ÷Õû´óÐ¡ºÍ¹ÜÀíÅ¤Çú£¨ÀýÈçÏÔÊ¾¶ÔÏóµÄÀ­Éì»òÊÕËõ£©£¬»¹¿ÉÓÃÓ
 ×ª»»µÄË³ÐòºÜÖØÒª¡£
 ÏÈµ÷Õû´óÐ¡ÔÙÆ½ÒÆµÄ×ª»»Ëù²úÉúµÄÐ§¹ûÓëÏÈÆ½ÒÆÔÙµ÷Õû´óÐ¡µÄ×ª»»Ëù²úÉúµÄÐ§¹û²»Í¬¡£
 **/
-void matrix3D_prependScale( Matrix3D * m, Number xScale, Number yScale, Number zScale )
+void matrix3D_apprendScale( Matrix3D * m, Number xScale, Number yScale, Number zScale )
 {
-	matrix3D_prepend( m, scaleMatrix3D( xScale, yScale, zScale ) );
+	m -> m11 = m -> m11 * xScale;
+	m -> m12 = m -> m12 * xScale;
+	m -> m13 = m -> m13 * xScale;
+	m -> m14 = m -> m14 * xScale;
+
+	m -> m21 = m -> m21 * yScale;
+	m -> m22 = m -> m22 * yScale;
+	m -> m23 = m -> m23 * yScale;
+	m -> m24 = m -> m24 * yScale;
+
+	m -> m31 = m -> m31 * zScale;
+	m -> m32 = m -> m32 * zScale;
+	m -> m33 = m -> m33 * zScale;
+	m -> m34 = m -> m34 * zScale;
 }
 
 /**
@@ -576,16 +626,30 @@ void matrix3D_prependScale( Matrix3D * m, Number xScale, Number yScale, Number z
 ·µ»ØµÄ Vector3D ¶ÔÏó½«ÈÝÄÉ×ª»»ºóµÄÐÂ×ø±ê¡£
 ½«¶Ô Vector3D ¶ÔÏóÖÐÓ¦ÓÃËùÓÐ¾ØÕó×ª»»£¨°üÀ¨Æ½ÒÆ£©¡£ 
 **/
-Vector3D matrix3D_transformVector( Matrix3D m, Vector3D v )
+void matrix3D_transformVector( Matrix3D * m, Vector3D * v )
 {
-	Vector3D tran;
+	Number x = v -> x, y = v -> y, z = v -> z; 
 
-	tran.x = m.m11 * v.x + m.m12 * v.y + m.m13 * v.z + m.m14 * v.w;
-	tran.y = m.m21 * v.x + m.m22 * v.y + m.m23 * v.z + m.m24 * v.w;
-	tran.z = m.m31 * v.x + m.m32 * v.y + m.m33 * v.z + m.m34 * v.w;
-	tran.w = m.m41 * v.x + m.m42 * v.y + m.m43 * v.z + m.m44 * v.w;
+	v -> x = m -> m11 * x + m -> m12 * y + m -> m13 * z + m -> m14;
+	v -> y = m -> m21 * x + m -> m22 * y + m -> m23 * z + m -> m24;
+	v -> z = m -> m31 * x + m -> m32 * y + m -> m33 * z + m -> m34;
+}
 
-	return tran;
+/**
+ÀûÓÃÍ¶Ó° Matrix3D ¶ÔÏó£¬½« Vector3D ¶ÔÏó´ÓÒ»¸ö¿Õ¼ä×ø±êÍ¶Ó°µ½ÁíÒ»¸ö¿Õ¼ä×ø±ê¡£
+projectVector() ·½·¨Óë transformVector() ·½·¨ÀàËÆ£¬Ö»²»¹ý projectVector() ·½·¨½«°´ÕÕÍ¶Ó°Éî¶ÈÖµÀ´»®·ÖÔ­Ê¼ Vector3D ¶ÔÏóµÄ x¡¢y ºÍ z ÔªËØ¡£
+Éî¶ÈÖµÊÇÖ¸ÊÓÍ¼»òÊÓ½Ç¿Õ¼äÖÐ´ÓÊÓµãµ½ Vector3D ¶ÔÏóµÄ¾àÀë¡£´Ë¾àÀëµÄÄ¬ÈÏÖµÎª z ÔªËØµÄÖµ¡£ 
+**/
+void matrix3D_projectVector( Matrix3D * m, Vector3D * v )
+{
+	Number z = 1.0 / ( v -> x * m -> m41 + v -> y * m -> m42 + v -> z * m -> m43 + m -> m44 );
+
+
+	matrix3D_transformVector( m, v );
+
+	v -> x = v -> x * z;
+	v -> y = v -> y * z;
+	v -> z = z;
 }
 
 /**
@@ -600,14 +664,14 @@ transpose() ·½·¨»á½«µ±Ç°¾ØÕóÌæ»»Îª×ªÖÃ¾ØÕó¡£
 **/
 void matrix3D_transpose( Matrix3D * m )
 {
-	( * m ).m12 = ( * m ).m21 + ( ( * m ).m21 = ( * m ).m12 ) * 0.0;
-	( * m ).m13 = ( * m ).m31 + ( ( * m ).m31 = ( * m ).m13 ) * 0.0;
-	( * m ).m14 = ( * m ).m41 + ( ( * m ).m41 = ( * m ).m14 ) * 0.0;
+	m -> m12 = m -> m21 + ( m -> m21 = m -> m12 ) * 0.0;
+	m -> m13 = m -> m31 + ( m -> m31 = m -> m13 ) * 0.0;
+	m -> m14 = m -> m41 + ( m -> m41 = m -> m14 ) * 0.0;
 
-	( * m ).m23 = ( * m ).m32 + ( ( * m ).m32 = ( * m ).m23 ) * 0.0;
-	( * m ).m24 = ( * m ).m42 + ( ( * m ).m42 = ( * m ).m24 ) * 0.0;
+	m -> m23 = m -> m32 + ( m -> m32 = m -> m23 ) * 0.0;
+	m -> m24 = m -> m42 + ( m -> m42 = m -> m24 ) * 0.0;
 
-	( * m ).m34 = ( * m ).m43 + ( ( * m ).m43 = ( * m ).m34 ) * 0.0;
+	m -> m34 = m -> m43 + ( m -> m43 = m -> m34 ) * 0.0;
 }
 
 /**
@@ -629,139 +693,34 @@ Matrix3D ¶ÔÏó±ØÐëÊÇ¿ÉÄæµÄ¡£
 **/
 void matrix3D_invert( Matrix3D * m )
 {
-	Number d = matrix3D_determinant( * m );
+	Number d = matrix3D_determinant( m );
 
 	Number m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34;
 
-	if( d != 0 )
+	if( d )
 	{			
-		m11 = ( * m ).m11; m21 = ( * m ).m21; m31 = ( * m ).m31;
-		m12 = ( * m ).m12; m22 = ( * m ).m22; m32 = ( * m ).m32;
-		m13 = ( * m ).m13; m23 = ( * m ).m23; m33 = ( * m ).m33;
-		m14 = ( * m ).m14; m24 = ( * m ).m24; m34 = ( * m ).m34;
+		m11 = m -> m11; m21 = m -> m21; m31 = m -> m31;
+		m12 = m -> m12; m22 = m -> m22; m32 = m -> m32;
+		m13 = m -> m13; m23 = m -> m23; m33 = m -> m33;
+		m14 = m -> m14; m24 = m -> m24; m34 = m -> m34;
 	
 		d = 1.0 /d;
 
-		( * m ).m11 =	 d * ( m22 * m33 - m32 * m23 );
-		( * m ).m12 =	-d * ( m12 * m33 - m32 * m13 );
-		( * m ).m13 =	 d * ( m12 * m23 - m22 * m13 );
-		( * m ).m14 =	-d * ( m12 * ( m23 * m34 - m33 * m24 ) - m22 * ( m13 * m34 - m33 * m14 ) + m32 * ( m13 * m24 - m23 * m14 ) );
+		m -> m11 =	 d * ( m22 * m33 - m32 * m23 );
+		m -> m12 =	-d * ( m12 * m33 - m32 * m13 );
+		m -> m13 =	 d * ( m12 * m23 - m22 * m13 );
+		m -> m14 =	-d * ( m12 * ( m23 * m34 - m33 * m24 ) - m22 * ( m13 * m34 - m33 * m14 ) + m32 * ( m13 * m24 - m23 * m14 ) );
 	
-		( * m ).m21 =	-d * ( m21 * m33 - m31 * m23 );
-		( * m ).m22 =	 d * ( m11 * m33 - m31 * m13 );
-		( * m ).m23 =	-d * ( m11 * m23 - m21 * m13 );
-		( * m ).m24 =	 d * ( m11 * ( m23 * m34 - m33 * m24 ) - m21 * ( m13 * m34 - m33 * m14 ) + m31 * ( m13 * m24 - m23 * m14 ) );
+		m -> m21 =	-d * ( m21 * m33 - m31 * m23 );
+		m -> m22 =	 d * ( m11 * m33 - m31 * m13 );
+		m -> m23 =	-d * ( m11 * m23 - m21 * m13 );
+		m -> m24 =	 d * ( m11 * ( m23 * m34 - m33 * m24 ) - m21 * ( m13 * m34 - m33 * m14 ) + m31 * ( m13 * m24 - m23 * m14 ) );
 	
-		( * m ).m31 =	 d * ( m21 * m32 - m31 * m22 );
-		( * m ).m32 =	-d * ( m11 * m32 - m31 * m12 );
-		( * m ).m33 =	 d * ( m11 * m22 - m21 * m12 );
-		( * m ).m34 =	-d * ( m11 * ( m22 * m34 - m32 * m24 ) - m21 * ( m12 * m34 - m32 * m14 ) + m31 * ( m12 * m24 - m22 * m14 ) );
+		m -> m31 =	 d * ( m21 * m32 - m31 * m22 );
+		m -> m32 =	-d * ( m11 * m32 - m31 * m12 );
+		m -> m33 =	 d * ( m11 * m22 - m21 * m12 );
+		m -> m34 =	-d * ( m11 * ( m22 * m34 - m32 * m24 ) - m21 * ( m12 * m34 - m32 * m14 ) + m31 * ( m12 * m24 - m22 * m14 ) );
 	}
-}
-
-/**
-Éú³ÉÒ»¸öÈÆXÖáÐý×ª¾ØÕó¡£
-**/
-Matrix3D rotationXMatrix3D( Number angle )
-{
-	Matrix3D m;
-
-	Number c = cos( angle );
-	Number s = sin( angle );
-
-	m.m11 = 1.0;	m.m12 = 0.0;	m.m13 =    0.0;	m.m14 = 0.0;
-	m.m21 = 0.0;	m.m22 = c;		m.m23 =  - s;	m.m24 = 0.0;
-	m.m31 = 0.0;	m.m32 = s;		m.m33 =    c;	m.m34 = 0.0;
-	m.m41 = 0.0;	m.m42 = 0.0;	m.m43 =    0.0;	m.m44 = 1.0;
-
-	return m;
-}
-
-/**
-Éú³ÉÒ»¸öÈÆYÖáÐý×ª¾ØÕó¡£
-**/
-Matrix3D rotationYMatrix3D( Number angle )
-{
-	Matrix3D m;
-
-	Number c = cos( angle );
-	Number s = sin( angle );
-
-	m.m11 = c;		m.m12 = 0.0;	m.m13 =  - s;	m.m14 = 0.0;
-	m.m21 = 0.0;	m.m22 = 1.0;	m.m23 =    0.0;	m.m24 = 0.0;
-	m.m31 = s;		m.m32 = 0.0;	m.m33 =    c;	m.m34 = 0.0;
-	m.m41 = 0.0;	m.m42 = 0.0;	m.m43 =    0.0;	m.m44 = 1.0;
-
-	return m;
-}
-
-/**
-Éú³ÉÒ»¸öÈÆZÖáÐý×ª¾ØÕó¡£
-**/
-Matrix3D rotationZMatrix3D( Number angle )
-{
-	Matrix3D m;
-
-	Number c = cos( angle );
-	Number s = sin( angle );
-
-	m.m11 = c;		m.m12 = - s;	m.m13 = 0.0;	m.m14 = 0.0;
-	m.m21 = s;		m.m22 =   c;	m.m23 = 0.0;	m.m24 = 0.0;
-	m.m31 = 0.0;	m.m32 =   0.0;	m.m33 = 1.0;	m.m34 = 0.0;
-	m.m41 = 0.0;	m.m42 =   0.0;	m.m43 = 0.0;	m.m44 = 1.0;
-
-	return m;
-}
-
-/**
-ºóÖÃXÖáÐý×ª.
-**/
-void matrix3D_apprendRotationX( Matrix3D * m, Number angle )
-{
-	matrix3D_apprend( m, rotationXMatrix3D( angle ) );
-}
-
-/**
-ºóÖÃYÖáÐý×ª.
-**/
-void matrix3D_apprendRotationY( Matrix3D * m, Number angle )
-{
-	matrix3D_apprend( m, rotationYMatrix3D( angle ) );
-}
-
-/**
-ºóÖÃZÖáÐý×ª.
-**/
-void matrix3D_apprendRotationZ( Matrix3D * m, Number angle )
-{
-	matrix3D_apprend( m, rotationZMatrix3D( angle ) );
-}
-
-
-/**
-Ç°ÖÃXÖáÐý×ª.
-**/
-void matrix3D_prependRotationX( Matrix3D * m, Number angle )
-{
-	matrix3D_prepend( m, rotationXMatrix3D( angle ) );
-}
-
-
-/**
-Ç°ÖÃYÖáÐý×ª.
-**/
-void matrix3D_prependRotationY( Matrix3D * m, Number angle )
-{
-	matrix3D_prepend( m, rotationYMatrix3D( angle ) );
-}
-
-
-/**
-Ç°ÖÃZÖáÐý×ª.
-**/
-void matrix3D_prependRotationZ( Matrix3D * m, Number angle )
-{
-	matrix3D_prepend( m, rotationZMatrix3D( angle ) );
 }
 
 /**
@@ -770,76 +729,58 @@ void matrix3D_prependRotationZ( Matrix3D * m, Number angle )
 µÚ¶þ¸ö Vector3D ¶ÔÏóÈÝÄÉËõ·ÅÔªËØ¡£
 µÚÈý¸ö Vector3D ¶ÔÏóÈÝÄÉÐý×ªÔªËØ¡£ 
 **/
-void matrix3D_decompose( Matrix3D m, Vector3D * position, Vector3D * scale, Vector3D * rotation )
+void matrix3D_decompose( Matrix3D * m, Vector3D * position, Vector3D * scale, Vector3D * rotation )
 {
-	Matrix3D t;
+	Number sx;
+	Number sy;
+	Number sz;
+		
+	Number m11;
+	Number m21;
+	Number m31;
+	Number m32;
+	Number m33;
 
-	Vector3D i = * newVector3D( m.m11, m.m21, m.m31, 1 );
-	Vector3D j = * newVector3D( m.m12, m.m22, m.m32, 1 );
-	Vector3D k = * newVector3D( m.m13, m.m23, m.m33, 1 );
-
-	if( position )
+	if( position != NULL )
 	{
-		( * position ).x = m.m14;
-		( * position ).y = m.m24;
-		( * position ).z = m.m34;
+		position -> x = m -> m14;
+		position -> y = m -> m24;
+		position -> z = m -> m34;
 	}
-
-	if( scale && rotation )
+		
+	if( scale != NULL || rotation != NULL )
 	{
-		( * scale ).x = vector3D_normalize( & i );
-		( * scale ).y = vector3D_normalize( & j );
-		( * scale ).z = vector3D_normalize( & k );
-	}
-	else if( scale )
-	{
-		( * scale ).x = vector3D_length( i );
-		( * scale ).y = vector3D_length( j );
-		( * scale ).z = vector3D_length( k );
+		sx = sqrt( m -> m11 * m -> m11 + m -> m21 * m -> m21 + m -> m31 * m -> m31 );
+		sy = sqrt( m -> m12 * m -> m12 + m -> m22 * m -> m22 + m -> m32 * m -> m32 );
+		sz = sqrt( m -> m13 * m -> m13 + m -> m23 * m -> m23 + m -> m33 * m -> m33 );
 
-		return;
-	}
-	else if( rotation )
-	{
-		vector3D_normalize( & i );
-		vector3D_normalize( & j );
-		vector3D_normalize( & k );
-	}
-	else
-	{
-		return;
-	}
-
-	t.m11 = i.x; t.m12 = j.x; t.m13 = k.x; t.m14 = 0.0;
-	t.m21 = i.y; t.m22 = j.y; t.m23 = k.y; t.m24 = 0.0;
-	t.m31 = i.z; t.m32 = j.z; t.m33 = k.z; t.m34 = 0.0;
-	t.m41 =   0.0; t.m42 =   0.0; t.m43 =   0.0; t.m44 = 1.0;
-
-	( * rotation ).x = atan2( t.m23, t.m33 );
-
-	matrix3D_prepend( & m, rotationXMatrix3D( - ( * rotation ).x ) );
-
-	( * rotation ).y = atan2( - m.m31, sqrt( m.m11 * m.m11 + m.m21 * m.m21) );
-	( * rotation ).z = atan2( - m.m12, m.m11 );
-
-	if( ( * rotation ).x == PI )
-	{
-		if( ( * rotation ).y > 0 )
+		if( scale != NULL )
 		{
-			( * rotation ).y -= PI;
-		}
-		else
-		{
-			( * rotation ).y += PI;
+			scale -> x = sx;
+			scale -> y = sy;
+			scale -> z = sz;
 		}
 
-		( * rotation ).x = 0.0;
-		( * rotation ).z += PI;
-	}
+		if( rotation != NULL )
+		{
+			m11 = m -> m11 / sx;
+			m21 = m -> m21 / sy;
+			m31 = m -> m31 / sz;
+			m32 = m -> m32 / sz;
+			m33 = m -> m33 / sz;
 
-	( * rotation ).x *= TODEGREES;
-	( * rotation ).y *= TODEGREES;
-	( * rotation ).z *= TODEGREES;
+			m31 = m31 >   1.0 ?  1.0 : m31;
+			m31 = m31 < - 1.0 ? -1.0 : m31;
+		
+			rotation -> y = asin( - m31 );
+			rotation -> z = atan2( m21, m11 );
+			rotation -> x = atan2( m32, m33);
+
+			rotation -> x *= TODEGREES;
+			rotation -> y *= TODEGREES;
+			rotation -> z *= TODEGREES;
+		}
+	}
 }
 
 /**
@@ -850,17 +791,43 @@ recompose() ·½·¨½«¸²¸Ç¾ØÕó×ª»»¡£
 ÈôÒªÊ¹ÓÃ¾ø¶Ô¸¸¼¶²ÎÕÕÖ¡À´ÐÞ¸Ä¾ØÕó×ª»»£¬ÇëÊ¹ÓÃ decompose() ·½·¨¼ìË÷ÉèÖÃ£¬È»ºó×ö³öÊÊµ±µÄ¸ü¸Ä¡£
 È»ºó£¬¿ÉÒÔÊ¹ÓÃ recompose() ·½·¨½« Matrix3D ¶ÔÏóÉèÖÃÎªÐÞ¸ÄºóµÄ×ª»»¡£ 
 **/
-void matrix3D_recompose( Matrix3D * m, Vector3D position, Vector3D scale, Vector3D rotation )
+void matrix3D_recompose( Matrix3D * m, Vector3D * position, Vector3D * scale, Vector3D * rotation )
 {
-	* m = translationMatrix3D( position.x, position.y, position.z );
+	Number ax = rotation -> x * TORADIANS;
+	Number ay = rotation -> y * TORADIANS;
+	Number az = rotation -> z * TORADIANS;
 
-	matrix3D_apprendScale( m, scale.x,scale.y, scale.z );
+	Number a  = cos( ax );
+	Number b  = sin( ax );
+	Number c  = cos( ay );
+	Number d  = sin( ay );
+	Number e  = cos( az );
+	Number f  = sin( az );
 
-	matrix3D_apprendRotationX( m, rotation.x );
+	Number ad = a * d;
+	Number bd = b * d;
 
-	matrix3D_apprendRotationY( m, rotation.y );
+	m -> m11 =   c  * e;
+	m -> m12 = - c  * f;
+	m -> m13 =   d;
+	m -> m14 =   position -> x;
 
-	matrix3D_apprendRotationZ( m, rotation.z );
+	m -> m21 =   bd * e + a * f;
+	m -> m22 = - bd * f + a * e;
+	m -> m23 = - b  * c;
+	m -> m24 =   position -> y;
+
+	m -> m31 = - ad * e + b * f;
+	m -> m32 =   ad * f + b * e;
+	m -> m33 =   a  * c;
+	m -> m34 =   position -> z;
+
+	m -> m41 =   0;
+	m -> m42 =   0;
+	m -> m43 =   0;
+	m -> m44 =   1;
+
+	matrix3D_prependScale( m, scale -> x, scale -> y, scale -> z ); 
 }
 
 /**
@@ -874,63 +841,45 @@ pointAt() ·½·¨¿ÉÊ¹»º´æµÄÏÔÊ¾¶ÔÏóÐý×ªÊôÐÔÖµÎÞÐ§¡£
 È»ºó£¬´Ë·½·¨½«ÖØÐÂ×é³É£¨¸üÐÂ£©ÏÔÊ¾¶ÔÏóµÄ¾ØÕó£¬Õâ½«Ö´ÐÐ×ª»»¡£
 Èç¹û¸Ã¶ÔÏóÖ¸ÏòÕýÔÚÒÆ¶¯µÄÄ¿±ê£¨ÀýÈçÕýÔÚÒÆ¶¯µÄ¶ÔÏóÎ»ÖÃ£©£¬Ôò¶ÔÓÚÃ¿¸öºóÐøµ÷ÓÃ£¬´Ë·½·¨¶¼»áÈÃ¶ÔÏó³¯ÕýÔÚÒÆ¶¯µÄÄ¿±êÐý×ª¡£ 
 **/
-void matrix3D_pointAt( Matrix3D * m, Vector3D pos, Vector3D at, Vector3D up )
+void matrix3D_pointAt( Matrix3D * m, Vector3D * pos, Vector3D * at, Vector3D * up )
 {
 	Vector3D xAxis, yAxis, zAxis, scale;
 
-	vector3D_normalize( & at );
+	vector3D_normalize( at );
 
 	if( vector3D_length( at ) )
 	{
-		xAxis = vector3D_crossProduct( at, up );
+		vector3D_crossProduct( at, up, & xAxis );
 		vector3D_normalize( & xAxis );
 
-		yAxis = vector3D_crossProduct( at, xAxis );
+		vector3D_crossProduct( at, & xAxis, & yAxis );
 		vector3D_normalize( & yAxis );
 
-		zAxis = at;
+		zAxis = * at;
 
-		matrix3D_decompose( * m, NULL, & scale, NULL );
+		matrix3D_decompose( m, NULL, & scale, NULL );
 
-		( * m ).m11 =   xAxis.x * scale.x;
-		( * m ).m21 =   xAxis.y * scale.x;
-		( * m ).m31 =   xAxis.z * scale.x;
+		m -> m11 =   xAxis.x * scale.x;
+		m -> m21 =   xAxis.y * scale.x;
+		m -> m31 =   xAxis.z * scale.x;
+		m -> m41 =   0;
 				
-		( * m ).m12 = - yAxis.x * scale.y;
-		( * m ).m22 = - yAxis.y * scale.y;
-		( * m ).m32 = - yAxis.z * scale.y;
+		m -> m12 = - yAxis.x * scale.y;
+		m -> m22 = - yAxis.y * scale.y;
+		m -> m32 = - yAxis.z * scale.y;
+		m -> m42 =   0;
 				
-		( * m ).m13 =   zAxis.x * scale.z;
-		( * m ).m23 =   zAxis.y * scale.z;
-		( * m ).m33 =   zAxis.z * scale.z;
+		m -> m13 =   zAxis.x * scale.z;
+		m -> m23 =   zAxis.y * scale.z;
+		m -> m33 =   zAxis.z * scale.z;
+		m -> m34 =   0;
 
-		( * m ).m14 =   pos.x;
-		( * m ).m24 =   pos.y;
-		( * m ).m34 =   pos.z;
+		m -> m14 =   pos -> x;
+		m -> m24 =   pos -> y;
+		m -> m34 =   pos -> z;
+		m -> m44 =   1;
 	}
 }
-
-/**
-ÀûÓÃÍ¶Ó° Matrix3D ¶ÔÏó£¬½« Vector3D ¶ÔÏó´ÓÒ»¸ö¿Õ¼ä×ø±êÍ¶Ó°µ½ÁíÒ»¸ö¿Õ¼ä×ø±ê¡£
-projectVector() ·½·¨Óë transformVector() ·½·¨ÀàËÆ£¬Ö»²»¹ý projectVector() ·½·¨½«°´ÕÕÍ¶Ó°Éî¶ÈÖµÀ´»®·ÖÔ­Ê¼ Vector3D ¶ÔÏóµÄ x¡¢y ºÍ z ÔªËØ¡£
-Éî¶ÈÖµÊÇÖ¸ÊÓÍ¼»òÊÓ½Ç¿Õ¼äÖÐ´ÓÊÓµãµ½ Vector3D ¶ÔÏóµÄ¾àÀë¡£´Ë¾àÀëµÄÄ¬ÈÏÖµÎª z ÔªËØµÄÖµ¡£ 
-**/
-Vector3D matrix3D_projectVector( Matrix3D m, Vector3D v )
-{
-	Vector3D pro;
-
-	Number z = 1.0 / ( v.x * m.m41 + v.y * m.m42 + v.z * m.m43 + 1 );
-
-
-	pro = matrix3D_transformVector( m, v );
-
-	pro.x = pro.x * z;
-	pro.y = pro.y * z;
-	pro.z = z;
-
-	return pro;
-}
-
 
 /**************************************************************************************
  **----------------------------------------------------------------------------------**
@@ -941,32 +890,30 @@ Vector3D matrix3D_projectVector( Matrix3D m, Vector3D v )
 /**
 ´Ó¾ØÕó×ª³ÉËÄÔªÊý¡£
 **/
-Vector3D matrix3D_toQuaternion( Matrix3D m )
+void matrix3D_toQuaternion( Matrix3D * m, Quaternion * q )
 {
-	Vector3D q;
-
-	Number s, tr = m.m11 + m.m22 + m.m33, c[4];
+	Number s, tr = m -> m11 + m -> m22 + m -> m33, c[4];
 
 	int i, j, k;
 
 	if (tr > 0.0) 
 	{
-		s   = sqrt( tr + 1.0 );
-		q.w = s / 2.0;
-		s   = 0.5 / s;
+		s      = sqrt( tr + 1.0 );
+		q -> w = s / 2.0;
+		s      = 0.5 / s;
 				
-		q.x = ( m.m32 -  m.m23 ) * s;
-		q.y = ( m.m13 -  m.m31 ) * s;
-		q.z = ( m.m21 -  m.m12 ) * s;
+		q -> x = ( m -> m32 -  m -> m23 ) * s;
+		q -> y = ( m -> m13 -  m -> m31 ) * s;
+		q -> z = ( m -> m21 -  m -> m12 ) * s;
 	} 
 	else 
 	{
 		int nxt[3] = { 1, 2, 0 };
 
 		Number a[3][4] = {
-			{ m.m11, m.m12, m.m13, m.m14 },
-			{ m.m21, m.m22, m.m23, m.m24 },
-			{ m.m31, m.m32, m.m33, m.m34 }
+			{ m -> m11, m -> m12, m -> m13, m -> m14 },
+			{ m -> m21, m -> m22, m -> m23, m -> m24 },
+			{ m -> m31, m -> m32, m -> m33, m -> m34 }
 			};
 				
 		i = 0;
@@ -996,187 +943,49 @@ Vector3D matrix3D_toQuaternion( Matrix3D m )
 		c[j] = ( a[j][i] + a[i][j] ) * s;
 		c[k] = ( a[k][i] + a[i][k] ) * s;
 
-		q.x = c[0];
-		q.y = c[1];
-		q.z = c[2];
-		q.w = c[3];
+		q -> x = c[0];
+		q -> y = c[1];
+		q -> z = c[2];
+		q -> w = c[3];
 	}
-
-	return q;
-}
-
-/**
-ËÄÔªÊýÏà³Ë¡£
-**/
-Vector3D quaternion_multiply( Vector3D q1, Vector3D q2 )
-{
-	Vector3D q;
-	
-	q.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
-    q.y = q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;
-    q.z = q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;
-    q.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
-
-	return q;
-}
-
-/**
-Ðý×ªËÄÔªÊý¡£
-**/
-Vector3D rotationQuaternion( Number degrees, Vector3D axis )
-{
-	Vector3D q;
-
-	Number angle = degrees * TORADIANS * 0.5, s = sin( angle );
-
-	q.x = axis.x * s;
-	q.y = axis.y * s;
-	q.z = axis.z * s;
-	q.w = cos( angle );
-
-	vector3D_normalize( & q );
-
-	return q;
-}
-
-/**
-ºóÖÃ³Ë·¨.
-**/
-void quaternion_append( Vector3D * thisVector, Vector3D lhs )
-{
-	* thisVector = quaternion_multiply( * thisVector, lhs );
-}
-
-/**
-Ç°ÖÃ³Ë·¨.
-**/
-void quaternion_prepend( Vector3D * thisVector, Vector3D lhs )
-{
-	* thisVector = quaternion_multiply( lhs, * thisVector );
-}
-
-/**
-ºóÖÃÐý×ª.
-**/
-void quaternion_apprendRotation( Vector3D * v, Number degrees, Vector3D axis )
-{
-	quaternion_append( v, rotationQuaternion( degrees, axis ) );
-}
-
-/**
-Ç°ÖÃÐý×ª.
-**/
-void quaternion_prependRotation( Vector3D * v, Number degrees, Vector3D axis )
-{
-	quaternion_prepend( v, rotationQuaternion( degrees, axis ) );
-}
-
-/**
-ËÄÔªÊý²åÖµ¡£
-**/
-void quaternion_slerp( Vector3D from, Vector3D to, Vector3D * res, Number t )
-{
-	Vector3D tol = * newVector3D( from.x, from.y, from.z, from.w );
-	Number cosom  = vector3D_dotProduct( from, to ), omega, sinom, scale0, scale1;
-
-	if (cosom < 0.0)
-	{
-		cosom = - cosom;
-		vector3D_negate( & tol );
-	}
-
-	if ( ( 1.0 - cosom ) > 0 )
-	{
-		omega  = acos ( cosom );
-		sinom  = sin ( omega );
-		scale0 = sin ( ( 1.0 - t ) * omega ) / sinom;
-		scale1 = sin ( t * omega ) / sinom;
-
-	}
-	else
-	{
-		scale0 = 1.0 - t;
-		scale1 = t;
-	}
-
-	( * res ).x = scale0 * from.x + scale1 * tol.x;
-	( * res ).y = scale0 * from.y + scale1 * tol.y;
-	( * res ).z = scale0 * from.z + scale1 * tol.z;
-	( * res ).w = scale0 * from.w + scale1 * tol.w;
 }
 
 /**
 ËÄÔªÊý×ª³É¾ØÕó¡£
 **/
-Matrix3D quaternion_toMatrix3D( Vector3D q )
+void quaternion_toMatrix3D( Quaternion * q, Matrix3D * m )
 {
-	Matrix3D m;
+	Number xx = q -> x * q -> x;
+	Number xy = q -> x * q -> y;
+	Number xz = q -> x * q -> z;
+	Number xw = q -> x * q -> w;
 
-	Number xx = q.x * q.x;
-	Number xy = q.x * q.y;
-	Number xz = q.x * q.z;
-	Number xw = q.x * q.w;
+	Number yy = q -> y * q -> y;
+	Number yz = q -> y * q -> z;
+	Number yw = q -> y * q -> w;
 
-	Number yy = q.y * q.y;
-	Number yz = q.y * q.z;
-	Number yw = q.y * q.w;
+	Number zz = q -> z * q -> z;
+	Number zw = q -> z * q -> w;
 
-	Number zz = q.z * q.z;
-	Number zw = q.z * q.w;
-		
+	m -> m11 = 1.0 - 2.0 * ( yy + zz );
+	m -> m12 =       2.0 * ( xy - zw );
+	m -> m13 =       2.0 * ( xz + yw );
+	m -> m14 = 0.0;
 
-	m.m11 = 1.0 - 2.0 * ( yy + zz );
-	m.m12 =       2.0 * ( xy - zw );
-	m.m13 =       2.0 * ( xz + yw );
-	m.m14 = 0.0;
+	m -> m21 =       2.0 * ( xy + zw );
+	m -> m22 = 1.0 - 2.0 * ( xx + zz );
+	m -> m23 =       2.0 * ( yz - xw );
+	m -> m24 = 0.0;
 
-	m.m21 =       2.0 * ( xy + zw );
-	m.m22 = 1.0 - 2.0 * ( xx + zz );
-	m.m23 =       2.0 * ( yz - xw );
-	m.m24 = 0.0;
-
-	m.m31 =       2.0 * ( xz - yw );
-	m.m32 =       2.0 * ( yz + xw );
-	m.m33 = 1.0 - 2.0 * ( xx + yy );
-	m.m34 = 0.0;
+	m -> m31 =       2.0 * ( xz - yw );
+	m -> m32 =       2.0 * ( yz + xw );
+	m -> m33 = 1.0 - 2.0 * ( xx + yy );
+	m -> m34 = 0.0;
 	
-	m.m41 = 0.0;
-	m.m42 = 0.0;
-	m.m43 = 0.0;
-	m.m44 = 1.0;
-
-	return m;
-}
-
-Vector3D quaternion_toEuler( Vector3D q )
-{
-	Vector3D euler;
-			
-	Number test = q.x * q.y + q.z * q.w, sqx, sqy, sqz;
-
-	if ( test > 0.5 ) {
-		euler.x = 2.0 * atan2( q.x,q.w );
-		euler.y = PI / 2.0;
-		euler.z = 0.0;
-	}
-	else if ( test < -0.5 ) {
-		euler.x = -2.0 * atan2( q.x,q.w );
-		euler.y = - PI / 2.0;
-		euler.z = 0.0;
-	}
-	else
-	{
-		sqx = q.x * q.x;
-		sqy = q.y * q.y;
-		sqz = q.z * q.z;
-		    
-		euler.x = atan2( 2.0 * q.y * q.w - 2.0 * q.x * q.z, 1 - 2.0 * sqy - 2.0 * sqz );
-		euler.y = asin( 2.0 * test );   
-		euler.z = atan2( 2.0 * q.x * q.w - 2.0 * q.y * q.z, 1 - 2.0 * sqx - 2.0 * sqz );
-		euler.w = 1.0;
-	}
-			
-	return euler;
+	m -> m41 = 0.0;
+	m -> m42 = 0.0;
+	m -> m43 = 0.0;
+	m -> m44 = 1.0;
 }
 
 /**************************************************************************************
@@ -1200,17 +1009,27 @@ interpolate() ·½·¨¿ÉÊ¹»º´æµÄÏÔÊ¾¶ÔÏóÐý×ªÊôÐÔÖµÎÞÐ§£¬²¢ÔÚ²å²¹Ç°½«ÏÔÊ¾¶ÔÏó¾ØÕóµÄ·½
 ¶Ô interpolate() ·½·¨µÄÁ¬Ðøµ÷ÓÃ»á²úÉúÕâÑùµÄÐ§¹û£ºÏÔÊ¾¶ÔÏóÑ¸ËÙÆô¶¯£¬È»ºó»ºÂý½Ó½üÁíÒ»¸öÏÔÊ¾¶ÔÏó¡£
 ÀýÈç£¬Èç¹û½« thisMat ²ÎÊýÉèÖÃÎª·µ»ØµÄ Matrix3D ¶ÔÏó£¬½« toMat ²ÎÊýÉèÖÃÎªÄ¿±êÏÔÊ¾¶ÔÏó¹ØÁªµÄ Matrix3D ¶ÔÏó£¬²¢½« percent ²ÎÊýÉèÖÃÎª 0.1£¬ÔòÏÔÊ¾¶ÔÏó»á³¯Ä¿±ê¶ÔÏóÒÆ¶¯°Ù·ÖÖ®Ê®¡£¶ÔÓÚºóÐøµ÷ÓÃ»òÔÚºóÐøµÄÖ¡ÖÐ£¬¶ÔÏó»áÒÆ¶¯Ê£ÓàµÄ 90% µÄ°Ù·ÖÖ®Ê®£¬È»ºóÒÆ¶¯Ê£ÓàµÄ 80% µÄ°Ù·ÖÖ®Ê®£¬Ö±µ½¶ÔÏóµ½´ïÄ¿±ê¡£ 
 **/
-void matrix3D_interpolate( Matrix3D thisMat, Matrix3D toMat, Number percent, Matrix3D * target )
+void matrix3D_interpolate( Matrix3D * thisMat, Matrix3D * toMat, Number percent, Matrix3D * target )
 {
-	Vector3D res;
+	Quaternion res, thisQua, toQua;
 
-	quaternion_slerp( matrix3D_toQuaternion( thisMat ), matrix3D_toQuaternion( toMat ), &res, percent );
+	Vector3D   thisVec, toVec, pos;
 
-	* target = quaternion_toMatrix3D( res );
+	matrix3D_toQuaternion( thisMat, & thisQua );
 
-	quaternion_slerp( matrix3D_getPosition( thisMat ), matrix3D_getPosition( toMat ), & res, percent );
+	matrix3D_toQuaternion(   toMat, &   toQua );
 
-	matrix3D_setPosition( target, res );
+	quaternion_slerp( & thisQua, & toQua, &res, percent );
+
+	quaternion_toMatrix3D( & res, target );
+
+	matrix3D_getPosition( thisMat, & thisVec );
+
+	matrix3D_getPosition(   toMat, &   toVec );
+
+	vector3D_slerp( & thisVec, & toVec, & pos, percent );
+
+	matrix3D_setPosition( target, & pos );
 }
 
 /**
@@ -1222,19 +1041,53 @@ pointTowards() ·½·¨ÔÊÐí¶Ô·½Ïò½øÐÐ¾ÍµØÐÞ¸Ä¡£
 ´Ë¶ÔÏó¿ÉÒÔÔÚÈÔ°´×Ô¼ºµÄ·½ÏòÒÆ¶¯µÄÍ¬Ê±£¬Öð²½ÏòÄ¿±ê×ª±ä¡£¶Ô pointTowards() µÄÁ¬Ðøµ÷ÓÃ£¨ºó¸úÒ»¸ö×ª»»·½·¨£©¿ÉÉú³É¶ÔÏó×·Öð»ò½ôËæÒÆ¶¯µÄÄ¿±êÔË¶¯µÄ¶¯»­¡£
 Ê×ÏÈ½«¶ÔÏóÖ¸ÏòÒ»¸ö³¯ÏòÄ¿±êµÄ°Ù·Ö±Èµã£¬È»ºóÑØÄ³¸öÖáÖð²½ÒÆ¶¯¶ÔÏó¡£ 
 **/
-void matrix3D_pointTowards( Number percent, Matrix3D mat, Vector3D pos, Vector3D at, Vector3D up,Matrix3D * target )
+void matrix3D_pointTowards( Number percent, Matrix3D * mat, Vector3D * pos, Vector3D * at, Vector3D * up, Matrix3D * target )
 {
 	Matrix3D m;
 
-	Vector3D res;
-
 	matrix3D_pointAt( & m, pos, at, up );
 
-	quaternion_slerp( matrix3D_toQuaternion( mat ), matrix3D_toQuaternion( m ), &res, percent );
+	matrix3D_interpolate( mat, & m, percent, target );
+}
 
-	* target = quaternion_toMatrix3D( res );
+Matrix3D * projectMatrix3D( Number top, Number bottom, Number left, Number right, Number near, Number far )
+{
+	Matrix3D * m;
 
-	matrix3D_setPosition( target, pos );
+	if( ( m = ( Matrix3D * )malloc( sizeof( Matrix3D ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	m -> m11 = 2.0 * near / ( right - left );
+	m -> m12 = 0.0;
+	m -> m13 = 0.0;
+	m -> m14 = 0.0;
+
+	m -> m21 = 0.0;
+	m -> m22 = 2.0 * near / ( top - bottom );
+	m -> m23 = 0.0;
+	m -> m24 = 0.0;
+
+	m -> m31 = 0.0;
+	m -> m32 = 0.0;
+	m -> m33 = - ( far + near ) / ( far - near );
+	m -> m34 = - 2.0 * far      / ( far - near );
+
+	m -> m41 = 0.0;
+	m -> m42 = 0.0;
+	m -> m43 = - 1;
+	m -> m44 = 0.0;
+
+	return m;
+}
+
+void matrix3D_projectMatrix( Matrix3D * m, Number top, Number bottom, Number left, Number right, Number near, Number far )
+{
+	m -> m11 =   2.0 * near     / ( right - left );
+	m -> m22 =   2.0 * near     / ( top - bottom );
+	m -> m33 = - ( far + near ) / ( far - near );
+	m -> m34 = - 2.0 * far      / ( far - near );
 }
 
 void printfMatrix3D( Matrix3D m )

@@ -37,7 +37,7 @@ Scene * newScene( Mesh * mesh )
 		exit( TRUE );
 	}
 
-	scene -> camera         = newCamera( NULL, NULL, NULL );
+	scene -> camera         = newCamera();
 	scene -> camera -> move = MOVE_TYPE_ADDED_SCENE;
 	scene -> mesh           = mesh;
 	scene -> visible        = TRUE;
@@ -189,7 +189,7 @@ void scene_addChild( Scene * s, Scene * child )
 {
 	//child -> ID             = s -> children == NULL ? s -> ID + 1 : s -> ID + s -> children -> ID + 1;
 
-	child -> camera -> move = MOVE_TYPE_ADDED_SCENE;
+	child -> camera -> move = child -> camera -> move ? child -> camera -> move : MOVE_TYPE_ADDED_SCENE;
 
 	child -> next           = s -> children;
 
@@ -227,7 +227,7 @@ void transformSceneMesh( Scene * s )
 		if( mesh_check( p -> mesh ) )
 		{
 			//网格变换,当子集存在时使用子集世界矩阵, 不存在时计算本地世界矩阵.
-			transformVertices( p -> children ? p -> children -> camera -> world : matrix3D_multiply( camera_getTransform( p ->camera ), p -> camera -> world ), p -> mesh -> vertices );
+			transformVertices( p -> children ? p -> children -> camera -> world : ( temp = * camera_getTransform( p ->camera ),matrix3D_apprend( & temp, p -> camera -> world ), & temp ), p -> mesh -> vertices );
 		}
 
 		p = p -> next;
@@ -348,7 +348,7 @@ void transformScene( Scene * s, int mode )
 
 void scene_destroy( Scene * * s )
 {
-	scene_previousOrder( * s, free );
+	//scene_previousOrder( * s, free );
 
 	* s = NULL;
 }

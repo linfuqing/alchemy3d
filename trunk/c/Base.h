@@ -9,7 +9,7 @@ N :·â×°
 #ifndef BASE_H
 #define BASE_H
 
-# include < math.h >
+# include <math.h>
 
 # define TRUE      1
 # define FALSE     0

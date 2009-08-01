@@ -36,9 +36,9 @@ int polygon_isTriangle( Polygon * head )
 	return isPolygon( head ) && ( head -> next -> next -> next -> next == NULL );
 }
 
-Vector3D * polygon_normal( Vertex * v1, Vertex * v2, Vertex * v3 )
+void polygon_normal( Vertex * v1, Vertex * v2, Vertex * v3, Vector3D * nor )
 {	
-	Vector3D * a, * b, * c, ca, * bc,* nor;
+	Vector3D * a, * b, * c, ca, * bc;
 
 	if( !( vertex_check( v1 ) && vertex_check( v2 ) && vertex_check( v3 ) ) )
 	{
@@ -55,11 +55,9 @@ Vector3D * polygon_normal( Vertex * v1, Vertex * v2, Vertex * v3 )
 	bc =   b;
 	vector3D_subtract(   bc, c );
 
-	nor = vector3D_crossProduct( & ca, bc );
+	vector3D_crossProduct( & ca, bc, nor );
 
 	vector3D_normalize( nor );
-
-	return nor;
 }
 
 Vector3D * buildPolygon( Polygon * head )
@@ -76,7 +74,7 @@ Vector3D * buildPolygon( Polygon * head )
 		exit( TRUE );
 	}
 
-	head -> normal = polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, head -> next -> next -> next -> vertex );
+	polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, head -> next -> next -> next -> vertex, head -> normal );
 
 	p = head -> next;
 
@@ -120,6 +118,7 @@ int polygon_length( Polygon * head )
 int polygon_push( Polygon * head, Vertex * vertex, Vector * uv )
 {
 	Polygon * p, * q;
+	Vector3D normal;
 
 	if( !vertex_check( vertex ) )
 	{
@@ -136,7 +135,9 @@ int polygon_push( Polygon * head, Vertex * vertex, Vector * uv )
 			p = p -> next;
 		}
 
-		if( vector3D_equals( head -> normal ? head -> normal : buildPolygon( head ), polygon_normal( p -> vertex, p -> next -> vertex, vertex ),FALSE ) )
+		polygon_normal( p -> vertex, p -> next -> vertex, vertex, & normal );
+
+		if( vector3D_equals( head -> normal ? head -> normal : buildPolygon( head ), & normal, FALSE ) )
 		{
 			p = p -> next;
 		}
@@ -175,13 +176,17 @@ int polygon_unshift( Polygon * head, Vertex * vertex, Vector * uv )
 {
 	Polygon * p;
 
+	Vector3D normal;
+
 	if( !vertex_check( vertex ) )
 	{
 		printf( "顶点未初始化!" );
 		return FALSE;
 	}
 
-	if( isPolygon( head ) && vector3D_equals( head -> normal ? head -> normal : buildPolygon( head ), polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, vertex ),FALSE ) )
+	polygon_normal( head -> next -> vertex, head -> next -> next -> vertex, vertex, & normal );
+
+	if( isPolygon( head ) && vector3D_equals( head -> normal ? head -> normal : buildPolygon( head ), & normal, FALSE ) )
 	{
 		printf( "法向量不对，无法插入!" );
 		return FALSE;
