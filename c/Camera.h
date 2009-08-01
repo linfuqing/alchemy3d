@@ -1,23 +1,29 @@
 # ifndef CAMERA_H
 # define CAMERA_H
 
-# include "Matrix.h"
+// verson 1.3
+
+# include "Matrix3D.h"
 
 # define MOVE_TYPE_TRANSFORM   1
-# define MOVE_TYPE_TRANSLATION 2
-# define MOVE_TYPE_ADDED_SCENE 3
+# define MOVE_TYPE_ROTATION    2
+# define MOVE_TYPE_TRANSLATION 3
+# define MOVE_TYPE_ADDED_SCENE 4
 
 //N
 typedef struct
 {
-	Vector3D * quaternion;
+	Quaternion * quaternion;
 
-	int        move;
+	int          move;
 }Rotation;
 
-//N
 typedef struct
 {
+	//RW
+	Vector3D * target;
+
+	//N
 	Vector3D * position;
 	Vector3D * direction;
 	Vector3D * scale;
@@ -28,85 +34,52 @@ typedef struct
 
 	int      move;
 }Camera;
-
-Rotation * newRotation( Vector3D * q )
-{
-	Rotation * r;
-	if( ( r = ( Rotation * )malloc( sizeof( Rotation ) ) ) == NULL )
-	{
-		exit( TRUE );
-	}
-
-	r -> quaternion = q;
-	r -> move       = FALSE;
-
-	return r;
-}
 	
-Camera * newCamera( Vector3D * position, Vector3D * direction, Vector3D * scale )
+Camera * newCamera( void )
 {
 	Camera * c;
 
-	if( ( c = ( Camera * )malloc( sizeof( Camera ) ) ) == NULL || ( c -> transform = ( Matrix3D * )malloc( sizeof( Matrix3D ) ) ) == NULL )
+	if( ( c = ( Camera * )malloc( sizeof( Camera ) ) ) == NULL || ( c -> rotation = ( Rotation * )malloc( sizeof( Rotation ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
-	if( position == NULL )
-	{
-		position = newVector3D( 0, 0, 0, 1 );
-	}
+	c -> position               = newVector3D( 0, 0, 0, 1 );
+	c -> direction              = newVector3D( 0, 0, 0, 1 );
+	c -> scale                  = newVector3D( 0, 0, 0, 1 );
 
-	if( direction == NULL )
-	{
-		direction = newVector3D( 0, 0, 0, 1 );
-	}
+	c -> world                  = newMatrix3D( NULL );
+	c -> transform              = newMatrix3D( NULL );
 
-	if( scale == NULL )
-	{
-		scale = newVector3D( 0, 0, 0, 1 );
-	}
+	c -> rotation -> quaternion = newQuaternion( 0, 0, 0, 1 );
 
-	c -> position  = position;
-	c -> direction = direction;
-	c -> scale     = scale;
+	c -> rotation -> move       = FALSE;
 
-	c -> world     = newMatrix3D( NULL );
-	c -> transform = newMatrix3D( NULL );
-
-	matrix3D_recompose( c -> transform, position, scale, direction );
-
-	c -> rotation = newRotation( NULL );
-
-	c -> move     = FALSE;
+	c -> move                   = FALSE;
 
 	return c;
 }
 
 Matrix3D * camera_getTransform( Camera * c )
 {
-	Vector3D * v;
-	Rotation * rotation = c -> rotation;
-
-	if( rotation -> quaternion != NULL )
+	if( c -> move == MOVE_TYPE_ROTATION )
 	{
-		if( rotation -> move )
+		if( c -> rotation -> move )
 		{
-			//do something
-
-			rotation -> move = FALSE;
+			quaternion_decompose( c -> rotation -> quaternion, c -> direction );
 		}
 
-		matrix3D_apprend( c -> transform, vector3D_toMatrix3D( rotation -> quaternion ) );
+		quaternion_toMatrix3D( c -> rotation -> quaternion, c -> transform );
 
-		v = rotation -> quaternion;
+		matrix3D_prependScale( c -> transform, c -> scale -> x, c -> scale -> y, c -> scale -> z );
 
-		rotation -> quaternion = NULL;
-		
-		free( v );
+		matrix3D_setPosition( c -> transform, c -> position );
+
+		c -> rotation -> move = FALSE;
+
+		c -> move             = FALSE;
 	}
-
-	if( c -> move == MOVE_TYPE_TRANSLATION )
+	else if( c -> move == MOVE_TYPE_TRANSLATION )
 	{
 		matrix3D_setPosition( c -> transform, c -> position );
 
@@ -116,9 +89,11 @@ Matrix3D * camera_getTransform( Camera * c )
 	return c -> transform;
 }
 
-void camera_setTransform( Camera * c, Matrix3D transform )
+void camera_setTransform( Camera * c, Matrix3D * transform )
 {
-	* ( c -> transform ) = transform;
+	free( c -> transform );
+
+	c -> transform = transform;
 
 	c -> move = MOVE_TYPE_TRANSFORM;
 }
@@ -128,18 +103,11 @@ void camera_setTransform( Camera * c, Matrix3D transform )
 **/
 void camera_updateTransform( Camera * c )
 {
-	Vector3D * rotation = c -> rotation -> quaternion;
-
 	if( c -> move == MOVE_TYPE_TRANSFORM )
 	{
 		matrix3D_decompose( c -> transform, c -> position, c -> scale, c -> direction );
 
-		if( rotation != NULL )
-		{
-			c -> rotation -> quaternion = NULL;
-
-			free( rotation );
-		}
+		matrix3D_toQuaternion( c -> transform, c -> rotation -> quaternion );
 
 		c -> move = FALSE;
 	}
@@ -160,67 +128,42 @@ void camera_setPosition( Camera * c, Number x, Number y, Number z )
 
 void camera_setScale( Camera * c, Number xScale, Number yScale, Number zScale )
 {
-	Vector3D * scale = c -> scale;
-
 	camera_updateTransform( c );
 
-	matrix3D_apprendScale( c -> transform, xScale - ( scale -> x ), yScale - ( scale -> y ), zScale - ( scale -> z ) );
+	matrix3D_apprendScale( c -> transform, xScale - c -> scale -> x, yScale - c -> scale -> y, zScale - c -> scale -> z );
 
-	scale -> x = xScale;
-	scale -> y = yScale;
-	scale -> z = zScale;
+	c -> scale -> x = xScale;
+	c -> scale -> y = yScale;
+	c -> scale -> z = zScale;
 
 	c -> move = MOVE_TYPE_TRANSLATION;
 }
 
 void camera_setRotation( Camera * c, Number degrees, Vector3D * axis )
 {
-	if( c -> rotation -> quaternion == NULL )
-	{
-		if( ( c -> rotation -> quaternion = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
-		{
-			exit( TRUE );
-		}
+	camera_updateTransform( c );
 
-		c -> rotation -> quaternion = newVector3D( 0, 0, 0, 1 );
-	}
-
-	vector3D_apprendRotation( c -> rotation -> quaternion, degrees, axis );
+	quaternion_apprendRotation( c -> rotation -> quaternion, degrees, axis );
 
 	c -> rotation -> move = TRUE;
+
+	c             -> move = MOVE_TYPE_ROTATION;
 }
 
 /**
 效率与单个rotationX,rotationY,rotationZ无差别.
 **/
-void camera_setDirection( Camera * c, Number rotationX, Number rotationY, Number rotationZ )
+void camera_setDirection( Camera * c, Vector3D * direction )
 {
-	Vector3D * direction = c -> direction;
-
 	camera_updateTransform( c );
 
-	if( direction -> x != rotationX )
-	{
-		camera_setRotation( c, rotationX - ( direction -> x ), X_AXIS() );
+	quaternion_recompose( c -> rotation -> quaternion, direction );
 
-		direction -> x = rotationX;
-	}
-
-	if( direction -> y != rotationY )
-	{
-		camera_setRotation( c, rotationY - ( direction -> y ), Y_AXIS() );
-
-		direction -> y = rotationY;
-	}
-
-	if( direction -> x != rotationZ )
-	{
-		camera_setRotation( c, rotationZ - ( direction -> z ), Z_AXIS() );
-
-		direction -> z = rotationZ;
-	}
+	* ( c -> direction )   = * direction;
 
 	c -> rotation -> move = FALSE;
+
+	c -> move             = MOVE_TYPE_ROTATION;
 }
 
 # endif

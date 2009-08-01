@@ -303,9 +303,9 @@ void viewport_updateProjectMatrix( Viewport * v )
 	}
 	else if( v -> camera -> move )
 	{
-		free( v -> transform );
+		* ( v -> transform ) = * ( v -> project );
 
-		v -> transform = matrix3D_project( v -> project, matrix3D_multiply( camera_getTransform( v -> camera ), v -> camera -> world ) );
+		matrix3D_apprendProject( v -> transform, ( matrix3D_apprend( ( temp = * camera_getTransform( v -> camera ), & temp ), v -> camera -> world ), & temp ) );
 	}
 }
 
