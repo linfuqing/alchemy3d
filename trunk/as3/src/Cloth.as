@@ -1,13 +1,18 @@
 package
 {
+	import br.com.stimuli.loading.BulkLoader;
+	import br.com.stimuli.loading.BulkProgressEvent;
+	
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.device.Device;
+	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.objects.primitives.Sphere;
 	import cn.alchemy3d.scene.Scene3D;
+	import cn.alchemy3d.texture.Texture;
 	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
 	
@@ -16,7 +21,6 @@ package
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	import flash.geom.ColorTransform;
-	import flash.geom.Vector3D;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 
@@ -32,6 +36,10 @@ package
 		
 		protected var p:Plane;
 		
+		protected var t1:Texture;
+		
+		protected var bl:BulkLoader;
+		
 		public function Cloth()
 		{
 			super();
@@ -41,7 +49,10 @@ package
 			stage.quality = StageQuality.BEST;
 			stage.frameRate = 60;
 			
-			init();
+			bl = new BulkLoader("main-site");
+			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
+			bl.add("asset/earth.jpg", {id:"0"});
+			bl.start();
 		}
 		
 		private function showInfo():void
@@ -61,17 +72,20 @@ package
 		
 		protected function init(e:Event = null):void
 		{
+			t1 = new Texture(bl.getBitmapData("0"));
+			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(0.05, 0.05, 0.05, 1);
-			m.diffuse = new ColorTransform(.8, .3, .3, 1);
+			m.ambient = new ColorTransform(0.1, 0, 0, 1);
+			m.diffuse = new ColorTransform(1, 0.5, 0.3, 1);
 			m.specular = new ColorTransform(1, 1, 1, 1);
 			m.power = 4;
 			
 			var lightM:Material = new Material();
-			lightM.ambient = new ColorTransform(0.5, 0, 0, 1);
+			lightM.ambient = new ColorTransform(1, 1, 1, 1);
 			lightM.diffuse = new ColorTransform(1, 0, 0, 1);
 			lightM.specular = new ColorTransform(0.6, 0, 0, 1);
 			lightM.power = 4;
+			
 			scene = new Scene3D();
 			addScene(scene);
 			
@@ -82,16 +96,14 @@ package
 			viewport = new Viewport3D(600, 400, scene, camera);
 			addViewport(viewport);
 			
-			lightObj = new Sphere(lightM, null, 20, 3, 2)
+			lightObj = new Sphere(lightM, null, 10, 3, 2)
 			scene.addEntity(lightObj);
 			
-			p = new Plane(m, null, 800, 800, 1, 1);
+			p = new Plane(m, null, 700, 500, 20, 1);
 			scene.addEntity(p);
-			p.rotationX = 45;
+			p.rotationX = 60;
 			p.y = -180;
-			p.z = 800;
-			
-			p.setVertices(0, new Vector3D(100, 100, 100, 1));
+			p.z = 500;
 			
 			light = new Light3D(lightObj);
 			scene.addLight(light);
@@ -99,27 +111,38 @@ package
 			light.mode = LightType.MID_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
 			light.source.y = -120;
-			light.source.x = 400;
-			light.source.z = 0;
+			light.source.x = 600;
+			light.source.z = 450;
 			light.ambient = new ColorTransform(0, 0, 0, 1);
-			light.diffuse = new ColorTransform(1, 0, 0, 1);
-			light.specular = new ColorTransform(0.6, 0, 0, 1);
+			light.diffuse = new ColorTransform(1, 1, 1, 1);
+			light.specular = new ColorTransform(0.8, 0, 0, 1);
 			light.attenuation1 = .001;
-			light.attenuation2 = .0000001;
+			light.attenuation2 = .000001;
 			
 			showInfo();
 			
 			startRendering();
 		}
 		
+		private var t:Number = 0;
 		override protected function onRenderTick(e:Event = null):void
 		{
 			camera.target = p.worldPosition;
-			var mx:Number = viewport.mouseX / 200;
-			var my:Number = - viewport.mouseY / 200;
+			var d:Number = 1 / 400;
+			var mx:Number = viewport.mouseX * d;
+			var my:Number = - viewport.mouseY * d;
 			
 			camera.hover(mx, my, 10);
-			trace(p);
+			
+			var a:Number;
+			var i:int = 0;
+			var vertices:Vector.<Vertex3D> = p.vertices;
+			for ( ; i < p.nVertices; i ++ )
+			{
+				p.setVerticesZ(i, Math.sin( ( t + vertices[i].x * 0.02 ) ) * 30);
+			}
+			
+			t += .2;
 			
 			super.onRenderTick(e);
 		}

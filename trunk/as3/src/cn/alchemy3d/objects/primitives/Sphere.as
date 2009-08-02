@@ -30,7 +30,7 @@ package cn.alchemy3d.objects.primitives
 	
 			buildSphere( radius );
 			
-			applyForTmpBuffer();
+			applyForMeshBuffer();
 		}
 		
 		private var segmentsH :Number;

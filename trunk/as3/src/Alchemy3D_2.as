@@ -154,13 +154,13 @@ package
 			viewport = new Viewport3D(600, 400, scene, camera);
 			addViewport(viewport);
 			
-			lightObj = new Sphere(lightM, null, 20, 3, 2)
+			lightObj = new Sphere(lightM, null, 20, 3, 2);
 			scene.addEntity(lightObj);
 			
-			lightObj2 = new Sphere(lightM2, null, 20, 3, 2)
+			lightObj2 = new Sphere(lightM2, null, 20, 3, 2);
 			scene.addEntity(lightObj2);
 			
-			lightObj3 = new Sphere(lightM3, null, 20, 3, 2)
+			lightObj3 = new Sphere(lightM3, null, 20, 3, 2);
 			scene.addEntity(lightObj3);
 			
 			p = new Plane(m, null, 800, 800, 1, 1);
@@ -169,17 +169,17 @@ package
 			p.y = -180;
 			p.z = 800;
 			
-			s = new Sphere(m1, t2, 180, 16, 12)
+			s = new Sphere(m1, t2, 180, 16, 12);
 			scene.addEntity(s);
 			s.z = 1100;
 			
-			s2 = new Sphere(m2, t1, 120, 16, 12)
+			s2 = new Sphere(m2, t1, 120, 16, 12);
 			scene.addEntity(s2);
 			s2.x = -130;
 			s2.y = -60;
 			s2.z = 750;
 
-			s3 = new Sphere(m3, null, 120, 16, 12)
+			s3 = new Sphere(m3, null, 120, 16, 12);
 			scene.addEntity(s3);
 			s3.x = 150;
 			s3.y = -60;

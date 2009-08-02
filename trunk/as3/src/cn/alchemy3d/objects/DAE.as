@@ -180,7 +180,6 @@ package cn.alchemy3d.objects
 			_allVertices = new Vector.<Vertex3D>();
 			_allFaces = new Vector.<Triangle3D>();
 		}
-		
 				
 		/**
 		 * DAE读取
@@ -275,7 +274,7 @@ package cn.alchemy3d.objects
 			_skins = new Dictionary(true);
 			
 			buildTextures();
-			loadNextMaterial();
+			loadNextTexture();
 		}
 		
 		/**
@@ -303,37 +302,26 @@ package cn.alchemy3d.objects
 				
 				var symbol:String = this.document.materialTargetToSymbol[ daeMaterial.id ];
 				
-				var mat:Texture;
-				if(useMaterialTargetName){
-					mat = this.materials.getMaterialByName(materialId);
-					
-				}else{
-					mat = this.materials.getMaterialByName(symbol);
-				}
+				var texture:Texture;
+				if(useMaterialTargetName)
+					texture = this.materials.getMaterialByName(materialId);
+				else
+					texture = this.materials.getMaterialByName(symbol);
 				
-				/*
-				 This next if block is a hack based on materials having their names as the bitmaps URL. 
-				 If the Texture WAS passed in but given the same name as the bitmap's URL, then we 
-				 add another Texture to the materials list using the symbol name.				 
-				 */
-				if( mat == null) 
+				if( texture == null) 
 				{
-				    var matID:String = getSymbolName( daeMaterial.effect );
-				    mat = this.materials.getMaterialByName(matID);
+				    var tID:String = getSymbolName( daeMaterial.effect );
+				    texture = this.materials.getMaterialByName(tID);
 				    // remove bad reference BEFORE adding the next - otherwise, they'll both be removed
-				    materials.removeMaterial(mat);
-				    if( mat ) 
+				    materials.removeMaterial(texture);
+				    
+				    if( texture ) 
 				    {
 				        if(useMaterialTargetName)
-				        {
-				             this.materials.addMaterial(mat, materialId);
-				        }
+				             this.materials.addMaterial(texture, materialId);
 				        else
-				        {
-				             this.materials.addMaterial(mat, symbol);
-				        }
+				             this.materials.addMaterial(texture, symbol);
 				    }
-
 				}
 					
 				var effect:DaeEffect = document.effects[ daeMaterial.effect ];
@@ -345,10 +333,8 @@ package cn.alchemy3d.objects
 					_textureSets[symbol] = lambert.diffuse.texture.texcoord;
 				
 				// Texture already exists in our materialsList, no need to process
-				if(mat)
-					continue;
+				if(texture) continue;
 				
-				var texture:Texture;
 				// if the Texture has a texture, qeueu the bitmap
 				if(effect && effect.texture_url)
 				{				
@@ -444,12 +430,12 @@ package cn.alchemy3d.objects
 		 * 
 		 * @param	event
 		 */ 
-		private function loadNextMaterial(event:LoadEvent = null):void
+		private function loadNextTexture(event:LoadEvent = null):void
 		{
 			if(event)
 			{
 				var previous:Texture = event.target as Texture;
-				previous.removeEventListener(LoadEvent.TEXTURE_LOAD_COMPLETE, loadNextMaterial);
+				previous.removeEventListener(LoadEvent.TEXTURE_LOAD_COMPLETE, loadNextTexture);
 				previous.removeEventListener(LoadEvent.PROGRESS, onProgress);
 				previous.removeEventListener(LoadEvent.LOAD_ERROR, onMaterialError);
 			}
@@ -463,19 +449,22 @@ package cn.alchemy3d.objects
 				
 				url = url.replace(/\.tga/i, "." + DEFAULT_TGA_ALTERNATIVE);
 						
-				var texture:Texture = data.Texture;
+				var texture:Texture = data.texture;
 				texture.name = symbol;
-				texture.addEventListener(LoadEvent.TEXTURE_LOAD_COMPLETE, loadNextMaterial);
+				texture.addEventListener(LoadEvent.TEXTURE_LOAD_COMPLETE, loadNextTexture);
 				texture.addEventListener(LoadEvent.PROGRESS, onProgress);
 				texture.addEventListener(LoadEvent.LOAD_ERROR, onMaterialError);
 				
 				// shouldn't need the ?nc no cache filename now that BitmapFileMaterial has been fixed. 
 				texture.load(url);
 
-				if(useMaterialTargetName){
+				if(useMaterialTargetName)
+				{
 					texture.name = target;
 					this.materials.addMaterial(texture, target);
-				}else{
+				}
+				else
+				{
 					texture.name = symbol;
 					this.materials.addMaterial(texture, symbol);
 				}
@@ -1143,7 +1132,7 @@ package cn.alchemy3d.objects
 		 */ 
 		private function onMaterialError(e:LoadEvent):void
 		{
-			loadNextMaterial();	
+			loadNextTexture();	
 			trace("load Texture error!");
 		}
 //			

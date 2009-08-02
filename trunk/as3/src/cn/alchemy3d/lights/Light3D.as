@@ -1,9 +1,9 @@
 package cn.alchemy3d.lights
 {
 	import cn.alchemy3d.lib.Library;
-	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.ISceneNode;
+	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.geom.ColorTransform;
@@ -261,9 +261,9 @@ package cn.alchemy3d.lights
 			this.source = source;
 		}
 		
-		public function initialize(scenePtr:uint, parentPtr:uint):void
+		public function initialize(scene:Scene3D):void
 		{
-			allotPtr(lib.alchemy3DLib.initializeLight(scenePtr, source.pointer, _type));
+			allotPtr(lib.alchemy3DLib.initializeLight(scene.pointer, source.pointer, _type));
 		}
 		
 		public function allotPtr(ps:Array):void

@@ -35,7 +35,9 @@ package cn.alchemy3d.objects.primitives
 			
 			buildPlane();
 			
-			applyForTmpBuffer();
+			applyForMeshBuffer();
+			
+//			flipFaces();
 		}
 		
 		private var height:Number;

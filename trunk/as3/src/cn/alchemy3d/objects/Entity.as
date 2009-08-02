@@ -1,6 +1,8 @@
 package cn.alchemy3d.objects
 {
 
+	import __AS3__.vec.Vector;
+	
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.scene.Scene3D;
@@ -26,6 +28,9 @@ package cn.alchemy3d.objects
 			this._scale = new Vector3D();
 			this._worldPosition = new Vector3D();
 			
+			this.children = new Vector.<Entity>();
+			this.root = this;
+			
 			lib = Library.getInstance();
 			
 			buffer = lib.buffer;
@@ -43,9 +48,6 @@ package cn.alchemy3d.objects
 		public var texturePtr:int;
 		
 		public var name:String;
-		public var parent:Entity;
-		public var root:Entity;
-		public var scene:Scene3D;
 		public var visible:Boolean;
 		
 		private var _direction:Vector3D;
@@ -56,6 +58,10 @@ package cn.alchemy3d.objects
 		private var _material:Material;
 		private var _texture:Texture;
 		
+		public var parent:Entity;
+		public var children:Vector.<Entity>;
+		public var root:Entity;
+		public var scene:Scene3D;
 		
 		protected static const sizeOfType:int = 4;
 		
@@ -275,15 +281,33 @@ package cn.alchemy3d.objects
 			return _direction.z;
 		}
 		
-		public function initialize(scenePtr:uint, parentPtr:uint):void
+		public function addChild(child:Entity):void
 		{
-			var tPtr:uint = texture == null ? 0 : texture.pointer;
-			var mPtr:uint = material == null ? 0 : material.pointer;
+			if (this.parent && parent) throw new Error("已存在父节点");
 			
-			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0));
+			this.children.push(child);
+			child.parent = this;
+			child.root = this;
 		}
 		
-		public function allotPtr(ps:Array):void
+		public function initialize(scene:Scene3D):void
+		{
+			this.scene = scene;
+			
+			var tPtr:uint = texture == null ? 0 : texture.pointer;
+			var mPtr:uint = material == null ? 0 : material.pointer;
+			var parentPtr:uint = parent == null ? 0 : parent.pointer;
+			var scenePtr:uint = scene == null ? 0 : scene.pointer;
+			
+			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0));
+			
+			for each (var child:Entity in this.children)
+			{
+				child.initialize(scene);
+			}
+		}
+		
+		protected function allotPtr(ps:Array):void
 		{
 			pointer = ps[0];
 			materialPtr = ps[1];
