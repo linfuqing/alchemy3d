@@ -4,6 +4,7 @@ package cn.alchemy3d.objects
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.materials.Material;
+	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.texture.Texture;
 	
 	import flash.geom.Point;
@@ -13,21 +14,21 @@ package cn.alchemy3d.objects
 	{
 		public function Mesh3D(material:Material = null, texture:Texture = null, name:String = "")
 		{
-			super(material, texture, name);
+			super(material == null ? new Material : material, texture, name);
 			
 			vertices = new Vector.<Vertex3D>();
 			faces = new Vector.<Triangle3D>();
 		}
 		
-		protected var faces:Vector.<Triangle3D>;
-		protected var vertices:Vector.<Vertex3D>;
+		public var faces:Vector.<Triangle3D>;
+		public var vertices:Vector.<Vertex3D>;
 		
 		public var meshBuffPointer:uint;
 		public var verticesPointer:uint;
 		public var facesPointer:uint;
 		
-		protected var sizeOfVertex:int;
-		protected var sizeOfFace:int;
+		public var sizeOfVertex:int;
+		public var sizeOfFace:int;
 		
 		public function get nFaces():int
 		{
@@ -41,17 +42,34 @@ package cn.alchemy3d.objects
 		
 		public function setVertices(index:int, v:Vector3D):void
 		{
-			buffer.position = meshBuffPointer + index * sizeOfVertex;
-			trace(buffer.readFloat());
-			trace(buffer.readFloat());
-			trace(buffer.readFloat());
-			trace(buffer.readFloat());
-			
-			buffer.position = meshBuffPointer + index * sizeOfVertex;
+			vertices[index].x = v.x;
+			vertices[index].y = v.y;
+			vertices[index].z = v.z;
+			buffer.position = meshBuffPointer + index * 16;
 			buffer.writeFloat(v.x);
 			buffer.writeFloat(v.y);
 			buffer.writeFloat(v.z);
-			buffer.writeFloat(v.w);
+		}
+		
+		public function setVerticesX(index:int, value:Number):void
+		{
+			vertices[index].x = value;
+			buffer.position = meshBuffPointer + index * 16;
+			buffer.writeFloat(value);
+		}
+		
+		public function setVerticesY(index:int, value:Number):void
+		{
+			vertices[index].y = value;
+			buffer.position = meshBuffPointer + index * 16 + 4;
+			buffer.writeFloat(value);
+		}
+		
+		public function setVerticesZ(index:int, value:Number):void
+		{
+			vertices[index].z = value;
+			buffer.position = meshBuffPointer + index * 16 + 8;
+			buffer.writeFloat(value);
 		}
 		
 		public function fillVerticesToBuffer():void
@@ -89,23 +107,30 @@ package cn.alchemy3d.objects
 			}
 		}
 		
-		protected function applyForTmpBuffer():void
+		protected function applyForMeshBuffer():void
 		{
 			meshBuffPointer = lib.alchemy3DLib.applyForTmpBuffer(4, (vertices.length * 4 + faces.length * 9) * 4);
 		}
 		
-		override public function initialize(scenePtr:uint, parentPtr:uint):void
+		override public function initialize(scene:Scene3D):void
 		{
 			fillVerticesToBuffer();
 			fillFacesToBuffer();
 			
 			var tPtr:uint = texture == null ? 0 : texture.pointer;
 			var mPtr:uint = material == null ? 0 : material.pointer;
+			var parentPtr:uint = parent == null ? 0 : parent.pointer;
+			var scenePtr:uint = scene == null ? 0 : scene.pointer;
 			
 			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, meshBuffPointer, vertices.length, faces.length));
+			
+			for each (var child:Entity in this.children)
+			{
+				child.initialize(scene);
+			}
 		}
 		
-		override public function allotPtr(ps:Array):void
+		override protected function allotPtr(ps:Array):void
 		{
 			super.allotPtr(ps);
 			
@@ -131,6 +156,14 @@ package cn.alchemy3d.objects
 				var tmpUV:Point = f.uv0;
 				f.uv0 = f.uv2;
 				f.uv2 = tmpUV;
+			}
+		}
+		
+		public function test():void
+		{
+			for each(var v:Vertex3D in this.vertices)
+			{
+				v.y = - v.y;
 			}
 		}
 	}

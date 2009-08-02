@@ -8,6 +8,7 @@ package cn.alchemy3d.device
 	
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.utils.ByteArray;
 
 	public class Device extends Sprite
 	{
@@ -19,6 +20,7 @@ package cn.alchemy3d.device
 		public var lights:Vector.<Light3D>;
 		
 		protected var lib:Library;
+		protected var buffer:ByteArray;
 		
 		public function Device()
 		{
@@ -30,7 +32,7 @@ package cn.alchemy3d.device
 			lights = new Vector.<Light3D>();
 			
 			lib = Library.getInstance();
-			
+			buffer = lib.buffer;
 			this.pointer = lib.alchemy3DLib.initializeDevice();
 		}
 		
