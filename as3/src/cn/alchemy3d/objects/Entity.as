@@ -28,8 +28,8 @@ package cn.alchemy3d.objects
 			this._scale = new Vector3D();
 			this._worldPosition = new Vector3D();
 			
-			this.children = new Vector.<Entity>();
-			this.root = this;
+			this._children = new Vector.<Entity>();
+			this._root = this;
 			
 			lib = Library.getInstance();
 			
@@ -58,12 +58,32 @@ package cn.alchemy3d.objects
 		private var _material:Material;
 		private var _texture:Texture;
 		
-		public var parent:Entity;
-		public var children:Vector.<Entity>;
-		public var root:Entity;
-		public var scene:Scene3D;
+		private var _parent:Entity;
+		private var _children:Vector.<Entity>;
+		private var _root:Entity;
+		private var _scene:Scene3D;
 		
 		protected static const sizeOfType:int = 4;
+		
+		public function get parent():Entity
+		{
+			return this._parent;
+		}
+		
+		public function get children():Vector.<Entity>
+		{
+			return this._children;
+		}
+		
+		public function get root():Entity
+		{
+			return this._root;
+		}
+		
+		public function get scene():Scene3D
+		{
+			return this._scene;
+		}
 		
 		public function get material():Material
 		{
@@ -281,27 +301,32 @@ package cn.alchemy3d.objects
 			return _direction.z;
 		}
 		
-		public function addChild(child:Entity):void
+		public function addEntity(child:Entity):void
 		{
-			if (this.parent && parent) throw new Error("已存在父节点");
+			if (this._parent || this._scene) throw new Error("已存在父节点");
 			
-			this.children.push(child);
-			child.parent = this;
-			child.root = this;
+			this._children.push(child);
+			child._parent = this;
+			child._root = this;
+			
+			if (this.scene)
+			{
+				child.initialize(this.scene);
+			}
 		}
 		
 		public function initialize(scene:Scene3D):void
 		{
-			this.scene = scene;
+			this._scene = scene;
 			
 			var tPtr:uint = texture == null ? 0 : texture.pointer;
 			var mPtr:uint = material == null ? 0 : material.pointer;
-			var parentPtr:uint = parent == null ? 0 : parent.pointer;
+			var parentPtr:uint = _parent == null ? 0 : _parent.pointer;
 			var scenePtr:uint = scene == null ? 0 : scene.pointer;
 			
 			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0));
 			
-			for each (var child:Entity in this.children)
+			for each (var child:Entity in this._children)
 			{
 				child.initialize(scene);
 			}

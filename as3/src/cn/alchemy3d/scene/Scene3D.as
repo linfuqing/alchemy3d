@@ -41,7 +41,7 @@ package cn.alchemy3d.scene
 		
 		public function addEntity(node:Entity, parent:Entity = null):void
 		{
-			if (node.scene) throw new Error("已存在父节点");
+			if (node.scene || node.parent) throw new Error("已存在父节点");
 			
 			nodes[node.name] = node;
 			childrenNum ++;

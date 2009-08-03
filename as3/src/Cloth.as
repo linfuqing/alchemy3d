@@ -99,11 +99,16 @@ package
 			lightObj = new Sphere(lightM, null, 10, 3, 2)
 			scene.addEntity(lightObj);
 			
+			var p2:Plane = new Plane(m, null);
+			
 			p = new Plane(m, null, 700, 500, 20, 1);
+			p.addEntity(p2);
 			scene.addEntity(p);
 			p.rotationX = 60;
-			p.y = -180;
+			p.rotationY = -45;
 			p.z = 500;
+			
+			p2.z = -100;
 			
 			light = new Light3D(lightObj);
 			scene.addLight(light);
@@ -127,12 +132,14 @@ package
 		private var t:Number = 0;
 		override protected function onRenderTick(e:Event = null):void
 		{
-			camera.target = p.worldPosition;
-			var d:Number = 1 / 400;
-			var mx:Number = viewport.mouseX * d;
-			var my:Number = - viewport.mouseY * d;
-			
-			camera.hover(mx, my, 10);
+//			camera.target = p.worldPosition;
+//			var d:Number = 1 / 400;
+//			var mx:Number = viewport.mouseX * d;
+//			var my:Number = - viewport.mouseY * d;
+//			
+//			camera.hover(mx, my, 10);
+
+			p.rotationY ++;
 			
 			var a:Number;
 			var i:int = 0;
