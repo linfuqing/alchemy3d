@@ -62,8 +62,56 @@ void screenFaces_initiate( ScreenFaces * * head )
 	( * head ) -> rear = NULL;
 }
 
+void projection_previousRootOrder( Projection * p,void visit( Projection * child ) )
+{
+	Projection * pp = p -> children;
+
+	while( pp != NULL )
+	{
+		visit( pp );
+
+		projection_previousRootOrder( pp, visit );
+
+		pp = pp -> next;
+	}
+}
+
+void projection_previousOrder( Projection * p, void visit( Projection * child ) )
+{
+	visit( p );
+
+	projection_previousRootOrder( p, visit );
+}
+
+void projection_free( Projection * p )
+{
+	ScreenVertices * vp = p -> vertices;
+	ScreenFaces    * fp = p -> faces;
+
+	while( vp != NULL )
+	{
+		free( vp );
+
+		vp = vp -> next;
+	}
+
+	while( fp != p -> faces -> rear )
+	{
+		free( fp );
+
+		fp = fp -> next;
+	}
+
+	free( fp );
+
+	free( p );
+}
+
 void projection_destroy( Projection * * p )
 {
+	projection_previousOrder( * p, projection_free );
+
+	* p = NULL;
 }
 
 /**

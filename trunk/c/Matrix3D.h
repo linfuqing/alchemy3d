@@ -845,17 +845,16 @@ void matrix3D_pointAt( Matrix3D * m, Vector3D * pos, Vector3D * at, Vector3D * u
 {
 	Vector3D xAxis, yAxis, zAxis, scale;
 
-	vector3D_normalize( at );
-
 	if( vector3D_length( at ) )
 	{
-		vector3D_crossProduct( at, up, & xAxis );
+		zAxis = * at;
+		vector3D_normalize( & zAxis );
+
+		vector3D_crossProduct( & zAxis, up, & xAxis );
 		vector3D_normalize( & xAxis );
 
-		vector3D_crossProduct( at, & xAxis, & yAxis );
+		vector3D_crossProduct( & zAxis, & xAxis, & yAxis );
 		vector3D_normalize( & yAxis );
-
-		zAxis = * at;
 
 		matrix3D_decompose( m, NULL, & scale, NULL );
 
@@ -1041,13 +1040,23 @@ pointTowards() 方法允许对方向进行就地修改。
 此对象可以在仍按自己的方向移动的同时，逐步向目标转变。对 pointTowards() 的连续调用（后跟一个转换方法）可生成对象追逐或紧随移动的目标运动的动画。
 首先将对象指向一个朝向目标的百分比点，然后沿某个轴逐步移动对象。 
 **/
-void matrix3D_pointTowards( Number percent, Matrix3D * mat, Vector3D * pos, Vector3D * at, Vector3D * up, Matrix3D * target )
+void matrix3D_pointTowards( Matrix3D * mat, Number percent, Vector3D * pos, Vector3D * at, Vector3D * up )
 {
 	Matrix3D m;
 
+	Quaternion qua, q, res;
+
 	matrix3D_pointAt( & m, pos, at, up );
 
-	matrix3D_interpolate( mat, & m, percent, target );
+	matrix3D_toQuaternion( mat, & qua );
+
+	matrix3D_toQuaternion( & m, & q );
+
+	quaternion_slerp( & qua, & q, &res, percent );
+
+	quaternion_toMatrix3D( & res, mat );
+
+	matrix3D_setPosition( mat, pos );
 }
 
 Matrix3D * projectMatrix3D( Number top, Number bottom, Number left, Number right, Number near, Number far )

@@ -4,21 +4,22 @@
 #define RENDER_MODE_STATIC  1
 #define RENDER_MODE_DYNAMIC 0
 
+//Verson 1.2
 
 #include "Viewport.h"
 
 //N
 
-typedef struct Screen
+typedef struct World
 {
-	Viewport * viewport;
+	Scene        * scene;
 
-	struct Screen * next;
-}Screen;
+	struct World * next;
+}World;
 
 typedef struct
 {
-	Screen * screen;
+	World  * world;
 
 	Number   width;
 
@@ -46,25 +47,25 @@ RenderEngine * newRenderEngine( Number width, Number height )
 
 	r -> height = height;
 
-	r -> screen = NULL;
+	r -> world = NULL;
 
 	return r;
 }
 
-void renderEngine_addViewport( RenderEngine * r, Viewport * v )
+void renderEngine_addScene( RenderEngine * r, Scene * s )
 {
-	Screen * s;
+	World * w;
 
-	if( ( s = ( Screen * )malloc( sizeof( Screen ) ) ) == NULL )
+	if( ( w = ( World * )malloc( sizeof( World ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
-	s -> viewport = v;
+	w -> scene = s;
 
-	s -> next     = r -> screen;
+	w -> next  = r -> world;
 
-	r -> screen   = s;
+	r -> world = w;
 }
 
 //光栅化
@@ -882,24 +883,31 @@ void renderPolygon( ScreenFaces * f, Viewport * v, RenderEngine * r )
 //改动:
 void render( RenderEngine * r, int mode )
 {
-	Screen      * vp = r -> screen;
+	World       * wp = r -> world;
+	Screen      * vp;
 	ScreenFaces * graphics;
 
-	while( vp != NULL )
+	while( wp != NULL )
 	{
-		//这行不完美,需修改
-		transformScene( vp -> viewport -> scene, mode );
+		transformScene( wp -> scene, mode );
 
-		projectScene( vp -> viewport, mode );
-		
-		graphics = vp -> viewport -> graphics;
+		vp = wp -> scene -> screen;
 
-		while( ( graphics = graphics -> next ) != NULL )
+		while( vp != NULL )
 		{
-			renderPolygon( graphics, vp -> viewport, r );
+			projectScene( vp -> viewport, mode );
+		
+			graphics = vp -> viewport -> graphics;
+
+			while( ( graphics = graphics -> next ) != NULL )
+			{
+				renderPolygon( graphics, vp -> viewport, r );
+			}
+
+			vp = vp -> next;
 		}
 
-		vp = vp -> next;
+		wp = wp -> next;
 	}
 }
 
