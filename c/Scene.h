@@ -1,14 +1,24 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-//verson 1.4
+//verson 1.5
 
 # include "Mesh.h"
 # include "Camera.h"
 
+typedef struct Viewport Viewport;
+
+typedef struct Screen
+{
+	Viewport * viewport;
+
+	struct Screen * next;
+}Screen;
+
 typedef struct Scene
 {
-	
+	Screen       * screen;
+
 	//R
 	Camera       * camera;
 
@@ -28,6 +38,8 @@ typedef struct Scene
 	struct Scene * children;
 }Scene;
 
+void viewport_setScene( Viewport * v, Scene * s );
+
 Scene * newScene( Mesh * mesh )
 {
 	Scene * scene;
@@ -37,15 +49,34 @@ Scene * newScene( Mesh * mesh )
 		exit( TRUE );
 	}
 
-	scene -> camera         = newCamera();
+	scene -> camera         = newCamera( NULL );
 	scene -> camera -> move = MOVE_TYPE_ADDED_SCENE;
 	scene -> mesh           = mesh;
 	scene -> visible        = TRUE;
+	scene -> screen         = NULL;
 	scene -> children       = NULL;
 	scene -> next           = NULL;
 	scene -> move           = FALSE;
 
 	return scene;
+}
+
+void scene_addViewport( Scene * s, Viewport * v )
+{
+	Screen * screen;
+
+	if( ( screen = ( Screen * )malloc( sizeof( Screen ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	screen -> viewport = v;
+
+	screen -> next     = s -> screen;
+
+	s      -> screen   = screen;
+
+	viewport_setScene( v, s );
 }
 
 int scene_numChildren( Scene * s )
@@ -346,9 +377,18 @@ void transformScene( Scene * s, int mode )
 	}
 }
 
+void scene_free( Scene * s )
+{
+	camera_destroy( & ( s -> camera ) );
+
+	mesh_destroy( & ( s -> mesh ) );
+
+	free( s );
+}
+
 void scene_destroy( Scene * * s )
 {
-	//scene_previousOrder( * s, free );
+	scene_previousOrder( * s, scene_free );
 
 	* s = NULL;
 }

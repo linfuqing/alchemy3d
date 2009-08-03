@@ -31,4 +31,13 @@ int mesh_check( Mesh * m )
 	return ( m != NULL ) && ( m -> vertices != NULL );
 }
 
+void mesh_destroy( Mesh * * m )
+{
+	faces_destroy( & ( ( * m ) -> faces ) );
+
+	vertices_destroy( & ( ( * m ) -> vertices ) );
+
+	* m = NULL;
+}
+
 #endif

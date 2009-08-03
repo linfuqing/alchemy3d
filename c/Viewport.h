@@ -1,7 +1,7 @@
 #ifndef VIEWPORT_H
 #define VIEWPORT_H
 
-//verson 1.2
+//verson 1.3
 
 #include "Scene.h"
 #include "Projection.h"
@@ -49,7 +49,7 @@ void viewport_setScene( Viewport * v, Scene * s )
 {
 	if( v -> projection != NULL )
 	{
-		projection_destroy( & v -> projection );  //________error!
+		projection_destroy( & v -> projection );
 	}
 
 	v -> scene      = s;
@@ -68,7 +68,7 @@ void viewport_set( Viewport * v, Number left, Number right, Number top, Number b
 	matrix3D_projectMatrix( v -> project, left, right, top, bottom, far, near );
 }
 	
-Viewport * newViewport( Number left, Number right, Number top, Number bottom, Number far, Number near, Scene * scene )
+Viewport * newViewport( Number left, Number right, Number top, Number bottom, Number far, Number near )
 {
 	Viewport * viewport;
 
@@ -90,8 +90,6 @@ Viewport * newViewport( Number left, Number right, Number top, Number bottom, Nu
 	viewport -> transform  = newMatrix3D( NULL );
 
 	screenFaces_initiate( & ( viewport -> graphics ) );
-
-	viewport_setScene( viewport, scene );
 
 	return viewport;
 }
@@ -151,16 +149,9 @@ void projectSceneMesh( Matrix3D * project, Scene * s, Projection * p, ScreenFace
 			projectVertices( project, sp -> next -> mesh -> vertices, pp -> next -> vertices );
 		}
 
-		if( graphics -> rear != NULL )
-		{
-			graphics -> rear -> next = pp -> faces -> next;
-		}
-		else
-		{
-			graphics -> next         = pp -> faces -> next;
-		}
+		graphics -> rear -> next = pp -> faces -> next;
 
-		graphics -> rear             = pp -> faces -> rear;
+		graphics -> rear         = pp -> faces -> rear;
 
 		projectSceneMesh( project, sp, pp, graphics );
 
@@ -168,16 +159,9 @@ void projectSceneMesh( Matrix3D * project, Scene * s, Projection * p, ScreenFace
 		pp = pp -> next;
 	}
 
-	if( graphics -> rear != NULL )
-	{
-		graphics -> rear -> next = p -> faces -> next;
-	}
-	else
-	{
-		graphics -> next         = p -> faces -> next;
-	}
+	graphics -> rear -> next = pp -> faces -> next;
 
-	graphics -> rear             = p -> faces -> rear;
+	graphics -> rear         = p  -> faces -> rear;
 
 	projectSceneMesh( project, sp, pp, graphics );
 }
@@ -200,16 +184,9 @@ void projectSceneChildren( Matrix3D * project, Scene * s, Projection * p, Screen
 
 		projectVertices( project, sp -> mesh -> vertices, pp -> vertices );
 
-		if( graphics -> rear != NULL )
-		{
-			graphics -> rear -> next = pp -> faces -> next;
-		}
-		else
-		{
-			graphics -> next         = pp -> faces -> next;
-		}
+		graphics -> rear -> next = pp -> faces -> next;
 
-		graphics -> rear             = pp -> faces -> rear;
+		graphics -> rear         = pp -> faces -> rear;
 
 		projectSceneMesh( project, sp, pp, graphics );
 	}
@@ -224,21 +201,18 @@ void projectSceneChildren( Matrix3D * project, Scene * s, Projection * p, Screen
 			projectVertices( project, sp -> mesh -> vertices, pp -> vertices );
 		}
 
-		if( graphics -> rear != NULL )
-		{
-			graphics -> rear -> next = pp -> faces -> next;
-		}
-		else
-		{
-			graphics -> next         = pp -> faces -> next;
-		}
+		graphics -> rear -> next = pp -> faces -> next;
 
-		graphics -> rear             = pp -> faces -> rear;
+		graphics -> rear         = pp -> faces -> rear;
 
 		projectSceneMesh( project, sp, pp, graphics );
 	}
 	else
 	{
+		graphics -> rear -> next = pp -> faces -> next;
+
+		graphics -> rear         = pp -> faces -> rear;
+
 		projectSceneChildren( project, sp, pp, graphics );
 	}
 
@@ -250,16 +224,9 @@ void projectSceneChildren( Matrix3D * project, Scene * s, Projection * p, Screen
 
 			projectVertices( project, sp -> next -> mesh -> vertices, pp -> next -> vertices );
 
-			if( graphics -> rear != NULL )
-			{
-				graphics -> rear -> next = pp -> next -> faces -> next;
-			}
-			else
-			{
-				graphics -> next         = pp -> next -> faces -> next;
-			}
+			graphics -> rear -> next = pp -> next -> faces -> next;
 
-			graphics -> rear             = pp -> next -> faces -> rear;
+			graphics -> rear         = pp -> next -> faces -> rear;
 
 			projectSceneMesh( project, sp -> next, pp -> next, graphics );
 		}
@@ -272,21 +239,18 @@ void projectSceneChildren( Matrix3D * project, Scene * s, Projection * p, Screen
 				projectVertices( project, sp -> next -> mesh -> vertices, pp -> next -> vertices );
 			}
 
-			if( graphics -> rear != NULL )
-			{
-				graphics -> rear -> next = pp -> next -> faces -> next;
-			}
-			else
-			{
-				graphics -> next         = pp -> next -> faces -> next;
-			}
+			graphics -> rear -> next = pp -> next -> faces -> next;
 
-			graphics -> rear             = pp -> next -> faces -> rear;
+			graphics -> rear         = pp -> next -> faces -> rear;
 
 			projectSceneMesh( project, sp -> next, pp -> next, graphics );
 		}
 		else
 		{
+			graphics -> rear -> next = pp -> next -> faces -> next;
+
+			graphics -> rear         = pp -> next -> faces -> rear;
+
 			projectSceneChildren( project, sp -> next, pp -> next, graphics );
 		}
 
@@ -329,6 +293,9 @@ void projectScene( Viewport * v, int mode )
 	}
 	else
 	{
+		v -> graphics -> next = v -> projection -> faces -> next;
+		v -> graphics -> rear = v -> projection -> faces -> rear;
+
 		projectSceneChildren( v -> transform, v -> scene, v -> projection, v -> graphics );
 	}
 }

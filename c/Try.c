@@ -37,11 +37,13 @@ void main( void )
 
 	s    = newScene( newMesh( f, v ) );
 
-	view = newViewport( 0, 0, 500, 500, 500, 0, s );
+	view = newViewport( 0, 0, 500, 500, 500, 0 );
+
+	scene_addViewport( s, view );
 
 	r    = newRenderEngine( 800, 600 );
 
-	renderEngine_addViewport( r, view );
+	renderEngine_addScene( r, s );
 
 	render( r, RENDER_MODE_DYNAMIC );
 }

@@ -1,7 +1,7 @@
 # ifndef CAMERA_H
 # define CAMERA_H
 
-// verson 1.3
+// verson 1.4
 
 # include "Matrix3D.h"
 
@@ -22,6 +22,7 @@ typedef struct
 {
 	//RW
 	Vector3D * target;
+	Number     interpolation;
 
 	//N
 	Vector3D * position;
@@ -35,7 +36,7 @@ typedef struct
 	int      move;
 }Camera;
 	
-Camera * newCamera( void )
+Camera * newCamera( Vector3D * target )
 {
 	Camera * c;
 
@@ -44,6 +45,7 @@ Camera * newCamera( void )
 		exit( TRUE );
 	}
 
+	c -> target                 = target;
 	c -> position               = newVector3D( 0, 0, 0, 1 );
 	c -> direction              = newVector3D( 0, 0, 0, 1 );
 	c -> scale                  = newVector3D( 0, 0, 0, 1 );
@@ -60,22 +62,64 @@ Camera * newCamera( void )
 	return c;
 }
 
+void lookAt( Camera * c, Vector3D * target, Number interpolation, Vector3D * upAxis )
+{
+	Matrix3D world;
+	Vector3D pos;
+
+	quaternion_toMatrix3D( c -> rotation -> quaternion, c -> transform );
+
+	matrix3D_prependScale( c -> transform, c -> scale -> x, c -> scale -> y, c -> scale -> z );
+
+	matrix3D_setPosition( c -> transform, c -> position );
+
+	matrix3D_apprend( c -> transform, c -> world );
+
+	matrix3D_getPosition( c -> transform, & pos );
+
+	if( interpolation && interpolation != 1 )
+	{
+		matrix3D_pointTowards( c -> transform, interpolation, & pos, c -> target, upAxis );
+	}
+	else
+	{
+		matrix3D_pointAt( c -> transform, & pos, c -> target, upAxis );
+	}
+
+	world = * ( c -> world );
+
+	matrix3D_invert( & world );
+
+	matrix3D_apprend( c -> transform, & world );
+
+	c -> move = MOVE_TYPE_TRANSFORM;
+}
+
+void camera_updateRotation( Camera * c )
+{
+	if( c -> rotation -> move )
+	{
+		quaternion_decompose( c -> rotation -> quaternion, c -> direction );
+
+		c -> rotation -> move = FALSE;
+	}
+}
+
 Matrix3D * camera_getTransform( Camera * c )
 {
-	if( c -> move == MOVE_TYPE_ROTATION )
+	if( c -> target != NULL )
 	{
-		if( c -> rotation -> move )
-		{
-			quaternion_decompose( c -> rotation -> quaternion, c -> direction );
-		}
+		lookAt( c, c -> target, c -> interpolation, & Y_AXIS );
+	}
+	else if( c -> move == MOVE_TYPE_ROTATION )
+	{
+		camera_updateRotation( c );
 
 		quaternion_toMatrix3D( c -> rotation -> quaternion, c -> transform );
 
 		matrix3D_prependScale( c -> transform, c -> scale -> x, c -> scale -> y, c -> scale -> z );
 
 		matrix3D_setPosition( c -> transform, c -> position );
-
-		c -> rotation -> move = FALSE;
 
 		c -> move             = FALSE;
 	}
@@ -123,7 +167,7 @@ void camera_setPosition( Camera * c, Number x, Number y, Number z )
 	position -> y = y;
 	position -> z = z;
 
-	c -> move = MOVE_TYPE_TRANSLATION;
+	c -> move = c -> move == MOVE_TYPE_ROTATION ? MOVE_TYPE_ROTATION : MOVE_TYPE_TRANSLATION;
 }
 
 void camera_setScale( Camera * c, Number xScale, Number yScale, Number zScale )
@@ -136,7 +180,7 @@ void camera_setScale( Camera * c, Number xScale, Number yScale, Number zScale )
 	c -> scale -> y = yScale;
 	c -> scale -> z = zScale;
 
-	c -> move = MOVE_TYPE_TRANSLATION;
+	c -> move = c -> move == MOVE_TYPE_ROTATION ? MOVE_TYPE_ROTATION : MOVE_TYPE_TRANSLATION;
 }
 
 void camera_setRotation( Camera * c, Number degrees, Vector3D * axis )
@@ -150,9 +194,6 @@ void camera_setRotation( Camera * c, Number degrees, Vector3D * axis )
 	c             -> move = MOVE_TYPE_ROTATION;
 }
 
-/**
-效率与单个rotationX,rotationY,rotationZ无差别.
-**/
 void camera_setDirection( Camera * c, Vector3D * direction )
 {
 	camera_updateTransform( c );
@@ -164,6 +205,59 @@ void camera_setDirection( Camera * c, Vector3D * direction )
 	c -> rotation -> move = FALSE;
 
 	c -> move             = MOVE_TYPE_ROTATION;
+}
+
+void camera_rotationX( Camera * c, Number degrees )
+{
+	camera_updateTransform( c );
+
+	camera_updateRotation( c );
+
+	quaternion_apprendRotation( c -> rotation -> quaternion, degrees - c -> direction -> x, & X_AXIS );
+
+	c -> direction -> x = degrees;
+
+	c -> move           = MOVE_TYPE_ROTATION;
+}
+
+void camera_rotationY( Camera * c, Number degrees )
+{
+	camera_updateTransform( c );
+
+	camera_updateRotation( c );
+
+	quaternion_apprendRotation( c -> rotation -> quaternion, degrees - c -> direction -> y, & Y_AXIS );
+
+	c -> direction -> y = degrees;
+
+	c -> move           = MOVE_TYPE_ROTATION;
+}
+
+void camera_rotationZ( Camera * c, Number degrees )
+{
+	camera_updateTransform( c );
+
+	camera_updateRotation( c );
+
+	quaternion_apprendRotation( c -> rotation -> quaternion, degrees - c -> direction -> z, & Z_AXIS );
+
+	c -> direction -> z = degrees;
+
+	c -> move           = MOVE_TYPE_ROTATION;
+}
+
+void camera_destroy( Camera * * c )
+{
+	free( ( * c ) -> position  );
+	free( ( * c ) -> scale     );
+	free( ( * c ) -> direction );
+	free( ( * c ) -> rotation -> quaternion );
+	free( ( * c ) -> rotation  );
+	free( ( * c ) -> transform );
+	free( ( * c ) -> world     );
+	free( ( * c )              );
+
+	* c = NULL;
 }
 
 # endif
