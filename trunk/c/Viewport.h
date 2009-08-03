@@ -45,7 +45,7 @@ typedef struct Viewport
 	ScreenFaces * graphics;
 }Viewport;
 
-void viewport_setScene( Viewport * v, Scene * s )
+void viewport_setScene( Viewport * v, struct Scene * s )
 {
 	if( v -> projection != NULL )
 	{
