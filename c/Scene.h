@@ -3,14 +3,15 @@
 
 //verson 1.5
 
-# include "Mesh.h"
-# include "Camera.h"
+#include "Mesh.h"
+#include "Camera.h"
+#include "Viewport.h"
 
-typedef struct Viewport Viewport;
+//typedef struct Viewport Viewport;
 
 typedef struct Screen
 {
-	Viewport * viewport;
+	struct Viewport * viewport;
 
 	struct Screen * next;
 }Screen;
@@ -38,7 +39,7 @@ typedef struct Scene
 	struct Scene * children;
 }Scene;
 
-void viewport_setScene( Viewport * v, Scene * s );
+void viewport_setScene( struct Viewport * v, Scene * s );
 
 Scene * newScene( Mesh * mesh )
 {
@@ -61,7 +62,7 @@ Scene * newScene( Mesh * mesh )
 	return scene;
 }
 
-void scene_addViewport( Scene * s, Viewport * v )
+void scene_addViewport( Scene * s, struct Viewport * v )
 {
 	Screen * screen;
 

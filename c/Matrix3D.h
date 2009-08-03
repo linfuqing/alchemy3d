@@ -261,7 +261,7 @@ void matrix3D_setPosition( Matrix3D * m, Vector3D * v )
 	m -> m34 = m1 -> m31 * m2 -> m14 + m1 -> m32 * m2 -> m24 + m1 -> m33 * m2 -> m34 + m1 -> m34;
 
 
-	/*m.m41 = m1.m41 * m2.m11 + m1.m42 * m2.m21 + m1.m43 * m2.m31;
+	m.m41 = m1.m41 * m2.m11 + m1.m42 * m2.m21 + m1.m43 * m2.m31;
 	m.m42 = m1.m41 * m2.m12 + m1.m42 * m2.m22 + m1.m43 * m2.m32;
 	m.m43 = m1.m41 * m2.m13 + m1.m42 * m2.m23 + m1.m43 * m2.m33;
 	m.m44 = m1.m41 * m2.m14 + m1.m42 * m2.m24 + m1.m43 * m2.m34 + m1.m44;
