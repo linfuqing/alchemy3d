@@ -132,14 +132,12 @@ package
 		private var t:Number = 0;
 		override protected function onRenderTick(e:Event = null):void
 		{
-//			camera.target = p.worldPosition;
-//			var d:Number = 1 / 400;
-//			var mx:Number = viewport.mouseX * d;
-//			var my:Number = - viewport.mouseY * d;
-//			
-//			camera.hover(mx, my, 10);
-
-			p.rotationY ++;
+			camera.target = p.worldPosition;
+			var d:Number = 1 / 400;
+			var mx:Number = viewport.mouseX * d;
+			var my:Number = - viewport.mouseY * d;
+			
+			camera.hover(mx, my, 10);
 			
 			var a:Number;
 			var i:int = 0;
