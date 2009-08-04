@@ -64,24 +64,14 @@ package cn.alchemy3d.texture
 			byte.position = 0;
 			
 			var i:int = 0, j:int = bitmapdata.width * bitmapdata.height;
-			bitmapDataPtr = lib.alchemy3DLib.applyForTmpBuffer(4, j * 4);
+			bitmapDataPtr = lib.alchemy3DLib.applyForTmpBuffer(4, j);
 			buffer.position = bitmapDataPtr;
-			var a:Number, r:Number, g:Number, b:Number;
 			var uint32:uint;
-			var d:Number = 1 / 255;
 			for (; i < j; i ++)
 			{
 				uint32 = byte.readUnsignedInt();
 				
-				a = ((uint32 >> 24) & 0xff) * d;
-				r = ((uint32 >> 16) & 0xff) * d;
-				g = ((uint32 >> 8) & 0xff) * d;
-				b = (uint32 & 0xff) * d;
-				
-				buffer.writeFloat(a);
-				buffer.writeFloat(r);
-				buffer.writeFloat(g);
-				buffer.writeFloat(b);
+				buffer.writeUnsignedInt(uint32);
 			}
 			
 			var ps:Array = lib.alchemy3DLib.initializeTexture(bitmapdata.width, bitmapdata.height, bitmapDataPtr);
