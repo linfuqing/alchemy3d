@@ -4,6 +4,7 @@ R :只读
 W :只写
 RW:读写
 N :封装
+L :链接
 **/
 
 #ifndef BASE_H
