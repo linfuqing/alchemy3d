@@ -21,7 +21,6 @@ package
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.geom.ColorTransform;
-	import flash.geom.Vector3D;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	
@@ -186,7 +185,7 @@ package
 			s3.z = 700;
 			
 			light = new Light3D(lightObj);
-			scene.addLight(light);
+//			scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
 			light.mode = LightType.MID_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
@@ -200,7 +199,7 @@ package
 			light.attenuation2 = .0000001;
 			
 			light2 = new Light3D(lightObj2);
-			scene.addLight(light2);
+//			scene.addLight(light2);
 			light2.type = LightType.POINT_LIGHT;
 			light2.mode = LightType.MID_MODE;
 			light2.bOnOff = LightType.LIGHT_ON;
@@ -214,7 +213,7 @@ package
 			light2.attenuation2 = .0000001;
 			
 			light3 = new Light3D(lightObj3);
-			scene.addLight(light3);
+//			scene.addLight(light3);
 			light3.type = LightType.POINT_LIGHT;
 			light3.mode = LightType.MID_MODE;
 			light3.bOnOff = LightType.LIGHT_ON;
@@ -337,7 +336,7 @@ package
 			
 			camera.hover(mx, my, 10);
 
-			s.rotationY ++;
+			s2.rotationY = 43;
 			
 			super.onRenderTick(e);
 		}

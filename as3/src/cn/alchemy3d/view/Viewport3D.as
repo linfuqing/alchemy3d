@@ -9,11 +9,14 @@ package cn.alchemy3d.view
 	import flash.display.BitmapData;
 	import flash.display.PixelSnapping;
 	import flash.display.Sprite;
+	import flash.geom.Point;
+	import flash.utils.ByteArray;
 
 	public class Viewport3D extends Sprite implements IDevice
 	{
 		public var pointer:uint;
 		public var gfxPointer:uint;
+		public var gfx2Pointer:uint;
 		
 		public var viewWidth:Number;
 		public var viewHeight:Number;
@@ -22,9 +25,11 @@ package cn.alchemy3d.view
 		public var scene:Scene3D;
 		
 		protected var gfx:BitmapData;
+		protected var gfx2:BitmapData;
 		protected var wh:int;
 		
 		protected var lib:Library;
+		protected var buffer:ByteArray;
 		
 		override public function get mouseX():Number
 		{
@@ -66,7 +71,10 @@ package cn.alchemy3d.view
 			gfx = new BitmapData(width, height, true, 0);
 			addChild(new Bitmap(gfx, PixelSnapping.NEVER, false));
 			
+			gfx2 = new BitmapData(width, height, true, 0);
+			
 			lib = Library.getInstance();
+			buffer = lib.buffer;
 			
 			//初始化场景
 			//返回该对象起始指针
@@ -84,21 +92,26 @@ package cn.alchemy3d.view
 		{
 			pointer = ps[0];
 			gfxPointer = ps[1];
+			gfx2Pointer = ps[2];
 		}
 		
 		public function render():void
 		{
-			lib.buffer.position = gfxPointer;
+			buffer.position = gfx2Pointer;
 			
-//			for (var i:int = 10000; i < 20000; i ++)
-//			{
-//				trace(lib.buffer.readUnsignedInt());
-//			}
 			gfx.lock();
 			gfx.fillRect(gfx.rect, 0);
-			gfx.setPixels(gfx.rect, lib.buffer);
+			gfx.setPixels(gfx.rect, buffer);
 			gfx.unlock();
-			//gfx.setPixel32(5, 5, 0xffffffff);
+			
+//			buffer.position = gfx2Pointer;
+//			
+//			gfx2.lock();
+//			gfx2.fillRect(gfx2.rect, 0);
+//			gfx2.setPixels(gfx2.rect, buffer);
+//			gfx2.unlock();
+//			
+//			gfx.merge(gfx2, gfx.rect, new Point(), 0, 0, 0, 0);
 		}
 	}
 }
