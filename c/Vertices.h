@@ -18,7 +18,7 @@ void vertices_initiate( Vertices * * head )
 {
 	if( ( * head = ( Vertices * )malloc( sizeof( Vertices ) ) ) == NULL )
 	{
-		exit( 1 );
+		exit( TRUE );
 	}
 
 	( * head ) -> next = NULL;

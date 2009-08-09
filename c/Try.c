@@ -7,7 +7,10 @@ void main( void )
 	Vertices * v;
 	Polygon  * p;
 
+	Camera   * c;
 	Scene    * s;
+	Screen   * screen;
+	World    * w;
 	Viewport * view;
 
 	Mesh     * m;
@@ -15,7 +18,7 @@ void main( void )
 	RenderEngine * r;
 
 	//新建多边形.
-	p = newTriangle3D( newVertex( newVector3D( 1, 2, 3, 1 ) ), newVertex( newVector3D( 1, 2, 3, 1 ) ), newVertex( newVector3D( 1, 2, 3, 1 ) ), NULL, NULL, NULL );
+	p = newTriangle3D( newVertex( newVector3D( 3.6, 2, 3, 1 ) ), newVertex( newVector3D( 1, 8, 4, 1 ) ), newVertex( newVector3D( 6, 2, 1, 1 ) ), NULL, NULL, NULL );
 
 	//初始化.
 	faces_initiate( & f );
@@ -35,15 +38,24 @@ void main( void )
 
 	//project -> vertices -> next -> vertex -> screen -> x =100;
 
-	s    = newScene( newMesh( f, v ) );
+	s      = newScene( newMesh( f, v ), NULL );
 
-	view = newViewport( 0, 0, 500, 500, 500, 0 );
+	c      = newCamera( 250, 0, 250, NULL );
 
-	scene_addViewport( s, view );
+	view   = newViewport( 0, 0, 500, 500, c );
+
+	screen = newScreen( view );
+
+	w      = newWorld( s );
+
+	//scene_addViewport( s, view );
+	world_addViewport( w, screen, OFF );
 
 	r    = newRenderEngine( 800, 600 );
 
-	renderEngine_addScene( r, s );
+	//renderEngine_addScene( r, s );
+
+	renderEngine_addScene( r, w );
 
 	render( r, RENDER_MODE_DYNAMIC );
 }

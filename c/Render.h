@@ -6,24 +6,24 @@
 
 //Verson 1.2
 
-#include "Viewport.h"
+//#include "Viewport.h"
+
+# include "World.h"
 
 //N
 
-typedef struct World
+/*typedef struct World
 {
 	Scene        * scene;
 
 	struct World * next;
-}World;
+}World;*/
 
 typedef struct
 {
 	World  * world;
 
-	Number   width;
-
-	Number   height;
+	Stage  * stage;
 
 	Number * zBuffer;
 
@@ -37,31 +37,33 @@ RenderEngine * newRenderEngine( Number width, Number height )
 	int        total = ( int )( width * height );
 
 	if( ( r              = ( RenderEngine * )malloc( sizeof( RenderEngine )         ) ) == NULL ||
+		( r -> stage     = ( Stage        * )malloc( sizeof( Stage        )         ) ) == NULL ||
 		( r -> gfxBuffer = ( int          * )malloc( sizeof( int          ) * total ) ) == NULL ||
 		( r -> zBuffer   = ( Number       * )malloc( sizeof( Number       ) * total ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
-	r -> width  = width;
+	r -> stage -> width  = width;
 
-	r -> height = height;
+	r -> stage -> height = height;
 
 	r -> world = NULL;
 
 	return r;
 }
 
-void renderEngine_addScene( RenderEngine * r, Scene * s )
+//void renderEngine_addScene( RenderEngine * r, Scene * s )
+void renderEngine_addScene( RenderEngine * r, World * w )
 {
-	World * w;
+	/*World * w;
 
 	if( ( w = ( World * )malloc( sizeof( World ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
-	w -> scene = s;
+	w -> scene = s;*/
 
 	w -> next  = r -> world;
 
@@ -89,8 +91,8 @@ void triangle_rasterize( ScreenPolygon * tri, Viewport * v, RenderEngine * r )
 
 	int * gfxBuffer; Number * zBuffer;
 
-	resX = (int)r -> width;
-	resY = (int)r -> height;
+	resX = (int)r -> stage -> width;
+	resY = (int)r -> stage -> height;
 	gfxBuffer = r -> gfxBuffer;
 	zBuffer   = r -> zBuffer;
 
@@ -891,11 +893,12 @@ void render( RenderEngine * r, int mode )
 	{
 		transformScene( wp -> scene, mode );
 
-		vp = wp -> scene -> screen;
+		//vp = wp -> scene -> screen;
+		vp = wp -> screen;
 
 		while( vp != NULL )
 		{
-			projectScene( vp -> viewport, mode );
+			projectScene( vp -> viewport, r -> stage, mode );
 		
 			graphics = vp -> viewport -> graphics;
 

@@ -3,8 +3,9 @@
 
 //verson 1.3
 
-#include "Scene.h"
-#include "Projection.h"
+# include "Scene.h"
+# include "Projection.h"
+# include "Camera.h"
 
 typedef struct Viewport
 {
@@ -21,12 +22,6 @@ typedef struct Viewport
 	Number        bottom;
 
 	//R
-	Number        near;
-
-	//R
-	Number        far;
-
-	//R
 	Scene       * scene;
 
 	//N
@@ -36,16 +31,10 @@ typedef struct Viewport
 	Camera      * camera;
 
 	//N
-	Matrix3D    * project;
-
-	//N
-	Matrix3D    * transform;
-
-	//N
 	ScreenFaces * graphics;
 }Viewport;
 
-void viewport_setScene( Viewport * v, struct Scene * s )
+void viewport_setScene( Viewport * v, Scene * s )
 {
 	if( v -> projection != NULL )
 	{
@@ -55,20 +44,8 @@ void viewport_setScene( Viewport * v, struct Scene * s )
 	v -> scene      = s;
 	v -> projection = newProjection( s -> mesh, NULL );
 }
-
-void viewport_set( Viewport * v, Number left, Number right, Number top, Number bottom, Number far, Number near )
-{
-	v -> left   = left;
-	v -> right  = right;
-	v -> top    = top;
-	v -> bottom = bottom;
-	v -> far    = far;
-	v -> near   = near;
-
-	matrix3D_projectMatrix( v -> project, left, right, top, bottom, far, near );
-}
 	
-Viewport * newViewport( Number left, Number right, Number top, Number bottom, Number far, Number near )
+Viewport * newViewport( Number left, Number right, Number top, Number bottom, Camera * camera )
 {
 	Viewport * viewport;
 
@@ -81,20 +58,16 @@ Viewport * newViewport( Number left, Number right, Number top, Number bottom, Nu
 	viewport -> right      = right;
 	viewport -> top        = top;
 	viewport -> bottom     = bottom;
-	viewport -> far        = far;
-	viewport -> near       = near;
 
-	viewport -> camera     = NULL;
+	viewport -> camera     = camera;
 	viewport -> projection = NULL;
-	viewport -> project    = projectMatrix3D( top, bottom, left, right, near, far );
-	viewport -> transform  = newMatrix3D( NULL );
 
 	screenFaces_initiate( & ( viewport -> graphics ) );
 
 	return viewport;
 }
 
-int projectVertices( Matrix3D * transform, Vertices * vertices, ScreenVertices * screenVertices )
+int projectVertices( Matrix3D * projectMatrix, Vertices * vertices, ScreenVertices * screenVertices )
 {
 	Vertices * vs       = vertices       -> next;
 	ScreenVertices * sv = screenVertices -> next;
@@ -107,7 +80,7 @@ int projectVertices( Matrix3D * transform, Vertices * vertices, ScreenVertices *
 		}
 
 		* ( sv -> vertex -> screen ) = * ( vs -> vertex -> worldPosition );
-		matrix3D_projectVector( transform, sv -> vertex -> screen );
+		matrix3D_projectVector( projectMatrix, sv -> vertex -> screen );
 
 		vs = vs -> next;
 		sv = sv -> next;
@@ -259,44 +232,30 @@ void projectSceneChildren( Matrix3D * project, Scene * s, Projection * p, Screen
 	}
 }
 
-void viewport_updateProjectMatrix( Viewport * v )
+void projectScene( Viewport * v, Stage * s, int mode )
 {
-	if( v -> camera == NULL )
-	{
-		* ( v -> transform ) = * ( v -> project );
-	}
-	else if( v -> camera -> move )
-	{
-		* ( v -> transform ) = * ( v -> project );
-
-		matrix3D_apprendProject( v -> transform, ( matrix3D_apprend( ( temp = * camera_getTransform( v -> camera ), & temp ), v -> camera -> world ), & temp ) );
-	}
-}
-
-void projectScene( Viewport * v, int mode )
-{
-	viewport_updateProjectMatrix( v );
+	Matrix3D * projectionMatrix = camera_getProjectMatrix( v -> camera, s );
 
 	if( mode || v -> scene -> move )
 	{
-		if( !projectVertices( v -> transform, v -> scene -> mesh -> vertices, v -> projection -> vertices ) )
+		if( !projectVertices( projectionMatrix, v -> scene -> mesh -> vertices, v -> projection -> vertices ) )
 		{
 			v -> projection = newProjection( v -> scene -> mesh, & ( v -> projection ) );
 
-			projectVertices( v -> transform, v -> scene -> mesh -> vertices, v -> projection -> vertices );
+			projectVertices( projectionMatrix, v -> scene -> mesh -> vertices, v -> projection -> vertices );
 		}
 
 		v -> graphics -> next = v -> projection -> faces -> next;
 		v -> graphics -> rear = v -> projection -> faces -> rear;
 
-		projectSceneMesh( v -> transform, v -> scene, v -> projection, v -> graphics );
+		projectSceneMesh( projectionMatrix, v -> scene, v -> projection, v -> graphics );
 	}
 	else
 	{
 		v -> graphics -> next = v -> projection -> faces -> next;
 		v -> graphics -> rear = v -> projection -> faces -> rear;
 
-		projectSceneChildren( v -> transform, v -> scene, v -> projection, v -> graphics );
+		projectSceneChildren( projectionMatrix, v -> scene, v -> projection, v -> graphics );
 	}
 }
 

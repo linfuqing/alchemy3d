@@ -1,25 +1,25 @@
 package cn.alchemy3d.geom
 {	
 	import cn.alchemy3d.base.Library;
-	import cn.alchemy3d.base.Pointer;
 	
-	public class Vertex extends Pointer
+	public class Vertex extends Position
 	{
-		private var _x:Number;
-		private var _y:Number;
-		private var _z:Number;
+		private var positionPointer:uint;
 		
-		private var xPointer:uint;
-		private var yPointer:uint;
-		private var zPointer:uint;
+		private var worldPointer:uint;
 		
 		private var worldXPointer:uint;
 		private var worldYPointer:uint;
 		private var worldZPointer:uint;
 		
-		public function set x( value:Number ):void
+		public override function get vectorPosition():uint
 		{
-			_x = value;
+			return worldPointer;
+		}
+		
+		override public function set x( value:Number ):void
+		{
+			position.x = value;
 			
 			if( _pointer )
 			{
@@ -30,18 +30,13 @@ package cn.alchemy3d.geom
 				
 				Library.instance().buffer.position = xPointer;
 				
-				Library.instance().buffer.writeDouble( _x );
+				Library.instance().buffer.writeDouble( position.x );
 			}
 		}
 		
-		public function get x():Number
+		override public function set y( value:Number ):void
 		{
-			return _x;
-		}
-		
-		public function set y( value:Number ):void
-		{
-			_y = value;
+			position.y = value;
 			
 			if( _pointer )
 			{
@@ -52,18 +47,13 @@ package cn.alchemy3d.geom
 				
 				Library.instance().buffer.position = yPointer;
 				
-				Library.instance().buffer.writeDouble( _y );
+				Library.instance().buffer.writeDouble( position.y );
 			}
-		}
-		
-		public function get y():Number
-		{
-			return _y;
 		}
 		
 		public function set z( value:Number ):void
 		{
-			_z = value;
+			position.z = value;
 			
 			if( _pointer )
 			{
@@ -74,13 +64,8 @@ package cn.alchemy3d.geom
 				
 				Library.instance().buffer.position = zPointer;
 				
-				Library.instance().buffer.writeDouble( _z );
+				Library.instance().buffer.writeDouble( position.z );
 			}
-		}
-		
-		public function get z():Number
-		{
-			return _z;
 		}
 		
 		public function get worldX():Number
@@ -136,24 +121,29 @@ package cn.alchemy3d.geom
 		
 		public function Vertex( x:Number = 0, y:Number = 0, z:Number = 0 )
 		{
-			super();
-			
-			_x = x;
-			_y = y;
-			_z = z;
+			super( x, y, z );
 			
 			init();
 		}
 		
 		private function init():void
 		{
-			xPointer = NULL;
-			yPointer = NULL;
-			zPointer = NULL;
+			positionPointer = NULL;
 			
-			worldXPointer = NULL;
-			worldYPointer = NULL;
-			worldZPointer = NULL;
+			xPointer        = NULL;
+			yPointer        = NULL;
+			zPointer        = NULL;
+			
+			worldPointer    = NULL;
+			
+			worldXPointer   = NULL;
+			worldYPointer   = NULL;
+			worldZPointer   = NULL;
+		}
+		
+		override protected function initialize():void
+		{
+			
 		}
 		
 		private function setPointers():void
@@ -162,13 +152,17 @@ package cn.alchemy3d.geom
 			{
 				var vertex:Array = instance.library.initializeVertex( v.pointer );
 				
-				xPointer         = vertex[0];
-				yPointer         = vertex[1];
-				zPointer         = vertex[2];
+				positionPointer  = vertex[0];
 				
-				worldXPointer    = vertex[3];
-				worldYPointer    = vertex[4];
-				worldZPointer    = vertex[5];
+				xPointer         = vertex[1];
+				yPointer         = vertex[2];
+				zPointer         = vertex[3];
+				
+				worldPointer     = vertex[4];
+				
+				worldXPointer    = vertex[5];
+				worldYPointer    = vertex[6];
+				worldZPointer    = vertex[7];
 			}
 		}
 		

@@ -11,12 +11,13 @@ L :Á´½Ó
 #define BASE_H
 
 # include <math.h>
-
-# define TRUE      1
-# define FALSE     0
-# define PI        3.1415926
-# define TODEGREES 180 / PI
-# define TORADIANS PI / 180
+ 
+# define TRUE        1
+# define FALSE       0
+# define OFF       - 1
+# define PI          3.1415926
+# define TODEGREES   180 / PI
+# define TORADIANS   PI / 180
 
 typedef double Number;
 
