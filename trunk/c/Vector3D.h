@@ -1,5 +1,5 @@
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef VECTOR3D_H
+#define VECTOR3D_H
 
 
 /**************************************************************************************

@@ -1059,7 +1059,7 @@ void matrix3D_pointTowards( Matrix3D * mat, Number percent, Vector3D * pos, Vect
 	matrix3D_setPosition( mat, pos );
 }
 
-Matrix3D * projectMatrix3D( Number top, Number bottom, Number left, Number right, Number near, Number far )
+Matrix3D * projectionMatrix3D( Number top, Number bottom, Number left, Number right, Number near, Number far )
 {
 	Matrix3D * m;
 

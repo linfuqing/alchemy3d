@@ -10,7 +10,59 @@ package cn.alchemy3d.geom
 		private var _vertices:uint;
 		private var _faces   :uint;
 		
-		private function set vertices( vs:Vector.<Vertex> ):void
+		private var verticesPointer:uint;
+		private var facesPointer   :uint;
+		
+		public function set vertices( vs:Vector.<Vertex> )
+		{
+			setVertices( vs );
+			
+			Library.instance().buffer.position = verticesPointer;
+			
+			Library.instance().buffer.writeUnsignedInt( _vertices );
+		}
+		
+		public function set faces( fs:Vector.<Polygon> )
+		{
+			setFaces( fs );
+			
+			Library.instance().buffer.position = facesPointer;
+			
+			Library.instance().buffer.writeUnsignedInt( _faces );
+		}
+		
+		public function Mesh( vertices:Vector.<Vertex>, faces:Vector.<Polygon> )
+		{
+			if( !vertices )
+			{
+				throw new Error( "No vertices!" );
+			}
+			
+			init();
+			
+			setVertices( vertices );
+			setFaces( faces );
+			
+			super();
+		}
+		
+		private function init():void
+		{
+			_vertices = NULL;
+			_faces    = NULL;
+		}
+		
+		override private function initialize():void
+		{
+			var mesh:Array = Library.instance().methods.initializeMesh( _vertices, _faces );
+			
+			_pointer = mesh[0];
+			
+			verticesPointer = mesh[1];
+			facesPointer    = mesh[2];
+		}
+		
+		private function setVertices( vs:Vector.<Vertex> ):void
 		{
 			var v     :Vertex; 
 			var vertex:Array;
@@ -44,7 +96,7 @@ package cn.alchemy3d.geom
 			}
 		}
 		
-		private function set faces( fs:Vector.<Polygon> ):void
+		private function setFaces( fs:Vector.<Polygon> ):void
 		{
 			var f     :Polygon;
 			var i     :uint;
@@ -58,6 +110,11 @@ package cn.alchemy3d.geom
 			var vp    :uint = Library.instance().methods.applyForTmpBuffer( fl     * Library.instance().intTypeSize()    );
 			var uvp   :uint = Library.instance().methods.applyForTmpBuffer( fl * 2 * Library.instance().doubleTypeSize() );
 			var lp    :uint = Library.instance().methods.applyForTmpBuffer( fl     * Library.instance().intTypeSize()    );
+			
+			if( _faces )
+			{
+				Library.instance().methods.destroyFaces( _faces );
+			}
 			
 			Library.instance().buffer.position = vp;
 			
@@ -118,21 +175,6 @@ package cn.alchemy3d.geom
 					uv.setPointer( Library.instance().buffer.readUnsignedInt() );
 				}
 			}
-		}
-		
-		public function Mesh( vertices:Vector.<Vertex>, faces:Vector.<Polygon> )
-		{
-			super();
-			
-			if( !vertices )
-			{
-				throw new Error( "No vertices!" );
-			}
-			
-			this.vertices = vertices;
-			this.faces    =    faces;
-			
-			_pointer      = Library.instance().methods.initializeMesh( _vertices, _faces );
 		}
 	}
 }

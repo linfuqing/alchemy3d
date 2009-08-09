@@ -3,25 +3,25 @@
 
 //verson 1.5
 
-#include "Mesh.h"
-#include "Camera.h"
-#include "Viewport.h"
+# include "Mesh.h"
+# include "Object.h"
+//# include "Viewport.h"
 
 //typedef struct Viewport Viewport;
 
-typedef struct Screen
+/*typedef struct Screen
 {
 	struct Viewport * viewport;
 
-	struct Screen * next;
-}Screen;
+	struct Screen   * next;
+}Screen;*/
 
 typedef struct Scene
 {
-	Screen       * screen;
+	//Screen       * screen;
 
 	//R
-	Camera       * camera;
+	Object       * object;
 
 	//RW
 	Mesh         * mesh;
@@ -39,9 +39,7 @@ typedef struct Scene
 	struct Scene * children;
 }Scene;
 
-void viewport_setScene( struct Viewport * v, Scene * s );
-
-Scene * newScene( Mesh * mesh )
+Scene * newScene( Mesh * m, Object * o )
 {
 	Scene * scene;
 
@@ -50,11 +48,11 @@ Scene * newScene( Mesh * mesh )
 		exit( TRUE );
 	}
 
-	scene -> camera         = newCamera( NULL );
-	scene -> camera -> move = MOVE_TYPE_ADDED_SCENE;
-	scene -> mesh           = mesh;
+	scene -> object         = o == NULL ? newObject( NULL ) : o;
+	scene -> object -> move = MOVE_TYPE_ADDED_SCENE;
+	scene -> mesh           = m;
 	scene -> visible        = TRUE;
-	scene -> screen         = NULL;
+	//scene -> screen         = NULL;
 	scene -> children       = NULL;
 	scene -> next           = NULL;
 	scene -> move           = FALSE;
@@ -62,7 +60,9 @@ Scene * newScene( Mesh * mesh )
 	return scene;
 }
 
-void scene_addViewport( Scene * s, struct Viewport * v )
+//void viewport_setScene( struct Viewport * v, Scene * s );
+
+/*void scene_addViewport( Scene * s, struct Viewport * v )
 {
 	Screen * screen;
 
@@ -78,7 +78,7 @@ void scene_addViewport( Scene * s, struct Viewport * v )
 	s      -> screen   = screen;
 
 	viewport_setScene( v, s );
-}
+}*/
 
 int scene_numChildren( Scene * s )
 {
@@ -221,7 +221,7 @@ void scene_addChild( Scene * s, Scene * child )
 {
 	//child -> ID             = s -> children == NULL ? s -> ID + 1 : s -> ID + s -> children -> ID + 1;
 
-	child -> camera -> move = child -> camera -> move ? child -> camera -> move : MOVE_TYPE_ADDED_SCENE;
+	child -> object -> move = child -> object -> move ? child -> object -> move : MOVE_TYPE_ADDED_SCENE;
 
 	child -> next           = s -> children;
 
@@ -240,26 +240,26 @@ void transformSceneMesh( Scene * s )
 
 	if( head == NULL )
 	{
-		camera_getTransform( s -> camera );
+		object_getTransform( s -> object );
 
 		return;
 	}
 	
 	//此时S是P的父级,这里的世界矩阵是不包含本地变换的.
-	* ( head -> camera -> world ) = * camera_getTransform( s -> camera );
-	matrix3D_apprend( head -> camera -> world, s -> camera -> world );
+	* ( head -> object -> world ) = * object_getTransform( s -> object );
+	matrix3D_apprend( head -> object -> world, s -> object -> world );
 
 	while( p != NULL && p -> visible )
 	{
 		//复制式付值.
-		* ( p -> camera -> world ) = * ( head -> camera -> world );
+		* ( p -> object -> world ) = * ( head -> object -> world );
 
 		transformSceneMesh( p );
 
 		if( mesh_check( p -> mesh ) )
 		{
 			//网格变换,当子集存在时使用子集世界矩阵, 不存在时计算本地世界矩阵.
-			transformVertices( p -> children ? p -> children -> camera -> world : ( temp = * camera_getTransform( p ->camera ),matrix3D_apprend( & temp, p -> camera -> world ), & temp ), p -> mesh -> vertices );
+			transformVertices( p -> children ? p -> children -> object -> world : ( temp = * object_getTransform( p -> object ),matrix3D_apprend( & temp, p -> object -> world ), & temp ), p -> mesh -> vertices );
 		}
 
 		p = p -> next;
@@ -344,7 +344,7 @@ void transformSceneChildren( Scene * s )
 			p = p -> next;
 			continue;
 		}
-		else if( p -> camera -> move )
+		else if( p -> object -> move )
 		{
 			//如果相机移动,完全变换子集.
 			p -> move = TRUE;
@@ -366,12 +366,12 @@ void transformSceneChildren( Scene * s )
 **/
 void transformScene( Scene * s, int mode )
 {
-	if( mode || ( s -> visible && s -> camera -> move ) )
+	if( mode || ( s -> visible && s -> object -> move ) )
 	{
 		s -> move = TRUE;
 		transformSceneMesh( s );
 	}
-	else
+	else if( s -> visible )
 	{
 		s -> move = FALSE;
 		transformSceneChildren( s );
@@ -380,7 +380,7 @@ void transformScene( Scene * s, int mode )
 
 void scene_free( Scene * s )
 {
-	camera_destroy( & ( s -> camera ) );
+	object_destroy( & ( s -> object ) );
 
 	mesh_destroy( & ( s -> mesh ) );
 

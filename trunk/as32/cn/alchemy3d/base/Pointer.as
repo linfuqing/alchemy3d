@@ -18,6 +18,11 @@ package cn.alchemy3d.base
 		{
 			_pointer = NULL;
 		}
+		
+		protected function initialize():void
+		{
+			
+		}
 
 	}
 }
