@@ -5,12 +5,12 @@
 
 #include "Vector.h"
 #include "Vector3D.h"
-#include "Polygon.h"
-#include "Color.h"
+#include "Triangle.h"
+#include "ARGBColor.h"
 
 typedef struct ContectedFaces
 {
-	struct Polygon * face;
+	struct Triangle * face;
 
 	struct ContectedFaces * next;
 }ContectedFaces;
@@ -18,64 +18,126 @@ typedef struct ContectedFaces
 //RW
 typedef struct Vertex
 {
-	int index, nContectedFaces, bFlag;
+	int nContectedFaces, transformed;
 
-	Vector3D * position, * worldPosition, * normal, * normal2;
+	Vector3D * position, * worldPosition, * viewPosition, * normal, * normalLength;
 
 	Vector * uv;
 
-	Color * color;
+	ARGBColor * color;
 
 	struct ContectedFaces * contectedFaces;
 }Vertex;
 
-//RW
-typedef struct RenderVertex
+Vertex * newVertex( float x, float y, float z )
 {
-	float x, y, z, u, v, r, g, b, a;
-}RenderVertex;
+	Vertex * v;
 
-Vertex * newVertex( Vertex * v, float x, float y, float z )
-{
+	if( ( v = ( Vertex * )malloc( sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
+
 	v->position = newVector3D(x, y, z, 1.0f);
 	v->worldPosition = newVector3D(x, y, z, 1.0f);
+	v->viewPosition = newVector3D(x, y, z, 1.0f);
 
 	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
-	v->normal2 = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
+	v->normalLength = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	v->uv = newVector( 0.0f, 0.0f );
 
-	v->color = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
+	v->color = newARGBColor( 255, 255, 255, 255 );
 
 	v->contectedFaces = NULL;
-	v->nContectedFaces = FALSE;
+	v->nContectedFaces = 0;
 
-	v->bFlag = FALSE;
-	v->index = -1;
+	v->transformed = FALSE;
 
 	return v;
 }
 
-void vertex_dispose( Vertex * v )
+INLINE void vertex_copy( Vertex * dest, Vertex * src )
 {
-	ContectedFaces * cf = v->contectedFaces;
+	vector3D_copy( dest->position, src->position );
+	vector3D_copy( dest->worldPosition, src->worldPosition );
+	vector3D_copy( dest->viewPosition, src->viewPosition );
+
+	vector3D_copy( dest->normal, src->normal );
+	vector3D_copy( dest->normalLength, src->normalLength );
+
+	vector_copy( dest->uv, src->uv );
+
+	argbColor_copy( dest->color, src->color );
+
+	dest->contectedFaces = NULL;
+
+	dest->nContectedFaces = 0;
+
+	dest->transformed = FALSE;
+}
+
+INLINE Vertex * vertex_clone( Vertex * src )
+{
+	Vertex * dest;
+
+	if( ( dest = ( Vertex * )malloc( sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
+
+	dest->position		= vector3D_clone( src->position );
+	dest->worldPosition	= vector3D_clone( src->worldPosition );
+	dest->viewPosition	= vector3D_clone( src->viewPosition );
+
+	dest->normal		= vector3D_clone( src->normal );
+	dest->normalLength	= vector3D_clone( src->normalLength );
+
+	dest->uv			= vector_clone( src->uv );
+
+	dest->color			= argbColor_clone( src->color );
+
+	dest->contectedFaces = NULL;
+
+	dest->nContectedFaces = 0;
+
+	dest->transformed = FALSE;
+
+	return dest;
+}
+
+INLINE void vertex_dispose( Vertex * v )
+{
+	ContectedFaces * cf, * cf2;
+
+	cf = v->contectedFaces;
 
 	while ( NULL != cf)
 	{
+		cf2 = cf;
+
 		cf->face = NULL;
+
 		cf = cf->next;
-		cf->next = NULL;
+
+		free( cf2 );
+
+		cf2 =NULL;
 	}
-	v->contectedFaces = NULL;
+
 	vector3D_dispose( v->normal );
-	vector3D_dispose( v->normal2 );
+	vector3D_dispose( v->normalLength );
 	vector3D_dispose( v->position );
 	vector3D_dispose( v->worldPosition );
+	vector3D_dispose( v->viewPosition );
 	vector_dispose( v->uv );
-	color_dispose( v->color );
+	argbColor_dispose( v->color );
+
+	v->contectedFaces = NULL;
+	v->normal = NULL;
+	v->normalLength = NULL;
+	v->position = NULL;
+	v->worldPosition = NULL;
+	v->viewPosition = NULL;
+	v->uv = NULL;
+	v->color = NULL;
 }
 
-void vertex_addContectedFaces( Vertex * v, struct Polygon * p )
+void vertex_addContectedFaces( struct Triangle * p, Vertex * v )
 {
 	ContectedFaces * cf;
 

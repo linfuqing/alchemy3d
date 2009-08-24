@@ -12,7 +12,7 @@
 
 #include <malloc.h>
 #include <stdio.h>
-//# include<string.h>
+# include<string.h>
 
 #include "Base.h"
 
@@ -36,8 +36,30 @@ INLINE float vector3D_lengthSquared( Vector3D * v )
 	return v->x * v->x + v->y * v->y + v->z * v->z;
 }
 
+INLINE float vector3D_fast_lengthSquared( float fx, float fy, float fz )
+{
+	int temp;
+	int x, y, z;
+	int dist;
+
+	x = (int)(fabs(fx) * 1024);
+	y = (int)(fabs(fy) * 1024);
+	z = (int)(fabs(fz) * 1024);
+
+	if (y < x) SWAP(x, y, temp);
+
+	if (z < y) SWAP(y ,z, temp);
+
+	if (y < x) SWAP(x, y, temp);
+
+	dist = (z + 11 * (y >> 5) + (x >> 2) );
+
+	return((float)(dist >> 10));
+}
+
 INLINE float vector3D_length( Vector3D * v )
 {
+	//return vector3D_fast_lengthSquared( v->x, v->y, v->z );
 	return sqrtf( vector3D_lengthSquared( v ) );
 }
 
@@ -53,20 +75,16 @@ Vector3D * newVector3D( float x, float y, float z, float w )
 {
 	Vector3D * v;
 
-	if( ( v = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL )
-	{
-		exit( TRUE );
-	}
+	if( ( v = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL ) exit( TRUE );
 
 	vector3D_set( v, x, y, z, w );
 
 	return v;
 }
 
-void vector3D_dispose( Vector3D * v )
+INLINE void vector3D_dispose( Vector3D * v )
 {
 	free( v );
-	v = NULL;
 }
 
 INLINE void vector3D_copy( Vector3D * v, Vector3D * src )
@@ -75,6 +93,17 @@ INLINE void vector3D_copy( Vector3D * v, Vector3D * src )
 	v->y = src->y;
 	v->z = src->z;
 	v->w = src->w;
+}
+
+INLINE Vector3D * vector3D_clone( Vector3D * src )
+{
+	Vector3D * v;
+
+	if( ( v = ( Vector3D * )malloc( sizeof( Vector3D ) ) ) == NULL ) exit( TRUE );
+
+	memcpy( v, src, sizeof( Vector3D ) );
+
+	return v;
 }
 
 INLINE Vector3D * vector3D_add( Vector3D * output, Vector3D * v1, Vector3D * v2 )
@@ -103,6 +132,14 @@ INLINE Vector3D * vector3D_subtract( Vector3D * output, Vector3D * v1, Vector3D 
 	output->w = 1;
 
 	return output;
+}
+
+INLINE void vector3D_subtract_self( Vector3D * v1, Vector3D * v2 )
+{
+	v1->x -= v2->x;
+	v1->y -= v2->y;
+	v1->z -= v2->z;
+	v1->w = 1;
 }
 
 INLINE Vector3D * vector3D_crossProduct( Vector3D * output, Vector3D * v1, Vector3D * v2 )

@@ -14,12 +14,12 @@ typedef struct Camera
 
 	Matrix3D * projectionMatrix;
 
-	float fov, nearClip, farClip;
+	float fov, near, far, top, bottom, left, right;
 
 	int fnfDirty, isAttached, hasTarget;
 }Camera;
 
-Camera * newCamera( float fov, float nearClip, float farClip, Entity * eye )
+Camera * newCamera( float fov, float near, float far, Entity * eye )
 {
 	Camera * cam;
 
@@ -29,11 +29,11 @@ Camera * newCamera( float fov, float nearClip, float farClip, Entity * eye )
 	}
 	
 	cam->fov = fov;
-	cam->nearClip = nearClip;
-	cam->farClip = farClip;
+	cam->near = near;
+	cam->far = far;
 
 	cam->eye = eye;
-	cam->eye->position->z = -nearClip;
+	cam->eye->position->z = -near;
 
 	cam->projectionMatrix = newMatrix3D(NULL);
 
@@ -104,17 +104,20 @@ INLINE Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float botto
 //根据远近截面、宽高比和视角获得投影矩阵
 INLINE Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float aspect )
 {
-	float top = camera->nearClip * tanf( DEG2RAD( camera->fov * 0.5 ) );
-	float bottom = -top;
-	float right = top * aspect;
-	float left = -right;
+	camera->top = camera->near * tanf( DEG2RAD( camera->fov * 0.5 ) );
+	camera->bottom = -camera->top;
+	camera->right = camera->top * aspect;
+	camera->left = -camera->right;
 
-	return getProjectionMatrix(output, top, bottom, left, right, camera->nearClip, camera->farClip);
+	return getProjectionMatrix(output, camera->top, camera->bottom, camera->left, camera->right, camera->near, camera->far);
 }
 
 //更新摄像机矩阵
 INLINE void camera_updateTransform(Camera * camera)
 {
+	Quaternion qua;
+	Matrix3D quaMtr;
+
 	Entity * eye = camera->eye;
 
 	//如果摄像机属性被改变
@@ -134,10 +137,9 @@ INLINE void camera_updateTransform(Camera * camera)
 
 			matrix3D_copy( eye->world, eye->transform );
 
-			matrix3D_copy( eye->worldInvert, eye->transform );
 			//从世界矩阵获得世界位置
 			matrix3D_getPosition( eye->worldPosition, eye->world );
-			//计算世界逆矩阵，供光照和背面剔除使用
+
 			matrix3D_fastInvert( eye->world );
 		}
 		//如果有目标

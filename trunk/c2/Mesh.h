@@ -1,7 +1,7 @@
 #ifndef __MESH_H
 #define __MESH_H
 
-#include "Polygon.h"
+#include "Triangle.h"
 #include "Vertex.h"
 #include "Vector.h"
 #include "AABB.h"
@@ -10,11 +10,11 @@ typedef struct Mesh
 {
 	int nFaces, nVertices;
 
-	Polygon  * faces;
+	Triangle  * faces;
 
 	Vertex * vertices;
 
-	AABB * aabb, * worldAABB;
+	AABB * aabb, * worldAABB, * CVVAABB;
 
 #ifdef __AS3__
 	float * meshBuffer;
@@ -30,20 +30,13 @@ Mesh * newMesh( int nVertices, int nFaces )
 {
 	Mesh * m;
 
-	if( ( m = ( Mesh * )malloc( sizeof( Mesh ) ) ) == NULL)
-	{
-		exit( TRUE );
-	}
-
-	if( ( m->faces = ( Polygon * )malloc( sizeof( Polygon ) * nFaces ) ) == NULL )
-	{
-		exit( TRUE );
-	}
-
-	if( ( m->vertices = ( Vertex * )malloc( sizeof( Vertex ) * nVertices ) ) == NULL )
-	{
-		exit( TRUE );
-	}
+	if( ( m				= ( Mesh * )malloc( sizeof( Mesh ) ) ) == NULL) exit( TRUE );
+	if( ( m->faces		= ( Triangle * )malloc( sizeof( Triangle ) * nFaces ) ) == NULL ) exit( TRUE );
+	if( ( m->vertices	= ( Vertex * )malloc( sizeof( Vertex ) * nVertices ) ) == NULL ) exit( TRUE );
+	
+	m->aabb			= newAABB();
+	m->worldAABB	= newAABB();
+	m->CVVAABB		= newAABB();
 
 	m->nFaces		= 0;
 	m->nVertices	= 0;
@@ -55,18 +48,164 @@ Mesh * newMesh( int nVertices, int nFaces )
 	return m;
 }
 
-void mesh_push_vertices( Mesh * m, float x, float y, float z )
+void mesh_push_vertex( Mesh * m, float x, float y, float z )
 {
-	newVertex( & m->vertices[m->nVertices], x, y, z );
+	Vertex * v = & m->vertices[m->nVertices];
+
+	v->position = newVector3D(x, y, z, 1.0f);
+	v->worldPosition = newVector3D(x, y, z, 1.0f);
+	v->viewPosition = newVector3D(x, y, z, 1.0f);
+
+	v->uv = newVector( 0.0f, 0.0f );
+
+	v->color = newARGBColor( 255, 255, 255, 255 );
+
+	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
+	v->normalLength = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
+
+	v->contectedFaces = NULL;
+	v->nContectedFaces = 0;
+
+	v->transformed = FALSE;
 
 	m->nVertices ++;
 }
 
-void mesh_push_faces( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector *uva, Vector * uvb, Vector * uvc )
+void mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Texture * texture )
 {
-	newTriangle3D( & m->faces[m->nFaces], va, vb, vc, uva, uvb, uvc );
+	Triangle * p = & m->faces[m->nFaces];
+
+	p->vertex[0] = va;
+	p->vertex[1] = vb;
+	p->vertex[2] = vc;
+
+	va->uv = uva;
+	vb->uv = uvb;
+	vc->uv = uvc;
+
+	p->texture = texture;
+
+	vertex_addContectedFaces( p, va );
+	vertex_addContectedFaces( p, vb );
+	vertex_addContectedFaces( p, vc );
 
 	m->nFaces ++;
+}
+
+void computeFaceNormal( Mesh * m )
+{
+	int i = 0;
+
+	Triangle * face;
+	Vertex * v0, * v1, * v2;
+
+	for( ; i < m->nFaces; i ++ )
+	{
+		face = & m->faces[i];
+
+		v0 = face->vertex[0];
+		v1 = face->vertex[1];
+		v2 = face->vertex[2];
+
+		face->center = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+		face->center->x = ( v0->position->x + v1->position->x + v2->position->x ) * 0.33333333f;
+		face->center->y = ( v0->position->y + v1->position->y + v2->position->y ) * 0.33333333f;
+		face->center->z = ( v0->position->z + v1->position->z + v2->position->z ) * 0.33333333f;
+
+		face->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+
+		triangle_normal( face->normal, face->vertex[0], face->vertex[1], face->vertex[2]);
+	}
+}
+
+void computeVerticesNormal( Mesh * m )
+{
+	ContectedFaces * cf;
+	Vector3D * nv, posN;
+	float d;
+	int i = 0;
+
+	for( ; i < m->nVertices; i ++ )
+	{
+		//AABB
+		aabb_add(m->aabb, m->vertices[i].position);
+
+		if ( m->vertices[i].nContectedFaces == 0 )
+			continue;
+
+		nv = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+
+		//计算顶点法向量
+		cf = m->vertices[i].contectedFaces;
+
+		while ( NULL != cf )
+		{
+			vector3D_add( nv, nv, cf->face->normal );
+
+			cf = cf->next;
+		}
+
+		vector3D_normalize( nv );
+
+		vector3D_copy( m->vertices[i].normal, nv );
+
+		vector3D_copy( & posN, m->vertices[i].position );
+
+		d = 1.0f / m->vertices[i].nContectedFaces;
+
+		vector3D_scaleBy( & posN, d );
+
+		vector3D_normalize( & posN );
+
+		vector3D_add( nv, nv, & posN );
+
+		vector3D_normalize( nv );
+
+		m->vertices[i].normalLength = nv;
+	}
+}
+
+INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )
+{
+	Vector3D T_L_F_V;
+	Vector3D T_R_F_V;
+	Vector3D T_L_B_V;
+	Vector3D T_R_B_V;
+	Vector3D B_L_F_V;
+	Vector3D B_R_F_V;
+	Vector3D B_L_B_V;
+	Vector3D B_R_B_V;
+
+	Vector3D * min = aabb->min, * max = aabb->max;
+
+	T_L_F_V.x = min->x;	T_L_F_V.y = min->y;	T_L_F_V.z = min->z;	T_L_F_V.w = 1;
+	T_R_F_V.x = max->x;	T_R_F_V.y = min->y;	T_R_F_V.z = min->z;	T_R_F_V.w = 1;
+	T_L_B_V.x = min->x;	T_L_B_V.y = min->y;	T_L_B_V.z = max->z;	T_L_B_V.w = 1;
+	T_R_B_V.x = max->x;	T_R_B_V.y = min->y;	T_R_B_V.z = max->z;	T_R_B_V.w = 1;
+	B_L_F_V.x = min->x;	B_L_F_V.y = max->y;	B_L_F_V.z = min->z;	B_L_F_V.w = 1;
+	B_R_F_V.x = max->x;	B_R_F_V.y = max->y;	B_R_F_V.z = min->z;	B_R_F_V.w = 1;
+	B_L_B_V.x = min->x;	B_L_B_V.y = max->y;	B_L_B_V.z = max->z;	B_L_B_V.w = 1;
+	B_R_B_V.x = max->x;	B_R_B_V.y = max->y;	B_R_B_V.z = max->z;	B_R_B_V.w = 1;
+
+	matrix3D_transformVector_self( m, & T_L_F_V );
+	matrix3D_transformVector_self( m, & T_R_F_V );
+	matrix3D_transformVector_self( m, & T_L_B_V );
+	matrix3D_transformVector_self( m, & T_R_B_V );
+	matrix3D_transformVector_self( m, & B_L_F_V );
+	matrix3D_transformVector_self( m, & B_R_F_V );
+	matrix3D_transformVector_self( m, & B_L_B_V );
+	matrix3D_transformVector_self( m, & B_R_B_V );
+
+	aabb_add( output, & T_L_F_V );
+	aabb_add( output, & T_R_F_V );
+	aabb_add( output, & T_L_B_V );
+	aabb_add( output, & T_R_B_V );
+	aabb_add( output, & B_L_F_V );
+	aabb_add( output, & B_R_F_V );
+	aabb_add( output, & B_L_B_V );
+	aabb_add( output, & B_R_B_V );
+
+	return output;
 }
 
 void mesh_dispose( Mesh * mesh )
@@ -75,6 +214,7 @@ void mesh_dispose( Mesh * mesh )
 
 	aabb_dispose( mesh->aabb );
 	aabb_dispose( mesh->worldAABB );
+	aabb_dispose( mesh->CVVAABB );
 
 	for ( ; i < mesh->nVertices; i ++ )
 	{
@@ -82,7 +222,7 @@ void mesh_dispose( Mesh * mesh )
 	}
 	for ( i = 0; i < mesh->nFaces; i ++ )
 	{
-		polygon_dispose( & mesh->faces[i] );
+		triangle_dispose( & mesh->faces[i] );
 	}
 
 	free( mesh->vertices );

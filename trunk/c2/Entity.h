@@ -23,9 +23,9 @@ typedef struct Entity
 	//N
 	struct Scene * scene;
 	//RW
-	Vector3D * position, * direction, * scale, * worldPosition;
+	Vector3D * position, * direction, * scale, * worldPosition, * viewPosition, * CVVPosition, * viewerToLocal;
 	//R
-	Matrix3D * transform, * world, * worldInvert;
+	Matrix3D * transform, * world, * worldInvert, * view, * projection;
 	//R
 	Mesh * mesh;
 
@@ -55,10 +55,15 @@ Entity * newEntity()
 	entity->direction		= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->scale			= newVector3D(1.0f, 1.0f, 1.0f, 1.0f);
 	entity->worldPosition	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
+	entity->viewPosition	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
+	entity->CVVPosition	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
+	entity->viewerToLocal	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 
 	entity->transform		= newMatrix3D(NULL);
 	entity->world			= newMatrix3D(NULL);
 	entity->worldInvert		= newMatrix3D(NULL);
+	entity->view			= newMatrix3D(NULL);
+	entity->projection			= newMatrix3D(NULL);
 
 	entity->children		= NULL;
 	entity->parent			= NULL;
@@ -160,82 +165,75 @@ void entity_dispose( Entity * entity )
 {
 	vector3D_dispose( entity->position );
 	vector3D_dispose( entity->worldPosition );
+	vector3D_dispose( entity->viewPosition );
+	vector3D_dispose( entity->CVVPosition );
+	vector3D_dispose( entity->viewerToLocal );
 	vector3D_dispose( entity->direction );
 	vector3D_dispose( entity->scale );
 	matrix3D_dispose( entity->transform );
 	matrix3D_dispose( entity->world );
 	matrix3D_dispose( entity->worldInvert );
+	matrix3D_dispose( entity->view );
+	matrix3D_dispose( entity->projection );
 	free( entity );
 }
 
 void entity_setMesh( Entity * entity, Mesh * m )
 {
-	ContectedFaces * cf;
-	Vector3D * nv, posN;
-	float d;
 	int i = 0;
 
-	m->aabb			= newAABB();
-	m->worldAABB	= newAABB();
+	computeFaceNormal( m );
 
-	for( ; i < m->nVertices; i ++ )
+	computeVerticesNormal( m );
+
+	if ( NULL != entity->texture )
 	{
-		//AABB
-		aabb_add(m->aabb, m->vertices[i].position);
-
-		if ( m->vertices[i].nContectedFaces == 0 )
-			continue;
-
-		nv = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
-
-		cf = m->vertices[i].contectedFaces;
-
-		while ( NULL != cf )
+		for( ; i < m->nFaces; i ++ )
 		{
-			vector3D_add( nv, nv, cf->face->normal );
-
-			cf = cf->next;
+			m->faces[i].texture = entity->texture;
 		}
-
-		vector3D_normalize( nv );
-
-		vector3D_copy( m->vertices[i].normal, nv );
-
-		vector3D_copy( & posN, m->vertices[i].position );
-
-		d = 1.0f / m->vertices[i].nContectedFaces;
-
-		vector3D_scaleBy( & posN, d );
-
-		vector3D_normalize( & posN );
-
-		vector3D_add( nv, nv, & posN );
-
-		vector3D_normalize( nv );
-
-		m->vertices[i].normal2 = nv;
 	}
-
-	aabb_copy( m->worldAABB, m->aabb );
 
 	entity->mesh = m;
 }
 
-INLINE void entity_setMaterial( Entity * entity, Material * m )
+void entity_setMaterial( Entity * entity, Material * m )
 {
 	entity->material = m;
 }
 
-INLINE void entity_setTexture( Entity * entity, Texture * t )
+void entity_setTexture( Entity * entity, Texture * t )
 {
+	int i = 0;
+
+	if ( NULL != entity->mesh )
+	{
+		for( ; i < entity->mesh->nFaces; i ++ )
+		{
+			entity->mesh->faces[i].texture = t;
+		}
+	}
+
 	entity->texture = t;
 }
 
-static Matrix3D quaMtr;
-static Quaternion qua;
-
-INLINE void entity_updateTransform(Entity * entity)
+void entity_updateBeforeRender( Entity * entity )
 {
+	Mesh * m = entity->mesh;
+
+	int i = 0, l = m->nVertices;
+
+	for( ; i < l; i ++ )
+	{
+		m->vertices[i].transformed = FALSE;
+	}
+}
+
+INLINE void entity_updateTransform( Entity * entity )
+{
+	Quaternion qua;
+	Matrix3D quaMtr;
+
 	//单位化
 	matrix3D_identity( entity->transform );
 	//缩放
@@ -252,24 +250,9 @@ INLINE void entity_updateTransform(Entity * entity)
 
 	matrix3D_copy( entity->worldInvert, entity->world );
 	//世界逆矩阵
-	matrix3D_invert( entity->worldInvert );
+	matrix3D_fastInvert( entity->worldInvert );
 	//从世界矩阵获得世界位置
 	matrix3D_getPosition( entity->worldPosition, entity->world );
-}
-
-INLINE void mesh_transformAABB( Entity * entity )
-{
-	AABB * aabb, * worldAabb;
-
-	aabb = entity->mesh->aabb;
-	worldAabb = entity->mesh->worldAABB;
-
-	//用实体的世界矩阵变换它的AABB到世界坐标系
-	matrix3D_transformVector( worldAabb->min, entity->world, aabb->min );
-	matrix3D_transformVector( worldAabb->max, entity->world, aabb->max );
-
-	//根据变换后的AABB重新构造新的AABB（这也就是实体经过旋转、位移、缩放后的新AABB）
-	aabb_createFromSelf( & worldAabb );
 }
 
 /**

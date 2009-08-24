@@ -5,13 +5,13 @@
 
 #include "Entity.h"
 #include "Vector3D.h"
-#include "Color.h"
+#include "FloatColor.h"
 
 #define POINT_LIGHT			0
 #define DIRECTIONAL_LIGHT	1
 #define SPOT_LIGHT			2
 
-#define EASY_MODE			0
+#define LOW_MODE			0
 #define MID_MODE			1
 #define HIGH_MODE			2
 
@@ -24,9 +24,9 @@ typedef struct Light
 	int type;			//定义灯光类型，我们能够使用下面三种类型之一：D3DLIGHT_POINT, D3DLIGHT_SPOT, D3DLIGHT_DIRECTIONAL
 	int bOnOff;			//灯光是否开启
 
-	Color * ambient;	//此光源发出的环境光颜色
-	Color * diffuse;	//此光源发出的漫射光颜色
-	Color * specular;	//此光源发出的镜面光颜色
+	FloatColor * ambient;	//此光源发出的环境光颜色
+	FloatColor * diffuse;	//此光源发出的漫射光颜色
+	FloatColor * specular;	//此光源发出的镜面光颜色
 
 	float range;		//灯光能够传播的最大范围
 	float falloff;		//这个值只能用在聚光灯上。它定义灯光在从内圆锥到外圆锥之间的强度衰减。它的值通常设置为1.0f
@@ -56,12 +56,12 @@ Light * newPointLight( int type, Entity * source )
 	}
 
 	//缺省光源为一全向白色点光源
-	light->mode = EASY_MODE;
+	light->mode = HIGH_MODE;
 	light->type = type;
 	light->bOnOff = FALSE;
-	light->ambient = newColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	light->diffuse = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
-	light->specular = newColor( 1.0f, 1.0f, 1.0f, 1.0f );
+	light->ambient = newFloatColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	light->diffuse = newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f );
+	light->specular = newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
 	light->attenuation0 = 1.0f;
 	light->attenuation1 = light->attenuation2 = 0.0f;
@@ -83,7 +83,7 @@ INLINE void setLightOnOff( Light * light, int OnOff )
 	light->bOnOff = OnOff;
 }
 
-//Light * newDirectionalLight( Vector3D * direction, Color * color )
+//Light * newDirectionalLight( Vector3D * direction, FloatColor * color )
 //{
 //	Light * light;
 //
@@ -101,7 +101,7 @@ INLINE void setLightOnOff( Light * light, int OnOff )
 //	return light;
 //}
 //
-//Light * newSpotLight( Vector3D * position, Vector3D * direction, Color * color )
+//Light * newSpotLight( Vector3D * position, Vector3D * direction, FloatColor * color )
 //{
 //	Light * light;
 //
@@ -123,6 +123,9 @@ INLINE void setLightOnOff( Light * light, int OnOff )
 //更新光源矩阵
 void light_updateTransform(Light * light)
 {
+	Quaternion qua;
+	Matrix3D quaMtr;
+
 	Entity * source = light->source;
 
 	matrix3D_identity( source->transform );
