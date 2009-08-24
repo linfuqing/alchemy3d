@@ -15,8 +15,7 @@ package cn.alchemy3d.view
 	public class Viewport3D extends Sprite implements IDevice
 	{
 		public var pointer:uint;
-		public var gfxPointer:uint;
-		public var gfx2Pointer:uint;
+		public var mixedChannelPointer:uint;
 		
 		public var viewWidth:Number;
 		public var viewHeight:Number;
@@ -24,8 +23,7 @@ package cn.alchemy3d.view
 		public var camera:Camera3D;
 		public var scene:Scene3D;
 		
-		protected var gfx:BitmapData;
-		protected var gfx2:BitmapData;
+		protected var mixedChannel:BitmapData;
 		protected var wh:int;
 		
 		protected var lib:Library;
@@ -68,10 +66,8 @@ package cn.alchemy3d.view
 			viewHeight = height;
 			wh = int(width) * int(height);
 			
-			gfx = new BitmapData(width, height, true, 0);
-			addChild(new Bitmap(gfx, PixelSnapping.NEVER, false));
-			
-			gfx2 = new BitmapData(width, height, true, 0);
+			mixedChannel = new BitmapData(width, height, true, 0);
+			addChild(new Bitmap(mixedChannel, PixelSnapping.NEVER, false));
 			
 			lib = Library.getInstance();
 			buffer = lib.buffer;
@@ -91,18 +87,16 @@ package cn.alchemy3d.view
 		public function allotPtr(ps:Array):void
 		{
 			pointer = ps[0];
-			gfxPointer = ps[1];
-			gfx2Pointer = ps[2];
+			mixedChannelPointer = ps[1];
 		}
 		
 		public function render():void
 		{
-			buffer.position = gfx2Pointer;
+			buffer.position = mixedChannelPointer;
 			
-			gfx.lock();
-			gfx.fillRect(gfx.rect, 0);
-			gfx.setPixels(gfx.rect, buffer);
-			gfx.unlock();
+			mixedChannel.lock();
+//			mixedChannel.fillRect(mixedChannel.rect, 0);
+			mixedChannel.setPixels(mixedChannel.rect, buffer);
 			
 //			buffer.position = gfx2Pointer;
 //			
@@ -111,7 +105,9 @@ package cn.alchemy3d.view
 //			gfx2.setPixels(gfx2.rect, buffer);
 //			gfx2.unlock();
 //			
-//			gfx.merge(gfx2, gfx.rect, new Point(), 0, 0, 0, 0);
+//			gfx.merge(gfx2, gfx.rect, new Point(), 1, 1, 1, 1);
+
+			mixedChannel.unlock();
 		}
 	}
 }

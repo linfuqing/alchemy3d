@@ -303,7 +303,7 @@ package cn.alchemy3d.objects
 		
 		public function addEntity(child:Entity):void
 		{
-			if (this._parent || this._scene) throw new Error("已存在父节点");
+			if (child._parent || child._scene) throw new Error("已存在父节点");
 			
 			this._children.push(child);
 			child._parent = this;
@@ -312,6 +312,12 @@ package cn.alchemy3d.objects
 			if (this.scene)
 			{
 				child.initialize(this.scene);
+				
+				if (child is Mesh3D)
+				{
+					this.scene.verticesNum += Mesh3D(child).nVertices;
+					this.scene.facesNum += Mesh3D(child).nFaces;
+				}
 			}
 		}
 		
@@ -319,17 +325,22 @@ package cn.alchemy3d.objects
 		{
 			this._scene = scene;
 			
-			var tPtr:uint = texture == null ? 0 : texture.pointer;
-			var mPtr:uint = material == null ? 0 : material.pointer;
-			var parentPtr:uint = _parent == null ? 0 : _parent.pointer;
-			var scenePtr:uint = scene == null ? 0 : scene.pointer;
-			
-			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0));
+			allotPtr(callAlchemy());
 			
 			for each (var child:Entity in this._children)
 			{
 				child.initialize(scene);
 			}
+		}
+		
+		protected function callAlchemy():Array
+		{
+			var tPtr:uint = texture == null ? 0 : texture.pointer;
+			var mPtr:uint = material == null ? 0 : material.pointer;
+			var parentPtr:uint = _parent == null ? 0 : _parent.pointer;
+			var scenePtr:uint = scene == null ? 0 : scene.pointer;
+			
+			return lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0);
 		}
 		
 		protected function allotPtr(ps:Array):void
@@ -357,7 +368,7 @@ package cn.alchemy3d.objects
 		{
 			if (this.pointer == 0)
 			{
-				Alchemy3DLog.warning("在设置实体属性前必须先初始化！");
+				Alchemy3DLog.warning(this.name + "在设置实体属性前必须先初始化！");
 				return false;
 			}
 			

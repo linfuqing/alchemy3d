@@ -6,7 +6,7 @@ package cn.alchemy3d.lights
 		public static const DIRECTIONAL_LIGHT:int = 1;
 		public static const SPOT_LIGHT:int = 2;
 		
-		public static const EASY_MODE:int = 0;
+		public static const LOW_MODE:int = 0;
 		public static const MID_MODE:int = 1;
 		public static const HIGH_MODE:int = 2;
 		

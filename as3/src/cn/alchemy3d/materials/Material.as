@@ -128,10 +128,10 @@ package cn.alchemy3d.materials
 		
 		public function Material()
 		{
-			_ambient = new ColorTransform(1, 1, 1, 1);
-			_diffuse = new ColorTransform(0, 0, 0, 1);
-			_specular = new ColorTransform(0, 0, 0, 1);
-			_emissive = new ColorTransform(0, 0, 0, 1);
+			_ambient = new ColorTransform(0, 0, 0, 0);
+			_diffuse = new ColorTransform(0, 0, 0, 0);
+			_specular = new ColorTransform(0, 0, 0, 0);
+			_emissive = new ColorTransform(0, 0, 0, 0);
 			_power = 4;
 			
 			lib = Library.getInstance();
