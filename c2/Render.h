@@ -9,67 +9,126 @@
 #define FLAT_BOTTOM_TRIANGLE	1	//平底三角形
 #define GENERAL_TRIANGLE		2	//一般三角形
 
-INLINE DWORD computePixelColor( float r, float g, float b, float a, float u, float v, Texture * texture )
+//INLINE DWORD computePixelColor( float r, float g, float b, float a, float u, float v, Texture * texture )
+//{
+//	LPWORD ARGBBuffer = texture->ARGBBuffer;
+//	int pos = ((int)(u * (texture->width - 1) + 0.5) + ( (int)(v * (texture->height - 1) + 0.5) * texture->width )) << 2;
+//
+//	a *= ARGBBuffer[pos];
+//	r *= ARGBBuffer[++pos];
+//	g *= ARGBBuffer[++pos];
+//	b *= ARGBBuffer[++pos];
+//
+//	return ((int)a << 24) + ((int)r << 16) + ((int)g << 8) + (int)b;
+//}
+
+//INLINE DWORD computePixelColor2( float u, float v, Texture * texture )
+//{
+//	LPWORD ARGBBuffer = texture->ARGBBuffer;
+//	int pos;
+//
+//	pos = ((int)(u * texture->width) + (int)(v * texture->height * texture->width )) << 2;
+//
+//	return ((int)ARGBBuffer[pos] << 24) + ((int)ARGBBuffer[++pos] << 16) + ((int)ARGBBuffer[++pos] << 8) + (int)ARGBBuffer[++pos];
+//	return 0;
+//}
+
+INLINE void getMixedColor( WORD a, WORD r, WORD g, WORD b, int u, int v, int pos, Texture * texture, LPDWORD mixedChannel )
 {
-	WORD * ARGBBuffer = texture->ARGBBuffer;
-	int pos = ((int)(u * (texture->width - 1) + 0.5) + ( (int)(v * (texture->height - 1) + 0.5) * texture->width )) << 2;
+	int pos2 = (u + v) << 2;
+	LPWORD ARGBBuffer = texture->ARGBBuffer;
 
-	a *= ARGBBuffer[pos];
-	r *= ARGBBuffer[++pos];
-	g *= ARGBBuffer[++pos];
-	b *= ARGBBuffer[++pos];
+	a = ARGBBuffer[pos2];
+	r += ARGBBuffer[++pos2];
+	g += ARGBBuffer[++pos2];
+	b += ARGBBuffer[++pos2];
 
-	return ((int)a << 24) + ((int)r << 16) + ((int)g << 8) + (int)b;
+	/*a >>= 8;
+	r >>= 8;
+	g >>= 8;
+	b >>= 8;*/
+
+	r = MIN( r, 255 );
+	g = MIN( g, 255 );
+	b = MIN( b, 255 );
+
+	mixedChannel[pos] = (a << 24) + (r << 16) + (g << 8) + b;
 }
 
-INLINE DWORD getPixelFromTexture( float u, float v, Texture * texture)
+INLINE void getPixelColor( WORD a, WORD r, WORD g, WORD b, int pos, LPDWORD mixedChannel)
 {
-	WORD * ARGBBuffer = texture->ARGBBuffer;
-
-	int pos = ((int)(u * (texture->width - 1) + 0.5) + ( (int)(v * (texture->height - 1) + 0.5) * texture->width )) << 2;
-
-	return ((int)ARGBBuffer[pos] << 24) + ((int)ARGBBuffer[++pos] << 16) + ((int)ARGBBuffer[++pos] << 8) + (int)ARGBBuffer[++pos];
+	mixedChannel[pos] = (a << 24) + (r << 16) + (g << 8) + b;
 }
 
-INLINE DWORD computePixelColor2( float u, float v, Texture * texture )
+INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWORD mixedChannel)
 {
-	WORD * ARGBBuffer = texture->ARGBBuffer;
-	int pos;
+	int pos2 = (u + v) << 2;
+	LPWORD ARGBBuffer = texture->ARGBBuffer;
+	WORD a, r, g, b;
 
-	pos = ((int)(u * (texture->width - 1) + 0.5) + ( (int)(v * (texture->height - 1) + 0.5) * texture->width )) << 2;
+	a = ARGBBuffer[pos2];
+	r = ARGBBuffer[++pos2];
+	g = ARGBBuffer[++pos2];
+	b = ARGBBuffer[++pos2];
 
-	return ((int)ARGBBuffer[pos] << 24) + ((int)ARGBBuffer[++pos] << 16) + ((int)ARGBBuffer[++pos] << 8) + (int)ARGBBuffer[++pos];
-	return 0;
+	mixedChannel[pos] = (a << 24) + (r << 16) + (g << 8) + b;
 }
 
-void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2 )
+//INLINE void mixedTexture( LPDWORD mixedChannel, LPWORD colorChannel, LPWORD textureChannel, int pWH )
+//{
+//	int i = 0, j = 0;
+//	WORD a1 = 0, r1 = 0, g1 = 0, b1 = 0, a2 = 0, r2 = 0, g2 = 0, b2 = 0;
+//
+//	for ( ; i < pWH; i ++, j += 4 )
+//	{
+//		a1 = colorChannel[j];
+//		r1 = colorChannel[j+1];
+//		g1 = colorChannel[j+2];
+//		b1 = colorChannel[j+3];
+//
+//		a2 = textureChannel[j];
+//		r2 = textureChannel[j+1];
+//		g2 = textureChannel[j+2];
+//		b2 = textureChannel[j+3];
+//
+//		//if ( a1 == 0 && r1 == 0 && ) continue;
+//
+//		a1 += a2;
+//		r1 += r2;
+//		g1 += g2;
+//		b1 += b2;
+//
+//		a1 = MIN( a1, 255 );
+//		r1 = MIN( r1, 255 );
+//		g1 = MIN( g1, 255 );
+//		b1 = MIN( b1, 255 );
+//
+//		mixedChannel[i] = (a1 << 24) + (r1 << 16) + (g1 << 8) + b1;
+//	}
+//}
+
+void wireframe_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 )
 {
-	RenderVertex	* tmpV;
-	DWORD			* colorBuffer = view->colorBuffer, color;
+	Vertex	* tmpV;
 	float			* zBuffer = view->zBuffer;
 
 	int				resX = (int)view->width, resY = (int)view->height;
 	int				x0, y0, x1, y1, x2, y2, nw, nh, side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
 	float			z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, currZ, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dzdx, temp2;
+	WORD			a, r, g, b;
 
-
-	//背面剔除
-	if ( BACKFACE_CULLING_MODE == 2)
-	{
-		if ( ( ver2->x - ver0->x ) * ( ver1->y - ver2->y ) > ( ver2->y - ver0->y ) * ( ver1->x - ver2->x ) )
-			return;
-	}
-
-	if (((ver0->y < 0) && (ver1->y < 0) && (ver2->y < 0)) ||
-		((ver0->y > resY) && (ver1->y > resY) && (ver2->y > resY)) ||
-		((ver0->x < 0) && (ver1->x < 0) && (ver2->x < 0)) ||
-		((ver0->x > resX) && (ver1->x > resX) && (ver2->x > resX)))
+	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
+		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
+		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
+		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
+		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
+		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
 	{
 		return;
 	}
 
 	//判断是否是一条线，如果是，则返回。
-	if (((ver0->x == ver1->x) && (ver1->x == ver2->x)) || ((ver0->y == ver1->y) && (ver1->y == ver2->y)))
+	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
 	{
 		return;
 	}
@@ -79,19 +138,19 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	nh = resY - 1;
 
 	//调整y0,y1,y2,让它们的y值从小到大
-	if (ver1->y < ver0->y)
+	if (ver1->viewPosition->y < ver0->viewPosition->y)
 	{
 		tmpV = ver1;
 		ver1 = ver0;
 		ver0 = tmpV;
 	}
-	if (ver2->y < ver0->y)
+	if (ver2->viewPosition->y < ver0->viewPosition->y)
 	{
 		tmpV = ver0;
 		ver0 = ver2;
 		ver2 = tmpV;
 	}
-	if (ver2->y < ver1->y)
+	if (ver2->viewPosition->y < ver1->viewPosition->y)
 	{
 		tmpV = ver1;
 		ver1 = ver2;
@@ -99,22 +158,22 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	}
 
 	//判断三角形的类型
-	if (ver0->y == ver1->y)
+	if (ver0->viewPosition->y == ver1->viewPosition->y)
 	{
 		tri_type = FLAT_TOP_TRIANGLE;
 
-		if (ver1->x < ver0->x)
+		if (ver1->viewPosition->x < ver0->viewPosition->x)
 		{
 			tmpV = ver1;
 			ver1 = ver0;
 			ver0 = tmpV;
 		}
 	}
-	else if (ver1->y == ver2->y)
+	else if (ver1->viewPosition->y == ver2->viewPosition->y)
 	{
 		tri_type = FLAT_BOTTOM_TRIANGLE;
 
-		if (ver2->x < ver1->x)
+		if (ver2->viewPosition->x < ver1->viewPosition->x)
 		{
 			tmpV = ver1;
 			ver1 = ver2;
@@ -126,26 +185,29 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 		tri_type = GENERAL_TRIANGLE;
 	}
 
-	x0 = (int)ver0->x;
-	y0 = (int)ver0->y;
-	z0 = ver0->z;
+	x0 = (int)ver0->viewPosition->x;
+	y0 = (int)ver0->viewPosition->y;
+	z0 = ver0->viewPosition->z;
 
-	x1 = (int)ver1->x;
-	y1 = (int)ver1->y;
-	z1 = ver1->z;
+	x1 = (int)ver1->viewPosition->x;
+	y1 = (int)ver1->viewPosition->y;
+	z1 = ver1->viewPosition->z;
 
-	x2 = (int)ver2->x;
-	y2 = (int)ver2->y;
-	z2 = ver2->z;
+	x2 = (int)ver2->viewPosition->x;
+	y2 = (int)ver2->viewPosition->y;
+	z2 = ver2->viewPosition->z;
 
-	color = ((int)ver0->a << 24) + ((int)ver0->r << 16) + ((int)ver0->g << 8) + (int)ver0->b;
-
-	side = 0;
+	a = ver0->color->alpha;
+	r = ver0->color->red;
+	g = ver0->color->green;
+	b = ver0->color->blue;
 
 	//转折后的斜边在哪一侧
-	ys = y1;
+	side = 0;
 
 	//转折点y坐标
+	ys = y1;
+
 	if (tri_type == FLAT_TOP_TRIANGLE || tri_type == FLAT_BOTTOM_TRIANGLE)
 	{
 		if (tri_type == FLAT_TOP_TRIANGLE)
@@ -161,13 +223,11 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 			//y0小于视窗顶部y坐标，调整左斜边和右斜边当前值,y值开始值
 			if (y0 < 0)
 			{
-				dy = - (float)y0;
+				xStart = x0 - dxdyl * y0;
+				zStart = z0 - dzdyl * y0;
 
-				xStart = dxdyl * dy + x0;
-				zStart = dzdyl * dy + z0;
-
-				xEnd = dxdyr * dy + x1;
-				zEnd = dzdyr * dy + z1;
+				xEnd = x1 - dxdyr * y0;
+				zEnd = z1 - dzdyr * y0;
 
 				yStart = 0;
 			}
@@ -230,7 +290,603 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 				cxStart = (int)xStart;
 				cxEnd = xEnd > nw ? nw : (int)xEnd;
 
+				if ( cxEnd >= 0 && cxStart <= nw )
+				{
+					if (cxStart == cxEnd)
+					{
+						pos = cxStart + ypos;
+
+						if( zStart < zBuffer[pos] )
+						{
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
+							zBuffer[pos] = zStart;
+						}
+					}
+					else
+					{
+						dx = 1.0f / (xEnd - xStart);
+
+						dzdx = (zEnd - zStart) * dx;
+
+						currZ = zStart;
+
+						//初始值需要裁剪
+						if (cxStart < 0)
+						{
+							currZ -= cxStart * dzdx;
+
+							cxStart = 0;
+						}
+						//绘制扫描线
+						for ( xi = cxStart; xi < cxEnd; xi ++ )
+						{
+							pos = xi + ypos;
+							if( ( xi == cxStart || xi == cxEnd || yi == cyStart || yi == cyEnd ) && currZ < zBuffer[pos] )
+							{
+								getPixelColor( a, r, g, b, pos, view->mixedChannel );
+								zBuffer[pos] = currZ;
+							}
+
+							currZ += dzdx;
+						}
+
+						pos = cxEnd + ypos;
+						if( zEnd < zBuffer[pos] )
+						{
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
+							zBuffer[pos] = zEnd;
+						}
+					}
+				}
+
+				//y每增加1时,xl和xr分别加上他们的递增量
+				xStart += dxdyl;
+				zStart += dzdyl;
+
+				xEnd += dxdyr;
+				zEnd += dzdyr;
+
+				ypos += resX;
+			}
+		}
+		else
+		{
+			//x不需要裁剪的情况
+			for ( yi = cyStart; yi <= cyEnd; yi ++ )
+			{
+				if ( zStart > 0 || zEnd > 0 )
+				{
+					cxStart = (int)xStart;
+					cxEnd = (int)xEnd;
+
+					currZ = zStart;
+
+					if (cxStart == cxEnd)
+					{
+						pos = cxStart + ypos;
+						if( currZ < zBuffer[pos] )
+						{
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
+							zBuffer[pos] = currZ;
+						}
+					}
+					else
+					{
+						dx = 1.0f / (xEnd - xStart);
+
+						dzdx = (zEnd - zStart) * dx;
+
+						for ( xi = cxStart; xi < cxEnd; xi ++ )
+						{
+							pos = xi + ypos;
+							if( ( xi == cxStart || xi == cxEnd || yi == cyStart || yi == cyEnd ) && currZ < zBuffer[pos] )
+							{
+								getPixelColor( a, r, g, b, pos, view->mixedChannel );
+								zBuffer[pos] = currZ;
+							}
+
+							currZ += dzdx;
+						}
+
+						pos = cxEnd + ypos;
+						if( zEnd < zBuffer[pos] )
+						{
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
+							zBuffer[pos] = zEnd;
+						}
+					}
+				}
+
+				xStart += dxdyl;
+				zStart += dzdyl;
+
+				xEnd += dxdyr;
+				zEnd += dzdyr;
+
+				ypos += resX;
+			}
+		}
+	}
+	else
+	{
+		//普通三角形
+		yEnd = (float)(y2 > nh ? nh : y2);
+
+		if (y1 < 0)
+		{
+			//由于y0<y1,这时相当于平顶三角形
+			//计算左右斜边的斜率的倒数
+			dyl = 1.0f / (y2 - y1);
+			dyr = 1.0f / (y2 - y0);
+
+			dxdyl = (x2 - x1) * dyl;
+			dzdyl = (z2 - z1) * dyl;
+
+			dxdyr = (x2 - x0) * dyr;
+			dzdyr = (z2 - z0) * dyr;
+
+			//计算左右斜边初始值
+			dyr = - (float)y0;
+			dyl = - (float)y1;
+
+			xStart = dxdyl * dyl + x1;
+			zStart = dzdyl * dyl + z1;
+
+			xEnd = dxdyr * dyr + x0;
+			zEnd = dzdyr * dyr + z0;
+
+			yStart = 0;
+
+			if (dxdyr > dxdyl)
+			{
+				//交换斜边
+				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
+				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
+
+				temp = x1;	x1 = x2;	x2 = temp;
+				temp = y1;	y1 = y2;	y2 = temp;
+				temp2 = z1;	z1 = z2;	z2 = temp2;
+
+				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
+				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
+
+				side = 1;
+			}
+		}
+		else if (y0 < 0)
+		{
+			dyl = 1.0f / (y1 - y0);
+			dyr = 1.0f / (y2 - y0);
+
+			dxdyl = (x1 - x0) * dyl;
+			dxdyr = (x2 - x0) * dyr;
+
+			dzdyl = (z1 - z0) * dyl;
+
+			dzdyr = (z2 - z0) * dyr;
+
+			dy = - (float)y0;
+
+			xStart = dxdyl * dy + x0;
+			zStart = dzdyl * dy + z0;
+
+			xEnd = dxdyr * dy + x0;
+			zEnd = dzdyr * dy + z0;
+
+			yStart = 0;
+
+			if (dxdyr < dxdyl)
+			{
+				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
+				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
+
+				temp = x1;	x1 = x2;	x2 = temp;
+				temp = y1;	y1 = y2;	y2 = temp;
+				temp2 = z1;	z1 = z2;	z2 = temp2;
+
+				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
+				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
+
+				side = 1;
+			}
+		}
+		else
+		{
+			//y值都大于0
+			dyl = 1.0f / (y1 - y0);
+			dyr = 1.0f / (y2 - y0);
+
+			dxdyl = (x1 - x0) * dyl;
+			dzdyl = (z1 - z0) * dyl;
+
+			dxdyr = (x2 - x0) * dyr;
+			dzdyr = (z2 - z0) * dyr;
+
+			xStart = (float)x0;
+			zStart = z0;
+
+			xEnd = (float)x0;
+			zEnd = z0;
+
+			yStart = (float)y0;
+
+			if (dxdyr < dxdyl)
+			{
+				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
+				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
+
+				temp = x1;	x1 = x2;	x2 = temp;
+				temp = y1;	y1 = y2;	y2 = temp;
+				temp2 = z1;	z1 = z2;	z2 = temp2;
+
+				side = 1;
+			}
+		}
+
+		cyStart = (int)yStart;
+		cyEnd = (int)yEnd;
+		ypos = cyStart * resX;
+
+		//x需要裁剪
+		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
+		{
+			for ( yi = cyStart; yi <= cyEnd; yi ++ )
+			{
+				cxStart = (int)xStart;
+				cxEnd = xEnd > nw ? nw :(int)xEnd;
+
 				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
+				{
+					if ( cxStart == cxEnd )
+					{
+						pos = cxStart + ypos;
+
+						if( zStart < zBuffer[pos] )
+						{
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
+							zBuffer[pos] = zStart;
+						}
+					}
+					else
+					{
+						dx = 1.0f / (xEnd - xStart);
+
+						dzdx = (zEnd - zStart) * dx;
+
+						currZ = zStart;
+
+						//初始值需要裁剪
+						if (cxStart < 0)
+						{
+							currZ -= cxStart * dzdx;
+
+							cxStart = 0;
+						}
+
+						for ( xi = cxStart; xi < cxEnd; xi ++ )
+						{
+							pos = xi + ypos;
+							if( ( xi == cxStart || xi == cxEnd || yi == cyStart || yi == cyEnd ) && currZ < zBuffer[pos] )
+							{
+								getPixelColor( a, r, g, b, pos, view->mixedChannel );
+								zBuffer[pos] = currZ;
+							}
+
+							currZ += dzdx;
+						}
+
+						pos = cxEnd + ypos;
+						if( zEnd < zBuffer[pos] )
+						{
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
+							zBuffer[pos] = zEnd;
+						}
+					}
+				}
+
+				xStart += dxdyl;
+				zStart += dzdyl;
+
+				xEnd += dxdyr;
+				zEnd += dzdyr;
+
+				ypos += resX;
+
+				//转折点
+				if (yi == ys)
+				{
+					if (side == 0)
+					{
+						dyl = 1.0f / (y2 - y1);
+
+						dxdyl = (x2 - x1) * dyl;
+						dzdyl = (z2 - z1) * dyl;
+
+						xStart = (float)x1;
+						zStart = z1;
+					}
+					else
+					{
+						dyr = 1.0f / (y1 - y2);
+
+						dxdyr = (x1 - x2) * dyr;
+						dzdyr = (z1 - z2) * dyr;
+
+						xEnd = (float)x2;
+						zEnd = z2;
+					}
+				}
+			}
+		}
+		else
+		{
+			//不需要裁剪
+			for ( yi = cyStart; yi <= cyEnd; yi ++ )
+			{
+				if ( zStart > 0 || zEnd > 0 )
+				{
+					cxStart = (int)xStart;
+					cxEnd = (int)xEnd;
+
+					currZ = zStart;
+
+					if (xStart == xEnd)
+					{
+						pos = cxStart + ypos;
+						if( currZ < zBuffer[pos] )
+						{
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
+							zBuffer[pos] = currZ;
+						}
+					}
+					else
+					{
+						dx = 1.0f / (xEnd - xStart);
+
+						dzdx = (zEnd - zStart) * dx;
+
+						for ( xi = cxStart; xi < cxEnd; xi ++ )
+						{
+							pos = xi + ypos;
+							if( ( xi == cxStart || xi == cxEnd || yi == cyStart || yi == cyEnd ) && currZ < zBuffer[pos] )
+							{
+								getPixelColor( a, r, g, b, pos, view->mixedChannel );
+								zBuffer[pos] = currZ;
+							}
+
+							currZ += dzdx;
+						}
+
+						pos = cxEnd + ypos;
+						if( zEnd < zBuffer[pos] )
+						{
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
+							zBuffer[pos] = zEnd;
+						}
+					}
+				}
+
+				xStart += dxdyl;
+				zStart += dzdyl;
+
+				xEnd += dxdyr;
+				zEnd += dzdyr;
+
+				ypos += resX;
+
+				if (yi == ys)
+				{
+					if (side == 0)
+					{
+						dyl = 1.0f / (y2 - y1);
+
+						dxdyl = (x2 - x1) * dyl;
+						dzdyl = (z2 - z1) * dyl;
+
+						xStart = x1 + dxdyl;
+						zStart = z1 + dzdyl;
+					}
+					else
+					{
+						dyr = 1.0f / (y1 - y2);
+
+						dxdyr = (x1 - x2) * dyr;
+						dzdyr = (z1 - z2) * dyr;
+
+						xEnd = x2 + dxdyr;
+						zEnd = z2 + dzdyr;
+					}
+				}
+			}
+		}
+	}
+}
+
+
+void triangle_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 )
+{
+	Vertex	* tmpV;
+	float			* zBuffer = view->zBuffer;
+
+	int				resX = (int)view->width, resY = (int)view->height;
+	int				x0, y0, x1, y1, x2, y2, nw, nh, side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
+	float			z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, currZ, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dzdx, temp2;
+	WORD			a, r, g, b;
+
+	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
+		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
+		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
+		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
+		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
+		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
+	{
+		return;
+	}
+
+	//判断是否是一条线，如果是，则返回。
+	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
+	{
+		return;
+	}
+
+	//*************************************** start draw ************************************
+	nw = resX - 1;
+	nh = resY - 1;
+
+	//调整y0,y1,y2,让它们的y值从小到大
+	if (ver1->viewPosition->y < ver0->viewPosition->y)
+	{
+		tmpV = ver1;
+		ver1 = ver0;
+		ver0 = tmpV;
+	}
+	if (ver2->viewPosition->y < ver0->viewPosition->y)
+	{
+		tmpV = ver0;
+		ver0 = ver2;
+		ver2 = tmpV;
+	}
+	if (ver2->viewPosition->y < ver1->viewPosition->y)
+	{
+		tmpV = ver1;
+		ver1 = ver2;
+		ver2 = tmpV;
+	}
+
+	//判断三角形的类型
+	if (ver0->viewPosition->y == ver1->viewPosition->y)
+	{
+		tri_type = FLAT_TOP_TRIANGLE;
+
+		if (ver1->viewPosition->x < ver0->viewPosition->x)
+		{
+			tmpV = ver1;
+			ver1 = ver0;
+			ver0 = tmpV;
+		}
+	}
+	else if (ver1->viewPosition->y == ver2->viewPosition->y)
+	{
+		tri_type = FLAT_BOTTOM_TRIANGLE;
+
+		if (ver2->viewPosition->x < ver1->viewPosition->x)
+		{
+			tmpV = ver1;
+			ver1 = ver2;
+			ver2 = tmpV;
+		}
+	}
+	else
+	{
+		tri_type = GENERAL_TRIANGLE;
+	}
+
+	x0 = (int)ver0->viewPosition->x;
+	y0 = (int)ver0->viewPosition->y;
+	z0 = ver0->viewPosition->z;
+
+	x1 = (int)ver1->viewPosition->x;
+	y1 = (int)ver1->viewPosition->y;
+	z1 = ver1->viewPosition->z;
+
+	x2 = (int)ver2->viewPosition->x;
+	y2 = (int)ver2->viewPosition->y;
+	z2 = ver2->viewPosition->z;
+
+	a = ver0->color->alpha;
+	r = ver0->color->red;
+	g = ver0->color->green;
+	b = ver0->color->blue;
+
+	//转折后的斜边在哪一侧
+	side = 0;
+
+	//转折点y坐标
+	ys = y1;
+
+	if (tri_type == FLAT_TOP_TRIANGLE || tri_type == FLAT_BOTTOM_TRIANGLE)
+	{
+		if (tri_type == FLAT_TOP_TRIANGLE)
+		{
+			dy = 1.0f / (y2 - y0);
+
+			dxdyl = (x2 - x0) * dy;	//左斜边倒数
+			dzdyl = (z2 - z0) * dy;
+
+			dxdyr = (x2 - x1) * dy;	//右斜边倒数
+			dzdyr = (z2 - z1) * dy;
+
+			//y0小于视窗顶部y坐标，调整左斜边和右斜边当前值,y值开始值
+			if (y0 < 0)
+			{
+				xStart = x0 - dxdyl * y0;
+				zStart = z0 - dzdyl * y0;
+
+				xEnd = x1 - dxdyr * y0;
+				zEnd = z1 - dzdyr * y0;
+
+				yStart = 0;
+			}
+			else
+			{
+				//注意平顶和平底这里的区别
+				xStart = (float)x0;
+				zStart = z0;
+
+				xEnd = (float)x1;
+				zEnd = z1;
+
+				yStart = (float)y0;
+			}
+		}
+		else
+		{
+			//平底三角形
+			dy = 1.0f / (y1 - y0);
+
+			dxdyl = (x1 - x0) * dy;
+			dzdyl = (z1 - z0) * dy;
+
+			dxdyr = (x2 - x0) * dy;
+			dzdyr = (z2 - z0) * dy;
+
+			if (y0 < 0)
+			{
+				dy = - (float)y0;
+
+				xStart = dxdyl * dy + x0;
+				zStart = dzdyl * dy + z0;
+
+				xEnd = dxdyr * dy + x0;
+				zEnd = dzdyr * dy + z0;
+
+				yStart = 0.0f;
+			}
+			else
+			{
+				xStart = (float)x0;
+				zStart = z0;
+
+				xEnd = (float)x0;
+				zEnd = z0;
+
+				yStart = (float)y0;
+			}
+		}
+		//y2>视窗高度时，大于rect.height部分就不用画出了
+		cyStart = (int)yStart;
+		cyEnd = (int)( y2 > nh ? nh : y2 );
+		ypos = cyStart * resX;
+
+		//x值需要裁剪的情况
+		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
+		{
+			for ( yi = cyStart; yi <= cyEnd; yi ++ )
+			{
+				cxStart = (int)xStart;
+				cxEnd = xEnd > nw ? nw : (int)xEnd;
+
+				if ( cxEnd >= 0 && cxStart <= nw )
 				{
 					if (cxStart == cxEnd)
 					{
@@ -238,7 +894,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 
 						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
 							zBuffer[pos] = zStart;
 						}
 					}
@@ -263,7 +919,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = color;
+								getPixelColor( a, r, g, b, pos, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -273,7 +929,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -306,7 +962,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
 							zBuffer[pos] = currZ;
 						}
 					}
@@ -321,7 +977,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = color;
+								getPixelColor( a, r, g, b, pos, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -331,7 +987,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -483,7 +1139,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 
 						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
 							zBuffer[pos] = zStart;
 						}
 					}
@@ -508,7 +1164,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = color;
+								getPixelColor( a, r, g, b, pos, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -518,7 +1174,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -575,7 +1231,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
 							zBuffer[pos] = currZ;
 						}
 					}
@@ -590,7 +1246,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = color;
+								getPixelColor( a, r, g, b, pos, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -600,7 +1256,7 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
+							getPixelColor( a, r, g, b, pos, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -642,37 +1298,29 @@ void triangle_rasterize( Viewport * view, RenderVertex * ver0, RenderVertex * ve
 	}
 }
 
-void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2, Texture * texture )
+void triangle_rasterize_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture )
 {
-	RenderVertex	* tmpV;
-	DWORD			* colorBuffer = view->colorBuffer;
-	DWORD			* textureBuffer = view->textureBuffer;
+	Vertex	* tmpV;
 	float			* zBuffer = view->zBuffer;
-	DWORD			color;
 
 	int				resX = (int)view->width, resY = (int)view->height;
 	int				x0, y0, x1, y1, x2, y2, nw, nh, side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
 	float			u0, v0, u1, v1, u2, v2, z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, uStart, uEnd, vStart, vEnd, currZ,
 					currU, currV, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dudyl, dudyr, dvdyl, dvdyr, dzdx, dudx, dvdx, temp2;
+	WORD			a, r, g, b;
 
-
-	//背面剔除
-	if ( BACKFACE_CULLING_MODE == 2)
-	{
-		if ( ( ver2->x - ver0->x ) * ( ver1->y - ver2->y ) > ( ver2->y - ver0->y ) * ( ver1->x - ver2->x ) )
-			return;
-	}
-
-	if (((ver0->y < 0) && (ver1->y < 0) && (ver2->y < 0)) ||
-		((ver0->y > resY) && (ver1->y > resY) && (ver2->y > resY)) ||
-		((ver0->x < 0) && (ver1->x < 0) && (ver2->x < 0)) ||
-		((ver0->x > resX) && (ver1->x > resX) && (ver2->x > resX)))
+	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
+		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
+		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
+		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
+		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
+		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
 	{
 		return;
 	}
 
 	//判断是否是一条线，如果是，则返回。
-	if (((ver0->x == ver1->x) && (ver1->x == ver2->x)) || ((ver0->y == ver1->y) && (ver1->y == ver2->y)))
+	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
 	{
 		return;
 	}
@@ -682,19 +1330,19 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 	nh = resY - 1;
 
 	//调整y0,y1,y2,让它们的y值从小到大
-	if (ver1->y < ver0->y)
+	if (ver1->viewPosition->y < ver0->viewPosition->y)
 	{
 		tmpV = ver1;
 		ver1 = ver0;
 		ver0 = tmpV;
 	}
-	if (ver2->y < ver0->y)
+	if (ver2->viewPosition->y < ver0->viewPosition->y)
 	{
 		tmpV = ver0;
 		ver0 = ver2;
 		ver2 = tmpV;
 	}
-	if (ver2->y < ver1->y)
+	if (ver2->viewPosition->y < ver1->viewPosition->y)
 	{
 		tmpV = ver1;
 		ver1 = ver2;
@@ -702,22 +1350,22 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 	}
 
 	//判断三角形的类型
-	if (ver0->y == ver1->y)
+	if (ver0->viewPosition->y == ver1->viewPosition->y)
 	{
 		tri_type = FLAT_TOP_TRIANGLE;
 
-		if (ver1->x < ver0->x)
+		if (ver1->viewPosition->x < ver0->viewPosition->x)
 		{
 			tmpV = ver1;
 			ver1 = ver0;
 			ver0 = tmpV;
 		}
 	}
-	else if (ver1->y == ver2->y)
+	else if (ver1->viewPosition->y == ver2->viewPosition->y)
 	{
 		tri_type = FLAT_BOTTOM_TRIANGLE;
 
-		if (ver2->x < ver1->x)
+		if (ver2->viewPosition->x < ver1->viewPosition->x)
 		{
 			tmpV = ver1;
 			ver1 = ver2;
@@ -729,26 +1377,29 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 		tri_type = GENERAL_TRIANGLE;
 	}
 
-	x0 = (int)ver0->x;
-	y0 = (int)ver0->y;
-	z0 = ver0->z;
+	x0 = (int)ver0->viewPosition->x;
+	y0 = (int)ver0->viewPosition->y;
+	z0 = ver0->viewPosition->z;
 
-	x1 = (int)ver1->x;
-	y1 = (int)ver1->y;
-	z1 = ver1->z;
+	x1 = (int)ver1->viewPosition->x;
+	y1 = (int)ver1->viewPosition->y;
+	z1 = ver1->viewPosition->z;
 
-	x2 = (int)ver2->x;
-	y2 = (int)ver2->y;
-	z2 = ver2->z;
+	x2 = (int)ver2->viewPosition->x;
+	y2 = (int)ver2->viewPosition->y;
+	z2 = ver2->viewPosition->z;
 
-	u0 = ver0->u;
-	v0 = ver0->v;
-	u1 = ver1->u;
-	v1 = ver1->v;
-	u2 = ver2->u;
-	v2 = ver2->v;
+	u0 = ver0->uv->x * (texture->width - 1);
+	v0 = ver0->uv->y * (texture->height - 1);
+	u1 = ver1->uv->x * (texture->width - 1);
+	v1 = ver1->uv->y * (texture->height - 1);
+	u2 = ver2->uv->x * (texture->width - 1);
+	v2 = ver2->uv->y * (texture->height - 1);
 
-	color = ((int)ver0->a << 24) + ((int)ver0->r << 16) + ((int)ver0->g << 8) + (int)ver0->b;
+	a = (WORD)ver0->color->alpha;
+	r = (WORD)ver0->color->red;
+	g = (WORD)ver0->color->green;
+	b = (WORD)ver0->color->blue;
 
 	side = 0;
 
@@ -872,8 +1523,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 
 						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
-							textureBuffer[pos] = getPixelFromTexture( uStart, uEnd, texture );
+							getMixedColor( a, r, g, b, (int)(uStart + 0.5), (int)(vStart + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zStart;
 						}
 					}
@@ -907,8 +1557,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = color;
-								textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+								getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -920,8 +1569,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
-							textureBuffer[pos] = getPixelFromTexture( uEnd, vEnd, texture );
+							getMixedColor( a, r, g, b, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -960,8 +1608,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
-							textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+							getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = currZ;
 						}
 					}
@@ -978,8 +1625,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = color;
-								textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+								getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -991,8 +1637,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
-							textureBuffer[pos] = getPixelFromTexture( uEnd, vEnd, texture );
+							getMixedColor( a, r, g, b, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -1191,8 +1836,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 
 						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
-							textureBuffer[pos] = getPixelFromTexture( uStart, vStart, texture );
+							getMixedColor( a, r, g, b, (int)(uStart + 0.5), (int)(vStart + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zStart;
 						}
 					}
@@ -1223,8 +1867,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = color;
-								textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+								getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -1236,8 +1879,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
-							textureBuffer[pos] = getPixelFromTexture( uEnd, vEnd, texture );
+							getMixedColor( a, r, g, b, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -1308,8 +1950,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
-							textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+							getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = currZ;
 						}
 					}
@@ -1326,8 +1967,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = color;
-								textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+								getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -1339,8 +1979,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = color;
-							textureBuffer[pos] = getPixelFromTexture( uEnd, vEnd, texture );
+							getMixedColor( a, r, g, b, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -1395,10 +2034,10 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 }
 
 
-//void triangle_rasterize_lightOff_texture( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2, Texture * texture )
+//void triangle_rasterize_lightOff_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture )
 //{
-//	RenderVertex	* tmpV;
-//	DWORD			* colorBuffer = view->colorBuffer;
+//	Vertex	* tmpV;
+//	LPDWORD			colorChannel = view->colorChannel;
 //	float			* zBuffer = view->zBuffer, a, r, g, b;
 //
 //	int				resX = (int)view->width, resY = (int)view->height;
@@ -1410,20 +2049,20 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //	//背面剔除
 //	if ( BACKFACE_CULLING_MODE == 2)
 //	{
-//		if ( ( ver2->x - ver0->x ) * ( ver1->y - ver2->y ) > ( ver2->y - ver0->y ) * ( ver1->x - ver2->x ) )
+//		if ( ( ver2->viewPosition->x - ver0->viewPosition->x ) * ( ver1->viewPosition->y - ver2->viewPosition->y ) > ( ver2->viewPosition->y - ver0->viewPosition->y ) * ( ver1->viewPosition->x - ver2->viewPosition->x ) )
 //			return;
 //	}
 //
-//	if (((ver0->y < 0) && (ver1->y < 0) && (ver2->y < 0)) ||
-//		((ver0->y > resY) && (ver1->y > resY) && (ver2->y > resY)) ||
-//		((ver0->x < 0) && (ver1->x < 0) && (ver2->x < 0)) ||
-//		((ver0->x > resX) && (ver1->x > resX) && (ver2->x > resX)))
+//	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
+//		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
+//		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
+//		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)))
 //	{
 //		return;
 //	}
 //
 //	//判断是否是一条线，如果是，则返回。
-//	if (((ver0->x == ver1->x) && (ver1->x == ver2->x)) || ((ver0->y == ver1->y) && (ver1->y == ver2->y)))
+//	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
 //	{
 //		return;
 //	}
@@ -1433,19 +2072,19 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //	nh = resY - 1;
 //
 //	//调整y0,y1,y2,让它们的y值从小到大
-//	if (ver1->y < ver0->y)
+//	if (ver1->viewPosition->y < ver0->viewPosition->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver0;
 //		ver0 = tmpV;
 //	}
-//	if (ver2->y < ver0->y)
+//	if (ver2->viewPosition->y < ver0->viewPosition->y)
 //	{
 //		tmpV = ver0;
 //		ver0 = ver2;
 //		ver2 = tmpV;
 //	}
-//	if (ver2->y < ver1->y)
+//	if (ver2->viewPosition->y < ver1->viewPosition->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver2;
@@ -1453,22 +2092,22 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //	}
 //
 //	//判断三角形的类型
-//	if (ver0->y == ver1->y)
+//	if (ver0->viewPosition->y == ver1->viewPosition->y)
 //	{
 //		tri_type = FLAT_TOP_TRIANGLE;
 //
-//		if (ver1->x < ver0->x)
+//		if (ver1->viewPosition->x < ver0->viewPosition->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver0;
 //			ver0 = tmpV;
 //		}
 //	}
-//	else if (ver1->y == ver2->y)
+//	else if (ver1->viewPosition->y == ver2->viewPosition->y)
 //	{
 //		tri_type = FLAT_BOTTOM_TRIANGLE;
 //
-//		if (ver2->x < ver1->x)
+//		if (ver2->viewPosition->x < ver1->viewPosition->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver2;
@@ -1480,29 +2119,29 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //		tri_type = GENERAL_TRIANGLE;
 //	}
 //
-//	x0 = (int)ver0->x;
-//	y0 = (int)ver0->y;
-//	z0 = ver0->z;
+//	x0 = (int)ver0->viewPosition->x;
+//	y0 = (int)ver0->viewPosition->y;
+//	z0 = ver0->viewPosition->z;
 //
-//	x1 = (int)ver1->x;
-//	y1 = (int)ver1->y;
-//	z1 = ver1->z;
+//	x1 = (int)ver1->viewPosition->x;
+//	y1 = (int)ver1->viewPosition->y;
+//	z1 = ver1->viewPosition->z;
 //
-//	x2 = (int)ver2->x;
-//	y2 = (int)ver2->y;
-//	z2 = ver2->z;
+//	x2 = (int)ver2->viewPosition->x;
+//	y2 = (int)ver2->viewPosition->y;
+//	z2 = ver2->viewPosition->z;
 //
-//	u0 = ver0->u;
-//	v0 = ver0->v;
-//	u1 = ver1->u;
-//	v1 = ver1->v;
-//	u2 = ver2->u;
-//	v2 = ver2->v;
+//	u0 = ver0->uv->x;
+//	v0 = ver0->uv->y;
+//	u1 = ver1->uv->x;
+//	v1 = ver1->uv->y;
+//	u2 = ver2->uv->x;
+//	v2 = ver2->uv->y;
 //
-//	a = ver0->a;
-//	r = ver0->r;
-//	g = ver0->g;
-//	b = ver0->b;
+//	a = ver0->color->alpha;
+//	r = ver0->color->red;
+//	g = ver0->color->green;
+//	b = ver0->color->blue;
 //
 //	side = 0;
 //
@@ -1626,7 +2265,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //
 //						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 //						{
-//							colorBuffer[pos] = computePixelColor( r, g, b, a, uStart, vStart, texture );
+//							colorChannel[pos] = computePixelColor( r, g, b, a, uStart, vStart, texture );
 //							zBuffer[pos] = zStart;
 //						}
 //					}
@@ -1660,7 +2299,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //							pos = xi + ypos;
 //							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 //							{
-//								colorBuffer[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
+//								colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
 //								zBuffer[pos] = currZ;
 //							}
 //
@@ -1672,7 +2311,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //						pos = cxEnd + ypos;
 //						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 //						{
-//							colorBuffer[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
+//							colorChannel[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
 //							zBuffer[pos] = zEnd;
 //						}
 //					}
@@ -1711,7 +2350,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //						pos = cxStart + ypos;
 //						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 //						{
-//							colorBuffer[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
+//							colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
 //							zBuffer[pos] = currZ;
 //						}
 //					}
@@ -1728,7 +2367,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //							pos = xi + ypos;
 //							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 //							{
-//								colorBuffer[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
+//								colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
 //								zBuffer[pos] = currZ;
 //							}
 //
@@ -1740,7 +2379,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //						pos = cxEnd + ypos;
 //						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 //						{
-//							colorBuffer[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
+//							colorChannel[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
 //							zBuffer[pos] = zEnd;
 //						}
 //					}
@@ -1939,7 +2578,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //
 //						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 //						{
-//							colorBuffer[pos] = computePixelColor( r, g, b, a, uStart, vStart, texture );
+//							colorChannel[pos] = computePixelColor( r, g, b, a, uStart, vStart, texture );
 //							zBuffer[pos] = zStart;
 //						}
 //					}
@@ -1970,7 +2609,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //							pos = xi + ypos;
 //							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 //							{
-//								colorBuffer[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
+//								colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
 //								zBuffer[pos] = currZ;
 //							}
 //
@@ -1982,7 +2621,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //						pos = cxEnd + ypos;
 //						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 //						{
-//							colorBuffer[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
+//							colorChannel[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
 //							zBuffer[pos] = zEnd;
 //						}
 //					}
@@ -2053,7 +2692,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //						pos = cxStart + ypos;
 //						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 //						{
-//							colorBuffer[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
+//							colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
 //							zBuffer[pos] = currZ;
 //						}
 //					}
@@ -2070,7 +2709,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //							pos = xi + ypos;
 //							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 //							{
-//								colorBuffer[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
+//								colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
 //								zBuffer[pos] = currZ;
 //							}
 //
@@ -2082,7 +2721,7 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //						pos = cxEnd + ypos;
 //						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 //						{
-//							colorBuffer[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
+//							colorChannel[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
 //							zBuffer[pos] = zEnd;
 //						}
 //					}
@@ -2137,10 +2776,9 @@ void triangle_rasterize_texture( Viewport * view, RenderVertex * ver0, RenderVer
 //}
 //
 
-void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2 )
+void triangle_rasterize_light( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 )
 {
-	RenderVertex	* tmpV;
-	DWORD			* colorBuffer = view->colorBuffer;
+	Vertex	* tmpV;
 	float			* zBuffer = view->zBuffer;
 
 	int				resX = (int)view->width, resY = (int)view->height;
@@ -2150,24 +2788,18 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 					dadyl, dadyr, dadx, currA, drdyl, drdyr, drdx, currR, dgdyl, dgdyr, dgdx, currG, dbdyl, dbdyr, dbdx, currB,
 					a0, r0, g0, b0, a1, r1, g1, b1, a2, r2, g2, b2, aStart, aEnd, rStart, rEnd, gStart, gEnd, bStart, bEnd;
 
-
-	//背面剔除
-	if ( BACKFACE_CULLING_MODE == 2)
-	{
-		if ( ( ver2->x - ver0->x ) * ( ver1->y - ver2->y ) > ( ver2->y - ver0->y ) * ( ver1->x - ver2->x ) )
-			return;
-	}
-
-	if (((ver0->y < 0) && (ver1->y < 0) && (ver2->y < 0)) ||
-		((ver0->y > resY) && (ver1->y > resY) && (ver2->y > resY)) ||
-		((ver0->x < 0) && (ver1->x < 0) && (ver2->x < 0)) ||
-		((ver0->x > resX) && (ver1->x > resX) && (ver2->x > resX)))
+	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
+		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
+		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
+		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
+		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
+		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
 	{
 		return;
 	}
 
 	//判断是否是一条线，如果是，则返回。
-	if (((ver0->x == ver1->x) && (ver1->x == ver2->x)) || ((ver0->y == ver1->y) && (ver1->y == ver2->y)))
+	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
 	{
 		return;
 	}
@@ -2177,19 +2809,19 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 	nh = resY - 1;
 
 	//调整y0,y1,y2,让它们的y值从小到大
-	if (ver1->y < ver0->y)
+	if (ver1->viewPosition->y < ver0->viewPosition->y)
 	{
 		tmpV = ver1;
 		ver1 = ver0;
 		ver0 = tmpV;
 	}
-	if (ver2->y < ver0->y)
+	if (ver2->viewPosition->y < ver0->viewPosition->y)
 	{
 		tmpV = ver0;
 		ver0 = ver2;
 		ver2 = tmpV;
 	}
-	if (ver2->y < ver1->y)
+	if (ver2->viewPosition->y < ver1->viewPosition->y)
 	{
 		tmpV = ver1;
 		ver1 = ver2;
@@ -2197,22 +2829,22 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 	}
 
 	//判断三角形的类型
-	if (ver0->y == ver1->y)
+	if (ver0->viewPosition->y == ver1->viewPosition->y)
 	{
 		tri_type = FLAT_TOP_TRIANGLE;
 
-		if (ver1->x < ver0->x)
+		if (ver1->viewPosition->x < ver0->viewPosition->x)
 		{
 			tmpV = ver1;
 			ver1 = ver0;
 			ver0 = tmpV;
 		}
 	}
-	else if (ver1->y == ver2->y)
+	else if (ver1->viewPosition->y == ver2->viewPosition->y)
 	{
 		tri_type = FLAT_BOTTOM_TRIANGLE;
 
-		if (ver2->x < ver1->x)
+		if (ver2->viewPosition->x < ver1->viewPosition->x)
 		{
 			tmpV = ver1;
 			ver1 = ver2;
@@ -2224,32 +2856,32 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 		tri_type = GENERAL_TRIANGLE;
 	}
 
-	x0 = (int)ver0->x;
-	y0 = (int)ver0->y;
-	z0 = ver0->z;
+	x0 = (int)ver0->viewPosition->x;
+	y0 = (int)ver0->viewPosition->y;
+	z0 = ver0->viewPosition->z;
 
-	x1 = (int)ver1->x;
-	y1 = (int)ver1->y;
-	z1 = ver1->z;
+	x1 = (int)ver1->viewPosition->x;
+	y1 = (int)ver1->viewPosition->y;
+	z1 = ver1->viewPosition->z;
 
-	x2 = (int)ver2->x;
-	y2 = (int)ver2->y;
-	z2 = ver2->z;
+	x2 = (int)ver2->viewPosition->x;
+	y2 = (int)ver2->viewPosition->y;
+	z2 = ver2->viewPosition->z;
 
-	a0 = ver0->a;
-	r0 = ver0->r;
-	g0 = ver0->g;
-	b0 = ver0->b;
+	a0 = ver0->color->alpha;
+	r0 = ver0->color->red;
+	g0 = ver0->color->green;
+	b0 = ver0->color->blue;
 
-	a1 = ver1->a;
-	r1 = ver1->r;
-	g1 = ver1->g;
-	b1 = ver1->b;
+	a1 = ver1->color->alpha;
+	r1 = ver1->color->red;
+	g1 = ver1->color->green;
+	b1 = ver1->color->blue;
 
-	a2 = ver2->a;
-	r2 = ver2->r;
-	g2 = ver2->g;
-	b2 = ver2->b;
+	a2 = ver2->color->alpha;
+	r2 = ver2->color->red;
+	g2 = ver2->color->green;
+	b2 = ver2->color->blue;
 
 	side = 0;
 
@@ -2409,7 +3041,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 
 						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aStart << 24) + ((int)rStart << 16) + ((int)gStart << 8) + (int)bStart;
+							getPixelColor( (WORD)aStart, (WORD)rStart, (WORD)gStart, (WORD)bStart, pos, view->mixedChannel );
 							zBuffer[pos] = zStart;
 						}
 					}
@@ -2447,7 +3079,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+								getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -2461,7 +3093,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
+							getPixelColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, pos, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -2508,7 +3140,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+							getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
 							zBuffer[pos] = currZ;
 						}
 					}
@@ -2528,7 +3160,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+								getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -2542,7 +3174,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
+							getPixelColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, pos, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -2794,7 +3426,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 
 						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aStart << 24) + ((int)rStart << 16) + ((int)gStart << 8) + (int)bStart;
+							getPixelColor( (WORD)aStart, (WORD)rStart, (WORD)gStart, (WORD)bStart, pos, view->mixedChannel );
 							zBuffer[pos] = zStart;
 						}
 					}
@@ -2832,7 +3464,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+								getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -2846,7 +3478,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
+							getPixelColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, pos, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -2937,7 +3569,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+							getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
 							zBuffer[pos] = currZ;
 						}
 					}
@@ -2957,7 +3589,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
+								getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -2971,7 +3603,7 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
+							getPixelColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, pos, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -3043,11 +3675,9 @@ void triangle_rasterize_light( Viewport * view, RenderVertex * ver0, RenderVerte
 	}
 }
 
-void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, RenderVertex * ver1, RenderVertex * ver2, Texture * texture )
+void triangle_rasterize_light_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture )
 {
-	RenderVertex	* tmpV;
-	DWORD			* colorBuffer = view->colorBuffer;
-	DWORD			* textureBuffer = view->textureBuffer;
+	Vertex	* tmpV;
 	float			* zBuffer = view->zBuffer;
 
 	int				resX = (int)view->width, resY = (int)view->height;
@@ -3057,24 +3687,18 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 					dadyl, dadyr, dadx, currA, drdyl, drdyr, drdx, currR, dgdyl, dgdyr, dgdx, currG, dbdyl, dbdyr, dbdx, currB,
 					a0, r0, g0, b0, a1, r1, g1, b1, a2, r2, g2, b2, aStart, aEnd, rStart, rEnd, gStart, gEnd, bStart, bEnd;
 
-
-	//背面剔除
-	if ( BACKFACE_CULLING_MODE == 2)
-	{
-		if ( ( ver2->x - ver0->x ) * ( ver1->y - ver2->y ) > ( ver2->y - ver0->y ) * ( ver1->x - ver2->x ) )
-			return;
-	}
-
-	if (((ver0->y < 0) && (ver1->y < 0) && (ver2->y < 0)) ||
-		((ver0->y > resY) && (ver1->y > resY) && (ver2->y > resY)) ||
-		((ver0->x < 0) && (ver1->x < 0) && (ver2->x < 0)) ||
-		((ver0->x > resX) && (ver1->x > resX) && (ver2->x > resX)))
+	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
+		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
+		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
+		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
+		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
+		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
 	{
 		return;
 	}
 
 	//判断是否是一条线，如果是，则返回。
-	if (((ver0->x == ver1->x) && (ver1->x == ver2->x)) || ((ver0->y == ver1->y) && (ver1->y == ver2->y)))
+	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
 	{
 		return;
 	}
@@ -3084,19 +3708,19 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 	nh = resY - 1;
 
 	//调整y0,y1,y2,让它们的y值从小到大
-	if (ver1->y < ver0->y)
+	if (ver1->viewPosition->y < ver0->viewPosition->y)
 	{
 		tmpV = ver1;
 		ver1 = ver0;
 		ver0 = tmpV;
 	}
-	if (ver2->y < ver0->y)
+	if (ver2->viewPosition->y < ver0->viewPosition->y)
 	{
 		tmpV = ver0;
 		ver0 = ver2;
 		ver2 = tmpV;
 	}
-	if (ver2->y < ver1->y)
+	if (ver2->viewPosition->y < ver1->viewPosition->y)
 	{
 		tmpV = ver1;
 		ver1 = ver2;
@@ -3104,22 +3728,22 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 	}
 
 	//判断三角形的类型
-	if (ver0->y == ver1->y)
+	if (ver0->viewPosition->y == ver1->viewPosition->y)
 	{
 		tri_type = FLAT_TOP_TRIANGLE;
 
-		if (ver1->x < ver0->x)
+		if (ver1->viewPosition->x < ver0->viewPosition->x)
 		{
 			tmpV = ver1;
 			ver1 = ver0;
 			ver0 = tmpV;
 		}
 	}
-	else if (ver1->y == ver2->y)
+	else if (ver1->viewPosition->y == ver2->viewPosition->y)
 	{
 		tri_type = FLAT_BOTTOM_TRIANGLE;
 
-		if (ver2->x < ver1->x)
+		if (ver2->viewPosition->x < ver1->viewPosition->x)
 		{
 			tmpV = ver1;
 			ver1 = ver2;
@@ -3131,39 +3755,39 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 		tri_type = GENERAL_TRIANGLE;
 	}
 
-	x0 = (int)ver0->x;
-	y0 = (int)ver0->y;
-	z0 = ver0->z;
+	x0 = (int)ver0->viewPosition->x;
+	y0 = (int)ver0->viewPosition->y;
+	z0 = ver0->viewPosition->z;
 
-	x1 = (int)ver1->x;
-	y1 = (int)ver1->y;
-	z1 = ver1->z;
+	x1 = (int)ver1->viewPosition->x;
+	y1 = (int)ver1->viewPosition->y;
+	z1 = ver1->viewPosition->z;
 
-	x2 = (int)ver2->x;
-	y2 = (int)ver2->y;
-	z2 = ver2->z;
+	x2 = (int)ver2->viewPosition->x;
+	y2 = (int)ver2->viewPosition->y;
+	z2 = ver2->viewPosition->z;
 
-	u0 = ver0->u;
-	v0 = ver0->v;
-	u1 = ver1->u;
-	v1 = ver1->v;
-	u2 = ver2->u;
-	v2 = ver2->v;
+	u0 = ver0->uv->x * (texture->width - 1);
+	v0 = ver0->uv->y * (texture->height - 1);
+	u1 = ver1->uv->x * (texture->width - 1);
+	v1 = ver1->uv->y * (texture->height - 1);
+	u2 = ver2->uv->x * (texture->width - 1);
+	v2 = ver2->uv->y * (texture->height - 1);
 
-	a0 = ver0->a;
-	r0 = ver0->r;
-	g0 = ver0->g;
-	b0 = ver0->b;
+	a0 = ver0->color->alpha;
+	r0 = ver0->color->red;
+	g0 = ver0->color->green;
+	b0 = ver0->color->blue;
 
-	a1 = ver1->a;
-	r1 = ver1->r;
-	g1 = ver1->g;
-	b1 = ver1->b;
+	a1 = ver1->color->alpha;
+	r1 = ver1->color->red;
+	g1 = ver1->color->green;
+	b1 = ver1->color->blue;
 
-	a2 = ver2->a;
-	r2 = ver2->r;
-	g2 = ver2->g;
-	b2 = ver2->b;
+	a2 = ver2->color->alpha;
+	r2 = ver2->color->red;
+	g2 = ver2->color->green;
+	b2 = ver2->color->blue;
 
 	/*AS3_Trace(AS3_String("Output0 XYZ..............."));
 	AS3_Trace(AS3_String("X0Y0...."));
@@ -3364,8 +3988,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 
 						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aStart << 24) + ((int)rStart << 16) + ((int)gStart << 8) + (int)bStart;
-							textureBuffer[pos] = getPixelFromTexture( uStart, vStart, texture );
+							getMixedColor( (WORD)aStart, (WORD)rStart, (WORD)gStart, (WORD)bStart, (int)(uStart + 0.5), (int)(vStart + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zStart;
 						}
 					}
@@ -3409,8 +4032,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-								textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+								getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -3426,8 +4048,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
-							textureBuffer[pos] = getPixelFromTexture( uEnd, vEnd, texture );
+							getMixedColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -3480,8 +4101,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-							textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+							getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = currZ;
 						}
 					}
@@ -3503,8 +4123,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-								textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+								getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -3520,8 +4139,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
-							textureBuffer[pos] = getPixelFromTexture( uEnd, vEnd, texture );
+							getMixedColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -3820,8 +4438,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 
 						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aStart << 24) + ((int)rStart << 16) + ((int)gStart << 8) + (int)bStart;
-							textureBuffer[pos] = getPixelFromTexture( uStart, vStart, texture );
+							getMixedColor( (WORD)aStart, (WORD)rStart, (WORD)gStart, (WORD)bStart, (int)(uStart + 0.5), (int)(vStart + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zStart;
 						}
 					}
@@ -3865,8 +4482,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-								textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+								getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -3882,8 +4498,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
-							textureBuffer[pos] = getPixelFromTexture( uEnd, vEnd, texture );
+							getMixedColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}
@@ -3988,8 +4603,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 						pos = cxStart + ypos;
 						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-							textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+							getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = currZ;
 						}
 					}
@@ -4010,8 +4624,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 							pos = xi + ypos;
 							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
 							{
-								colorBuffer[pos] = ((int)currA << 24) + ((int)currR << 16) + ((int)currG << 8) + (int)currB;
-								textureBuffer[pos] = getPixelFromTexture( currU, currV, texture );
+								getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
 								zBuffer[pos] = currZ;
 							}
 
@@ -4027,8 +4640,7 @@ void triangle_rasterize_light_texture( Viewport * view, RenderVertex * ver0, Ren
 						pos = cxEnd + ypos;
 						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
 						{
-							colorBuffer[pos] = ((int)aEnd << 24) + ((int)rEnd << 16) + ((int)gEnd << 8) + (int)bEnd;
-							textureBuffer[pos] = getPixelFromTexture( uEnd, vEnd, texture );
+							getMixedColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
 							zBuffer[pos] = zEnd;
 						}
 					}

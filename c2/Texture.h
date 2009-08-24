@@ -5,9 +5,9 @@
 
 typedef struct Texture
 {
-	int width, height;
+	int width, height, wh;
 	
-	UINT32 * pRGBABuffer;
+	LPDWORD pRGBABuffer;
 
 	WORD * ARGBBuffer;
 
@@ -21,7 +21,7 @@ typedef struct Texture
 //				DWORD iDstW, DWORD iDstH,
 //				DWORD iDstPitch);
 
-Texture * newTexture( int width, int height, UINT32 * pRGBABuffer )
+Texture * newTexture( int width, int height, DWORD * pRGBABuffer )
 {
 	Texture * texture;
 	WORD * ARGBBuffer;
@@ -37,11 +37,12 @@ Texture * newTexture( int width, int height, UINT32 * pRGBABuffer )
 		exit( TRUE );
 	}
 
+	lSize = width * height;
+
 	texture->width = width;
 	texture->height = height;
+	texture->wh = lSize;
 	texture->pRGBABuffer = pRGBABuffer;
-
-	lSize = width * height;
 
 	//if use normal mode
 	if( ( ARGBBuffer = ( WORD * )malloc( sizeof( WORD ) * lSize * 4 ) ) == NULL ) exit( TRUE );

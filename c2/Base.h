@@ -26,6 +26,7 @@ typedef unsigned long		ULONG;
 #define BOUND(x,a,b) (((x) < (a)) ? (a) : (((x) > (b)) ? (b) : (x)))
 #define MAX(a, b) (a > b) ? (a) : (b)
 #define MIN(a, b) (a < b) ? (a) : (b)
+#define SWAP(a,b,t) {t=a; a=b; b=t;}
 
 #define X_AXIS (NULL == g_X_AXIS) ? newVector3D( 1.0f, 0, 0, 1.0f ) : g_X_AXIS
 #define Y_AXIS (NULL == g_Y_AXIS) ? newVector3D( 0, 1.0f, 0, 1.0f ) : g_Y_AXIS
@@ -33,11 +34,5 @@ typedef unsigned long		ULONG;
 #define INV_X_AXIS (NULL == g_INV_X_AXIS) ? newVector3D( - 1.0f, 0, 0, 1.0f ) : g_INV_X_AXIS
 #define INV_Y_AXIS (NULL == g_INV_Y_AXIS) ? newVector3D( 0, - 1.0f, 0, 1.0f ) : g_INV_Y_AXIS
 #define INV_Z_AXIS (NULL == g_INV_Z_AXIS) ? newVector3D( 0, 0, - 1.0f, 1.0f ) : g_INV_Z_AXIS
-
-//Engine settings
-//0：不进行背面剔除
-//1：在世界空间进行背面测试
-//2：在屏幕空间进行背面测试
-int BACKFACE_CULLING_MODE = 1;
 
 #endif

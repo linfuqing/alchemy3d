@@ -101,24 +101,6 @@ INLINE Matrix3D *  matrix3D_identity( Matrix3D * m )
 }
 
 /**
-复制矩阵。
-**/
-INLINE Matrix3D * matrix3D_copy( Matrix3D * m, Matrix3D * src )
-{
-	m->m11 = src->m11; m->m12 = src->m12; m->m13 = src->m13; m->m14 = src->m14;
-
-	m->m21 = src->m21; m->m22 = src->m22; m->m23 = src->m23; m->m24 = src->m24;
-
-	m->m31 = src->m31; m->m32 = src->m32; m->m33 = src->m33; m->m34 = src->m34;
-
-	m->m41 = src->m41; m->m42 = src->m42; m->m43 = src->m43; m->m44 = src->m44;
-
-	//memcpy( m, src, sizeof( * src ) );
-
-	return m;
-}
-
-/**
 将当前 Matrix3D 对象转换为一个矩阵，并将互换其中的行和列。
 例如，如果当前 Matrix3D 对象的 rawData 包含以下 16 个数字：1,2,3,4,11,12,13,14,21,22,23,24,31,32,33,34，则 transpose() 方法会将每四个元素作为一个行读取并将这些行转换为列。
 生成的结果是一个矩阵，其 rawData 为：1,11,21,31,2,12,22,32,3,13,23,33,4,14,24,34。 
@@ -546,6 +528,33 @@ Matrix3D * newMatrix3D( float ( * rawData )[16] )
 	return m;
 }
 
+/**
+复制矩阵。
+**/
+INLINE void * matrix3D_copy( Matrix3D * m, Matrix3D * src )
+{
+	m->m11 = src->m11; m->m12 = src->m12; m->m13 = src->m13; m->m14 = src->m14;
+
+	m->m21 = src->m21; m->m22 = src->m22; m->m23 = src->m23; m->m24 = src->m24;
+
+	m->m31 = src->m31; m->m32 = src->m32; m->m33 = src->m33; m->m34 = src->m34;
+
+	m->m41 = src->m41; m->m42 = src->m42; m->m43 = src->m43; m->m44 = src->m44;
+
+	//memcpy( m, src, sizeof( * src ) );
+
+	return m;
+}
+
+INLINE Matrix3D * matrix3D_clone( Matrix3D * src )
+{
+	Matrix3D * dest = newMatrix3D( NULL );
+
+	matrix3D_copy( dest, src );
+
+	return dest;
+}
+
 void matrix3D_dispose( Matrix3D * m )
 {
 	free( m );
@@ -656,7 +665,45 @@ INLINE Matrix3D * matrix3D_append_self( Matrix3D * thisMatrix, Matrix3D * lhs )
 	return thisMatrix;
 }
 
-INLINE Matrix3D *  matrix3D_append4x4( Matrix3D * thisMatrix, Matrix3D * lhs )
+INLINE Matrix3D *  matrix3D_append4x4( Matrix3D * output, Matrix3D * thisMatrix, Matrix3D * lhs )
+{
+	float m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44;
+	float lhs_m11, lhs_m12, lhs_m13, lhs_m14, lhs_m21, lhs_m22, lhs_m23, lhs_m24, lhs_m31, lhs_m32, lhs_m33, lhs_m34, lhs_m41, lhs_m42, lhs_m43, lhs_m44;
+
+	m11 = thisMatrix->m11;	m12 = thisMatrix->m12;	m13 = thisMatrix->m13;	m14 = thisMatrix->m14;
+	m21 = thisMatrix->m21;	m22 = thisMatrix->m22;	m23 = thisMatrix->m23;	m24 = thisMatrix->m24;
+	m31 = thisMatrix->m31;	m32 = thisMatrix->m32;	m33 = thisMatrix->m33;	m34 = thisMatrix->m34;
+	m41 = thisMatrix->m41;	m42 = thisMatrix->m42;	m43 = thisMatrix->m43;	m44 = thisMatrix->m44;
+
+	lhs_m11 = lhs->m11;	lhs_m12 = lhs->m12;	lhs_m13 = lhs->m13;	lhs_m14 = lhs->m14;
+	lhs_m21 = lhs->m21;	lhs_m22 = lhs->m22;	lhs_m23 = lhs->m23;	lhs_m24 = lhs->m24;
+	lhs_m31 = lhs->m31;	lhs_m32 = lhs->m32;	lhs_m33 = lhs->m33;	lhs_m34 = lhs->m34;
+	lhs_m41 = lhs->m41;	lhs_m42 = lhs->m42;	lhs_m43 = lhs->m43;	lhs_m44 = lhs->m44;
+
+	output->m11 = m11 * lhs_m11 + m12 * lhs_m21 + m13 * lhs_m31;
+	output->m12 = m11 * lhs_m12 + m12 * lhs_m22 + m13 * lhs_m32;
+	output->m13 = m11 * lhs_m13 + m12 * lhs_m23 + m13 * lhs_m33;
+	output->m14 = m11 * lhs_m14 + m12 * lhs_m24 + m13 * lhs_m34;
+
+	output->m21 = m21 * lhs_m11 + m22 * lhs_m21 + m23 * lhs_m31;
+	output->m22 = m21 * lhs_m12 + m22 * lhs_m22 + m23 * lhs_m32;
+	output->m23 = m21 * lhs_m13 + m22 * lhs_m23 + m23 * lhs_m33;
+	output->m24 = m21 * lhs_m14 + m22 * lhs_m24 + m23 * lhs_m34;
+
+	output->m31 = m31 * lhs_m11 + m32 * lhs_m21 + m33 * lhs_m31;
+	output->m32 = m31 * lhs_m12 + m32 * lhs_m22 + m33 * lhs_m32;
+	output->m33 = m31 * lhs_m13 + m32 * lhs_m23 + m33 * lhs_m33;
+	output->m34 = m31 * lhs_m14 + m32 * lhs_m24 + m33 * lhs_m34;
+
+	output->m41 = m41 * lhs_m11 + m42 * lhs_m21 + m43 * lhs_m31 + lhs->m41;
+	output->m42 = m41 * lhs_m12 + m42 * lhs_m22 + m43 * lhs_m32 + lhs->m42;
+	output->m43 = m41 * lhs_m13 + m42 * lhs_m23 + m43 * lhs_m33 + lhs->m43;
+	output->m44 = m41 * lhs_m14 + m42 * lhs_m24 + m43 * lhs_m34 + lhs->m44;
+
+	return output;
+}
+
+INLINE Matrix3D *  matrix3D_append4x4_self( Matrix3D * thisMatrix, Matrix3D * lhs )
 {
 	float m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44;
 	float lhs_m11, lhs_m12, lhs_m13, lhs_m14, lhs_m21, lhs_m22, lhs_m23, lhs_m24, lhs_m31, lhs_m32, lhs_m33, lhs_m34, lhs_m41, lhs_m42, lhs_m43, lhs_m44;
@@ -1085,8 +1132,6 @@ INLINE void matrix3D_recompose( Matrix3D * m, Vector3D * position, Vector3D * sc
 **/
 INLINE Vector3D * matrix3D_transformVector( Vector3D * output, Matrix3D * m, Vector3D * v )
 {
-	//普通变换 12次乘法 + 12次加法
-	//投影变换 12次乘法 + 12次加法 + 3次除法
 	if (v->w == 1)
 	{
 		output->x = m->m11 * v->x + m->m21 * v->y + m->m31 * v->z + m->m41;
@@ -1102,16 +1147,13 @@ INLINE Vector3D * matrix3D_transformVector( Vector3D * output, Matrix3D * m, Vec
 		output->w = m->m14 * v->x + m->m24 * v->y + m->m34 * v->z + m->m44 * v->w;
 	}
 
-	if (output->w != 1)
-		vector3D_project( output );
+	if (output->w != 1) vector3D_project( output );
 
 	return output;
 }
 
 INLINE void matrix3D_transformVector_self( Matrix3D * m, Vector3D * v )
 {
-	//普通变换 12次乘法 + 12次加法
-	//投影变换 12次乘法 + 12次加法 + 3次除法
 	float x, y, z, w;
 
 	if (v->w == 1)
@@ -1134,8 +1176,7 @@ INLINE void matrix3D_transformVector_self( Matrix3D * m, Vector3D * v )
 	v->z = z;
 	v->w = w;
 
-	if (v->w != 1)
-		vector3D_project( v );
+	if (v->w != 1) vector3D_project( v );
 }
 
 /**

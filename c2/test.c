@@ -10,98 +10,86 @@
 #include "Entity.h"
 #include "Scene.h"
 #include "Viewport.h"
-#include "Polygon.h"
+#include "Triangle.h"
 #include "Mesh.h"
 #include "Render.h"
 #include "Vector3D.h"
 #include "Matrix3D.h"
 #include "AABB.h"
-#include "Color.h"
+#include "ARGBColor.h"
 #include "Material.h"
 #include "Texture.h"
 #include "Light.h"
 
 int main()
 {
-	//Matrix3D * m;
-	//Matrix3D * cloned;
-	//Quaternion * q;
-
-	//Vector3D v1, v3;
-	//Quaternion v2;
-
-	//float transformData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-
-	//m = newMatrix3D(&transformData);
-
-	//cloned = matrix3D_clone(m);
-
-	//matrix3D_appendTranslation(m, 200, 300, 400);
-	//matrix3D_appendRotationX(m, 45);
-	//matrix3D_appendRotationY(m, 45);
-	//matrix3D_appendRotationZ(m, 45);
-	//matrix3D_transpose(m);
-	//matrix3D_invert(m);
-	//matrix3D_appendScale(m, 3, 2, 1);
-
-	//v = matrix3D_transformVector(m, newVector3D(100, 200, 300, 1));
-
-	//q = quaternoin_setFromEuler(45 * PI / 180, 45 * PI / 180, 45 * PI / 180);
-	//m = quaternoin_getMatrix(q);
-
-	//matrix3D_decompose(m, &v1, &v2, &v3);
-
-	/*Camera * camera;
-	Viewport * view;
-	Scene * scene;
-	Polygon * tri;
-	Mesh * mesh;
-	Vertex * v;
-	Vertex * vArr[4];*/
-	Vector * point;
-	Vector3D * v3d;
-	Entity * entity, entity1;
-	uint32 d, d2;
-	float a, r, g, b, a2, r2, g2, b2;
-
-	Vector3D tv;
+	Triangle * face, *face2;
+	Mesh * mesh2;
+	Vertex * vArr2[9];
+	Vector * point2;
+	float pos2[18];
 
 	//test***************************
-	Matrix3D testM, testMP;
-	float transformData[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
 
 	time_t ts,te;
 	double delT;
 
-	float pos[8];
 	int i = 0, j = 0;
 
-	d = 0xff550000;
-	d2 = 0xff55ff00;
+	pos2[0] = -50.0f;
+	pos2[1] = -50.0f;
 
-	a = ((d >> 24) & 0xff) / 255.0f;
-	r = ((d >> 16) & 0xff) / 255.0f;
-	g = ((d >> 8) & 0xff) / 255.0f;
-	b = (d & 0xff) / 255.0f;
+	pos2[2] = -50.0f;
+	pos2[3] = 0.0f;
 
-	a2 = ((d2 >> 24) & 0xff) / 255.0f;
-	r2 = ((d2 >> 16) & 0xff) / 255.0f;
-	g2 = ((d2 >> 8) & 0xff) / 255.0f;
-	b2 = (d2 & 0xff) / 255.0f;
+	pos2[4] = -50.0f;
+	pos2[5] = 50.0f;
 
-	a *= a2;
-	r *= r2;
-	g *= g2;
-	b *= b2;
+	pos2[6] = 0.0f;
+	pos2[7] = -50.0f;
 
-	a *= 255;
-	r *= 255;
-	g *= 255;
-	b *= 255;
+	pos2[8] = 0.0f;
+	pos2[9] = 0.0f;
+
+	pos2[10] = 0.0f;
+	pos2[11] = 50.0f;
+
+	pos2[12] = 50.0f;
+	pos2[13] = -50.0f;
+
+	pos2[14] = 50.0f;
+	pos2[15] = 0.0f;
+
+	pos2[16] = 50.0f;
+	pos2[17] = 50.0f;
+
+	mesh2 = newMesh( 18, 9 );
+
+	for (; i < 18; i += 2)
+	{
+		mesh_push_vertex(mesh2, pos2[i], pos2[i+1], 0.0f);
+		vArr2[j] = & mesh2->vertices[j];
+		j++;
+	}
+
+	point2 = newVector(.5f, .5f);
+
+	mesh_push_triangle(mesh2, vArr2[0], vArr2[3], vArr2[1], point2, point2, point2, NULL);
+	mesh_push_triangle(mesh2, vArr2[4], vArr2[1], vArr2[3], point2, point2, point2, NULL);
+	mesh_push_triangle(mesh2, vArr2[1], vArr2[4], vArr2[2], point2, point2, point2, NULL);
+	mesh_push_triangle(mesh2, vArr2[5], vArr2[2], vArr2[4], point2, point2, point2, NULL);
+
+	
+	mesh_push_triangle(mesh2, vArr2[3], vArr2[6], vArr2[4], point2, point2, point2, NULL);
+	mesh_push_triangle(mesh2, vArr2[7], vArr2[4], vArr2[6], point2, point2, point2, NULL);
+	mesh_push_triangle(mesh2, vArr2[4], vArr2[7], vArr2[5], point2, point2, point2, NULL);
+	mesh_push_triangle(mesh2, vArr2[8], vArr2[5], vArr2[7], point2, point2, point2, NULL);
+
+	face = triangle_clone( & mesh2->faces[0] );
 
 	ts=clock();
 
-	for (i = 0; i < 100000000; i ++)
+	for (i = 0; i < 10000; i ++)
 	{
 		//newVector3D(100, 200, 0, 1);
 		//matrix3D_transformVector(&testM, v3d);
@@ -113,16 +101,17 @@ int main()
 		//matrix3D_invert(testMP);
 		//MAX(d, 1.0f);
 		//if ( d > 1.0f ) d = 1.0f;
+		
+		face = triangle_clone( & mesh2->faces[0] );
+		//face2 = newTriangle( face->vertex[0], face->vertex[1], face->vertex[2], face->vertex[0]->uv, face->vertex[1]->uv,  face->vertex[2]->uv, face->texture );
 	}
+
+	//memcpy(buffer, buffer2, 1024 * 1024 * sizeof(float));
 
 	te=clock();
 
 	delT = (double)(te-ts) / CLOCKS_PER_SEC;
-	//printf("%f\n",delT);
-	printf("%lx\n",d|d2);
-
-	d2 = ((int)a << 24) + ((int)r << 16) + ((int)g << 8) + (int)b;
-	printf("%lx\n",d2);
+	printf("%f\n",delT);
 
 	return 0;
 }

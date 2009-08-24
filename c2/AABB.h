@@ -68,15 +68,19 @@ AABB * newAABB()
 {
 	AABB * aabb;
 
-	if( ( aabb = ( AABB * )malloc( sizeof( AABB ) ) ) == NULL )
-	{
-		exit( TRUE );
-	}
+	if( ( aabb = ( AABB * )malloc( sizeof( AABB ) ) ) == NULL ) exit( TRUE );
 
-	aabb->min = newVector3D(FLT_MAX, FLT_MAX, FLT_MAX, 1);
-	aabb->max = newVector3D(- FLT_MAX, - FLT_MAX, - FLT_MAX, 1);
+	aabb->min = newVector3D( FLT_MAX, FLT_MAX, FLT_MAX, 1 );
+	aabb->max = newVector3D( - FLT_MAX, - FLT_MAX, - FLT_MAX, 1 );
 
 	return aabb;
+}
+
+void aabb_dispose( AABB * aabb )
+{
+	vector3D_dispose( aabb->min );
+	vector3D_dispose( aabb->max );
+	free( aabb );
 }
 
 INLINE Vector3D * aabb_corner(Vector3D * output, AABB * aabb, int i)
@@ -106,14 +110,6 @@ INLINE void aabb_add(AABB * aabb, Vector3D * p)
 	if (p->z > aabb->max->z) aabb->max->z = p->z;
 }
 
-void aabb_dispose( AABB * aabb )
-{
-	free( aabb->max );
-	free( aabb->min );
-	aabb->max = NULL;
-	aabb->min = NULL;
-}
-
 INLINE AABB * aabb_createFromAABB(AABB * box)
 {
 	AABB * aabb;
@@ -128,22 +124,6 @@ INLINE AABB * aabb_createFromAABB(AABB * box)
 	aabb_add( aabb, p );
 
 	return aabb;
-}
-
-INLINE void aabb_createFromSelf(AABB * * aabb)
-{
-	Vector3D min;
-	Vector3D max;
-
-	vector3D_copy( & min, ( * aabb )->min );
-	vector3D_copy( & max, ( * aabb )->max );
-
-	free( * aabb );
-
-	( * aabb ) = newAABB();
-
-	aabb_add( * aabb, & min );
-	aabb_add( * aabb, & max );
 }
 
 INLINE void aabb_copy(AABB * aabb, AABB * src)
