@@ -9,13 +9,15 @@ package cn.alchemy3d.view
 	import flash.display.BitmapData;
 	import flash.display.PixelSnapping;
 	import flash.display.Sprite;
-	import flash.geom.Point;
 	import flash.utils.ByteArray;
 
 	public class Viewport3D extends Sprite implements IDevice
 	{
 		public var pointer:uint;
 		public var mixedChannelPointer:uint;
+		public var nRenderListPointer:uint;
+		public var nCullListPointer:uint;
+		public var nClippListPointer:uint;
 		
 		public var viewWidth:Number;
 		public var viewHeight:Number;
@@ -28,6 +30,24 @@ package cn.alchemy3d.view
 		
 		protected var lib:Library;
 		protected var buffer:ByteArray;
+		
+		public function get nRenderList():int
+		{
+			buffer.position = nRenderListPointer;
+			return buffer.readInt();
+		}
+		
+		public function get nCullList():int
+		{
+			buffer.position = nCullListPointer;
+			return buffer.readInt();
+		}
+		
+		public function get nClippList():int
+		{
+			buffer.position = nClippListPointer;
+			return buffer.readInt();
+		}
 		
 		override public function get mouseX():Number
 		{
@@ -88,6 +108,9 @@ package cn.alchemy3d.view
 		{
 			pointer = ps[0];
 			mixedChannelPointer = ps[1];
+			nRenderListPointer = ps[2];
+			nCullListPointer = ps[3];
+			nClippListPointer = ps[4];
 		}
 		
 		public function render():void
