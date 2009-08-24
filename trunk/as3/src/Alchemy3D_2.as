@@ -53,7 +53,7 @@ package
 		
 		private var _lightMoving:Boolean = true;
 		private var _usingTexture:Boolean = true;
-		private var _lightingMode:int = 1;
+		private var _lightingMode:int = 2;
 		
 		public function Alchemy3D_2()
 		{
@@ -85,12 +85,14 @@ package
 			tf.y = 320;
 			addChild(tf);
 			
+			var tformat2:TextFormat = new TextFormat("arial", 12, 0xffffff, null, null, null, null, null, "right");
 			var tf2:TextField = new TextField();
-			tf2.defaultTextFormat = tformat;
+			tf2.defaultTextFormat = tformat2;
 			tf2.autoSize = "right";
 			tf2.text = "Alchemy3D Lighting Demo\nAuthor:牛牛猪 / LinFuQing";
-			tf2.x = 400;
-			tf2.y = 370;
+			tf2.selectable = false;
+			tf2.x = 440;
+			tf2.y = 363;
 			addChild(tf2);
 		}
 		
@@ -103,45 +105,39 @@ package
 			
 			var m:Material = new Material();
 			m.ambient = new ColorTransform(0.05, 0.05, 0.05, 1);
-			m.diffuse = new ColorTransform(.3, .8, .6, 1);
-			m.specular = new ColorTransform(1, 1, 1, 1);
+			m.diffuse = new ColorTransform(.3, .3, .3, 1);
+			m.specular = new ColorTransform(.2, .2, .2, 1);
 			m.power = 4;
 			
 			var m1:Material = new Material();
-			m1.ambient = new ColorTransform(.1, 0, 0, 1);
-			m1.diffuse = new ColorTransform(1, .8, 1, 1);
-			m1.specular = new ColorTransform(1, 1, 1, 1);
+			m1.ambient = new ColorTransform(0, 0, 0, 1);
+			m1.diffuse = new ColorTransform(.2, .2, .2, 1);
+			m1.specular = new ColorTransform(.2, .2, .2, 1);
 			m1.power = 4;
 			
 			var m2:Material = new Material();
-			m2.ambient = new ColorTransform(0.1, 0.1, 0.1, 1);
-			m2.diffuse = new ColorTransform(0.2, 1, .2, 1);
-			m2.specular = new ColorTransform(1, 1, 1, 1);
+			m2.ambient = new ColorTransform(0, 0, 0, 1);
+			m2.diffuse = new ColorTransform(0.4, .4, .4, 1);
+			m2.specular = new ColorTransform(.6, .6, .6, 1);
 			m2.power = 4;
 			
 			var m3:Material = new Material();
 			m3.ambient = new ColorTransform(0, 0, 0, 1);
-			m3.diffuse = new ColorTransform(.5, .5, .5, 1);
+			m3.diffuse = new ColorTransform(.6, .6, .6, 1);
 			m3.specular = new ColorTransform(1, 1, 1, 1);
-			m3.power = 4;
+			m3.power = 8;
 			
 			var lightM:Material = new Material();
 			lightM.ambient = new ColorTransform(0.5, 0, 0, 1);
 			lightM.diffuse = new ColorTransform(1, 0, 0, 1);
-			lightM.specular = new ColorTransform(0.6, 0, 0, 1);
-			lightM.power = 4;
 			
 			var lightM2:Material = new Material();
 			lightM2.ambient = new ColorTransform(0, .5, 0, 1);
 			lightM2.diffuse = new ColorTransform(0, 1, 0, 1);
-			lightM2.specular = new ColorTransform(0, .6, 0, 1);
-			lightM2.power = 4;
 			
 			var lightM3:Material = new Material();
 			lightM3.ambient = new ColorTransform(0, 0, 0.5, 1);
 			lightM3.diffuse = new ColorTransform(0, 0, 1, 1);
-			lightM3.specular = new ColorTransform(0, 0, 0.6, 1);
-			lightM3.power = 4;
 			
 			scene = new Scene3D();
 			addScene(scene);
@@ -171,58 +167,58 @@ package
 			s = new Sphere(m1, t2, 180, 16, 12);
 			scene.addEntity(s);
 			s.z = 1100;
+
+			s3 = new Sphere(m3, null, 120, 24, 18);
+			scene.addEntity(s3);
+			s3.x = 150;
+			s3.y = -60;
+			s3.z = 700;
 			
 			s2 = new Sphere(m2, t1, 120, 16, 12);
 			scene.addEntity(s2);
 			s2.x = -130;
 			s2.y = -60;
 			s2.z = 750;
-
-			s3 = new Sphere(m3, null, 120, 16, 12);
-			scene.addEntity(s3);
-			s3.x = 150;
-			s3.y = -60;
-			s3.z = 700;
 			
 			light = new Light3D(lightObj);
-//			scene.addLight(light);
+			scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
-			light.mode = LightType.MID_MODE;
+			light.mode = LightType.HIGH_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
 			light.source.y = 120;
 			light.source.x = 400;
 			light.source.z = 0;
 			light.ambient = new ColorTransform(0, 0, 0, 1);
-			light.diffuse = new ColorTransform(1, 0, 0, 1);
-			light.specular = new ColorTransform(0.6, 0, 0, 1);
+			light.diffuse = new ColorTransform(.8, 0, 0, 1);
+			light.specular = new ColorTransform(1, 0, 0, 1);
 			light.attenuation1 = .001;
 			light.attenuation2 = .0000001;
 			
 			light2 = new Light3D(lightObj2);
-//			scene.addLight(light2);
+			scene.addLight(light2);
 			light2.type = LightType.POINT_LIGHT;
-			light2.mode = LightType.MID_MODE;
+			light2.mode = LightType.HIGH_MODE;
 			light2.bOnOff = LightType.LIGHT_ON;
 			light2.source.y = 350;
 			light2.source.x = -900;
 			light2.source.z = 300;
 			light2.ambient = new ColorTransform(0, 0, 0, 1);
-			light2.diffuse = new ColorTransform(0, 1, 0, 1);
-			light2.specular = new ColorTransform(0, 0.6, 0, 1);
+			light2.diffuse = new ColorTransform(0, .8, 0, 1);
+			light2.specular = new ColorTransform(0, 1, 0, 1);
 			light2.attenuation1 = .001;
 			light2.attenuation2 = .0000001;
 			
 			light3 = new Light3D(lightObj3);
-//			scene.addLight(light3);
+			scene.addLight(light3);
 			light3.type = LightType.POINT_LIGHT;
-			light3.mode = LightType.MID_MODE;
+			light3.mode = LightType.HIGH_MODE;
 			light3.bOnOff = LightType.LIGHT_ON;
 			light3.source.y = -500;
 			light3.source.x = -400;
 			light3.source.z = 800;
 			light3.ambient = new ColorTransform(0, 0, 0, 1);
-			light3.diffuse = new ColorTransform(0, 0, 1, 1);
-			light3.specular = new ColorTransform(0, 0, .6, 1);
+			light3.diffuse = new ColorTransform(0, 0, .8, 1);
+			light3.specular = new ColorTransform(0, 0, 1, 1);
 			light3.attenuation1 = .001;
 			light3.attenuation2 = .0000001;
 			
@@ -256,9 +252,9 @@ package
 				switch ( _lightingMode )
 				{
 					case 0:
-						light.mode = LightType.EASY_MODE;
-						light2.mode = LightType.EASY_MODE;
-						light3.mode = LightType.EASY_MODE;
+						light.mode = LightType.LOW_MODE;
+						light2.mode = LightType.LOW_MODE;
+						light3.mode = LightType.LOW_MODE;
 						break;
 					case 1:
 						light.mode = LightType.MID_MODE;
@@ -336,7 +332,7 @@ package
 			
 			camera.hover(mx, my, 10);
 
-			s2.rotationY = 43;
+			s2.rotationY ++;
 			
 			super.onRenderTick(e);
 		}

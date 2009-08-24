@@ -12,9 +12,9 @@ package cn.alchemy3d.objects
 	
 	public class Mesh3D extends Entity implements ISceneNode
 	{
-		public function Mesh3D(material:Material = null, texture:Texture = null, name:String = "")
+		public function Mesh3D(material:Material, texture:Texture = null, name:String = "")
 		{
-			super(material == null ? new Material : material, texture, name);
+			super(material == null ? new Material() : material, texture, name);
 			
 			vertices = new Vector.<Vertex3D>();
 			faces = new Vector.<Triangle3D>();
@@ -68,7 +68,9 @@ package cn.alchemy3d.objects
 		public function setVerticesZ(index:int, value:Number):void
 		{
 			vertices[index].z = value;
+			//获得顶点缓冲区的起始指针
 			buffer.position = meshBuffPointer + index * 16 + 8;
+			//写入数据
 			buffer.writeFloat(value);
 		}
 		
@@ -115,19 +117,19 @@ package cn.alchemy3d.objects
 		override public function initialize(scene:Scene3D):void
 		{
 			fillVerticesToBuffer();
-			fillFacesToBuffer();
+			fillFacesToBuffer()
 			
+			super.initialize(scene);
+		}
+		
+		override protected function callAlchemy():Array
+		{
 			var tPtr:uint = texture == null ? 0 : texture.pointer;
 			var mPtr:uint = material == null ? 0 : material.pointer;
 			var parentPtr:uint = parent == null ? 0 : parent.pointer;
 			var scenePtr:uint = scene == null ? 0 : scene.pointer;
 			
-			allotPtr(lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, meshBuffPointer, vertices.length, faces.length));
-			
-			for each (var child:Entity in this.children)
-			{
-				child.initialize(scene);
-			}
+			return lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, meshBuffPointer, vertices.length, faces.length);
 		}
 		
 		override protected function allotPtr(ps:Array):void

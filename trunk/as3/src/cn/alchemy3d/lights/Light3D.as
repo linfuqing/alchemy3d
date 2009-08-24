@@ -248,7 +248,7 @@ package cn.alchemy3d.lights
 		
 		public function Light3D(source:Entity)
 		{
-			_mode = LightType.EASY_MODE;
+			_mode = LightType.LOW_MODE;
 			_bOnOff = LightType.LIGHT_OFF;
 			
 			_ambient = new ColorTransform(0.4, 0.4, 0.4, 1);
