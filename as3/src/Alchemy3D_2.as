@@ -73,7 +73,7 @@ package
 		
 		private function showInfo():void
 		{
-			var fps:FPS = new FPS(scene);
+			var fps:FPS = new FPS(scene, viewport);
 			addChild(fps);
 			
 			var tformat:TextFormat = new TextFormat("arial", 10, 0xffffff);
