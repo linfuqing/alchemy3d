@@ -192,6 +192,12 @@ void entity_setMesh( Entity * entity, Mesh * m )
 		{
 			m->faces[i].texture = entity->texture;
 		}
+
+		for( i = 0; i < m->nVertices; i ++ )
+		{
+			m->vertices[i].uv->u *= (int)( entity->texture->width + 0.5 );
+			m->vertices[i].uv->u *= (int)( entity->texture->height + 0.5 );
+		}
 	}
 
 	entity->mesh = m;
@@ -211,6 +217,12 @@ void entity_setTexture( Entity * entity, Texture * t )
 		for( ; i < entity->mesh->nFaces; i ++ )
 		{
 			entity->mesh->faces[i].texture = t;
+		}
+
+		for( i = 0; i < entity->mesh->nVertices; i ++ )
+		{
+			entity->mesh->vertices[i].uv->u *= (int)( t->width + 0.5 );
+			entity->mesh->vertices[i].uv->v *= (int)( t->height + 0.5 );
 		}
 	}
 

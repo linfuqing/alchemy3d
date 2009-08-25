@@ -9,38 +9,56 @@
 #include "Camera.h"
 #include "Matrix3D.h"
 #include "Vector3D.h"
-#include "Clipping.h"
 
-void viewport_resize( Viewport * viewport, float width, float height )
+#define NUM_PER_RL_INIT 50
+
+typedef struct RenderList
 {
-	int wh = (int)width * (int)height;
+	Triangle * polygon;
+
+	struct RenderList * next;
+	struct RenderList * pre;
+}RenderList;
+
+typedef struct Viewport
+{
+	//高宽积，是否更改属性，渲染数，裁剪数，剔除数
+	int wh, dirty, nRenderList, nClippList, nCullList;
+
+	//视口宽高和宽高比
+	int width, height;
+
+	float aspect;
+
+	//深度缓冲区
+	LPBYTE zBuffer;
+
+	//视频缓冲区
+	LPBYTE videoBuffer;
+
+	struct Scene * scene;
+
+	struct Camera * camera;
+
+	struct RenderList * renderList, * clippedList;
+}Viewport;
+
+void viewport_resize( Viewport * viewport, int width, int height )
+{
+	int wh = width * height;
 
 	viewport->width = width;
 	viewport->height = height;
-	viewport->offsetX = width * 0.5f;
-	viewport->offsetY = height * 0.5f;
-	viewport->aspect = width / height;
+	viewport->aspect = (float)width / (float)height;
 	viewport->wh = wh;
 	viewport->dirty = TRUE;
 
-	if ( NULL != viewport->mixedChannel ) free( viewport->mixedChannel );
+	if ( NULL != viewport->videoBuffer ) free( viewport->videoBuffer );
 	if ( NULL != viewport->zBuffer ) free( viewport->zBuffer );
 
 	//初始化缓冲区
-	if( ( viewport->mixedChannel	= ( LPDWORD )malloc( sizeof( DWORD ) * wh ) ) == NULL ) exit( TRUE );
-	if( ( viewport->zBuffer			= ( float * )malloc( sizeof( float ) * wh ) ) == NULL ) exit( TRUE );
-}
-
-void view_attachCamera( Viewport * viewport, Camera * camera)
-{
-	viewport->camera = camera;
-	viewport->dirty = TRUE;
-}
-
-void view_attachScene( Viewport * viewport, Scene * scene)
-{
-	viewport->scene = scene;
-	viewport->dirty = TRUE;
+	if( ( viewport->videoBuffer	= ( LPBYTE )malloc( sizeof( BYTE ) * wh * sizeof( int ) ) ) == NULL ) exit( TRUE );
+	if( ( viewport->zBuffer			= ( LPBYTE )malloc( sizeof( BYTE ) * wh * sizeof( int ) ) ) == NULL ) exit( TRUE );
 }
 
 RenderList * initializeRenderList( int number )
@@ -67,37 +85,13 @@ RenderList * initializeRenderList( int number )
 	return renderList;
 }
 
-RenderVList * initializeRenderVList( int number )
-{
-	int i = 0;
-
-	RenderVList * renderVList, * lastRenderVList;
-
-	lastRenderVList = NULL;
-
-	for ( ; i < number; i ++ )
-	{
-		if( ( renderVList = ( RenderVList * )malloc( sizeof( RenderVList ) ) ) == NULL ) exit( TRUE );
-
-		renderVList->vertex = NULL;
-
-		renderVList->next = lastRenderVList;
-
-		if ( lastRenderVList ) lastRenderVList->pre = renderVList;
-
-		lastRenderVList = renderVList;
-	}
-
-	return renderVList;
-}
-
-Viewport * newViewport( float width, float height, Scene * scene, Camera * camera )
+Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 {
 	Viewport * viewport;
 
 	if( (viewport = ( Viewport * )malloc( sizeof( Viewport ) ) ) == NULL) exit( TRUE );
 
-	viewport->mixedChannel = NULL;
+	viewport->videoBuffer = NULL;
 
 	viewport->zBuffer = NULL;
 
@@ -120,11 +114,26 @@ Viewport * newViewport( float width, float height, Scene * scene, Camera * camer
 	return viewport;
 }
 
+#ifdef __NOT_AS3__
+
+INLINE void Mem_Set_QUAD( void *dest, DWORD data, int count )
+{
+	_asm 
+    { 
+		mov edi, dest   ; edi points to destination memory
+		mov ecx, count  ; number of 32-bit words to move
+		mov eax, data   ; 32-bit data
+		rep stosd       ; move data
+    }
+}
+
+#endif
+
 void viewport_updateBeforeRender( Viewport * viewport )
 {
-	float * zBuf = viewport->zBuffer;
+	LPDWORD zBuf = ( LPDWORD )viewport->zBuffer;
 
-	LPDWORD mixedChannel = viewport->mixedChannel;
+	LPDWORD videoBuffer = ( LPDWORD )viewport->videoBuffer;
 
 	int wh = viewport->wh;
 
@@ -133,11 +142,20 @@ void viewport_updateBeforeRender( Viewport * viewport )
 	int m = 0;
 
 	//初始化缓冲区
+#ifdef __NOT_AS3__
+	
+	Mem_Set_QUAD( ( void * )zBuf, 0, wh );
+	memset( videoBuffer, 0, wh );
+
+#else
+
 	for ( ; m < wh; m ++ )
 	{
-		zBuf[m] = FLT_MAX;
-		mixedChannel[m] = 0;
+		zBuf[m] = 0;
+		videoBuffer[m] = 0;
 	}
+
+#endif
 
 	//如果场景有改变
 	if ( TRUE == viewport->scene->dirty )
@@ -170,7 +188,388 @@ void viewport_updateBeforeRender( Viewport * viewport )
 		}
 	}
 
-	viewport->nRenderList = 0;
+	viewport->nRenderList = viewport->nClippList = viewport->nCullList = 0;
+}
+
+INLINE void extendRenderList( RenderList ** rl_ptr, int length )
+{
+	RenderList * newRL;
+
+	newRL = initializeRenderList( length );
+
+	newRL->pre = * rl_ptr;
+
+	(* rl_ptr)->next = newRL;
+}
+
+INLINE void insertFaceToList( RenderList ** rl_ptr, Triangle * face)
+{
+	//如果到达渲染列表尾部，则插入NUM_PER_RL_INIT个新的结点(注意保留表尾)
+	if ( NULL == (* rl_ptr)->next )
+		extendRenderList( rl_ptr, NUM_PER_RL_INIT );
+
+	( * rl_ptr )->polygon = face;
+	( * rl_ptr ) = ( * rl_ptr )->next;
+}
+
+//基于AABB包围盒的视空间裁剪
+//entity		当前要处理的实体
+//worldZNear	近截面的世界坐标
+//worldZFar		远截面的世界坐标
+//rl_ptr		当前渲染列表的指针
+//cl_ptr		当前裁剪列表的指针
+int frustumCulling( Viewport * viewport, Entity * entity, float worldZNear, float worldZFar, RenderList ** rl_ptr, RenderList ** cl_ptr )
+{
+	int code = 0;
+
+	AABB * worldAABB = entity->mesh->worldAABB;
+	AABB * CVVAABB = entity->mesh->CVVAABB;
+
+	//输出码为非零侧实体离屏
+	if ( CVVAABB->max->x < -1 )	code |= 0x01;
+	if ( CVVAABB->min->x > 1 )	code |= 0x02;
+	if ( CVVAABB->max->y < -1 )	code |= 0x04;
+	if ( CVVAABB->min->y > 1 )	code |= 0x08;
+	if ( worldAABB->max->z <= worldZNear )	code |= 0x10;
+	if ( worldAABB->min->z >= worldZFar )	code |= 0x20;
+
+	//如果实体离屏
+	if ( code > 0 )
+	{
+		//累计离屏多边形
+		viewport->nCullList += entity->mesh->nFaces;
+	}
+	else
+	{
+		int j, zCode0, zCode1, zCode2, verts_out, crossNear = FALSE;
+
+		Vector3D viewerToLocal;
+
+		Triangle * face, * face1, * face2;
+
+		AABB * worldAABB = entity->mesh->worldAABB;
+
+		int v0, v1, v2;
+
+		Vertex * tmpVert1, * tmpVert2;
+
+		float t1, t2,  xi, yi, ui, vi, x01i, x02i, y01i, y02i, u01i, u02i, v01i, v02i;
+
+		Vector3D v;
+
+		Vertex * ver1_0, * ver1_1, * ver1_2, * ver2_0, * ver2_1, * ver2_2;
+
+		//测试包围盒是否穿越近截面
+		if ( worldAABB->max->z > worldZNear && worldAABB->min->z < worldZNear ) crossNear = TRUE;
+
+		//不离屏则继续
+		//遍历面
+		for( j = 0; j < entity->mesh->nFaces; j ++)
+		{
+			zCode0 = zCode1 = zCode2 = 0;
+
+			//越界标记置0
+			verts_out = FALSE;
+
+			face = & entity->mesh->faces[j];
+
+			face1 = face2 = NULL;
+
+			tmpVert1 = tmpVert2 = NULL;
+
+			//背面剔除
+			vector3D_subtract( & viewerToLocal, entity->viewerToLocal, face->center );
+
+			vector3D_normalize( & viewerToLocal );
+
+			//如果夹角大于90或小于-90时，即背向摄像机
+			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.0f ) continue;
+
+			//如果包围盒穿越近截面，则进一步检测面是否穿越近截面
+			if ( TRUE == crossNear )
+			{
+				if ( face->vertex[0]->worldPosition->z <= worldZNear )
+				{
+					verts_out ++;
+
+					zCode0 = 0x01;
+				}
+
+				if ( face->vertex[1]->worldPosition->z <= worldZNear )
+				{
+					verts_out ++;
+
+					zCode1 = 0x02;
+				}
+
+				if ( face->vertex[2]->worldPosition->z <= worldZNear )
+				{
+					verts_out ++;
+
+					zCode2 = 0x04;
+				}
+
+				//输出码为非零则面穿越近截面
+				if ( zCode0 | zCode1 | zCode2 )
+				{
+					//开始裁剪
+					//分两种情况
+					//1、只有一个顶点在近截面内侧
+					if ( verts_out == 2 )
+					{
+						//累计裁剪多边形
+						viewport->nClippList ++;
+
+						//检查当前裁剪列表指针的面指针是否为空
+						//如果是则恢复为原始信息
+						if ( ( * cl_ptr )->polygon )
+						{
+							face1 = ( * cl_ptr )->polygon;
+
+							triangle_copy( face1, face );
+
+							( * cl_ptr ) = ( * cl_ptr )->next;
+						}
+						//否则创建一个新三角形
+						else
+						{
+							//克隆一个面
+							face1 = triangle_clone( face );
+
+							//插入裁剪列表
+							insertFaceToList( cl_ptr, face1 );
+						}
+
+						//找出位于内侧的顶点
+						if ( zCode0 == 0x01 && zCode1 == 0x02 )
+						{
+							v0 = 2;	v1 = 0;	v2 = 1;
+						}
+						else if ( zCode1 == 0x02 && zCode2 == 0x04 )
+						{
+							v0 = 0;	v1 = 1;	v2 = 2;
+						}
+						else
+						{
+							v0 = 1;	v1 = 2;	v2 = 0;
+						}
+
+						ver1_0 = face1->vertex[v0];
+						ver1_1 = face1->vertex[v1];
+						ver1_2 = face1->vertex[v2];
+
+						//对各边裁剪
+
+						//=======================对v0->v1边进行裁剪=======================
+						vector3D_subtract( & v, ver1_1->worldPosition, ver1_0->worldPosition );
+
+						t1 = ( ( worldZNear - ver1_0->worldPosition->z ) / v.z );
+
+						//计算交点x、y坐标
+						xi = ver1_0->worldPosition->x + v.x * t1;
+						yi = ver1_0->worldPosition->y + v.y * t1;
+
+						//用交点覆盖原来的顶点
+						ver1_1->worldPosition->x = xi;
+						ver1_1->worldPosition->y = yi;
+						ver1_1->worldPosition->z = worldZNear;
+
+						//=======================对v0->v2边进行裁剪=======================
+						vector3D_subtract( & v, ver1_2->worldPosition, ver1_0->worldPosition );
+
+						t2 = ( ( worldZNear - ver1_0->worldPosition->z ) / v.z );
+
+						//计算交点x、y坐标
+						xi = ver1_0->worldPosition->x + v.x * t2;
+						yi = ver1_0->worldPosition->y + v.y * t2;
+
+						//用交点覆盖原来的顶点
+						ver1_2->worldPosition->x = xi;
+						ver1_2->worldPosition->y = yi;
+						ver1_2->worldPosition->z = worldZNear;
+
+						//检查多边形是否带纹理
+						//如果有，则对纹理坐标进行裁剪
+						if ( NULL != face->texture )
+						{
+							ui = ver1_0->uv->u + ( ver1_1->uv->u - ver1_0->uv->u ) * t1;
+							vi = ver1_0->uv->v + ( ver1_1->uv->v - ver1_0->uv->v ) * t1;
+
+							ver1_1->uv->u = ui;
+							ver1_1->uv->v = vi;
+
+							ui = ver1_0->uv->u + ( ver1_2->uv->u - ver1_0->uv->u ) * t2;
+							vi = ver1_0->uv->v + ( ver1_2->uv->v - ver1_0->uv->v ) * t2;
+
+							ver1_2->uv->u = ui;
+							ver1_2->uv->v = vi;
+						}
+					}
+					else if ( verts_out == 1 )
+					{
+						//三角形被裁剪后为四边形，需要分割为两个三角形
+
+						//累计裁剪多边形
+						viewport->nClippList += 2;
+
+						//检查当前裁剪列表指针的面指针是否为空
+						//如果是则恢复为原始信息
+						if ( ( * cl_ptr )->polygon )
+						{
+							face1 = ( * cl_ptr )->polygon;
+
+							triangle_copy( face1, face );
+
+							( * cl_ptr ) = ( * cl_ptr )->next;
+						}
+						//否则创建一个新三角形
+						else
+						{
+							//克隆一个面
+							face1 = triangle_clone( face );
+
+							//插入裁剪列表
+							insertFaceToList( cl_ptr, face1 );
+						}
+						
+						if ( ( * cl_ptr )->polygon )
+						{
+							face2 = ( * cl_ptr )->polygon;
+
+							triangle_copy( face2, face );
+
+							( * cl_ptr ) = ( * cl_ptr )->next;
+						}
+						//否则创建一个新三角形
+						else
+						{
+							//克隆一个面
+							face2 = triangle_clone( face );
+
+							//插入裁剪列表
+							insertFaceToList( cl_ptr, face2 );
+						}
+
+						//找出位于外侧的顶点
+						if ( zCode0 == 0x01 )
+						{
+							v0 = 0;	v1 = 1;	v2 = 2;
+						}
+						else if ( zCode1 == 0x02 )
+						{
+							v0 = 1;	v1 = 2;	v2 = 0;
+						}
+						else
+						{
+							v0 = 2;	v1 = 0;	v2 = 1;
+						}
+
+						ver1_0 = face1->vertex[v0];
+						ver1_1 = face1->vertex[v1];
+						ver1_2 = face1->vertex[v2];
+
+						ver2_0 = face2->vertex[v0];
+						ver2_1 = face2->vertex[v1];
+						ver2_2 = face2->vertex[v2];
+
+						//对各边裁剪
+
+						//=======================对v0->v1边进行裁剪=======================
+						vector3D_subtract( &v, ver1_1->worldPosition, ver1_0->worldPosition );
+
+						t1 = ( ( worldZNear - ver1_0->worldPosition->z ) / v.z );
+
+						x01i = ver1_0->worldPosition->x + v.x * t1;
+						y01i = ver1_0->worldPosition->y + v.y * t1;
+
+						//=======================对v0->v2边进行裁剪=======================
+						vector3D_subtract( &v, ver1_2->worldPosition, ver1_0->worldPosition );
+
+						t2 = ( ( worldZNear - ver1_0->worldPosition->z ) / v.z );
+
+						x02i = ver1_0->worldPosition->x + v.x * t2;
+						y02i = ver1_0->worldPosition->y + v.y * t2;
+
+						//计算出交点后需要用交点1覆盖原来的三角形顶点
+						//分割后的第一个三角形
+
+						//用交点1覆盖原来三角形的顶点0
+						ver1_0->worldPosition->x = x01i;
+						ver1_0->worldPosition->y = y01i;
+						ver1_0->worldPosition->z = worldZNear;
+
+						//用交点1覆盖新三角形的顶点1，交点2覆盖顶点0
+						ver2_1->worldPosition->x = x01i;
+						ver2_1->worldPosition->y = y01i;
+						ver2_1->worldPosition->z = worldZNear;
+
+						ver2_0->worldPosition->x = x02i;
+						ver2_0->worldPosition->y = y02i;
+						ver2_0->worldPosition->z = worldZNear;
+
+						//检查多边形是否带纹理
+						//如果有，则对纹理坐标进行裁剪
+						if ( NULL != face->texture )
+						{
+							u01i = ver1_0->uv->u + ( ver1_1->uv->u - ver1_0->uv->u ) * t1;
+							v01i = ver1_0->uv->v + ( ver1_1->uv->v - ver1_0->uv->v ) * t1;
+
+							u02i = ver1_0->uv->u + ( ver1_2->uv->u - ver1_0->uv->u ) * t2;
+							v02i = ver1_0->uv->v + ( ver1_2->uv->v - ver1_0->uv->v ) * t2;
+
+							//覆盖原来的纹理坐标
+							ver1_0->uv->u = u01i;
+							ver1_0->uv->v = v01i;
+
+							ver2_1->uv->u = u01i;
+							ver2_1->uv->v = v01i;
+
+							ver2_0->uv->u = u02i;
+							ver2_0->uv->v = v02i;
+						}
+
+						//计算顶点法线
+					}
+					//所有顶点在近截面外则
+					else
+					{
+						//累计剔除多边形
+						viewport->nCullList ++;
+
+						continue;
+					}
+				}
+			}
+
+			//插入新建的面
+			//如果没有新面，则插入原来的面
+			if ( NULL == face1 && NULL == face2 )
+			{
+				insertFaceToList( rl_ptr, face );
+
+				viewport->nRenderList ++;
+			}
+			//否则插入新面
+			else
+			{
+				if ( NULL != face1 )
+				{
+					insertFaceToList( rl_ptr, face1 );
+
+					viewport->nRenderList ++;
+				}
+
+				if ( NULL != face2 )
+				{
+					insertFaceToList( rl_ptr, face2 );
+
+					viewport->nRenderList ++;
+				}
+			}
+		}
+	}
+
+	return code;
 }
 
 void viewport_project( Viewport * viewport )
@@ -191,6 +590,8 @@ void viewport_project( Viewport * viewport )
 	Vector3D vFDist, * vLightsToObject, vLightToVertex, vVertexToLight, vVertexToCamera;
 	FloatColor fColor, lastColor, mColor, outPutColor;
 	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
+
+	float oneOverMag;
 
 	int l = 0, j = 0;
 
@@ -243,7 +644,7 @@ void viewport_project( Viewport * viewport )
 		matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
 
 		//基于包围盒的视锥体剔除
-		if ( frustumCulling( entity, worldZNear, worldZFar, & rl_ptr, & cl_ptr ) > 0 )
+		if ( frustumCulling( viewport, entity, worldZNear, worldZFar, & rl_ptr, & cl_ptr ) > 0 )
 		{
 			sceneNode = sceneNode->next;
 
@@ -486,6 +887,11 @@ void viewport_project( Viewport * viewport )
 				//把顶点变换到CVV
 				matrix3D_transformVector( vs->viewPosition, & view_projection, vs->worldPosition );
 
+				oneOverMag = 1.0f / vs->viewPosition->w;
+
+				vs->viewPosition->x *= oneOverMag;
+				vs->viewPosition->y *= oneOverMag;
+
 				vs->viewPosition->x += 0.5f;
 				vs->viewPosition->y += 0.5f;
 
@@ -513,12 +919,14 @@ void viewport_project( Viewport * viewport )
 	}
 }
 
-INLINE void getMixedColor( WORD a, WORD r, WORD g, WORD b, int u, int v, int pos, Texture * texture, LPDWORD mixedChannel );
-void wireframe_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 );
-void triangle_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 );
-void triangle_rasterize_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture );
-void triangle_rasterize_light( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 );
-void triangle_rasterize_light_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture );
+//INLINE void getMixedColor( WORD a, WORD r, WORD g, WORD b, int u, int v, int pos, Texture * texture, LPDWORD videoBuffer );
+//void wireframe_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 );
+//void triangle_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 );
+//void triangle_rasterize_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture );
+//void triangle_rasterize_light( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 );
+//void triangle_rasterize_light_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture );
+
+void Draw_Textured_TriangleINVZB_16( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y );
 
 void viewport_render(Viewport * view)
 {
@@ -540,29 +948,31 @@ void viewport_render(Viewport * view)
 
 		vertex = face->vertex;
 
-		if ( NULL == scene->lights)
-		{
-			if ( NULL == face->texture )
-			{
-				triangle_rasterize( view, vertex[0], vertex[1], vertex[2] );
-				//wireframe_rasterize( view, vertex[0], vertex[1], vertex[2] );
-			}
-			else
-			{
-				triangle_rasterize_texture( view, vertex[0], vertex[1], vertex[2], face->texture );
-			}
-		}
-		else
-		{
-			if ( NULL == face->texture )
-			{
-				triangle_rasterize_light( view, vertex[0], vertex[1], vertex[2] );
-			}
-			else
-			{
-				triangle_rasterize_light_texture( view,  vertex[0], vertex[1], vertex[2], face->texture );
-			}
-		}
+		Draw_Textured_TriangleINVZB_16( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+
+		//if ( NULL == scene->lights)
+		//{
+		//	if ( NULL == face->texture )
+		//	{
+		//		triangle_rasterize( view, vertex[0], vertex[1], vertex[2] );
+		//		//wireframe_rasterize( view, vertex[0], vertex[1], vertex[2] );
+		//	}
+		//	else
+		//	{
+		//		triangle_rasterize_texture( view, vertex[0], vertex[1], vertex[2], face->texture );
+		//	}
+		//}
+		//else
+		//{
+		//	if ( NULL == face->texture )
+		//	{
+		//		triangle_rasterize_light( view, vertex[0], vertex[1], vertex[2] );
+		//	}
+		//	else
+		//	{
+		//		triangle_rasterize_light_texture( view,  vertex[0], vertex[1], vertex[2], face->texture );
+		//	}
+		//}
 
 		rl = rl->next;
 	}
