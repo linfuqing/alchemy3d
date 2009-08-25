@@ -5,4723 +5,958 @@
 #include "Vertex.h"
 #include "Texture.h"
 
-#define FLAT_TOP_TRIANGLE		0	//平顶三角形
-#define FLAT_BOTTOM_TRIANGLE	1	//平底三角形
-#define GENERAL_TRIANGLE		2	//一般三角形
+#define TRI_TYPE_NONE 0
+#define TRI_TYPE_FLAT_TOP 1
+#define TRI_TYPE_FLAT_BOTTOM 2
+#define TRI_TYPE_FLAT_MASK 3
+#define TRI_TYPE_GENERAL 4
+#define INTERP_LHS 0
+#define INTERP_RHS 1
 
-//INLINE DWORD computePixelColor( float r, float g, float b, float a, float u, float v, Texture * texture )
-//{
-//	LPWORD ARGBBuffer = texture->ARGBBuffer;
-//	int pos = ((int)(u * (texture->width - 1) + 0.5) + ( (int)(v * (texture->height - 1) + 0.5) * texture->width )) << 2;
-//
-//	a *= ARGBBuffer[pos];
-//	r *= ARGBBuffer[++pos];
-//	g *= ARGBBuffer[++pos];
-//	b *= ARGBBuffer[++pos];
-//
-//	return ((int)a << 24) + ((int)r << 16) + ((int)g << 8) + (int)b;
-//}
+#define RASTERIZER_ACCURATE 0
+#define RASTERIZER_FAST 1
+#define RASTERIZER_FASTEST 2
 
-//INLINE DWORD computePixelColor2( float u, float v, Texture * texture )
-//{
-//	LPWORD ARGBBuffer = texture->ARGBBuffer;
-//	int pos;
-//
-//	pos = ((int)(u * texture->width) + (int)(v * texture->height * texture->width )) << 2;
-//
-//	return ((int)ARGBBuffer[pos] << 24) + ((int)ARGBBuffer[++pos] << 16) + ((int)ARGBBuffer[++pos] << 8) + (int)ARGBBuffer[++pos];
-//	return 0;
-//}
+#define RASTERIZER_MODE RASTERIZER_ACCURATE
 
-INLINE void getMixedColor( WORD a, WORD r, WORD g, WORD b, int u, int v, int pos, Texture * texture, LPDWORD mixedChannel )
+void Draw_Textured_TriangleINVZB_16( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
 {
-	int pos2 = (u + v) << 2;
-	LPWORD ARGBBuffer = texture->ARGBBuffer;
+	int v0 = 0,
+		v1 = 1,
+		v2 = 2,
+		temp = 0,
+		tri_type = TRI_TYPE_NONE,
+		irestart = INTERP_LHS;
 
-	a = ARGBBuffer[pos2];
-	r += ARGBBuffer[++pos2];
-	g += ARGBBuffer[++pos2];
-	b += ARGBBuffer[++pos2];
+	int dx,dy,dyl,dyr, // general deltas
+		du,dv,dz,
+		xi,yi, // the current interpolated x,y
+		ui,vi, // the current interpolated u,v,z
+		xstart,
+		xend,
+		ystart,
+		yrestart,
+		yend,
+		xl,
+		dxdyl,
+		xr,
+		dxdyr,
+		dudyl,
+		ul,
+		dvdyl,
+		vl,
+		dzdyl,
+		zl,
+		dudyr,
+		ur,
+		dvdyr,
+		vr,
+		dzdyr,
+		zr;
 
-	/*a >>= 8;
-	r >>= 8;
-	g >>= 8;
-	b >>= 8;*/
+	DWORD zi;
 
-	r = MIN( r, 255 );
-	g = MIN( g, 255 );
-	b = MIN( b, 255 );
+	int x0,y0,tu0,tv0,tz0, // cached vertices
+		x1,y1,tu1,tv1,tz1,
+		x2,y2,tu2,tv2,tz2;
 
-	mixedChannel[pos] = (a << 24) + (r << 16) + (g << 8) + b;
-}
+	int texture_shift2;
 
-INLINE void getPixelColor( WORD a, WORD r, WORD g, WORD b, int pos, LPDWORD mixedChannel)
-{
-	mixedChannel[pos] = (a << 24) + (r << 16) + (g << 8) + b;
-}
+	DWORD *screen_ptr = NULL,
+		*textmap = NULL,
+		*dest_buffer = (DWORD *)_dest_buffer;
 
-INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWORD mixedChannel)
-{
-	int pos2 = (u + v) << 2;
-	LPWORD ARGBBuffer = texture->ARGBBuffer;
-	WORD a, r, g, b;
+	DWORD *z_ptr = NULL,
+		*zbuffer = (DWORD *)_zbuffer;
 
-	a = ARGBBuffer[pos2];
-	r = ARGBBuffer[++pos2];
-	g = ARGBBuffer[++pos2];
-	b = ARGBBuffer[++pos2];
+	// extract texture map
+	textmap = (DWORD *)face->texture->pRGBABuffer;
 
-	mixedChannel[pos] = (a << 24) + (r << 16) + (g << 8) + b;
-}
+	// extract base 2 of texture width
+	texture_shift2 = logbase2ofx[face->texture->width];
 
-//INLINE void mixedTexture( LPDWORD mixedChannel, LPWORD colorChannel, LPWORD textureChannel, int pWH )
-//{
-//	int i = 0, j = 0;
-//	WORD a1 = 0, r1 = 0, g1 = 0, b1 = 0, a2 = 0, r2 = 0, g2 = 0, b2 = 0;
-//
-//	for ( ; i < pWH; i ++, j += 4 )
-//	{
-//		a1 = colorChannel[j];
-//		r1 = colorChannel[j+1];
-//		g1 = colorChannel[j+2];
-//		b1 = colorChannel[j+3];
-//
-//		a2 = textureChannel[j];
-//		r2 = textureChannel[j+1];
-//		g2 = textureChannel[j+2];
-//		b2 = textureChannel[j+3];
-//
-//		//if ( a1 == 0 && r1 == 0 && ) continue;
-//
-//		a1 += a2;
-//		r1 += r2;
-//		g1 += g2;
-//		b1 += b2;
-//
-//		a1 = MIN( a1, 255 );
-//		r1 = MIN( r1, 255 );
-//		g1 = MIN( g1, 255 );
-//		b1 = MIN( b1, 255 );
-//
-//		mixedChannel[i] = (a1 << 24) + (r1 << 16) + (g1 << 8) + b1;
-//	}
-//}
+	// adjust memory pitch to words, divide by 2
+	mem_pitch >>= 2;
 
-void wireframe_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 )
-{
-	Vertex	* tmpV;
-	float			* zBuffer = view->zBuffer;
+	// adjust zbuffer pitch for 32 bit alignment
+	zpitch >>= 2;
 
-	int				resX = (int)view->width, resY = (int)view->height;
-	int				x0, y0, x1, y1, x2, y2, nw, nh, side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
-	float			z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, currZ, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dzdx, temp2;
-	WORD			a, r, g, b;
+	// apply fill convention to coordinates
+	x0 = (int)(face->vertex[0]->viewPosition->x + 0.5);
+	y0 = (int)(face->vertex[0]->viewPosition->y + 0.5);
 
-	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
-	{
+	x1 = (int)(face->vertex[1]->viewPosition->x + 0.5);
+	y1 = (int)(face->vertex[1]->viewPosition->y + 0.5);
+
+	x2 = (int)(face->vertex[2]->viewPosition->x + 0.5);
+	y2 = (int)(face->vertex[2]->viewPosition->y + 0.5);
+
+	// first trivial clipping rejection tests
+	if (((y0 < min_clip_y) &&
+		(y1 < min_clip_y) &&
+		(y2 < min_clip_y)) ||
+
+		((y0 > max_clip_y) &&
+		(y1 > max_clip_y) &&
+		(y2 > max_clip_y)) ||
+
+		((x0 < min_clip_x) &&
+		(x1 < min_clip_x) &&
+		(x2 < min_clip_x)) ||
+
+		((x0 > max_clip_x) &&
+		(x1 > max_clip_x) &&
+		(x2 > max_clip_x)))
 		return;
+
+	// sort vertices
+	if ( y1 < y0 )
+	{
+		SWAP( v0, v1, temp );
 	}
 
-	//判断是否是一条线，如果是，则返回。
-	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
+	if ( y2 < y0 )
 	{
-		return;
+		SWAP( v0, v2, temp );
 	}
 
-	//*************************************** start draw ************************************
-	nw = resX - 1;
-	nh = resY - 1;
-
-	//调整y0,y1,y2,让它们的y值从小到大
-	if (ver1->viewPosition->y < ver0->viewPosition->y)
+	if ( y2 < y1 )
 	{
-		tmpV = ver1;
-		ver1 = ver0;
-		ver0 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver0->viewPosition->y)
-	{
-		tmpV = ver0;
-		ver0 = ver2;
-		ver2 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver1->viewPosition->y)
-	{
-		tmpV = ver1;
-		ver1 = ver2;
-		ver2 = tmpV;
+		SWAP( v1, v2, temp );
 	}
 
-	//判断三角形的类型
-	if (ver0->viewPosition->y == ver1->viewPosition->y)
+	if (FCMP(face->vertex[v0]->viewPosition->y, face->vertex[v1]->viewPosition->y) )
 	{
-		tri_type = FLAT_TOP_TRIANGLE;
+		tri_type = TRI_TYPE_FLAT_TOP;
 
-		if (ver1->viewPosition->x < ver0->viewPosition->x)
+		if (face->vertex[v1]->viewPosition->x < face->vertex[v0]->viewPosition->x)
 		{
-			tmpV = ver1;
-			ver1 = ver0;
-			ver0 = tmpV;
+			SWAP(v0,v1,temp);
 		}
 	}
-	else if (ver1->viewPosition->y == ver2->viewPosition->y)
+	else if (FCMP(face->vertex[v1]->viewPosition->y ,face->vertex[v2]->viewPosition->y))
 	{
-		tri_type = FLAT_BOTTOM_TRIANGLE;
+		tri_type = TRI_TYPE_FLAT_BOTTOM;
 
-		if (ver2->viewPosition->x < ver1->viewPosition->x)
+		if (face->vertex[v2]->viewPosition->x < face->vertex[v1]->viewPosition->x)
 		{
-			tmpV = ver1;
-			ver1 = ver2;
-			ver2 = tmpV;
+			SWAP(v1,v2,temp);
 		}
 	}
 	else
 	{
-		tri_type = GENERAL_TRIANGLE;
+		tri_type = TRI_TYPE_GENERAL;
 	}
 
-	x0 = (int)ver0->viewPosition->x;
-	y0 = (int)ver0->viewPosition->y;
-	z0 = ver0->viewPosition->z;
+	// extract vertices for processing, now that we have order
+	x0 = (int)( face->vertex[v0]->viewPosition->x );
+	y0 = (int)( face->vertex[v0]->viewPosition->y );
+	tu0 = (int)( face->vertex[v0]->uv->u );
+	tv0 = (int)( face->vertex[v0]->uv->v );
 
-	x1 = (int)ver1->viewPosition->x;
-	y1 = (int)ver1->viewPosition->y;
-	z1 = ver1->viewPosition->z;
+	tz0 = (1 << FIXP28_SHIFT) / (int)(face->vertex[v0]->viewPosition->w + 0.5 );
 
-	x2 = (int)ver2->viewPosition->x;
-	y2 = (int)ver2->viewPosition->y;
-	z2 = ver2->viewPosition->z;
+	x1 = (int)( face->vertex[v1]->viewPosition->x );
+	y1 = (int)( face->vertex[v1]->viewPosition->y );
+	tu1 = (int)( face->vertex[v1]->uv->u );
+	tv1 = (int)( face->vertex[v1]->uv->v );
 
-	a = ver0->color->alpha;
-	r = ver0->color->red;
-	g = ver0->color->green;
-	b = ver0->color->blue;
+	tz1 = (1 << FIXP28_SHIFT) / (int)(face->vertex[v1]->viewPosition->w + 0.5 );
 
-	//转折后的斜边在哪一侧
-	side = 0;
+	x2 = (int)( face->vertex[v2]->viewPosition->x );
+	y2 = (int)( face->vertex[v2]->viewPosition->y );
+	tu2 = (int)( face->vertex[v2]->uv->u );
+	tv2 = (int)( face->vertex[v2]->uv->v );
 
-	//转折点y坐标
-	ys = y1;
+	tz2 = (1 << FIXP28_SHIFT) / (int)(face->vertex[v2]->viewPosition->w + 0.5 );
 
-	if (tri_type == FLAT_TOP_TRIANGLE || tri_type == FLAT_BOTTOM_TRIANGLE)
+
+	// degenerate triangle
+	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
+		return;
+
+	// set interpolation restart value
+	yrestart = y1;
+
+	// what kind of triangle
+	if (tri_type & TRI_TYPE_FLAT_MASK)
 	{
-		if (tri_type == FLAT_TOP_TRIANGLE)
+		if (tri_type == TRI_TYPE_FLAT_TOP)
 		{
-			dy = 1.0f / (y2 - y0);
+			// compute all deltas
+			dy = y2 - y0;
 
-			dxdyl = (x2 - x0) * dy;	//左斜边倒数
-			dzdyl = (z2 - z0) * dy;
+			dxdyl = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dudyl = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyl = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz2 - tz0) << 0)/dy;
 
-			dxdyr = (x2 - x1) * dy;	//右斜边倒数
-			dzdyr = (z2 - z1) * dy;
+			dxdyr = ((x2 - x1) << FIXP16_SHIFT)/dy;
+			dudyr = ((tu2 - tu1) << FIXP16_SHIFT)/dy;
+			dvdyr = ((tv2 - tv1) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz1) << 0)/dy;
 
-			//y0小于视窗顶部y坐标，调整左斜边和右斜边当前值,y值开始值
-			if (y0 < 0)
+			// test for y clipping
+			if (y0 < min_clip_y)
 			{
-				xStart = x0 - dxdyl * y0;
-				zStart = z0 - dzdyl * y0;
+				// compute overclip
+				dy = (min_clip_y - y0);
 
-				xEnd = x1 - dxdyr * y0;
-				zEnd = z1 - dzdyr * y0;
+				// computer new LHS starting values
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
 
-				yStart = 0;
-			}
+				// compute new RHS starting values
+				xr = dxdyr*dy + (x1 << FIXP16_SHIFT);
+				ur = dudyr*dy + (tu1 << FIXP16_SHIFT);
+				vr = dvdyr*dy + (tv1 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz1 << 0);
+
+				// compute new starting y
+				ystart = min_clip_y;
+
+			} // end if
 			else
 			{
-				//注意平顶和平底这里的区别
-				xStart = (float)x0;
-				zStart = z0;
+				// no clipping
 
-				xEnd = (float)x1;
-				zEnd = z1;
+				// set starting values
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x1 << FIXP16_SHIFT);
 
-				yStart = (float)y0;
-			}
-		}
+				ul = (tu0 << FIXP16_SHIFT);
+				vl = (tv0 << FIXP16_SHIFT);
+				zl = (tz0 << 0);
+
+				ur = (tu1 << FIXP16_SHIFT);
+				vr = (tv1 << FIXP16_SHIFT);
+				zr = (tz1 << 0);
+
+				// set starting y
+				ystart = y0;
+
+			} // end else
+
+		} // end if flat top
 		else
 		{
-			//平底三角形
-			dy = 1.0f / (y1 - y0);
+			// must be flat bottom
 
-			dxdyl = (x1 - x0) * dy;
-			dzdyl = (z1 - z0) * dy;
+			// compute all deltas
+			dy = (y1 - y0);
 
-			dxdyr = (x2 - x0) * dy;
-			dzdyr = (z2 - z0) * dy;
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dy;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz1 - tz0) << 0)/dy;
 
-			if (y0 < 0)
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz0) << 0)/dy;
+
+			// test for y clipping
+			if (y0 < min_clip_y)
 			{
-				dy = - (float)y0;
+				// compute overclip
+				dy = (min_clip_y - y0);
 
-				xStart = dxdyl * dy + x0;
-				zStart = dzdyl * dy + z0;
+				// computer new LHS starting values
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
 
-				xEnd = dxdyr * dy + x0;
-				zEnd = dzdyr * dy + z0;
+				// compute new RHS starting values
+				xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+				ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
+				vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz0 << 0);
 
-				yStart = 0.0f;
-			}
+				// compute new starting y
+				ystart = min_clip_y;
+
+			} // end if
 			else
 			{
-				xStart = (float)x0;
-				zStart = z0;
+				// no clipping
 
-				xEnd = (float)x0;
-				zEnd = z0;
+				// set starting values
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x0 << FIXP16_SHIFT);
 
-				yStart = (float)y0;
-			}
-		}
-		//y2>视窗高度时，大于rect.height部分就不用画出了
-		cyStart = (int)yStart;
-		cyEnd = (int)( y2 > nh ? nh : y2 );
-		ypos = cyStart * resX;
+				ul = (tu0 << FIXP16_SHIFT);
+				vl = (tv0 << FIXP16_SHIFT);
+				zl = (tz0 << 0);
 
-		//x值需要裁剪的情况
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
+				ur = (tu0 << FIXP16_SHIFT);
+				vr = (tv0 << FIXP16_SHIFT);
+				zr = (tz0 << 0);
+
+				// set starting y
+				ystart = y0;
+
+			} // end else
+
+		} // end else flat bottom
+
+		// test for bottom clip, always
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		// test for horizontal clipping
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
+			// clip version
+
+			// point screen ptr to starting line
+			screen_ptr = dest_buffer + (ystart * mem_pitch);
+
+			// point zbuffer to starting line
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
 			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw : (int)xEnd;
+				// compute span endpoints
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
 
-				if ( cxEnd >= 0 && cxStart <= nw )
+				// compute starting points for u,v interpolants
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;// + FIXP16_ROUND_UP; // ????
+
+				// compute u,v interpolants
+				if ((dx = (xend - xstart))>0)
 				{
-					if (cxStart == cxEnd)
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				} // end if
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				} // end else
+
+				///////////////////////////////////////////////////////////////////////
+
+				// test for x clipping, LHS
+				if (xstart < min_clip_x)
+				{
+					// compute x overlap
+					dx = min_clip_x - xstart;
+
+					// slide interpolants over
+					ui+=dx*du;
+					vi+=dx*dv;
+					zi+=dx*dz;
+
+					// reset vars
+					xstart = min_clip_x;
+
+				} // end if
+
+				// test for x clipping RHS
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				// draw span
+				for (xi=xstart; xi < xend; xi++)
+				{
+					// test if z of current pixel is nearer than current z buffer value
+					if (zi > z_ptr[xi])
 					{
-						pos = cxStart + ypos;
+						// write textel
+						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
-						if( zStart < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
+						// update z-buffer
+						z_ptr[xi] = zi;
+					} // end if
 
-						dzdx = (zEnd - zStart) * dx;
+					// interpolate u,v,z
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				} // end for xi
 
-						currZ = zStart;
+				// interpolate u,v,x along right and left edge
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
 
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
 
-							cxStart = 0;
-						}
-						//绘制扫描线
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( ( xi == cxStart || xi == cxEnd || yi == cyStart || yi == cyEnd ) && currZ < zBuffer[pos] )
-							{
-								getPixelColor( a, r, g, b, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
+				// advance screen ptr
+				screen_ptr+=mem_pitch;
 
-							currZ += dzdx;
-						}
+				// advance zbuffer ptr
+				z_ptr+=zpitch;
 
-						pos = cxEnd + ypos;
-						if( zEnd < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
+			} // end for y
 
-				//y每增加1时,xl和xr分别加上他们的递增量
-				xStart += dxdyl;
-				zStart += dzdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-
-				ypos += resX;
-			}
-		}
+		} // end if clip
 		else
 		{
-			//x不需要裁剪的情况
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
+			// non-clip version
+
+			// point screen ptr to starting line
+			screen_ptr = dest_buffer + (ystart * mem_pitch);
+
+			// point zbuffer to starting line
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
 			{
-				if ( zStart > 0 || zEnd > 0 )
+				// compute span endpoints
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v interpolants
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;// + FIXP16_ROUND_UP; // ????
+
+				// compute u,v interpolants
+				if ((dx = (xend - xstart))>0)
 				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				} // end if
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				} // end else
 
-					currZ = zStart;
-
-					if (cxStart == cxEnd)
+				// draw span
+				for (xi=xstart; xi < xend; xi++)
+				{
+					// test if z of current pixel is nearer than current z buffer value
+					if (zi > z_ptr[xi])
 					{
-						pos = cxStart + ypos;
-						if( currZ < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
+						// write textel
+						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
-						dzdx = (zEnd - zStart) * dx;
+						// update z-buffer
+						z_ptr[xi] = zi;
+					} // end if
 
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( ( xi == cxStart || xi == cxEnd || yi == cyStart || yi == cyEnd ) && currZ < zBuffer[pos] )
-							{
-								getPixelColor( a, r, g, b, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
+					// interpolate u,v,z
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				} // end for xi
 
-							currZ += dzdx;
-						}
+				// interpolate u,v,x along right and left edge
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
 
-						pos = cxEnd + ypos;
-						if( zEnd < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
 
-				xStart += dxdyl;
-				zStart += dzdyl;
+				// advance screen ptr
+				screen_ptr+=mem_pitch;
 
-				xEnd += dxdyr;
-				zEnd += dzdyr;
+				// advance zbuffer ptr
+				z_ptr+=zpitch;
 
-				ypos += resX;
-			}
-		}
-	}
-	else
+			} // end for y
+
+		} // end if non-clipped
+
+	} // end if
+	else if (tri_type==TRI_TYPE_GENERAL)
 	{
-		//普通三角形
-		yEnd = (float)(y2 > nh ? nh : y2);
 
-		if (y1 < 0)
+		// first test for bottom clip, always
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		// pre-test y clipping status
+		if (y1 < min_clip_y)
 		{
-			//由于y0<y1,这时相当于平顶三角形
-			//计算左右斜边的斜率的倒数
-			dyl = 1.0f / (y2 - y1);
-			dyr = 1.0f / (y2 - y0);
+			// compute all deltas
+			// LHS
+			dyl = (y2 - y1);
 
-			dxdyl = (x2 - x1) * dyl;
-			dzdyl = (z2 - z1) * dyl;
+			dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz2 - tz1) << 0)/dyl;
 
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
+			// RHS
+			dyr = (y2 - y0);
 
-			//计算左右斜边初始值
-			dyr = - (float)y0;
-			dyl = - (float)y1;
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
 
-			xStart = dxdyl * dyl + x1;
-			zStart = dzdyl * dyl + z1;
+			// compute overclip
+			dyr = (min_clip_y - y0);
+			dyl = (min_clip_y - y1);
 
-			xEnd = dxdyr * dyr + x0;
-			zEnd = dzdyr * dyr + z0;
+			// computer new LHS starting values
+			xl = dxdyl*dyl + (x1 << FIXP16_SHIFT);
+			ul = dudyl*dyl + (tu1 << FIXP16_SHIFT);
+			vl = dvdyl*dyl + (tv1 << FIXP16_SHIFT);
+			zl = dzdyl*dyl + (tz1 << 0);
 
-			yStart = 0;
+			// compute new RHS starting values
+			xr = dxdyr*dyr + (x0 << FIXP16_SHIFT);
+			ur = dudyr*dyr + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr*dyr + (tv0 << FIXP16_SHIFT);
+			zr = dzdyr*dyr + (tz0 << 0);
 
+			// compute new starting y
+			ystart = min_clip_y;
+
+			// test if we need swap to keep rendering left to right
 			if (dxdyr > dxdyl)
 			{
-				//交换斜边
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tz1,tz2,temp);
 
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
+				// set interpolation restart
+				irestart = INTERP_RHS;
 
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
+			} // end if
 
-				side = 1;
-			}
-		}
-		else if (y0 < 0)
+		} // end if
+		else if (y0 < min_clip_y)
 		{
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
+			// compute all deltas
+			// LHS
+			dyl = (y1 - y0);
 
-			dxdyl = (x1 - x0) * dyl;
-			dxdyr = (x2 - x0) * dyr;
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
 
-			dzdyl = (z1 - z0) * dyl;
+			// RHS
+			dyr = (y2 - y0);
 
-			dzdyr = (z2 - z0) * dyr;
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
 
-			dy = - (float)y0;
+			// compute overclip
+			dy = (min_clip_y - y0);
 
-			xStart = dxdyl * dy + x0;
-			zStart = dzdyl * dy + z0;
+			// computer new LHS starting values
+			xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+			ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+			vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+			zl = dzdyl*dy + (tz0 << 0);
 
-			xEnd = dxdyr * dy + x0;
-			zEnd = dzdyr * dy + z0;
+			// compute new RHS starting values
+			xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+			ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
+			zr = dzdyr*dy + (tz0 << 0);
 
-			yStart = 0;
+			// compute new starting y
+			ystart = min_clip_y;
 
+			// test if we need swap to keep rendering left to right
 			if (dxdyr < dxdyl)
 			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tz1,tz2,temp);
 
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
+				// set interpolation restart
+				irestart = INTERP_RHS;
 
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
+			} // end if
 
-				side = 1;
-			}
-		}
+		} // end if
 		else
 		{
-			//y值都大于0
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
+			// no initial y clipping
 
-			dxdyl = (x1 - x0) * dyl;
-			dzdyl = (z1 - z0) * dyl;
+			// compute all deltas
+			// LHS
+			dyl = (y1 - y0);
 
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
 
-			xStart = (float)x0;
-			zStart = z0;
+			// RHS
+			dyr = (y2 - y0);
 
-			xEnd = (float)x0;
-			zEnd = z0;
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
 
-			yStart = (float)y0;
+			// no clipping y
 
+			// set starting values
+			xl = (x0 << FIXP16_SHIFT);
+			xr = (x0 << FIXP16_SHIFT);
+
+			ul = (tu0 << FIXP16_SHIFT);
+			vl = (tv0 << FIXP16_SHIFT);
+			zl = (tz0 << 0);
+
+			ur = (tu0 << FIXP16_SHIFT);
+			vr = (tv0 << FIXP16_SHIFT);
+			zr = (tz0 << 0);
+
+			// set starting y
+			ystart = y0;
+
+			// test if we need swap to keep rendering left to right
 			if (dxdyr < dxdyl)
 			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tz1,tz2,temp);
 
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
+				// set interpolation restart
+				irestart = INTERP_RHS;
 
-				side = 1;
-			}
-		}
+			} // end if
 
-		cyStart = (int)yStart;
-		cyEnd = (int)yEnd;
-		ypos = cyStart * resX;
+		} // end else
 
-		//x需要裁剪
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
+		// test for horizontal clipping
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
+			// clip version
+			// x clipping
+
+			// point screen ptr to starting line
+			screen_ptr = dest_buffer + (ystart * mem_pitch);
+
+			// point zbuffer to starting line
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
 			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw :(int)xEnd;
+				// compute span endpoints
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
 
-				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
+				// compute starting points for u,v interpolants
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;// + FIXP16_ROUND_UP; // ???
+
+				// compute u,v interpolants
+				if ((dx = (xend - xstart))>0)
 				{
-					if ( cxStart == cxEnd )
-					{
-						pos = cxStart + ypos;
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				} // end if
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				} // end else
 
-						if( zStart < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
+				///////////////////////////////////////////////////////////////////////
+
+				// test for x clipping, LHS
+				if (xstart < min_clip_x)
+				{
+					// compute x overlap
+					dx = min_clip_x - xstart;
+
+					// slide interpolants over
+					ui+=dx*du;
+					vi+=dx*dv;
+					zi+=dx*dz;
+
+					// set x to left clip edge
+					xstart = min_clip_x;
+
+				} // end if
+
+				// test for x clipping RHS
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				// draw span
+				for (xi=xstart; xi < xend; xi++)
+				{
+					// test if z of current pixel is nearer than current z buffer value
+					if (zi > z_ptr[xi])
+					{
+						// write textel
+						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+
+						// update z-buffer
+						z_ptr[xi] = zi;
+					} // end if
+
+					// interpolate u,v,z
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				} // end for xi
+
+				// interpolate u,v,x along right and left edge
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				// advance screen ptr
+				screen_ptr+=mem_pitch;
+
+				// advance zbuffer ptr
+				z_ptr+=zpitch;
+
+				// test for yi hitting second region, if so change interpolant
+				if (yi==yrestart)
+				{
+					// test interpolation side change flag
+
+					if (irestart == INTERP_LHS)
+					{
+						// LHS
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						// set starting values
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						// interpolate down on LHS to even up
+						xl+=dxdyl;
+						ul+=dudyl;
+						vl+=dvdyl;
+						zl+=dzdyl;
+					} // end if
 					else
 					{
-						dx = 1.0f / (xEnd - xStart);
+						// RHS
+						dyr = (y1 - y2);
 
-						dzdx = (zEnd - zStart) * dx;
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
 
-						currZ = zStart;
+						// set starting values
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
 
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
+						// interpolate down on RHS to even up
+						xr+=dxdyr;
+						ur+=dudyr;
+						vr+=dvdyr;
+						zr+=dzdyr;
 
-							cxStart = 0;
-						}
+					} // end else
 
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( ( xi == cxStart || xi == cxEnd || yi == cyStart || yi == cyEnd ) && currZ < zBuffer[pos] )
-							{
-								getPixelColor( a, r, g, b, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
+				} // end if
 
-							currZ += dzdx;
-						}
+			} // end for y
 
-						pos = cxEnd + ypos;
-						if( zEnd < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-
-				ypos += resX;
-
-				//转折点
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
-
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-
-						xStart = (float)x1;
-						zStart = z1;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-
-						xEnd = (float)x2;
-						zEnd = z2;
-					}
-				}
-			}
-		}
+		} // end if
 		else
 		{
-			//不需要裁剪
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
+			// no x clipping
+			// point screen ptr to starting line
+			screen_ptr = dest_buffer + (ystart * mem_pitch);
+
+			// point zbuffer to starting line
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
 			{
-				if ( zStart > 0 || zEnd > 0 )
+				// compute span endpoints
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v interpolants
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;// + FIXP16_ROUND_UP; // ????
+
+				// compute u,v interpolants
+				if ((dx = (xend - xstart))>0)
 				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				} // end if
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				} // end else
 
-					currZ = zStart;
-
-					if (xStart == xEnd)
+				// draw span
+				for (xi=xstart; xi < xend; xi++)
+				{
+					// test if z of current pixel is nearer than current z buffer value
+					if (zi > z_ptr[xi])
 					{
-						pos = cxStart + ypos;
-						if( currZ < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
+						// write textel
+						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+
+						// update z-buffer
+						z_ptr[xi] = zi;
+					} // end if
+
+					// interpolate u,v
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				} // end for xi
+
+				// interpolate u,v,x along right and left edge
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				// advance screen ptr
+				screen_ptr+=mem_pitch;
+
+				// advance zbuffer ptr
+				z_ptr+=zpitch;
+
+				// test for yi hitting second region, if so change interpolant
+				if (yi==yrestart)
+				{
+					// test interpolation side change flag
+
+					if (irestart == INTERP_LHS)
+					{
+						// LHS
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						// set starting values
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						// interpolate down on LHS to even up
+						xl+=dxdyl;
+						ul+=dudyl;
+						vl+=dvdyl;
+						zl+=dzdyl;
+					} // end if
 					else
 					{
-						dx = 1.0f / (xEnd - xStart);
+						// RHS
+						dyr = (y1 - y2);
 
-						dzdx = (zEnd - zStart) * dx;
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
 
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( ( xi == cxStart || xi == cxEnd || yi == cyStart || yi == cyEnd ) && currZ < zBuffer[pos] )
-							{
-								getPixelColor( a, r, g, b, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
+						// set starting values
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
 
-							currZ += dzdx;
-						}
+						// interpolate down on RHS to even up
+						xr+=dxdyr;
+						ur+=dudyr;
+						vr+=dvdyr;
+						zr+=dzdyr;
 
-						pos = cxEnd + ypos;
-						if( zEnd < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
+					} // end else
 
-				xStart += dxdyl;
-				zStart += dzdyl;
+				} // end if
 
-				xEnd += dxdyr;
-				zEnd += dzdyr;
+			} // end for y
 
-				ypos += resX;
+		} // end else
 
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
+	} // end if
 
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-
-						xStart = x1 + dxdyl;
-						zStart = z1 + dzdyl;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-
-						xEnd = x2 + dxdyr;
-						zEnd = z2 + dzdyr;
-					}
-				}
-			}
-		}
-	}
-}
-
-
-void triangle_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 )
-{
-	Vertex	* tmpV;
-	float			* zBuffer = view->zBuffer;
-
-	int				resX = (int)view->width, resY = (int)view->height;
-	int				x0, y0, x1, y1, x2, y2, nw, nh, side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
-	float			z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, currZ, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dzdx, temp2;
-	WORD			a, r, g, b;
-
-	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
-	{
-		return;
-	}
-
-	//判断是否是一条线，如果是，则返回。
-	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
-	{
-		return;
-	}
-
-	//*************************************** start draw ************************************
-	nw = resX - 1;
-	nh = resY - 1;
-
-	//调整y0,y1,y2,让它们的y值从小到大
-	if (ver1->viewPosition->y < ver0->viewPosition->y)
-	{
-		tmpV = ver1;
-		ver1 = ver0;
-		ver0 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver0->viewPosition->y)
-	{
-		tmpV = ver0;
-		ver0 = ver2;
-		ver2 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver1->viewPosition->y)
-	{
-		tmpV = ver1;
-		ver1 = ver2;
-		ver2 = tmpV;
-	}
-
-	//判断三角形的类型
-	if (ver0->viewPosition->y == ver1->viewPosition->y)
-	{
-		tri_type = FLAT_TOP_TRIANGLE;
-
-		if (ver1->viewPosition->x < ver0->viewPosition->x)
-		{
-			tmpV = ver1;
-			ver1 = ver0;
-			ver0 = tmpV;
-		}
-	}
-	else if (ver1->viewPosition->y == ver2->viewPosition->y)
-	{
-		tri_type = FLAT_BOTTOM_TRIANGLE;
-
-		if (ver2->viewPosition->x < ver1->viewPosition->x)
-		{
-			tmpV = ver1;
-			ver1 = ver2;
-			ver2 = tmpV;
-		}
-	}
-	else
-	{
-		tri_type = GENERAL_TRIANGLE;
-	}
-
-	x0 = (int)ver0->viewPosition->x;
-	y0 = (int)ver0->viewPosition->y;
-	z0 = ver0->viewPosition->z;
-
-	x1 = (int)ver1->viewPosition->x;
-	y1 = (int)ver1->viewPosition->y;
-	z1 = ver1->viewPosition->z;
-
-	x2 = (int)ver2->viewPosition->x;
-	y2 = (int)ver2->viewPosition->y;
-	z2 = ver2->viewPosition->z;
-
-	a = ver0->color->alpha;
-	r = ver0->color->red;
-	g = ver0->color->green;
-	b = ver0->color->blue;
-
-	//转折后的斜边在哪一侧
-	side = 0;
-
-	//转折点y坐标
-	ys = y1;
-
-	if (tri_type == FLAT_TOP_TRIANGLE || tri_type == FLAT_BOTTOM_TRIANGLE)
-	{
-		if (tri_type == FLAT_TOP_TRIANGLE)
-		{
-			dy = 1.0f / (y2 - y0);
-
-			dxdyl = (x2 - x0) * dy;	//左斜边倒数
-			dzdyl = (z2 - z0) * dy;
-
-			dxdyr = (x2 - x1) * dy;	//右斜边倒数
-			dzdyr = (z2 - z1) * dy;
-
-			//y0小于视窗顶部y坐标，调整左斜边和右斜边当前值,y值开始值
-			if (y0 < 0)
-			{
-				xStart = x0 - dxdyl * y0;
-				zStart = z0 - dzdyl * y0;
-
-				xEnd = x1 - dxdyr * y0;
-				zEnd = z1 - dzdyr * y0;
-
-				yStart = 0;
-			}
-			else
-			{
-				//注意平顶和平底这里的区别
-				xStart = (float)x0;
-				zStart = z0;
-
-				xEnd = (float)x1;
-				zEnd = z1;
-
-				yStart = (float)y0;
-			}
-		}
-		else
-		{
-			//平底三角形
-			dy = 1.0f / (y1 - y0);
-
-			dxdyl = (x1 - x0) * dy;
-			dzdyl = (z1 - z0) * dy;
-
-			dxdyr = (x2 - x0) * dy;
-			dzdyr = (z2 - z0) * dy;
-
-			if (y0 < 0)
-			{
-				dy = - (float)y0;
-
-				xStart = dxdyl * dy + x0;
-				zStart = dzdyl * dy + z0;
-
-				xEnd = dxdyr * dy + x0;
-				zEnd = dzdyr * dy + z0;
-
-				yStart = 0.0f;
-			}
-			else
-			{
-				xStart = (float)x0;
-				zStart = z0;
-
-				xEnd = (float)x0;
-				zEnd = z0;
-
-				yStart = (float)y0;
-			}
-		}
-		//y2>视窗高度时，大于rect.height部分就不用画出了
-		cyStart = (int)yStart;
-		cyEnd = (int)( y2 > nh ? nh : y2 );
-		ypos = cyStart * resX;
-
-		//x值需要裁剪的情况
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw : (int)xEnd;
-
-				if ( cxEnd >= 0 && cxStart <= nw )
-				{
-					if (cxStart == cxEnd)
-					{
-						pos = cxStart + ypos;
-
-						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-
-						currZ = zStart;
-
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
-
-							cxStart = 0;
-						}
-						//绘制扫描线
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getPixelColor( a, r, g, b, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				//y每增加1时,xl和xr分别加上他们的递增量
-				xStart += dxdyl;
-				zStart += dzdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-
-				ypos += resX;
-			}
-		}
-		else
-		{
-			//x不需要裁剪的情况
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				if ( zStart > 0 || zEnd > 0 )
-				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
-
-					currZ = zStart;
-
-					if (cxStart == cxEnd)
-					{
-						pos = cxStart + ypos;
-						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getPixelColor( a, r, g, b, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-
-				ypos += resX;
-			}
-		}
-	}
-	else
-	{
-		//普通三角形
-		yEnd = (float)(y2 > nh ? nh : y2);
-
-		if (y1 < 0)
-		{
-			//由于y0<y1,这时相当于平顶三角形
-			//计算左右斜边的斜率的倒数
-			dyl = 1.0f / (y2 - y1);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x2 - x1) * dyl;
-			dzdyl = (z2 - z1) * dyl;
-
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
-
-			//计算左右斜边初始值
-			dyr = - (float)y0;
-			dyl = - (float)y1;
-
-			xStart = dxdyl * dyl + x1;
-			zStart = dzdyl * dyl + z1;
-
-			xEnd = dxdyr * dyr + x0;
-			zEnd = dzdyr * dyr + z0;
-
-			yStart = 0;
-
-			if (dxdyr > dxdyl)
-			{
-				//交换斜边
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-
-				side = 1;
-			}
-		}
-		else if (y0 < 0)
-		{
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x1 - x0) * dyl;
-			dxdyr = (x2 - x0) * dyr;
-
-			dzdyl = (z1 - z0) * dyl;
-
-			dzdyr = (z2 - z0) * dyr;
-
-			dy = - (float)y0;
-
-			xStart = dxdyl * dy + x0;
-			zStart = dzdyl * dy + z0;
-
-			xEnd = dxdyr * dy + x0;
-			zEnd = dzdyr * dy + z0;
-
-			yStart = 0;
-
-			if (dxdyr < dxdyl)
-			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-
-				side = 1;
-			}
-		}
-		else
-		{
-			//y值都大于0
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x1 - x0) * dyl;
-			dzdyl = (z1 - z0) * dyl;
-
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
-
-			xStart = (float)x0;
-			zStart = z0;
-
-			xEnd = (float)x0;
-			zEnd = z0;
-
-			yStart = (float)y0;
-
-			if (dxdyr < dxdyl)
-			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				side = 1;
-			}
-		}
-
-		cyStart = (int)yStart;
-		cyEnd = (int)yEnd;
-		ypos = cyStart * resX;
-
-		//x需要裁剪
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw :(int)xEnd;
-
-				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
-				{
-					if ( cxStart == cxEnd )
-					{
-						pos = cxStart + ypos;
-
-						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-
-						currZ = zStart;
-
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
-
-							cxStart = 0;
-						}
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getPixelColor( a, r, g, b, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-
-				ypos += resX;
-
-				//转折点
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
-
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-
-						xStart = (float)x1;
-						zStart = z1;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-
-						xEnd = (float)x2;
-						zEnd = z2;
-					}
-				}
-			}
-		}
-		else
-		{
-			//不需要裁剪
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				if ( zStart > 0 || zEnd > 0 )
-				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
-
-					currZ = zStart;
-
-					if (xStart == xEnd)
-					{
-						pos = cxStart + ypos;
-						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getPixelColor( a, r, g, b, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getPixelColor( a, r, g, b, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-
-				ypos += resX;
-
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
-
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-
-						xStart = x1 + dxdyl;
-						zStart = z1 + dzdyl;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-
-						xEnd = x2 + dxdyr;
-						zEnd = z2 + dzdyr;
-					}
-				}
-			}
-		}
-	}
-}
-
-void triangle_rasterize_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture )
-{
-	Vertex	* tmpV;
-	float			* zBuffer = view->zBuffer;
-
-	int				resX = (int)view->width, resY = (int)view->height;
-	int				x0, y0, x1, y1, x2, y2, nw, nh, side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
-	float			u0, v0, u1, v1, u2, v2, z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, uStart, uEnd, vStart, vEnd, currZ,
-					currU, currV, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dudyl, dudyr, dvdyl, dvdyr, dzdx, dudx, dvdx, temp2;
-	WORD			a, r, g, b;
-
-	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
-	{
-		return;
-	}
-
-	//判断是否是一条线，如果是，则返回。
-	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
-	{
-		return;
-	}
-
-	//*************************************** start draw ************************************
-	nw = resX - 1;
-	nh = resY - 1;
-
-	//调整y0,y1,y2,让它们的y值从小到大
-	if (ver1->viewPosition->y < ver0->viewPosition->y)
-	{
-		tmpV = ver1;
-		ver1 = ver0;
-		ver0 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver0->viewPosition->y)
-	{
-		tmpV = ver0;
-		ver0 = ver2;
-		ver2 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver1->viewPosition->y)
-	{
-		tmpV = ver1;
-		ver1 = ver2;
-		ver2 = tmpV;
-	}
-
-	//判断三角形的类型
-	if (ver0->viewPosition->y == ver1->viewPosition->y)
-	{
-		tri_type = FLAT_TOP_TRIANGLE;
-
-		if (ver1->viewPosition->x < ver0->viewPosition->x)
-		{
-			tmpV = ver1;
-			ver1 = ver0;
-			ver0 = tmpV;
-		}
-	}
-	else if (ver1->viewPosition->y == ver2->viewPosition->y)
-	{
-		tri_type = FLAT_BOTTOM_TRIANGLE;
-
-		if (ver2->viewPosition->x < ver1->viewPosition->x)
-		{
-			tmpV = ver1;
-			ver1 = ver2;
-			ver2 = tmpV;
-		}
-	}
-	else
-	{
-		tri_type = GENERAL_TRIANGLE;
-	}
-
-	x0 = (int)ver0->viewPosition->x;
-	y0 = (int)ver0->viewPosition->y;
-	z0 = ver0->viewPosition->z;
-
-	x1 = (int)ver1->viewPosition->x;
-	y1 = (int)ver1->viewPosition->y;
-	z1 = ver1->viewPosition->z;
-
-	x2 = (int)ver2->viewPosition->x;
-	y2 = (int)ver2->viewPosition->y;
-	z2 = ver2->viewPosition->z;
-
-	u0 = ver0->uv->x * (texture->width - 1);
-	v0 = ver0->uv->y * (texture->height - 1);
-	u1 = ver1->uv->x * (texture->width - 1);
-	v1 = ver1->uv->y * (texture->height - 1);
-	u2 = ver2->uv->x * (texture->width - 1);
-	v2 = ver2->uv->y * (texture->height - 1);
-
-	a = (WORD)ver0->color->alpha;
-	r = (WORD)ver0->color->red;
-	g = (WORD)ver0->color->green;
-	b = (WORD)ver0->color->blue;
-
-	side = 0;
-
-	//转折后的斜边在哪一侧
-	ys = y1;
-
-	//转折点y坐标
-	if (tri_type == FLAT_TOP_TRIANGLE || tri_type == FLAT_BOTTOM_TRIANGLE)
-	{
-		if (tri_type == FLAT_TOP_TRIANGLE)
-		{
-			dy = 1.0f / (y2 - y0);
-
-			dxdyl = (x2 - x0) * dy;	//左斜边倒数
-			dzdyl = (z2 - z0) * dy;
-			dudyl = (u2 - u0) * dy;
-			dvdyl = (v2 - v0) * dy;
-
-			dxdyr = (x2 - x1) * dy;	//右斜边倒数
-			dzdyr = (z2 - z1) * dy;
-			dudyr = (u2 - u1) * dy;
-			dvdyr = (v2 - v1) * dy;
-
-			//y0小于视窗顶部y坐标，调整左斜边和右斜边当前值,y值开始值
-			if (y0 < 0)
-			{
-				dy = - (float)y0;
-
-				xStart = dxdyl * dy + x0;
-				zStart = dzdyl * dy + z0;
-				uStart = dudyl * dy + u0;
-				vStart = dvdyl * dy + v0;
-
-				xEnd = dxdyr * dy + x1;
-				zEnd = dzdyr * dy + z1;
-				uEnd = dudyr * dy + u1;
-				vEnd = dvdyr * dy + v1;
-
-				yStart = 0;
-			}
-			else
-			{
-				//注意平顶和平底这里的区别
-				xStart = (float)x0;
-				uStart = u0;
-				vStart = v0;
-				zStart = z0;
-
-				xEnd = (float)x1;
-				uEnd = u1;
-				vEnd = v1;
-				zEnd = z1;
-
-				yStart = (float)y0;
-			}
-		}
-		else
-		{
-			//平底三角形
-			dy = 1.0f / (y1 - y0);
-
-			dxdyl = (x1 - x0) * dy;
-			dzdyl = (z1 - z0) * dy;
-			dudyl = (u1 - u0) * dy;
-			dvdyl = (v1 - v0) * dy;
-
-			dxdyr = (x2 - x0) * dy;
-			dzdyr = (z2 - z0) * dy;
-			dudyr = (u2 - u0) * dy;
-			dvdyr = (v2 - v0) * dy;
-
-			if (y0 < 0)
-			{
-				dy = - (float)y0;
-
-				xStart = dxdyl * dy + x0;
-				zStart = dzdyl * dy + z0;
-				uStart = dudyl * dy + u0;
-				vStart = dvdyl * dy + v0;
-
-				xEnd = dxdyr * dy + x0;
-				zEnd = dzdyr * dy + z0;
-				uEnd = dudyr * dy + u0;
-				vEnd = dvdyr * dy + v0;
-
-				yStart = 0.0f;
-			}
-			else
-			{
-				xStart = (float)x0;
-				uStart = u0;
-				vStart = v0;
-				zStart = z0;
-
-				xEnd = (float)x0;
-				uEnd = u0;
-				vEnd = v0;
-				zEnd = z0;
-
-				yStart = (float)y0;
-			}
-		}
-		//y2>视窗高度时，大于rect.height部分就不用画出了
-		cyStart = (int)yStart;
-		cyEnd = (int)( y2 > nh ? nh : y2 );
-		ypos = cyStart * resX;
-
-		//x值需要裁剪的情况
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw : (int)xEnd;
-
-				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
-				{
-					if (cxStart == cxEnd)
-					{
-						pos = cxStart + ypos;
-
-						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-						{
-							getMixedColor( a, r, g, b, (int)(uStart + 0.5), (int)(vStart + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-						dudx = (uEnd - uStart) * dx;
-						dvdx = (vEnd - vStart) * dx;
-
-						currZ = zStart;
-						currU = uStart;
-						currV = vStart;
-
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
-							currU -= cxStart * dudx;
-							currV -= cxStart * dvdx;
-
-							cxStart = 0;
-						}
-						//绘制扫描线
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							/*MIN( currU, uEnd );
-							MIN( currV, vEnd );*/
-
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currU += dudx;
-							currV += dvdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getMixedColor( a, r, g, b, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				//y每增加1时,xl和xr分别加上他们的递增量
-				xStart += dxdyl;
-				zStart += dzdyl;
-				uStart += dudyl;
-				vStart += dvdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				uEnd += dudyr;
-				vEnd += dvdyr;
-
-				ypos += resX;
-			}
-		}
-		else
-		{
-			//x不需要裁剪的情况
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				if ( zStart > 0 || zEnd > 0 )
-				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
-
-					currZ = zStart;
-					currU = uStart;
-					currV = vStart;
-
-					if (cxStart == cxEnd)
-					{
-						pos = cxStart + ypos;
-						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-						{
-							getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-						dudx = (uEnd - uStart) * dx;
-						dvdx = (vEnd - vStart) * dx;
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currU += dudx;
-							currV += dvdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getMixedColor( a, r, g, b, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-				uStart += dudyl;
-				vStart += dvdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				uEnd += dudyr;
-				vEnd += dvdyr;
-
-				ypos += resX;
-			}
-		}
-	}
-	else
-	{
-		//普通三角形
-		yEnd = (float)(y2 > nh ? nh : y2);
-
-		if (y1 < 0)
-		{
-			//由于y0<y1,这时相当于平顶三角形
-			//计算左右斜边的斜率的倒数
-			dyl = 1.0f / (y2 - y1);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x2 - x1) * dyl;
-			dzdyl = (z2 - z1) * dyl;
-			dudyl = (u2 - u1) * dyl;
-			dvdyl = (v2 - v1) * dyl;
-
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
-			dudyr = (u2 - u0) * dyr;
-			dvdyr = (v2 - v0) * dyr;
-
-			//计算左右斜边初始值
-			dyr = - (float)y0;
-			dyl = - (float)y1;
-
-			xStart = dxdyl * dyl + x1;
-			zStart = dzdyl * dyl + z1;
-			uStart = dudyl * dyl + u1;
-			vStart = dvdyl * dyl + v1;
-
-			xEnd = dxdyr * dyr + x0;
-			zEnd = dzdyr * dyr + z0;
-			uEnd = dudyr * dyr + u0;
-			vEnd = dvdyr * dyr + v0;
-
-			yStart = 0;
-
-			if (dxdyr > dxdyl)
-			{
-				//交换斜边
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
-				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = u1;	u1 = u2;	u2 = temp2;
-				temp2 = v1;	v1 = v2;	v2 = temp2;
-
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-				temp2 = uStart;	uStart = uEnd;	uEnd = temp2;
-				temp2 = vStart;	vStart = vEnd;	vEnd = temp2;
-
-				side = 1;
-			}
-		}
-		else if (y0 < 0)
-		{
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x1 - x0) * dyl;
-			dxdyr = (x2 - x0) * dyr;
-
-			dzdyl = (z1 - z0) * dyl;
-			dudyl = (u1 - u0) * dyl;
-			dvdyl = (v1 - v0) * dyl;
-
-			dzdyr = (z2 - z0) * dyr;
-			dudyr = (u2 - u0) * dyr;
-			dvdyr = (v2 - v0) * dyr;
-
-			dy = - (float)y0;
-
-			xStart = dxdyl * dy + x0;
-			zStart = dzdyl * dy + z0;
-			uStart = dudyl * dy + u0;
-			vStart = dvdyl * dy + v0;
-
-			xEnd = dxdyr * dy + x0;
-			zEnd = dzdyr * dy + z0;
-			uEnd = dudyr * dy + u0;
-			vEnd = dvdyr * dy + v0;
-
-			yStart = 0;
-
-			if (dxdyr < dxdyl)
-			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
-				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = u1;	u1 = u2;	u2 = temp2;
-				temp2 = v1;	v1 = v2;	v2 = temp2;
-
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-				temp2 = uStart;	uStart = uEnd;	uEnd = temp2;
-				temp2 = vStart;	vStart = vEnd;	vEnd = temp2;
-
-				side = 1;
-			}
-		}
-		else
-		{
-			//y值都大于0
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x1 - x0) * dyl;
-			dzdyl = (z1 - z0) * dyl;
-			dudyl = (u1 - u0) * dyl;
-			dvdyl = (v1 - v0) * dyl;
-
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
-			dudyr = (u2 - u0) * dyr;
-			dvdyr = (v2 - v0) * dyr;
-
-			xStart = (float)x0;
-			zStart = z0;
-			uStart = u0;
-			vStart = v0;
-
-			xEnd = (float)x0;
-			zEnd = z0;
-			uEnd = u0;
-			vEnd = v0;
-
-			yStart = (float)y0;
-
-			if (dxdyr < dxdyl)
-			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
-				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = u1;	u1 = u2;	u2 = temp2;
-				temp2 = v1;	v1 = v2;	v2 = temp2;
-
-				side = 1;
-			}
-		}
-
-		cyStart = (int)yStart;
-		cyEnd = (int)yEnd;
-		ypos = cyStart * resX;
-
-		//x需要裁剪
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw :(int)xEnd;
-
-				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
-				{
-					if ( cxStart == cxEnd )
-					{
-						pos = cxStart + ypos;
-
-						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-						{
-							getMixedColor( a, r, g, b, (int)(uStart + 0.5), (int)(vStart + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-						dudx = (uEnd - uStart) * dx;
-						dvdx = (vEnd - vStart) * dx;
-
-						currZ = zStart;
-						currU = uStart;
-						currV = vStart;
-
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
-							currU -= cxStart * dudx;
-							currV -= cxStart * dvdx;
-
-							cxStart = 0;
-						}
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currU += dudx;
-							currV += dvdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getMixedColor( a, r, g, b, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-				uStart += dudyl;
-				vStart += dvdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				uEnd += dudyr;
-				vEnd += dvdyr;
-
-				ypos += resX;
-
-				//转折点
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
-
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-						dudyl = (u2 - u1) * dyl;
-						dvdyl = (v2 - v1) * dyl;
-
-						xStart = (float)x1;
-						zStart = z1;
-						uStart = u1;
-						vStart = v1;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-						dudyr = (u1 - u2) * dyr;
-						dvdyr = (v1 - v2) * dyr;
-
-						xEnd = (float)x2;
-						zEnd = z2;
-						uEnd = u2;
-						vEnd = v2;
-					}
-				}
-			}
-		}
-		else
-		{
-			//不需要裁剪
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				if ( zStart > 0 || zEnd > 0 )
-				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
-
-					currZ = zStart;
-					currU = uStart;
-					currV = vStart;
-
-					if (xStart == xEnd)
-					{
-						pos = cxStart + ypos;
-						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-						{
-							getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-						dudx = (uEnd - uStart) * dx;
-						dvdx = (vEnd - vStart) * dx;
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getMixedColor( a, r, g, b, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currU += dudx;
-							currV += dvdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getMixedColor( a, r, g, b, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-				uStart += dudyl;
-				vStart += dvdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				uEnd += dudyr;
-				vEnd += dvdyr;
-
-				ypos += resX;
-
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
-
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-						dudyl = (u2 - u1) * dyl;
-						dvdyl = (v2 - v1) * dyl;
-
-						xStart = x1 + dxdyl;
-						zStart = z1 + dzdyl;
-						uStart = u1 + dudyl;
-						vStart = v1 + dvdyl;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-						dudyr = (u1 - u2) * dyr;
-						dvdyr = (v1 - v2) * dyr;
-
-						xEnd = x2 + dxdyr;
-						zEnd = z2 + dzdyr;
-						uEnd = u2 + dudyr;
-						vEnd = v2 + dvdyr;
-					}
-				}
-			}
-		}
-	}
-}
-
-
-//void triangle_rasterize_lightOff_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture )
-//{
-//	Vertex	* tmpV;
-//	LPDWORD			colorChannel = view->colorChannel;
-//	float			* zBuffer = view->zBuffer, a, r, g, b;
-//
-//	int				resX = (int)view->width, resY = (int)view->height;
-//	int				x0, y0, x1, y1, x2, y2, nw, nh, side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
-//	float			u0, v0, u1, v1, u2, v2, z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, uStart, uEnd, vStart, vEnd, currZ,
-//					currU, currV, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dudyl, dudyr, dvdyl, dvdyr, dzdx, dudx, dvdx, temp2;
-//
-//
-//	//背面剔除
-//	if ( BACKFACE_CULLING_MODE == 2)
-//	{
-//		if ( ( ver2->viewPosition->x - ver0->viewPosition->x ) * ( ver1->viewPosition->y - ver2->viewPosition->y ) > ( ver2->viewPosition->y - ver0->viewPosition->y ) * ( ver1->viewPosition->x - ver2->viewPosition->x ) )
-//			return;
-//	}
-//
-//	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-//		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-//		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-//		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)))
-//	{
-//		return;
-//	}
-//
-//	//判断是否是一条线，如果是，则返回。
-//	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
-//	{
-//		return;
-//	}
-//
-//	//*************************************** start draw ************************************
-//	nw = resX - 1;
-//	nh = resY - 1;
-//
-//	//调整y0,y1,y2,让它们的y值从小到大
-//	if (ver1->viewPosition->y < ver0->viewPosition->y)
-//	{
-//		tmpV = ver1;
-//		ver1 = ver0;
-//		ver0 = tmpV;
-//	}
-//	if (ver2->viewPosition->y < ver0->viewPosition->y)
-//	{
-//		tmpV = ver0;
-//		ver0 = ver2;
-//		ver2 = tmpV;
-//	}
-//	if (ver2->viewPosition->y < ver1->viewPosition->y)
-//	{
-//		tmpV = ver1;
-//		ver1 = ver2;
-//		ver2 = tmpV;
-//	}
-//
-//	//判断三角形的类型
-//	if (ver0->viewPosition->y == ver1->viewPosition->y)
-//	{
-//		tri_type = FLAT_TOP_TRIANGLE;
-//
-//		if (ver1->viewPosition->x < ver0->viewPosition->x)
-//		{
-//			tmpV = ver1;
-//			ver1 = ver0;
-//			ver0 = tmpV;
-//		}
-//	}
-//	else if (ver1->viewPosition->y == ver2->viewPosition->y)
-//	{
-//		tri_type = FLAT_BOTTOM_TRIANGLE;
-//
-//		if (ver2->viewPosition->x < ver1->viewPosition->x)
-//		{
-//			tmpV = ver1;
-//			ver1 = ver2;
-//			ver2 = tmpV;
-//		}
-//	}
-//	else
-//	{
-//		tri_type = GENERAL_TRIANGLE;
-//	}
-//
-//	x0 = (int)ver0->viewPosition->x;
-//	y0 = (int)ver0->viewPosition->y;
-//	z0 = ver0->viewPosition->z;
-//
-//	x1 = (int)ver1->viewPosition->x;
-//	y1 = (int)ver1->viewPosition->y;
-//	z1 = ver1->viewPosition->z;
-//
-//	x2 = (int)ver2->viewPosition->x;
-//	y2 = (int)ver2->viewPosition->y;
-//	z2 = ver2->viewPosition->z;
-//
-//	u0 = ver0->uv->x;
-//	v0 = ver0->uv->y;
-//	u1 = ver1->uv->x;
-//	v1 = ver1->uv->y;
-//	u2 = ver2->uv->x;
-//	v2 = ver2->uv->y;
-//
-//	a = ver0->color->alpha;
-//	r = ver0->color->red;
-//	g = ver0->color->green;
-//	b = ver0->color->blue;
-//
-//	side = 0;
-//
-//	//转折后的斜边在哪一侧
-//	ys = y1;
-//
-//	//转折点y坐标
-//	if (tri_type == FLAT_TOP_TRIANGLE || tri_type == FLAT_BOTTOM_TRIANGLE)
-//	{
-//		if (tri_type == FLAT_TOP_TRIANGLE)
-//		{
-//			dy = 1.0f / (y2 - y0);
-//
-//			dxdyl = (x2 - x0) * dy;	//左斜边倒数
-//			dzdyl = (z2 - z0) * dy;
-//			dudyl = (u2 - u0) * dy;
-//			dvdyl = (v2 - v0) * dy;
-//
-//			dxdyr = (x2 - x1) * dy;	//右斜边倒数
-//			dzdyr = (z2 - z1) * dy;
-//			dudyr = (u2 - u1) * dy;
-//			dvdyr = (v2 - v1) * dy;
-//
-//			//y0小于视窗顶部y坐标，调整左斜边和右斜边当前值,y值开始值
-//			if (y0 < 0)
-//			{
-//				dy = - (float)y0;
-//
-//				xStart = dxdyl * dy + x0;
-//				zStart = dzdyl * dy + z0;
-//				uStart = dudyl * dy + u0;
-//				vStart = dvdyl * dy + v0;
-//
-//				xEnd = dxdyr * dy + x1;
-//				zEnd = dzdyr * dy + z1;
-//				uEnd = dudyr * dy + u1;
-//				vEnd = dvdyr * dy + v1;
-//
-//				yStart = 0;
-//			}
-//			else
-//			{
-//				//注意平顶和平底这里的区别
-//				xStart = (float)x0;
-//				uStart = u0;
-//				vStart = v0;
-//				zStart = z0;
-//
-//				xEnd = (float)x1;
-//				uEnd = u1;
-//				vEnd = v1;
-//				zEnd = z1;
-//
-//				yStart = (float)y0;
-//			}
-//		}
-//		else
-//		{
-//			//平底三角形
-//			dy = 1.0f / (y1 - y0);
-//
-//			dxdyl = (x1 - x0) * dy;
-//			dzdyl = (z1 - z0) * dy;
-//			dudyl = (u1 - u0) * dy;
-//			dvdyl = (v1 - v0) * dy;
-//
-//			dxdyr = (x2 - x0) * dy;
-//			dzdyr = (z2 - z0) * dy;
-//			dudyr = (u2 - u0) * dy;
-//			dvdyr = (v2 - v0) * dy;
-//
-//			if (y0 < 0)
-//			{
-//				dy = - (float)y0;
-//
-//				xStart = dxdyl * dy + x0;
-//				zStart = dzdyl * dy + z0;
-//				uStart = dudyl * dy + u0;
-//				vStart = dvdyl * dy + v0;
-//
-//				xEnd = dxdyr * dy + x0;
-//				zEnd = dzdyr * dy + z0;
-//				uEnd = dudyr * dy + u0;
-//				vEnd = dvdyr * dy + v0;
-//
-//				yStart = 0.0f;
-//			}
-//			else
-//			{
-//				xStart = (float)x0;
-//				uStart = u0;
-//				vStart = v0;
-//				zStart = z0;
-//
-//				xEnd = (float)x0;
-//				uEnd = u0;
-//				vEnd = v0;
-//				zEnd = z0;
-//
-//				yStart = (float)y0;
-//			}
-//		}
-//		//y2>视窗高度时，大于rect.height部分就不用画出了
-//		cyStart = (int)yStart;
-//		cyEnd = (int)( y2 > nh ? nh : y2 );
-//		ypos = cyStart * resX;
-//
-//		//x值需要裁剪的情况
-//		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-//		{
-//			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-//			{
-//				cxStart = (int)xStart;
-//				cxEnd = xEnd > nw ? nw : (int)xEnd;
-//
-//				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
-//				{
-//					if (cxStart == cxEnd)
-//					{
-//						pos = cxStart + ypos;
-//
-//						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-//						{
-//							colorChannel[pos] = computePixelColor( r, g, b, a, uStart, vStart, texture );
-//							zBuffer[pos] = zStart;
-//						}
-//					}
-//					else
-//					{
-//						dx = 1.0f / (xEnd - xStart);
-//
-//						dzdx = (zEnd - zStart) * dx;
-//						dudx = (uEnd - uStart) * dx;
-//						dvdx = (vEnd - vStart) * dx;
-//
-//						currZ = zStart;
-//						currU = uStart;
-//						currV = vStart;
-//
-//						//初始值需要裁剪
-//						if (cxStart < 0)
-//						{
-//							currZ -= cxStart * dzdx;
-//							currU -= cxStart * dudx;
-//							currV -= cxStart * dvdx;
-//
-//							cxStart = 0;
-//						}
-//						//绘制扫描线
-//						for ( xi = cxStart; xi < cxEnd; xi ++ )
-//						{
-//							/*MIN( currU, uEnd );
-//							MIN( currV, vEnd );*/
-//
-//							pos = xi + ypos;
-//							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-//							{
-//								colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
-//								zBuffer[pos] = currZ;
-//							}
-//
-//							currZ += dzdx;
-//							currU += dudx;
-//							currV += dvdx;
-//						}
-//
-//						pos = cxEnd + ypos;
-//						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-//						{
-//							colorChannel[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
-//							zBuffer[pos] = zEnd;
-//						}
-//					}
-//				}
-//
-//				//y每增加1时,xl和xr分别加上他们的递增量
-//				xStart += dxdyl;
-//				zStart += dzdyl;
-//				uStart += dudyl;
-//				vStart += dvdyl;
-//
-//				xEnd += dxdyr;
-//				zEnd += dzdyr;
-//				uEnd += dudyr;
-//				vEnd += dvdyr;
-//
-//				ypos += resX;
-//			}
-//		}
-//		else
-//		{
-//			//x不需要裁剪的情况
-//			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-//			{
-//				if ( zStart > 0 || zEnd > 0 )
-//				{
-//					cxStart = (int)xStart;
-//					cxEnd = (int)xEnd;
-//
-//					currZ = zStart;
-//					currU = uStart;
-//					currV = vStart;
-//
-//					if (cxStart == cxEnd)
-//					{
-//						pos = cxStart + ypos;
-//						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-//						{
-//							colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
-//							zBuffer[pos] = currZ;
-//						}
-//					}
-//					else
-//					{
-//						dx = 1.0f / (xEnd - xStart);
-//
-//						dzdx = (zEnd - zStart) * dx;
-//						dudx = (uEnd - uStart) * dx;
-//						dvdx = (vEnd - vStart) * dx;
-//
-//						for ( xi = cxStart; xi < cxEnd; xi ++ )
-//						{
-//							pos = xi + ypos;
-//							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-//							{
-//								colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
-//								zBuffer[pos] = currZ;
-//							}
-//
-//							currZ += dzdx;
-//							currU += dudx;
-//							currV += dvdx;
-//						}
-//
-//						pos = cxEnd + ypos;
-//						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-//						{
-//							colorChannel[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
-//							zBuffer[pos] = zEnd;
-//						}
-//					}
-//				}
-//
-//				xStart += dxdyl;
-//				zStart += dzdyl;
-//				uStart += dudyl;
-//				vStart += dvdyl;
-//
-//				xEnd += dxdyr;
-//				zEnd += dzdyr;
-//				uEnd += dudyr;
-//				vEnd += dvdyr;
-//
-//				ypos += resX;
-//			}
-//		}
-//	}
-//	else
-//	{
-//		//普通三角形
-//		yEnd = (float)(y2 > nh ? nh : y2);
-//
-//		if (y1 < 0)
-//		{
-//			//由于y0<y1,这时相当于平顶三角形
-//			//计算左右斜边的斜率的倒数
-//			dyl = 1.0f / (y2 - y1);
-//			dyr = 1.0f / (y2 - y0);
-//
-//			dxdyl = (x2 - x1) * dyl;
-//			dzdyl = (z2 - z1) * dyl;
-//			dudyl = (u2 - u1) * dyl;
-//			dvdyl = (v2 - v1) * dyl;
-//
-//			dxdyr = (x2 - x0) * dyr;
-//			dzdyr = (z2 - z0) * dyr;
-//			dudyr = (u2 - u0) * dyr;
-//			dvdyr = (v2 - v0) * dyr;
-//
-//			//计算左右斜边初始值
-//			dyr = - (float)y0;
-//			dyl = - (float)y1;
-//
-//			xStart = dxdyl * dyl + x1;
-//			zStart = dzdyl * dyl + z1;
-//			uStart = dudyl * dyl + u1;
-//			vStart = dvdyl * dyl + v1;
-//
-//			xEnd = dxdyr * dyr + x0;
-//			zEnd = dzdyr * dyr + z0;
-//			uEnd = dudyr * dyr + u0;
-//			vEnd = dvdyr * dyr + v0;
-//
-//			yStart = 0;
-//
-//			if (dxdyr > dxdyl)
-//			{
-//				//交换斜边
-//				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-//				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-//				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
-//				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
-//
-//				temp = x1;	x1 = x2;	x2 = temp;
-//				temp = y1;	y1 = y2;	y2 = temp;
-//				temp2 = z1;	z1 = z2;	z2 = temp2;
-//
-//				temp2 = u1;	u1 = u2;	u2 = temp2;
-//				temp2 = v1;	v1 = v2;	v2 = temp2;
-//
-//				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-//				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-//				temp2 = uStart;	uStart = uEnd;	uEnd = temp2;
-//				temp2 = vStart;	vStart = vEnd;	vEnd = temp2;
-//
-//				side = 1;
-//			}
-//		}
-//		else if (y0 < 0)
-//		{
-//			dyl = 1.0f / (y1 - y0);
-//			dyr = 1.0f / (y2 - y0);
-//
-//			dxdyl = (x1 - x0) * dyl;
-//			dxdyr = (x2 - x0) * dyr;
-//
-//			dzdyl = (z1 - z0) * dyl;
-//			dudyl = (u1 - u0) * dyl;
-//			dvdyl = (v1 - v0) * dyl;
-//
-//			dzdyr = (z2 - z0) * dyr;
-//			dudyr = (u2 - u0) * dyr;
-//			dvdyr = (v2 - v0) * dyr;
-//
-//			dy = - (float)y0;
-//
-//			xStart = dxdyl * dy + x0;
-//			zStart = dzdyl * dy + z0;
-//			uStart = dudyl * dy + u0;
-//			vStart = dvdyl * dy + v0;
-//
-//			xEnd = dxdyr * dy + x0;
-//			zEnd = dzdyr * dy + z0;
-//			uEnd = dudyr * dy + u0;
-//			vEnd = dvdyr * dy + v0;
-//
-//			yStart = 0;
-//
-//			if (dxdyr < dxdyl)
-//			{
-//				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-//				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-//				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
-//				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
-//
-//				temp = x1;	x1 = x2;	x2 = temp;
-//				temp = y1;	y1 = y2;	y2 = temp;
-//				temp2 = z1;	z1 = z2;	z2 = temp2;
-//
-//				temp2 = u1;	u1 = u2;	u2 = temp2;
-//				temp2 = v1;	v1 = v2;	v2 = temp2;
-//
-//				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-//				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-//				temp2 = uStart;	uStart = uEnd;	uEnd = temp2;
-//				temp2 = vStart;	vStart = vEnd;	vEnd = temp2;
-//
-//				side = 1;
-//			}
-//		}
-//		else
-//		{
-//			//y值都大于0
-//			dyl = 1.0f / (y1 - y0);
-//			dyr = 1.0f / (y2 - y0);
-//
-//			dxdyl = (x1 - x0) * dyl;
-//			dzdyl = (z1 - z0) * dyl;
-//			dudyl = (u1 - u0) * dyl;
-//			dvdyl = (v1 - v0) * dyl;
-//
-//			dxdyr = (x2 - x0) * dyr;
-//			dzdyr = (z2 - z0) * dyr;
-//			dudyr = (u2 - u0) * dyr;
-//			dvdyr = (v2 - v0) * dyr;
-//
-//			xStart = (float)x0;
-//			zStart = z0;
-//			uStart = u0;
-//			vStart = v0;
-//
-//			xEnd = (float)x0;
-//			zEnd = z0;
-//			uEnd = u0;
-//			vEnd = v0;
-//
-//			yStart = (float)y0;
-//
-//			if (dxdyr < dxdyl)
-//			{
-//				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-//				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-//				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
-//				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
-//
-//				temp = x1;	x1 = x2;	x2 = temp;
-//				temp = y1;	y1 = y2;	y2 = temp;
-//				temp2 = z1;	z1 = z2;	z2 = temp2;
-//
-//				temp2 = u1;	u1 = u2;	u2 = temp2;
-//				temp2 = v1;	v1 = v2;	v2 = temp2;
-//
-//				side = 1;
-//			}
-//		}
-//
-//		cyStart = (int)yStart;
-//		cyEnd = (int)yEnd;
-//		ypos = cyStart * resX;
-//
-//		//x需要裁剪
-//		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-//		{
-//			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-//			{
-//				cxStart = (int)xStart;
-//				cxEnd = xEnd > nw ? nw :(int)xEnd;
-//
-//				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
-//				{
-//					if ( cxStart == cxEnd )
-//					{
-//						pos = cxStart + ypos;
-//
-//						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-//						{
-//							colorChannel[pos] = computePixelColor( r, g, b, a, uStart, vStart, texture );
-//							zBuffer[pos] = zStart;
-//						}
-//					}
-//					else
-//					{
-//						dx = 1.0f / (xEnd - xStart);
-//
-//						dzdx = (zEnd - zStart) * dx;
-//						dudx = (uEnd - uStart) * dx;
-//						dvdx = (vEnd - vStart) * dx;
-//
-//						currZ = zStart;
-//						currU = uStart;
-//						currV = vStart;
-//
-//						//初始值需要裁剪
-//						if (cxStart < 0)
-//						{
-//							currZ -= cxStart * dzdx;
-//							currU -= cxStart * dudx;
-//							currV -= cxStart * dvdx;
-//
-//							cxStart = 0;
-//						}
-//
-//						for ( xi = cxStart; xi < cxEnd; xi ++ )
-//						{
-//							pos = xi + ypos;
-//							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-//							{
-//								colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
-//								zBuffer[pos] = currZ;
-//							}
-//
-//							currZ += dzdx;
-//							currU += dudx;
-//							currV += dvdx;
-//						}
-//
-//						pos = cxEnd + ypos;
-//						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-//						{
-//							colorChannel[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
-//							zBuffer[pos] = zEnd;
-//						}
-//					}
-//				}
-//
-//				xStart += dxdyl;
-//				zStart += dzdyl;
-//				uStart += dudyl;
-//				vStart += dvdyl;
-//
-//				xEnd += dxdyr;
-//				zEnd += dzdyr;
-//				uEnd += dudyr;
-//				vEnd += dvdyr;
-//
-//				ypos += resX;
-//
-//				//转折点
-//				if (yi == ys)
-//				{
-//					if (side == 0)
-//					{
-//						dyl = 1.0f / (y2 - y1);
-//
-//						dxdyl = (x2 - x1) * dyl;
-//						dzdyl = (z2 - z1) * dyl;
-//						dudyl = (u2 - u1) * dyl;
-//						dvdyl = (v2 - v1) * dyl;
-//
-//						xStart = (float)x1;
-//						zStart = z1;
-//						uStart = u1;
-//						vStart = v1;
-//					}
-//					else
-//					{
-//						dyr = 1.0f / (y1 - y2);
-//
-//						dxdyr = (x1 - x2) * dyr;
-//						dzdyr = (z1 - z2) * dyr;
-//						dudyr = (u1 - u2) * dyr;
-//						dvdyr = (v1 - v2) * dyr;
-//
-//						xEnd = (float)x2;
-//						zEnd = z2;
-//						uEnd = u2;
-//						vEnd = v2;
-//					}
-//				}
-//			}
-//		}
-//		else
-//		{
-//			//不需要裁剪
-//			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-//			{
-//				if ( zStart > 0 || zEnd > 0 )
-//				{
-//					cxStart = (int)xStart;
-//					cxEnd = (int)xEnd;
-//
-//					currZ = zStart;
-//					currU = uStart;
-//					currV = vStart;
-//
-//					if (xStart == xEnd)
-//					{
-//						pos = cxStart + ypos;
-//						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-//						{
-//							colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
-//							zBuffer[pos] = currZ;
-//						}
-//					}
-//					else
-//					{
-//						dx = 1.0f / (xEnd - xStart);
-//
-//						dzdx = (zEnd - zStart) * dx;
-//						dudx = (uEnd - uStart) * dx;
-//						dvdx = (vEnd - vStart) * dx;
-//
-//						for ( xi = cxStart; xi < cxEnd; xi ++ )
-//						{
-//							pos = xi + ypos;
-//							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-//							{
-//								colorChannel[pos] = computePixelColor( r, g, b, a, currU, currV, texture );
-//								zBuffer[pos] = currZ;
-//							}
-//
-//							currZ += dzdx;
-//							currU += dudx;
-//							currV += dvdx;
-//						}
-//
-//						pos = cxEnd + ypos;
-//						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-//						{
-//							colorChannel[pos] = computePixelColor( r, g, b, a, uEnd, vEnd, texture );
-//							zBuffer[pos] = zEnd;
-//						}
-//					}
-//				}
-//
-//				xStart += dxdyl;
-//				zStart += dzdyl;
-//				uStart += dudyl;
-//				vStart += dvdyl;
-//
-//				xEnd += dxdyr;
-//				zEnd += dzdyr;
-//				uEnd += dudyr;
-//				vEnd += dvdyr;
-//
-//				ypos += resX;
-//
-//				if (yi == ys)
-//				{
-//					if (side == 0)
-//					{
-//						dyl = 1.0f / (y2 - y1);
-//
-//						dxdyl = (x2 - x1) * dyl;
-//						dzdyl = (z2 - z1) * dyl;
-//						dudyl = (u2 - u1) * dyl;
-//						dvdyl = (v2 - v1) * dyl;
-//
-//						xStart = x1 + dxdyl;
-//						zStart = z1 + dzdyl;
-//						uStart = u1 + dudyl;
-//						vStart = v1 + dvdyl;
-//					}
-//					else
-//					{
-//						dyr = 1.0f / (y1 - y2);
-//
-//						dxdyr = (x1 - x2) * dyr;
-//						dzdyr = (z1 - z2) * dyr;
-//						dudyr = (u1 - u2) * dyr;
-//						dvdyr = (v1 - v2) * dyr;
-//
-//						xEnd = x2 + dxdyr;
-//						zEnd = z2 + dzdyr;
-//						uEnd = u2 + dudyr;
-//						vEnd = v2 + dvdyr;
-//					}
-//				}
-//			}
-//		}
-//	}
-//}
-//
-
-void triangle_rasterize_light( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 )
-{
-	Vertex	* tmpV;
-	float			* zBuffer = view->zBuffer;
-
-	int				resX = (int)view->width, resY = (int)view->height;
-	int				x0, y0, x1, y1, x2, y2, nw, nh, side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
-	float			z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, currZ,
-					dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr,dzdx, temp2,
-					dadyl, dadyr, dadx, currA, drdyl, drdyr, drdx, currR, dgdyl, dgdyr, dgdx, currG, dbdyl, dbdyr, dbdx, currB,
-					a0, r0, g0, b0, a1, r1, g1, b1, a2, r2, g2, b2, aStart, aEnd, rStart, rEnd, gStart, gEnd, bStart, bEnd;
-
-	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
-	{
-		return;
-	}
-
-	//判断是否是一条线，如果是，则返回。
-	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
-	{
-		return;
-	}
-
-	//*************************************** start draw ************************************
-	nw = resX - 1;
-	nh = resY - 1;
-
-	//调整y0,y1,y2,让它们的y值从小到大
-	if (ver1->viewPosition->y < ver0->viewPosition->y)
-	{
-		tmpV = ver1;
-		ver1 = ver0;
-		ver0 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver0->viewPosition->y)
-	{
-		tmpV = ver0;
-		ver0 = ver2;
-		ver2 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver1->viewPosition->y)
-	{
-		tmpV = ver1;
-		ver1 = ver2;
-		ver2 = tmpV;
-	}
-
-	//判断三角形的类型
-	if (ver0->viewPosition->y == ver1->viewPosition->y)
-	{
-		tri_type = FLAT_TOP_TRIANGLE;
-
-		if (ver1->viewPosition->x < ver0->viewPosition->x)
-		{
-			tmpV = ver1;
-			ver1 = ver0;
-			ver0 = tmpV;
-		}
-	}
-	else if (ver1->viewPosition->y == ver2->viewPosition->y)
-	{
-		tri_type = FLAT_BOTTOM_TRIANGLE;
-
-		if (ver2->viewPosition->x < ver1->viewPosition->x)
-		{
-			tmpV = ver1;
-			ver1 = ver2;
-			ver2 = tmpV;
-		}
-	}
-	else
-	{
-		tri_type = GENERAL_TRIANGLE;
-	}
-
-	x0 = (int)ver0->viewPosition->x;
-	y0 = (int)ver0->viewPosition->y;
-	z0 = ver0->viewPosition->z;
-
-	x1 = (int)ver1->viewPosition->x;
-	y1 = (int)ver1->viewPosition->y;
-	z1 = ver1->viewPosition->z;
-
-	x2 = (int)ver2->viewPosition->x;
-	y2 = (int)ver2->viewPosition->y;
-	z2 = ver2->viewPosition->z;
-
-	a0 = ver0->color->alpha;
-	r0 = ver0->color->red;
-	g0 = ver0->color->green;
-	b0 = ver0->color->blue;
-
-	a1 = ver1->color->alpha;
-	r1 = ver1->color->red;
-	g1 = ver1->color->green;
-	b1 = ver1->color->blue;
-
-	a2 = ver2->color->alpha;
-	r2 = ver2->color->red;
-	g2 = ver2->color->green;
-	b2 = ver2->color->blue;
-
-	side = 0;
-
-	//转折后的斜边在哪一侧
-	ys = y1;
-
-	//转折点y坐标
-	if (tri_type == FLAT_TOP_TRIANGLE || tri_type == FLAT_BOTTOM_TRIANGLE)
-	{
-		if (tri_type == FLAT_TOP_TRIANGLE)
-		{
-			dy = 1.0f / (y2 - y0);
-
-			dxdyl = (x2 - x0) * dy;	//左斜边倒数
-			dzdyl = (z2 - z0) * dy;
-			
-			dadyl = (a2 - a0) * dy;
-			drdyl = (r2 - r0) * dy;
-			dgdyl = (g2 - g0) * dy;
-			dbdyl = (b2 - b0) * dy;
-
-			dxdyr = (x2 - x1) * dy;	//右斜边倒数
-			dzdyr = (z2 - z1) * dy;
-
-			dadyr = (a2 - a1) * dy;
-			drdyr = (r2 - r1) * dy;
-			dgdyr = (g2 - g1) * dy;
-			dbdyr = (b2 - b1) * dy;
-
-			//y0小于视窗顶部y坐标，调整左斜边和右斜边当前值,y值开始值
-			if (y0 < 0)
-			{
-				dy = - (float)y0;
-
-				xStart = dxdyl * dy + x0;
-				zStart = dzdyl * dy + z0;
-
-				aStart = dadyl * dy + a0;
-				rStart = drdyl * dy + r0;
-				gStart = dgdyl * dy + g0;
-				bStart = dbdyl * dy + b0;
-
-				xEnd = dxdyr * dy + x1;
-				zEnd = dzdyr * dy + z1;
-
-				aEnd = dadyr * dy + a1;
-				rEnd = drdyr * dy + r1;
-				gEnd = dgdyr * dy + g1;
-				bEnd = dbdyr * dy + b1;
-
-				yStart = 0;
-			}
-			else
-			{
-				//注意平顶和平底这里的区别
-				xStart = (float)x0;
-				zStart = z0;
-
-				aStart = a0;
-				rStart = r0;
-				gStart = g0;
-				bStart = b0;
-
-				xEnd = (float)x1;
-				zEnd = z1;
-
-				aEnd = a1;
-				rEnd = r1;
-				gEnd = g1;
-				bEnd = b1;
-
-				yStart = (float)y0;
-			}
-		}
-		else
-		{
-			//平底三角形
-			dy = 1.0f / (y1 - y0);
-
-			dxdyl = (x1 - x0) * dy;
-			dzdyl = (z1 - z0) * dy;
-
-			dadyl = (a1 - a0) * dy;
-			drdyl = (r1 - r0) * dy;
-			dgdyl = (g1 - g0) * dy;
-			dbdyl = (b1 - b0) * dy;
-
-			dxdyr = (x2 - x0) * dy;
-			dzdyr = (z2 - z0) * dy;
-
-			dadyr = (a2 - a0) * dy;
-			drdyr = (r2 - r0) * dy;
-			dgdyr = (g2 - g0) * dy;
-			dbdyr = (b2 - b0) * dy;
-
-			if (y0 < 0)
-			{
-				dy = - (float)y0;
-
-				xStart = dxdyl * dy + x0;
-				zStart = dzdyl * dy + z0;
-
-				aStart = dadyl * dy + a0;
-				rStart = drdyl * dy + r0;
-				gStart = dgdyl * dy + g0;
-				bStart = dbdyl * dy + b0;
-
-				xEnd = dxdyr * dy + x0;
-				zEnd = dzdyr * dy + z0;
-
-				aEnd = dadyr * dy + a0;
-				rEnd = drdyr * dy + r0;
-				gEnd = dgdyr * dy + g0;
-				bEnd = dbdyr * dy + b0;
-
-				yStart = 0.0f;
-			}
-			else
-			{
-				xStart = (float)x0;
-				zStart = z0;
-
-				aStart = a0;
-				rStart = r0;
-				gStart = g0;
-				bStart = b0;
-
-				xEnd = (float)x0;
-				zEnd = z0;
-
-				aEnd = a0;
-				rEnd = r0;
-				gEnd = g0;
-				bEnd = b0;
-
-				yStart = (float)y0;
-			}
-		}
-		//y2>视窗高度时，大于rect.height部分就不用画出了
-		cyStart = (int)yStart;
-		cyEnd = (int)( y2 > nh ? nh : y2 );
-		ypos = cyStart * resX;
-
-		//x值需要裁剪的情况
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw : (int)xEnd;
-
-				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
-				{
-					if (cxStart == cxEnd)
-					{
-						pos = cxStart + ypos;
-
-						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-						{
-							getPixelColor( (WORD)aStart, (WORD)rStart, (WORD)gStart, (WORD)bStart, pos, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-
-						dadx = (aEnd - aStart) * dx;
-						drdx = (rEnd - rStart) * dx;
-						dgdx = (gEnd - gStart) * dx;
-						dbdx = (bEnd - bStart) * dx;
-
-						currZ = zStart;
-						currA = aStart;
-						currR = rStart;
-						currG = gStart;
-						currB = bStart;
-
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
-							currA -= cxStart * dadx;
-							currR -= cxStart * drdx;
-							currG -= cxStart * dgdx;
-							currB -= cxStart * dbdx;
-
-							cxStart = 0;
-						}
-						//绘制扫描线
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currA += dadx;
-							currR += drdx;
-							currG += dgdx;
-							currB += dbdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getPixelColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				//y每增加1时,xl和xr分别加上他们的递增量
-				xStart += dxdyl;
-				zStart += dzdyl;
-				
-				aStart += dadyl;
-				rStart += drdyl;
-				gStart += dgdyl;
-				bStart += dbdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				
-				aEnd += dadyr;
-				rEnd += drdyr;
-				gEnd += dgdyr;
-				bEnd += dbdyr;
-
-				ypos += resX;
-			}
-		}
-		else
-		{
-			//x不需要裁剪的情况
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				if ( zStart > 0 || zEnd > 0 )
-				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
-
-					currZ = zStart;
-					currA = aStart;
-					currR = rStart;
-					currG = gStart;
-					currB = bStart;
-
-					if (cxStart == cxEnd)
-					{
-						pos = cxStart + ypos;
-						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-						{
-							getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-
-						dadx = (aEnd - aStart) * dx;
-						drdx = (rEnd - rStart) * dx;
-						dgdx = (gEnd - gStart) * dx;
-						dbdx = (bEnd - bStart) * dx;
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currA += dadx;
-							currR += drdx;
-							currG += dgdx;
-							currB += dbdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getPixelColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-				
-				aStart += dadyl;
-				rStart += drdyl;
-				gStart += dgdyl;
-				bStart += dbdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				
-				aEnd += dadyr;
-				rEnd += drdyr;
-				gEnd += dgdyr;
-				bEnd += dbdyr;
-
-				ypos += resX;
-			}
-		}
-	}
-	else
-	{
-		//普通三角形
-		yEnd = (float)(y2 > nh ? nh : y2);
-
-		if (y1 < 0)
-		{
-			//由于y0<y1,这时相当于平顶三角形
-			//计算左右斜边的斜率的倒数
-			dyl = 1.0f / (y2 - y1);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x2 - x1) * dyl;
-			dzdyl = (z2 - z1) * dyl;
-
-			dadyl = (a2 - a1) * dyl;
-			drdyl = (r2 - r1) * dyl;
-			dgdyl = (g2 - g1) * dyl;
-			dbdyl = (b2 - b1) * dyl;
-
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
-
-			dadyr = (a2 - a0) * dyr;
-			drdyr = (r2 - r0) * dyr;
-			dbdyr = (g2 - g0) * dyr;
-			dgdyr = (b2 - b0) * dyr;
-
-			//计算左右斜边初始值
-			dyr = - (float)y0;
-			dyl = - (float)y1;
-
-			xStart = dxdyl * dyl + x1;
-			zStart = dzdyl * dyl + z1;
-
-			aStart = dadyl * dyl + a1;
-			rStart = drdyl * dyl + r1;
-			gStart = dgdyl * dyl + g1;
-			bStart = dbdyl * dyl + b1;
-
-			xEnd = dxdyr * dyr + x0;
-			zEnd = dzdyr * dyr + z0;
-			
-			aEnd = dadyr * dyr + a0;
-			rEnd = drdyr * dyr + r0;
-			gEnd = dgdyr * dyr + g0;
-			bEnd = dbdyr * dyr + b0;
-
-			yStart = 0;
-
-			if (dxdyr > dxdyl)
-			{
-				//交换斜边
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-				
-				temp2 = dadyl;	dadyl = dadyr;	dadyr = temp2;
-				temp2 = drdyl;	drdyl = drdyr;	drdyr = temp2;
-				temp2 = dgdyl;	dgdyl = dgdyr;	dgdyr = temp2;
-				temp2 = dbdyl;	dbdyl = dbdyr;	dbdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-				
-				temp2 = aStart;	aStart = aEnd;	aEnd = temp2;
-				temp2 = rStart;	rStart = rEnd;	rEnd = temp2;
-				temp2 = gStart;	gStart = gEnd;	gEnd = temp2;
-				temp2 = bStart;	bStart = bEnd;	bEnd = temp2;
-
-				side = 1;
-			}
-		}
-		else if (y0 < 0)
-		{
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x1 - x0) * dyl;
-			dxdyr = (x2 - x0) * dyr;
-
-			dzdyl = (z1 - z0) * dyl;
-			
-			dadyl = (a1 - a0) * dyl;
-			drdyl = (r1 - r0) * dyl;
-			dgdyl = (g1 - g0) * dyl;
-			dbdyl = (b1 - b0) * dyl;
-
-			dzdyr = (z2 - z0) * dyr;
-			
-			dadyr = (a2 - a0) * dyr;
-			drdyr = (r2 - r0) * dyr;
-			dgdyr = (g2 - g0) * dyr;
-			dbdyr = (b2 - b0) * dyr;
-
-			dy = - (float)y0;
-
-			xStart = dxdyl * dy + x0;
-			zStart = dzdyl * dy + z0;
-			
-			aStart = dadyl * dy + a0;
-			rStart = drdyl * dy + r0;
-			gStart = dgdyl * dy + g0;
-			bStart = dbdyl * dy + b0;
-
-			xEnd = dxdyr * dy + x0;
-			zEnd = dzdyr * dy + z0;
-			
-			aEnd = dadyr * dy + a0;
-			rEnd = drdyr * dy + r0;
-			gEnd = dgdyr * dy + g0;
-			bEnd = dbdyr * dy + b0;
-
-			yStart = 0;
-
-			if (dxdyr < dxdyl)
-			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-				
-				temp2 = dadyl;	dadyl = dadyr;	dadyr = temp2;
-				temp2 = drdyl;	drdyl = drdyr;	drdyr = temp2;
-				temp2 = dgdyl;	dgdyl = dgdyr;	dgdyr = temp2;
-				temp2 = dbdyl;	dbdyl = dbdyr;	dbdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-				
-				temp2 = aStart;	aStart = aEnd;	aEnd = temp2;
-				temp2 = rStart;	rStart = rEnd;	rEnd = temp2;
-				temp2 = gStart;	gStart = gEnd;	gEnd = temp2;
-				temp2 = bStart;	bStart = bEnd;	bEnd = temp2;
-
-				side = 1;
-			}
-		}
-		else
-		{
-			//y值都大于0
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x1 - x0) * dyl;
-			dzdyl = (z1 - z0) * dyl;
-
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
-
-			dadyl = (a1 - a0) * dyl;
-			drdyl = (r1 - r0) * dyl;
-			dgdyl = (g1 - g0) * dyl;
-			dbdyl = (b1 - b0) * dyl;
-
-			dadyr = (a2 - a0) * dyr;
-			drdyr = (r2 - r0) * dyr;
-			dgdyr = (g2 - g0) * dyr;
-			dbdyr = (b2 - b0) * dyr;
-
-			xStart = (float)x0;
-			zStart = z0;
-			
-			aStart = a0;
-			rStart = r0;
-			gStart = g0;
-			bStart = b0;
-
-			xEnd = (float)x0;
-			zEnd = z0;
-			
-			aEnd = a0;
-			rEnd = r0;
-			gEnd = g0;
-			bEnd = b0;
-
-			yStart = (float)y0;
-
-			if (dxdyr < dxdyl)
-			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-
-				temp2 = dadyl;	dadyl = dadyr;	dadyr = temp2;
-				temp2 = drdyl;	drdyl = drdyr;	drdyr = temp2;
-				temp2 = dgdyl;	dgdyl = dgdyr;	dgdyr = temp2;
-				temp2 = dbdyl;	dbdyl = dbdyr;	dbdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = a1;	a1 = a2;	a2 = temp2;
-				temp2 = r1;	r1 = r2;	r2 = temp2;
-				temp2 = g1;	g1 = g2;	g2 = temp2;
-				temp2 = b1;	b1 = b2;	b2 = temp2;
-
-				side = 1;
-			}
-		}
-
-		cyStart = (int)yStart;
-		cyEnd = (int)yEnd;
-		ypos = cyStart * resX;
-
-		//x需要裁剪
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw :(int)xEnd;
-
-				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
-				{
-					if ( cxStart == cxEnd )
-					{
-						pos = cxStart + ypos;
-
-						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-						{
-							getPixelColor( (WORD)aStart, (WORD)rStart, (WORD)gStart, (WORD)bStart, pos, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-						
-						dadx = (aEnd - aStart) * dx;
-						drdx = (rEnd - rStart) * dx;
-						dgdx = (gEnd - gStart) * dx;
-						dbdx = (bEnd - bStart) * dx;
-
-						currZ = zStart;
-						currA = aStart;
-						currR = rStart;
-						currG = gStart;
-						currB = bStart;
-
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
-							currA -= cxStart * dadx;
-							currR -= cxStart * drdx;
-							currG -= cxStart * dgdx;
-							currB -= cxStart * dbdx;
-
-							cxStart = 0;
-						}
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currA += dadx;
-							currR += drdx;
-							currG += dgdx;
-							currB += dbdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getPixelColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-
-				aStart += dadyl;
-				rStart += drdyl;
-				gStart += dgdyl;
-				bStart += dbdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-
-				aEnd += dadyr;
-				rEnd += drdyr;
-				gEnd += dgdyr;
-				bEnd += dbdyr;
-
-				ypos += resX;
-
-				//转折点
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
-
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-						
-						dadyl = (a2 - a1) * dyl;
-						drdyl = (r2 - r1) * dyl;
-						dgdyl = (g2 - g1) * dyl;
-						dbdyl = (b2 - b1) * dyl;
-
-						xStart = (float)x1;
-						zStart = z1;
-						
-						aStart = a1;
-						rStart = r1;
-						gStart = g1;
-						bStart = b1;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-						
-						dadyr = (a1 - a2) * dyr;
-						drdyr = (r1 - r2) * dyr;
-						dgdyr = (g1 - g2) * dyr;
-						dbdyr = (b1 - b2) * dyr;
-
-						xEnd = (float)x2;
-						zEnd = z2;
-						
-						aEnd = a2;
-						rEnd = r2;
-						gEnd = g2;
-						bEnd = b2;
-					}
-				}
-			}
-		}
-		else
-		{
-			//不需要裁剪
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				if ( zStart > 0 || zEnd > 0 )
-				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
-
-					currZ = zStart;
-					currA = aStart;
-					currR = rStart;
-					currG = gStart;
-					currB = bStart;
-
-					if (xStart == xEnd)
-					{
-						pos = cxStart + ypos;
-						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-						{
-							getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-
-						dadx = (aEnd - aStart) * dx;
-						drdx = (rEnd - rStart) * dx;
-						dgdx = (gEnd - gStart) * dx;
-						dbdx = (bEnd - bStart) * dx;
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getPixelColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, pos, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currA += dadx;
-							currR += drdx;
-							currG += dgdx;
-							currB += dbdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getPixelColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, pos, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-				
-				aStart += dadyl;
-				rStart += drdyl;
-				gStart += dgdyl;
-				bStart += dbdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				
-				aEnd += dadyr;
-				rEnd += drdyr;
-				gEnd += dgdyr;
-				bEnd += dbdyr;
-
-				ypos += resX;
-
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
-
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-						
-						dadyl = (a2 - a1) * dyl;
-						drdyl = (r2 - r1) * dyl;
-						dgdyl = (g2 - g1) * dyl;
-						dbdyl = (b2 - b1) * dyl;
-
-						xStart = x1 + dxdyl;
-						zStart = z1 + dzdyl;
-						
-						aStart = a1 + dadyl;
-						rStart = r1 + drdyl;
-						gStart = g1 + dgdyl;
-						bStart = b1 + dbdyl;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-						
-						dadyr = (a1 - a2) * dyr;
-						drdyr = (r1 - r2) * dyr;
-						dgdyr = (g1 - g2) * dyr;
-						dbdyr = (b1 - b2) * dyr;
-
-						xEnd = x2 + dxdyr;
-						zEnd = z2 + dzdyr;
-						
-						aEnd = a2 + dadyr;
-						rEnd = r2 + drdyr;
-						gEnd = g2 + dgdyr;
-						bEnd = b2 + dbdyr;
-					}
-				}
-			}
-		}
-	}
-}
-
-void triangle_rasterize_light_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture )
-{
-	Vertex	* tmpV;
-	float			* zBuffer = view->zBuffer;
-
-	int				resX = (int)view->width, resY = (int)view->height;
-	int				x0, y0, x1, y1, x2, y2, nw, nh, side, ys, xi, yi, cxStart, cxEnd, cyStart, cyEnd, tri_type, pos, temp, ypos;
-	float			u0, v0, u1, v1, u2, v2, z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, uStart, uEnd, vStart, vEnd, currZ,
-					currU, currV, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dudyl, dudyr, dvdyl, dvdyr, dzdx, dudx, dvdx, temp2,
-					dadyl, dadyr, dadx, currA, drdyl, drdyr, drdx, currR, dgdyl, dgdyr, dgdx, currG, dbdyl, dbdyr, dbdx, currB,
-					a0, r0, g0, b0, a1, r1, g1, b1, a2, r2, g2, b2, aStart, aEnd, rStart, rEnd, gStart, gEnd, bStart, bEnd;
-
-	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
-	{
-		return;
-	}
-
-	//判断是否是一条线，如果是，则返回。
-	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
-	{
-		return;
-	}
-
-	//*************************************** start draw ************************************
-	nw = resX - 1;
-	nh = resY - 1;
-
-	//调整y0,y1,y2,让它们的y值从小到大
-	if (ver1->viewPosition->y < ver0->viewPosition->y)
-	{
-		tmpV = ver1;
-		ver1 = ver0;
-		ver0 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver0->viewPosition->y)
-	{
-		tmpV = ver0;
-		ver0 = ver2;
-		ver2 = tmpV;
-	}
-	if (ver2->viewPosition->y < ver1->viewPosition->y)
-	{
-		tmpV = ver1;
-		ver1 = ver2;
-		ver2 = tmpV;
-	}
-
-	//判断三角形的类型
-	if (ver0->viewPosition->y == ver1->viewPosition->y)
-	{
-		tri_type = FLAT_TOP_TRIANGLE;
-
-		if (ver1->viewPosition->x < ver0->viewPosition->x)
-		{
-			tmpV = ver1;
-			ver1 = ver0;
-			ver0 = tmpV;
-		}
-	}
-	else if (ver1->viewPosition->y == ver2->viewPosition->y)
-	{
-		tri_type = FLAT_BOTTOM_TRIANGLE;
-
-		if (ver2->viewPosition->x < ver1->viewPosition->x)
-		{
-			tmpV = ver1;
-			ver1 = ver2;
-			ver2 = tmpV;
-		}
-	}
-	else
-	{
-		tri_type = GENERAL_TRIANGLE;
-	}
-
-	x0 = (int)ver0->viewPosition->x;
-	y0 = (int)ver0->viewPosition->y;
-	z0 = ver0->viewPosition->z;
-
-	x1 = (int)ver1->viewPosition->x;
-	y1 = (int)ver1->viewPosition->y;
-	z1 = ver1->viewPosition->z;
-
-	x2 = (int)ver2->viewPosition->x;
-	y2 = (int)ver2->viewPosition->y;
-	z2 = ver2->viewPosition->z;
-
-	u0 = ver0->uv->x * (texture->width - 1);
-	v0 = ver0->uv->y * (texture->height - 1);
-	u1 = ver1->uv->x * (texture->width - 1);
-	v1 = ver1->uv->y * (texture->height - 1);
-	u2 = ver2->uv->x * (texture->width - 1);
-	v2 = ver2->uv->y * (texture->height - 1);
-
-	a0 = ver0->color->alpha;
-	r0 = ver0->color->red;
-	g0 = ver0->color->green;
-	b0 = ver0->color->blue;
-
-	a1 = ver1->color->alpha;
-	r1 = ver1->color->red;
-	g1 = ver1->color->green;
-	b1 = ver1->color->blue;
-
-	a2 = ver2->color->alpha;
-	r2 = ver2->color->red;
-	g2 = ver2->color->green;
-	b2 = ver2->color->blue;
-
-	/*AS3_Trace(AS3_String("Output0 XYZ..............."));
-	AS3_Trace(AS3_String("X0Y0...."));
-	AS3_Trace(AS3_Int(x0));
-	AS3_Trace(AS3_Int(y0));
-	AS3_Trace(AS3_Number(u0));
-	AS3_Trace(AS3_Number(v0));
-	AS3_Trace(AS3_String("X1Y1...."));
-	AS3_Trace(AS3_Int(x1));
-	AS3_Trace(AS3_Int(y1));
-	AS3_Trace(AS3_Number(u1));
-	AS3_Trace(AS3_Number(v1));
-	AS3_Trace(AS3_String("X2Y2...."));
-	AS3_Trace(AS3_Int(x2));
-	AS3_Trace(AS3_Int(y2));
-	AS3_Trace(AS3_Number(u2));
-	AS3_Trace(AS3_Number(v2));*/
-
-	side = 0;
-
-	//转折后的斜边在哪一侧
-	ys = y1;
-
-	//转折点y坐标
-	if (tri_type == FLAT_TOP_TRIANGLE || tri_type == FLAT_BOTTOM_TRIANGLE)
-	{
-		if (tri_type == FLAT_TOP_TRIANGLE)
-		{
-			dy = 1.0f / (y2 - y0);
-
-			dxdyl = (x2 - x0) * dy;	//左斜边倒数
-			dzdyl = (z2 - z0) * dy;
-			dudyl = (u2 - u0) * dy;
-			dvdyl = (v2 - v0) * dy;
-			
-			dadyl = (a2 - a0) * dy;
-			drdyl = (r2 - r0) * dy;
-			dgdyl = (g2 - g0) * dy;
-			dbdyl = (b2 - b0) * dy;
-
-			dxdyr = (x2 - x1) * dy;	//右斜边倒数
-			dzdyr = (z2 - z1) * dy;
-			dudyr = (u2 - u1) * dy;
-			dvdyr = (v2 - v1) * dy;
-
-			dadyr = (a2 - a1) * dy;
-			drdyr = (r2 - r1) * dy;
-			dgdyr = (g2 - g1) * dy;
-			dbdyr = (b2 - b1) * dy;
-
-			//y0小于视窗顶部y坐标，调整左斜边和右斜边当前值,y值开始值
-			if (y0 < 0)
-			{
-				dy = - (float)y0;
-
-				xStart = dxdyl * dy + x0;
-				zStart = dzdyl * dy + z0;
-				uStart = dudyl * dy + u0;
-				vStart = dvdyl * dy + v0;
-
-				aStart = dadyl * dy + a0;
-				rStart = drdyl * dy + r0;
-				gStart = dgdyl * dy + g0;
-				bStart = dbdyl * dy + b0;
-
-				xEnd = dxdyr * dy + x1;
-				zEnd = dzdyr * dy + z1;
-				uEnd = dudyr * dy + u1;
-				vEnd = dvdyr * dy + v1;
-
-				aEnd = dadyr * dy + a1;
-				rEnd = drdyr * dy + r1;
-				gEnd = dgdyr * dy + g1;
-				bEnd = dbdyr * dy + b1;
-
-				yStart = 0;
-			}
-			else
-			{
-				//注意平顶和平底这里的区别
-				xStart = (float)x0;
-				uStart = u0;
-				vStart = v0;
-				zStart = z0;
-
-				aStart = a0;
-				rStart = r0;
-				gStart = g0;
-				bStart = b0;
-
-				xEnd = (float)x1;
-				uEnd = u1;
-				vEnd = v1;
-				zEnd = z1;
-
-				aEnd = a1;
-				rEnd = r1;
-				gEnd = g1;
-				bEnd = b1;
-
-				yStart = (float)y0;
-			}
-		}
-		else
-		{
-			//平底三角形
-			dy = 1.0f / (y1 - y0);
-
-			dxdyl = (x1 - x0) * dy;
-			dzdyl = (z1 - z0) * dy;
-			dudyl = (u1 - u0) * dy;
-			dvdyl = (v1 - v0) * dy;
-
-			dadyl = (a1 - a0) * dy;
-			drdyl = (r1 - r0) * dy;
-			dgdyl = (g1 - g0) * dy;
-			dbdyl = (b1 - b0) * dy;
-
-			dxdyr = (x2 - x0) * dy;
-			dzdyr = (z2 - z0) * dy;
-			dudyr = (u2 - u0) * dy;
-			dvdyr = (v2 - v0) * dy;
-
-			dadyr = (a2 - a0) * dy;
-			drdyr = (r2 - r0) * dy;
-			dgdyr = (g2 - g0) * dy;
-			dbdyr = (b2 - b0) * dy;
-
-			if (y0 < 0)
-			{
-				dy = - (float)y0;
-
-				xStart = dxdyl * dy + x0;
-				zStart = dzdyl * dy + z0;
-				uStart = dudyl * dy + u0;
-				vStart = dvdyl * dy + v0;
-
-				aStart = dadyl * dy + a0;
-				rStart = drdyl * dy + r0;
-				gStart = dgdyl * dy + g0;
-				bStart = dbdyl * dy + b0;
-
-				xEnd = dxdyr * dy + x0;
-				zEnd = dzdyr * dy + z0;
-				uEnd = dudyr * dy + u0;
-				vEnd = dvdyr * dy + v0;
-
-				aEnd = dadyr * dy + a0;
-				rEnd = drdyr * dy + r0;
-				gEnd = dgdyr * dy + g0;
-				bEnd = dbdyr * dy + b0;
-
-				yStart = 0.0f;
-			}
-			else
-			{
-				xStart = (float)x0;
-				uStart = u0;
-				vStart = v0;
-				zStart = z0;
-
-				aStart = a0;
-				rStart = r0;
-				gStart = g0;
-				bStart = b0;
-
-				xEnd = (float)x0;
-				uEnd = u0;
-				vEnd = v0;
-				zEnd = z0;
-
-				aEnd = a0;
-				rEnd = r0;
-				gEnd = g0;
-				bEnd = b0;
-
-				yStart = (float)y0;
-			}
-		}
-		//y2>视窗高度时，大于rect.height部分就不用画出了
-		cyStart = (int)yStart;
-		cyEnd = (int)( y2 > nh ? nh : y2 );
-		ypos = cyStart * resX;
-
-		//x值需要裁剪的情况
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw : (int)xEnd;
-
-				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
-				{
-					if (cxStart == cxEnd)
-					{
-						pos = cxStart + ypos;
-
-						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-						{
-							getMixedColor( (WORD)aStart, (WORD)rStart, (WORD)gStart, (WORD)bStart, (int)(uStart + 0.5), (int)(vStart + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-						dudx = (uEnd - uStart) * dx;
-						dvdx = (vEnd - vStart) * dx;
-
-						dadx = (aEnd - aStart) * dx;
-						drdx = (rEnd - rStart) * dx;
-						dgdx = (gEnd - gStart) * dx;
-						dbdx = (bEnd - bStart) * dx;
-
-						currZ = zStart;
-						currU = uStart;
-						currV = vStart;
-						currA = aStart;
-						currR = rStart;
-						currG = gStart;
-						currB = bStart;
-
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
-							currU -= cxStart * dudx;
-							currV -= cxStart * dvdx;
-							currA -= cxStart * dadx;
-							currR -= cxStart * drdx;
-							currG -= cxStart * dgdx;
-							currB -= cxStart * dbdx;
-
-							cxStart = 0;
-						}
-						//绘制扫描线
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currU += dudx;
-							currV += dvdx;
-							currA += dadx;
-							currR += drdx;
-							currG += dgdx;
-							currB += dbdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getMixedColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				//y每增加1时,xl和xr分别加上他们的递增量
-				xStart += dxdyl;
-				zStart += dzdyl;
-				uStart += dudyl;
-				vStart += dvdyl;
-				
-				aStart += dadyl;
-				rStart += drdyl;
-				gStart += dgdyl;
-				bStart += dbdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				uEnd += dudyr;
-				vEnd += dvdyr;
-				
-				aEnd += dadyr;
-				rEnd += drdyr;
-				gEnd += dgdyr;
-				bEnd += dbdyr;
-
-				ypos += resX;
-			}
-		}
-		else
-		{
-			//x不需要裁剪的情况
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				if ( zStart > 0 || zEnd > 0 )
-				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
-
-					currZ = zStart;
-					currU = uStart;
-					currV = vStart;
-					currA = aStart;
-					currR = rStart;
-					currG = gStart;
-					currB = bStart;
-
-					if (cxStart == cxEnd)
-					{
-						pos = cxStart + ypos;
-						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-						{
-							getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-						dudx = (uEnd - uStart) * dx;
-						dvdx = (vEnd - vStart) * dx;
-
-						dadx = (aEnd - aStart) * dx;
-						drdx = (rEnd - rStart) * dx;
-						dgdx = (gEnd - gStart) * dx;
-						dbdx = (bEnd - bStart) * dx;
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currU += dudx;
-							currV += dvdx;
-							currA += dadx;
-							currR += drdx;
-							currG += dgdx;
-							currB += dbdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getMixedColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-				uStart += dudyl;
-				vStart += dvdyl;
-				
-				aStart += dadyl;
-				rStart += drdyl;
-				gStart += dgdyl;
-				bStart += dbdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				uEnd += dudyr;
-				vEnd += dvdyr;
-				
-				aEnd += dadyr;
-				rEnd += drdyr;
-				gEnd += dgdyr;
-				bEnd += dbdyr;
-
-				ypos += resX;
-			}
-		}
-	}
-	else
-	{
-		//普通三角形
-		yEnd = (float)(y2 > nh ? nh : y2);
-
-		if (y1 < 0)
-		{
-			//由于y0<y1,这时相当于平顶三角形
-			//计算左右斜边的斜率的倒数
-			dyl = 1.0f / (y2 - y1);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x2 - x1) * dyl;
-			dzdyl = (z2 - z1) * dyl;
-			dudyl = (u2 - u1) * dyl;
-			dvdyl = (v2 - v1) * dyl;
-
-			dadyl = (a2 - a1) * dyl;
-			drdyl = (r2 - r1) * dyl;
-			dgdyl = (g2 - g1) * dyl;
-			dbdyl = (b2 - b1) * dyl;
-
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
-			dudyr = (u2 - u0) * dyr;
-			dvdyr = (v2 - v0) * dyr;
-
-			dadyr = (a2 - a0) * dyr;
-			drdyr = (r2 - r0) * dyr;
-			dbdyr = (g2 - g0) * dyr;
-			dgdyr = (b2 - b0) * dyr;
-
-			//计算左右斜边初始值
-			dyr = - (float)y0;
-			dyl = - (float)y1;
-
-			xStart = dxdyl * dyl + x1;
-			zStart = dzdyl * dyl + z1;
-			uStart = dudyl * dyl + u1;
-			vStart = dvdyl * dyl + v1;
-
-			aStart = dadyl * dyl + a1;
-			rStart = drdyl * dyl + r1;
-			gStart = dgdyl * dyl + g1;
-			bStart = dbdyl * dyl + b1;
-
-			xEnd = dxdyr * dyr + x0;
-			zEnd = dzdyr * dyr + z0;
-			uEnd = dudyr * dyr + u0;
-			vEnd = dvdyr * dyr + v0;
-			
-			aEnd = dadyr * dyr + a0;
-			rEnd = drdyr * dyr + r0;
-			gEnd = dgdyr * dyr + g0;
-			bEnd = dbdyr * dyr + b0;
-
-			yStart = 0;
-
-			if (dxdyr > dxdyl)
-			{
-				//交换斜边
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
-				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
-				
-				temp2 = dadyl;	dadyl = dadyr;	dadyr = temp2;
-				temp2 = drdyl;	drdyl = drdyr;	drdyr = temp2;
-				temp2 = dgdyl;	dgdyl = dgdyr;	dgdyr = temp2;
-				temp2 = dbdyl;	dbdyl = dbdyr;	dbdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = u1;	u1 = u2;	u2 = temp2;
-				temp2 = v1;	v1 = v2;	v2 = temp2;
-
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-				temp2 = uStart;	uStart = uEnd;	uEnd = temp2;
-				temp2 = vStart;	vStart = vEnd;	vEnd = temp2;
-				
-				temp2 = aStart;	aStart = aEnd;	aEnd = temp2;
-				temp2 = rStart;	rStart = rEnd;	rEnd = temp2;
-				temp2 = gStart;	gStart = gEnd;	gEnd = temp2;
-				temp2 = bStart;	bStart = bEnd;	bEnd = temp2;
-
-				side = 1;
-			}
-		}
-		else if (y0 < 0)
-		{
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x1 - x0) * dyl;
-			dxdyr = (x2 - x0) * dyr;
-
-			dzdyl = (z1 - z0) * dyl;
-			dudyl = (u1 - u0) * dyl;
-			dvdyl = (v1 - v0) * dyl;
-			
-			dadyl = (a1 - a0) * dyl;
-			drdyl = (r1 - r0) * dyl;
-			dgdyl = (g1 - g0) * dyl;
-			dbdyl = (b1 - b0) * dyl;
-
-			dzdyr = (z2 - z0) * dyr;
-			dudyr = (u2 - u0) * dyr;
-			dvdyr = (v2 - v0) * dyr;
-			
-			dadyr = (a2 - a0) * dyr;
-			drdyr = (r2 - r0) * dyr;
-			dgdyr = (g2 - g0) * dyr;
-			dbdyr = (b2 - b0) * dyr;
-
-			dy = - (float)y0;
-
-			xStart = dxdyl * dy + x0;
-			zStart = dzdyl * dy + z0;
-			uStart = dudyl * dy + u0;
-			vStart = dvdyl * dy + v0;
-			
-			aStart = dadyl * dy + a0;
-			rStart = drdyl * dy + r0;
-			gStart = dgdyl * dy + g0;
-			bStart = dbdyl * dy + b0;
-
-			xEnd = dxdyr * dy + x0;
-			zEnd = dzdyr * dy + z0;
-			uEnd = dudyr * dy + u0;
-			vEnd = dvdyr * dy + v0;
-			
-			aEnd = dadyr * dy + a0;
-			rEnd = drdyr * dy + r0;
-			gEnd = dgdyr * dy + g0;
-			bEnd = dbdyr * dy + b0;
-
-			yStart = 0;
-
-			if (dxdyr < dxdyl)
-			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
-				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
-				
-				temp2 = dadyl;	dadyl = dadyr;	dadyr = temp2;
-				temp2 = drdyl;	drdyl = drdyr;	drdyr = temp2;
-				temp2 = dgdyl;	dgdyl = dgdyr;	dgdyr = temp2;
-				temp2 = dbdyl;	dbdyl = dbdyr;	dbdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = u1;	u1 = u2;	u2 = temp2;
-				temp2 = v1;	v1 = v2;	v2 = temp2;
-
-				temp2 = xStart;	xStart = xEnd;	xEnd = temp2;
-				temp2 = zStart;	zStart = zEnd;	zEnd = temp2;
-				temp2 = uStart;	uStart = uEnd;	uEnd = temp2;
-				temp2 = vStart;	vStart = vEnd;	vEnd = temp2;
-				
-				temp2 = aStart;	aStart = aEnd;	aEnd = temp2;
-				temp2 = rStart;	rStart = rEnd;	rEnd = temp2;
-				temp2 = gStart;	gStart = gEnd;	gEnd = temp2;
-				temp2 = bStart;	bStart = bEnd;	bEnd = temp2;
-
-				side = 1;
-			}
-		}
-		else
-		{
-			//y值都大于0
-			dyl = 1.0f / (y1 - y0);
-			dyr = 1.0f / (y2 - y0);
-
-			dxdyl = (x1 - x0) * dyl;
-			dzdyl = (z1 - z0) * dyl;
-			dudyl = (u1 - u0) * dyl;
-			dvdyl = (v1 - v0) * dyl;
-
-			dxdyr = (x2 - x0) * dyr;
-			dzdyr = (z2 - z0) * dyr;
-			dudyr = (u2 - u0) * dyr;
-			dvdyr = (v2 - v0) * dyr;
-
-			dadyl = (a1 - a0) * dyl;
-			drdyl = (r1 - r0) * dyl;
-			dgdyl = (g1 - g0) * dyl;
-			dbdyl = (b1 - b0) * dyl;
-
-			dadyr = (a2 - a0) * dyr;
-			drdyr = (r2 - r0) * dyr;
-			dgdyr = (g2 - g0) * dyr;
-			dbdyr = (b2 - b0) * dyr;
-
-			xStart = (float)x0;
-			zStart = z0;
-			uStart = u0;
-			vStart = v0;
-			
-			aStart = a0;
-			rStart = r0;
-			gStart = g0;
-			bStart = b0;
-
-			xEnd = (float)x0;
-			zEnd = z0;
-			uEnd = u0;
-			vEnd = v0;
-			
-			aEnd = a0;
-			rEnd = r0;
-			gEnd = g0;
-			bEnd = b0;
-
-			yStart = (float)y0;
-
-			if (dxdyr < dxdyl)
-			{
-				temp2 = dxdyl;	dxdyl = dxdyr;	dxdyr = temp2;
-				temp2 = dzdyl;	dzdyl = dzdyr;	dzdyr = temp2;
-				temp2 = dudyl;	dudyl = dudyr;	dudyr = temp2;
-				temp2 = dvdyl;	dvdyl = dvdyr;	dvdyr = temp2;
-
-				temp2 = dadyl;	dadyl = dadyr;	dadyr = temp2;
-				temp2 = drdyl;	drdyl = drdyr;	drdyr = temp2;
-				temp2 = dgdyl;	dgdyl = dgdyr;	dgdyr = temp2;
-				temp2 = dbdyl;	dbdyl = dbdyr;	dbdyr = temp2;
-
-				temp = x1;	x1 = x2;	x2 = temp;
-				temp = y1;	y1 = y2;	y2 = temp;
-				temp2 = z1;	z1 = z2;	z2 = temp2;
-
-				temp2 = u1;	u1 = u2;	u2 = temp2;
-				temp2 = v1;	v1 = v2;	v2 = temp2;
-
-				temp2 = a1;	a1 = a2;	a2 = temp2;
-				temp2 = r1;	r1 = r2;	r2 = temp2;
-				temp2 = g1;	g1 = g2;	g2 = temp2;
-				temp2 = b1;	b1 = b2;	b2 = temp2;
-
-				side = 1;
-			}
-		}
-
-		cyStart = (int)yStart;
-		cyEnd = (int)yEnd;
-		ypos = cyStart * resX;
-
-		//x需要裁剪
-		if ((x0 < 0) || (x0 > nw) || (x1 < 0) || (x1 > nw) || (x2 < 0) || (x2 > nw))
-		{
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				cxStart = (int)xStart;
-				cxEnd = xEnd > nw ? nw :(int)xEnd;
-
-				if ( cxEnd >= 0 && cxStart <= nw && ( ( zStart > 0 && zStart < 1 )  || ( zEnd > 0 && zEnd < 1 ) ) )
-				{
-					if ( cxStart == cxEnd )
-					{
-						pos = cxStart + ypos;
-
-						if( zStart > 0 && zStart < 1 && zStart < zBuffer[pos] )
-						{
-							getMixedColor( (WORD)aStart, (WORD)rStart, (WORD)gStart, (WORD)bStart, (int)(uStart + 0.5), (int)(vStart + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zStart;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-
-						dzdx = (zEnd - zStart) * dx;
-						dudx = (uEnd - uStart) * dx;
-						dvdx = (vEnd - vStart) * dx;
-						
-						dadx = (aEnd - aStart) * dx;
-						drdx = (rEnd - rStart) * dx;
-						dgdx = (gEnd - gStart) * dx;
-						dbdx = (bEnd - bStart) * dx;
-
-						currZ = zStart;
-						currU = uStart;
-						currV = vStart;
-						currA = aStart;
-						currR = rStart;
-						currG = gStart;
-						currB = bStart;
-
-						//初始值需要裁剪
-						if (cxStart < 0)
-						{
-							currZ -= cxStart * dzdx;
-							currU -= cxStart * dudx;
-							currV -= cxStart * dvdx;
-							currA -= cxStart * dadx;
-							currR -= cxStart * drdx;
-							currG -= cxStart * dgdx;
-							currB -= cxStart * dbdx;
-
-							cxStart = 0;
-						}
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currU += dudx;
-							currV += dvdx;
-							currA += dadx;
-							currR += drdx;
-							currG += dgdx;
-							currB += dbdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getMixedColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-				uStart += dudyl;
-				vStart += dvdyl;
-
-				aStart += dadyl;
-				rStart += drdyl;
-				gStart += dgdyl;
-				bStart += dbdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				uEnd += dudyr;
-				vEnd += dvdyr;
-
-				aEnd += dadyr;
-				rEnd += drdyr;
-				gEnd += dgdyr;
-				bEnd += dbdyr;
-
-				ypos += resX;
-
-				//转折点
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
-
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-						dudyl = (u2 - u1) * dyl;
-						dvdyl = (v2 - v1) * dyl;
-						
-						dadyl = (a2 - a1) * dyl;
-						drdyl = (r2 - r1) * dyl;
-						dgdyl = (g2 - g1) * dyl;
-						dbdyl = (b2 - b1) * dyl;
-
-						xStart = (float)x1;
-						zStart = z1;
-						uStart = u1;
-						vStart = v1;
-						
-						aStart = a1;
-						rStart = r1;
-						gStart = g1;
-						bStart = b1;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-						dudyr = (u1 - u2) * dyr;
-						dvdyr = (v1 - v2) * dyr;
-						
-						dadyr = (a1 - a2) * dyr;
-						drdyr = (r1 - r2) * dyr;
-						dgdyr = (g1 - g2) * dyr;
-						dbdyr = (b1 - b2) * dyr;
-
-						xEnd = (float)x2;
-						zEnd = z2;
-						uEnd = u2;
-						vEnd = v2;
-						
-						aEnd = a2;
-						rEnd = r2;
-						gEnd = g2;
-						bEnd = b2;
-					}
-				}
-			}
-		}
-		else
-		{
-			//不需要裁剪
-			for ( yi = cyStart; yi <= cyEnd; yi ++ )
-			{
-				if ( zStart > 0 || zEnd > 0 )
-				{
-					cxStart = (int)xStart;
-					cxEnd = (int)xEnd;
-
-					currZ = zStart;
-					currU = uStart;
-					currV = vStart;
-					currA = aStart;
-					currR = rStart;
-					currG = gStart;
-					currB = bStart;
-
-					if (xStart == xEnd)
-					{
-						pos = cxStart + ypos;
-						if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-						{
-							getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = currZ;
-						}
-					}
-					else
-					{
-						dx = 1.0f / (xEnd - xStart);
-						dzdx = (zEnd - zStart) * dx;
-						dudx = (uEnd - uStart) * dx;
-						dvdx = (vEnd - vStart) * dx;
-
-						dadx = (aEnd - aStart) * dx;
-						drdx = (rEnd - rStart) * dx;
-						dgdx = (gEnd - gStart) * dx;
-						dbdx = (bEnd - bStart) * dx;
-
-						for ( xi = cxStart; xi < cxEnd; xi ++ )
-						{
-							pos = xi + ypos;
-							if( currZ > 0 && currZ < 1 && currZ < zBuffer[pos] )
-							{
-								getMixedColor( (WORD)currA, (WORD)currR, (WORD)currG, (WORD)currB, (int)(currU + 0.5), (int)(currV + 0.5) * texture->width, pos, texture, view->mixedChannel );
-								zBuffer[pos] = currZ;
-							}
-
-							currZ += dzdx;
-							currU += dudx;
-							currV += dvdx;
-							currA += dadx;
-							currR += drdx;
-							currG += dgdx;
-							currB += dbdx;
-						}
-
-						pos = cxEnd + ypos;
-						if( zEnd > 0 && zEnd < 1 && zEnd < zBuffer[pos] )
-						{
-							getMixedColor( (WORD)aEnd, (WORD)rEnd, (WORD)gEnd, (WORD)bEnd, (int)(uEnd + 0.5), (int)(vEnd + 0.5) * texture->width, pos, texture, view->mixedChannel );
-							zBuffer[pos] = zEnd;
-						}
-					}
-				}
-
-				xStart += dxdyl;
-				zStart += dzdyl;
-				uStart += dudyl;
-				vStart += dvdyl;
-				
-				aStart += dadyl;
-				rStart += drdyl;
-				gStart += dgdyl;
-				bStart += dbdyl;
-
-				xEnd += dxdyr;
-				zEnd += dzdyr;
-				uEnd += dudyr;
-				vEnd += dvdyr;
-				
-				aEnd += dadyr;
-				rEnd += drdyr;
-				gEnd += dgdyr;
-				bEnd += dbdyr;
-
-				ypos += resX;
-
-				if (yi == ys)
-				{
-					if (side == 0)
-					{
-						dyl = 1.0f / (y2 - y1);
-
-						dxdyl = (x2 - x1) * dyl;
-						dzdyl = (z2 - z1) * dyl;
-						dudyl = (u2 - u1) * dyl;
-						dvdyl = (v2 - v1) * dyl;
-						
-						dadyl = (a2 - a1) * dyl;
-						drdyl = (r2 - r1) * dyl;
-						dgdyl = (g2 - g1) * dyl;
-						dbdyl = (b2 - b1) * dyl;
-
-						xStart = x1 + dxdyl;
-						zStart = z1 + dzdyl;
-						uStart = u1 + dudyl;
-						vStart = v1 + dvdyl;
-						
-						aStart = a1 + dadyl;
-						rStart = r1 + drdyl;
-						gStart = g1 + dgdyl;
-						bStart = b1 + dbdyl;
-					}
-					else
-					{
-						dyr = 1.0f / (y1 - y2);
-
-						dxdyr = (x1 - x2) * dyr;
-						dzdyr = (z1 - z2) * dyr;
-						dudyr = (u1 - u2) * dyr;
-						dvdyr = (v1 - v2) * dyr;
-						
-						dadyr = (a1 - a2) * dyr;
-						drdyr = (r1 - r2) * dyr;
-						dgdyr = (g1 - g2) * dyr;
-						dbdyr = (b1 - b2) * dyr;
-
-						xEnd = x2 + dxdyr;
-						zEnd = z2 + dzdyr;
-						uEnd = u2 + dudyr;
-						vEnd = v2 + dvdyr;
-						
-						aEnd = a2 + dadyr;
-						rEnd = r2 + drdyr;
-						gEnd = g2 + dgdyr;
-						bEnd = b2 + dbdyr;
-					}
-				}
-			}
-		}
-	}
-}
-
+} // end Draw_Textured_Triangle_INVZB_16
 # endif

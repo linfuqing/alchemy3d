@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #define INLINE
+#define __NOT_AS3__
 
 #include "Base.h"
 #include "Device.h"
@@ -29,11 +30,11 @@ int main()
 	Viewport * view;
 	Scene * scene;
 	Entity * do3d, * do3d2;
-	Entity * lightSource;
 	Vertex * vArr[4], * vArr2[9];
 	Vector * point, * point2;
 	Material * material, * material2;
-	Light * light;
+	//Entity * lightSource;
+	//Light * light;
 	Texture * texture;
 	Mesh * mesh1, * mesh2;
 
@@ -43,14 +44,12 @@ int main()
 	int i = 0;
 	int j = 0;
 
-	UINT32 * bitmapData;
+	LPBYTE bitmapData;
 
 	//WORD wd;
 
-	WORD wa = RGBTo16(255, 255, 255);
-	WORD wb = RGBTo16(125, 125, 125);
-
-	printf("%x", 0x01 | 0x02 | 0x04 );
+	/*WORD wa = RGBTo16(255, 255, 255);
+	WORD wb = RGBTo16(125, 125, 125);*/
 	//DWORD walpha = 10;
 	//ULONG wc = alpha((ULONG)wa, (ULONG)wb, walpha);
 
@@ -59,16 +58,17 @@ int main()
 	//wb = d1 & 0xffff; // g...r...b => r...b
 	//wd = wa | wb; // rgb
 
-	if( ( bitmapData = ( UINT32 * )calloc( 400, sizeof( UINT32 ) ) ) == NULL )
+	if( ( bitmapData = ( LPBYTE )calloc( 64*64*sizeof(DWORD), sizeof( BYTE ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
-	bitmapData[0] = 0xFFFFFFFF;
-	bitmapData[1] = 0xFFFF0000;
-	bitmapData[2] = 0xFF00FF00;
-	bitmapData[3] = 0xFF0000FF;
 
-	texture = newTexture(10, 10, bitmapData);
+	for ( i = 0; i < 64 * 64; i ++ )
+	{
+		bitmapData[i] = i;
+	}
+
+	texture = newTexture(64, 64, bitmapData);
 
 	pos[0] = -50.0f;
 	pos[1] = -50.0f;
@@ -112,7 +112,7 @@ int main()
 
 	mesh1 = newMesh( 4, 2 );
 
-	for (; i < 8; i += 2)
+	for ( i = 0; i < 8; i += 2)
 	{
 		mesh_push_vertex(mesh1, pos[i], pos[i+1], 0.0f);
 		vArr[j] = & mesh1->vertices[j];
@@ -160,10 +160,10 @@ int main()
 							4.0f );
 
 	do3d = newEntity();
-	entity_setRotationX(do3d, 45.0f);
-	entity_setRotationZ(do3d, 85.0f);
+	//entity_setRotationX(do3d, 45.0f);
+	entity_setRotationZ(do3d, 91.0f);
 	//entity_setY(do3d, -20.0f);
-	entity_setZ(do3d, 30.0f);
+	entity_setZ(do3d, 200.0f);
 	entity_setMesh( do3d, mesh1 );
 	entity_setMaterial( do3d, material );
 	entity_setTexture( do3d, texture );
@@ -178,23 +178,23 @@ int main()
 	camera = newCamera( 90.0f, 100.0f, 5000.0f, newEntity() );
 	camera_setTarget( camera, do3d->worldPosition );
 
-	lightSource = newEntity();
-	entity_setZ(lightSource, 300.0f);
-	light = newPointLight( POINT_LIGHT, lightSource );
-	setLightOnOff( light, TRUE );
-	light->mode = HIGH_MODE;
-	light->ambient = newFloatColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	light->diffuse = newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f );
-	light->attenuation1 = .001f;
-	light->attenuation2 = .0000001f;
+	//lightSource = newEntity();
+	//entity_setZ(lightSource, 300.0f);
+	//light = newPointLight( POINT_LIGHT, lightSource );
+	//setLightOnOff( light, TRUE );
+	//light->mode = HIGH_MODE;
+	//light->ambient = newFloatColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	//light->diffuse = newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f );
+	//light->attenuation1 = .001f;
+	//light->attenuation2 = .0000001f;
 
 	scene = newScene();
-	scene_addLight(scene, light);
+	//scene_addLight(scene, light);
 	scene_addEntity(scene, do3d, NULL);
 	//scene_addEntity(scene, do3d2, NULL);
 	//scene_addEntity(scene, lightSource, NULL);
 
-	view = newViewport( 600.0f, 400.0f, scene, camera );
+	view = newViewport( 600, 400, scene, camera );
 
 	device = newDevice();
 	device_addViewport(device, view);
@@ -206,8 +206,8 @@ int main()
 	scene_addChild(scene, do3d1, NULL);*/
 
 	device_render(device);
-	entity_setX(camera->eye, 10.0f);
-	device_render(device);
+	//entity_setX(camera->eye, 10.0f);
+	//device_render(device);
 	/*device_render(device);
 	device_render(device);
 	device_render(device);*/

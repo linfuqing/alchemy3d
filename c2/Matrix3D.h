@@ -1147,7 +1147,7 @@ INLINE Vector3D * matrix3D_transformVector( Vector3D * output, Matrix3D * m, Vec
 		output->w = m->m14 * v->x + m->m24 * v->y + m->m34 * v->z + m->m44 * v->w;
 	}
 
-	if (output->w != 1) vector3D_project( output );
+	//if (output->w != 1) vector3D_project( output );
 
 	return output;
 }

@@ -75,7 +75,7 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 
 	device_addViewport(device, view);
 
-	return AS3_Array( "PtrType, PtrType", view, view->mixedChannel );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType", view, view->videoBuffer, & view->nRenderList, & view->nCullList, & view->nClippList );
 }
 
 AS3_Val initializeMaterial( void* self, AS3_Val args )
@@ -95,7 +95,7 @@ AS3_Val initializeTexture( void* self, AS3_Val args )
 {
 	Texture * texture;
 	int width, height;
-	DWORD * pRGBABuffer;
+	LPBYTE pRGBABuffer;
 
 	AS3_ArrayValue( args, "IntType, IntType, IntType", &width, &height, &pRGBABuffer );
 
