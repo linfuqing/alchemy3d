@@ -9,9 +9,6 @@ package cn.alchemy3d.objects.primitives
 	
 	import flash.geom.Point;
 	
-	/**
-	 * Plane是一个3D平面，拥有位移、旋转、缩放操作
-	 */
 	public class Plane extends Mesh3D
 	{
 		/**
@@ -101,7 +98,7 @@ package cn.alchemy3d.objects.primitives
 					uvC =  new Point( ix     / gridX, (iy+1) / gridY );
 					uvB =  new Point( (ix+1) / gridX, iy     / gridY );
 	
-					faces.push(new Triangle3D(aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + count));
+					faces.push(new Triangle3D(a, b, c, uvA, uvB, uvC, this, "Triangle" + count));
 	
 					// Triangle B
 					aIndex = (ix+1) * gridY1 + (iy+1);
@@ -116,7 +113,7 @@ package cn.alchemy3d.objects.primitives
 					uvC =  new Point( (ix+1) / gridX, iy      / gridY );
 					uvB =  new Point( ix      / gridX, (iy+1) / gridY );
 					
-					faces.push(new Triangle3D(aIndex, bIndex, cIndex, uvA, uvB, uvC, this, "Triangle" + (count + 1)));
+					faces.push(new Triangle3D(a, b, c, uvA, uvB, uvC, this, "Triangle" + (count + 1)));
 					
 					count += 2;
 				}

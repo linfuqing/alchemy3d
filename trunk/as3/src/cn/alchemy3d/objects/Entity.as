@@ -63,7 +63,7 @@ package cn.alchemy3d.objects
 		private var _root:Entity;
 		private var _scene:Scene3D;
 		
-		protected static const sizeOfType:int = 4;
+		protected static const sizeOfInt:int = 4;
 		
 		public function get parent():Entity
 		{
@@ -199,7 +199,7 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_position.y = value;
-			buffer.position = positionPtr + sizeOfType;
+			buffer.position = positionPtr + sizeOfInt;
 			buffer.writeFloat(value);
 		}
 		
@@ -213,7 +213,7 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_position.z = value;
-			buffer.position = positionPtr + sizeOfType * 2;
+			buffer.position = positionPtr + sizeOfInt * 2;
 			buffer.writeFloat(value);
 		}
 		
@@ -241,7 +241,7 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_scale.y = value;
-			buffer.position = scalePtr + sizeOfType;
+			buffer.position = scalePtr + sizeOfInt;
 			buffer.writeFloat(value);
 		}
 		
@@ -255,7 +255,7 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_scale.z = value;
-			buffer.position = scalePtr + sizeOfType * 2;
+			buffer.position = scalePtr + sizeOfInt * 2;
 			buffer.writeFloat(value);
 		}
 		
@@ -278,7 +278,7 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_direction.y = value;
-			buffer.position = directionPtr + sizeOfType;
+			buffer.position = directionPtr + sizeOfInt;
 			buffer.writeFloat(value);
 		}
 		
@@ -292,7 +292,7 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_direction.z = value;
-			buffer.position = directionPtr + sizeOfType * 2;
+			buffer.position = directionPtr + sizeOfInt * 2;
 			buffer.writeFloat(value);
 		}
 		
