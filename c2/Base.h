@@ -20,7 +20,7 @@ typedef unsigned long		ULONG;
 #define TRUE			1
 #define FALSE			0
 
-#define VERTEX_SIZE		4
+#define VERTEX_SIZE		5
 #define FACE_SIZE		9
 #define USERADIANS TRUE
 

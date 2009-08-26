@@ -1,8 +1,6 @@
 #ifndef __RENDER_H
 #define __RENDER_H
 
-#include "Viewport.h"
-#include "Vertex.h"
 #include "Texture.h"
 
 #define TRI_TYPE_NONE 0
@@ -21,10 +19,9 @@
 
 void Draw_Textured_TriangleINVZB_16( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
 {
-	int v0 = 0,
-		v1 = 1,
-		v2 = 2,
-		temp = 0,
+	void * tmp_ptr;
+
+	int temp = 0,
 		tri_type = TRI_TYPE_NONE,
 		irestart = INTERP_LHS;
 
@@ -82,65 +79,65 @@ void Draw_Textured_TriangleINVZB_16( Triangle * face, BYTE *_dest_buffer, int me
 	zpitch >>= 2;
 
 	// apply fill convention to coordinates
-	x0 = (int)(face->vertex[0]->viewPosition->x + 0.5);
-	y0 = (int)(face->vertex[0]->viewPosition->y + 0.5);
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
 
-	x1 = (int)(face->vertex[1]->viewPosition->x + 0.5);
-	y1 = (int)(face->vertex[1]->viewPosition->y + 0.5);
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
 
-	x2 = (int)(face->vertex[2]->viewPosition->x + 0.5);
-	y2 = (int)(face->vertex[2]->viewPosition->y + 0.5);
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
 
 	// first trivial clipping rejection tests
-	if (((y0 < min_clip_y) &&
-		(y1 < min_clip_y) &&
-		(y2 < min_clip_y)) ||
+	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
+		(face->vertex[1]->s_pos->y < min_clip_y) &&
+		(face->vertex[2]->s_pos->y < min_clip_y)) ||
 
-		((y0 > max_clip_y) &&
-		(y1 > max_clip_y) &&
-		(y2 > max_clip_y)) ||
+		((face->vertex[0]->s_pos->y > max_clip_y) &&
+		(face->vertex[1]->s_pos->y > max_clip_y) &&
+		(face->vertex[2]->s_pos->y > max_clip_y)) ||
 
-		((x0 < min_clip_x) &&
-		(x1 < min_clip_x) &&
-		(x2 < min_clip_x)) ||
+		((face->vertex[0]->s_pos->x < min_clip_x) &&
+		(face->vertex[1]->s_pos->x < min_clip_x) &&
+		(face->vertex[2]->s_pos->x < min_clip_x)) ||
 
-		((x0 > max_clip_x) &&
-		(x1 > max_clip_x) &&
-		(x2 > max_clip_x)))
+		((face->vertex[0]->s_pos->x > max_clip_x) &&
+		(face->vertex[1]->s_pos->x > max_clip_x) &&
+		(face->vertex[2]->s_pos->x > max_clip_x)))
 		return;
 
 	// sort vertices
-	if ( y1 < y0 )
+	if ( face->vertex[1]->s_pos->y < face->vertex[0]->s_pos->y )
 	{
-		SWAP( v0, v1, temp );
+		SWAP( face->vertex[0], face->vertex[1], tmp_ptr );
 	}
 
-	if ( y2 < y0 )
+	if ( face->vertex[2]->s_pos->y < face->vertex[0]->s_pos->y )
 	{
-		SWAP( v0, v2, temp );
+		SWAP( face->vertex[0], face->vertex[2], tmp_ptr );
 	}
 
-	if ( y2 < y1 )
+	if ( face->vertex[2]->s_pos->y < face->vertex[1]->s_pos->y )
 	{
-		SWAP( v1, v2, temp );
+		SWAP( face->vertex[1], face->vertex[2], tmp_ptr );
 	}
 
-	if (FCMP(face->vertex[v0]->viewPosition->y, face->vertex[v1]->viewPosition->y) )
+	if (FCMP(face->vertex[0]->s_pos->y, face->vertex[1]->s_pos->y) )
 	{
 		tri_type = TRI_TYPE_FLAT_TOP;
 
-		if (face->vertex[v1]->viewPosition->x < face->vertex[v0]->viewPosition->x)
+		if (face->vertex[1]->s_pos->x < face->vertex[0]->s_pos->x)
 		{
-			SWAP(v0,v1,temp);
+			SWAP( face->vertex[0], face->vertex[1], tmp_ptr );
 		}
 	}
-	else if (FCMP(face->vertex[v1]->viewPosition->y ,face->vertex[v2]->viewPosition->y))
+	else if (FCMP(face->vertex[1]->s_pos->y ,face->vertex[2]->s_pos->y))
 	{
 		tri_type = TRI_TYPE_FLAT_BOTTOM;
 
-		if (face->vertex[v2]->viewPosition->x < face->vertex[v1]->viewPosition->x)
+		if (face->vertex[2]->s_pos->x < face->vertex[1]->s_pos->x)
 		{
-			SWAP(v1,v2,temp);
+			SWAP( face->vertex[1], face->vertex[2], tmp_ptr );
 		}
 	}
 	else
@@ -149,26 +146,26 @@ void Draw_Textured_TriangleINVZB_16( Triangle * face, BYTE *_dest_buffer, int me
 	}
 
 	// extract vertices for processing, now that we have order
-	x0 = (int)( face->vertex[v0]->viewPosition->x );
-	y0 = (int)( face->vertex[v0]->viewPosition->y );
-	tu0 = (int)( face->vertex[v0]->uv->u );
-	tv0 = (int)( face->vertex[v0]->uv->v );
+	x0 = (int)( face->vertex[0]->s_pos->x );
+	y0 = (int)( face->vertex[0]->s_pos->y );
+	tu0 = (int)( face->vertex[0]->uv->u );
+	tv0 = (int)( face->vertex[0]->uv->v );
 
-	tz0 = (1 << FIXP28_SHIFT) / (int)(face->vertex[v0]->viewPosition->w + 0.5 );
+	tz0 = (1 << FIXP28_SHIFT) / (int)(face->vertex[0]->s_pos->w + 0.5 );
 
-	x1 = (int)( face->vertex[v1]->viewPosition->x );
-	y1 = (int)( face->vertex[v1]->viewPosition->y );
-	tu1 = (int)( face->vertex[v1]->uv->u );
-	tv1 = (int)( face->vertex[v1]->uv->v );
+	x1 = (int)( face->vertex[1]->s_pos->x );
+	y1 = (int)( face->vertex[1]->s_pos->y );
+	tu1 = (int)( face->vertex[1]->uv->u );
+	tv1 = (int)( face->vertex[1]->uv->v );
 
-	tz1 = (1 << FIXP28_SHIFT) / (int)(face->vertex[v1]->viewPosition->w + 0.5 );
+	tz1 = (1 << FIXP28_SHIFT) / (int)(face->vertex[1]->s_pos->w + 0.5 );
 
-	x2 = (int)( face->vertex[v2]->viewPosition->x );
-	y2 = (int)( face->vertex[v2]->viewPosition->y );
-	tu2 = (int)( face->vertex[v2]->uv->u );
-	tv2 = (int)( face->vertex[v2]->uv->v );
+	x2 = (int)( face->vertex[2]->s_pos->x );
+	y2 = (int)( face->vertex[2]->s_pos->y );
+	tu2 = (int)( face->vertex[2]->uv->u );
+	tv2 = (int)( face->vertex[2]->uv->v );
 
-	tz2 = (1 << FIXP28_SHIFT) / (int)(face->vertex[v2]->viewPosition->w + 0.5 );
+	tz2 = (1 << FIXP28_SHIFT) / (int)(face->vertex[2]->s_pos->w + 0.5 );
 
 
 	// degenerate triangle

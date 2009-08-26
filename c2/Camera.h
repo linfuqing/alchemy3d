@@ -138,7 +138,7 @@ INLINE void camera_updateTransform(Camera * camera)
 			matrix3D_copy( eye->world, eye->transform );
 
 			//从世界矩阵获得世界位置
-			matrix3D_getPosition( eye->worldPosition, eye->world );
+			matrix3D_getPosition( eye->w_pos, eye->world );
 
 			matrix3D_fastInvert( eye->world );
 		}
@@ -148,11 +148,11 @@ INLINE void camera_updateTransform(Camera * camera)
 			//获得指向目标位置的旋转矩阵
 			lookAt( eye->world, eye->position, camera->target, Y_AXIS );
 			//从世界矩阵获得世界位置
-			matrix3D_getPosition( eye->worldPosition, eye->world );
+			matrix3D_getPosition( eye->w_pos, eye->world );
 
-			eye->worldPosition->x *= -1;
-			eye->worldPosition->y *= -1;
-			eye->worldPosition->z *= -1;
+			eye->w_pos->x *= -1;
+			eye->w_pos->y *= -1;
+			eye->w_pos->z *= -1;
 		}
 	}
 }

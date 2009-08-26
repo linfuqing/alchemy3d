@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "Matrix3D.h"
 #include "Vector3D.h"
+#include "Render.h"
 
 #define NUM_PER_RL_INIT 50
 
@@ -118,13 +119,13 @@ Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 
 INLINE void Mem_Set_QUAD( void *dest, DWORD data, int count )
 {
-	_asm 
-    { 
-		mov edi, dest   ; edi points to destination memory
-		mov ecx, count  ; number of 32-bit words to move
-		mov eax, data   ; 32-bit data
-		rep stosd       ; move data
-    }
+	__asm
+	{
+		mov edi, dest ; edi points to destination memory
+		mov ecx, count ; number of 32-bit words to move
+		mov eax, data ; 32-bit data
+		rep stosd ; move data
+	}
 }
 
 #endif
@@ -288,21 +289,21 @@ int frustumCulling( Viewport * viewport, Entity * entity, float worldZNear, floa
 			//如果包围盒穿越近截面，则进一步检测面是否穿越近截面
 			if ( TRUE == crossNear )
 			{
-				if ( face->vertex[0]->worldPosition->z <= worldZNear )
+				if ( face->vertex[0]->w_pos->z <= worldZNear )
 				{
 					verts_out ++;
 
 					zCode0 = 0x01;
 				}
 
-				if ( face->vertex[1]->worldPosition->z <= worldZNear )
+				if ( face->vertex[1]->w_pos->z <= worldZNear )
 				{
 					verts_out ++;
 
 					zCode1 = 0x02;
 				}
 
-				if ( face->vertex[2]->worldPosition->z <= worldZNear )
+				if ( face->vertex[2]->w_pos->z <= worldZNear )
 				{
 					verts_out ++;
 
@@ -361,32 +362,32 @@ int frustumCulling( Viewport * viewport, Entity * entity, float worldZNear, floa
 						//对各边裁剪
 
 						//=======================对v0->v1边进行裁剪=======================
-						vector3D_subtract( & v, ver1_1->worldPosition, ver1_0->worldPosition );
+						vector3D_subtract( & v, ver1_1->w_pos, ver1_0->w_pos );
 
-						t1 = ( ( worldZNear - ver1_0->worldPosition->z ) / v.z );
+						t1 = ( ( worldZNear - ver1_0->w_pos->z ) / v.z );
 
 						//计算交点x、y坐标
-						xi = ver1_0->worldPosition->x + v.x * t1;
-						yi = ver1_0->worldPosition->y + v.y * t1;
+						xi = ver1_0->w_pos->x + v.x * t1;
+						yi = ver1_0->w_pos->y + v.y * t1;
 
 						//用交点覆盖原来的顶点
-						ver1_1->worldPosition->x = xi;
-						ver1_1->worldPosition->y = yi;
-						ver1_1->worldPosition->z = worldZNear;
+						ver1_1->w_pos->x = xi;
+						ver1_1->w_pos->y = yi;
+						ver1_1->w_pos->z = worldZNear;
 
 						//=======================对v0->v2边进行裁剪=======================
-						vector3D_subtract( & v, ver1_2->worldPosition, ver1_0->worldPosition );
+						vector3D_subtract( & v, ver1_2->w_pos, ver1_0->w_pos );
 
-						t2 = ( ( worldZNear - ver1_0->worldPosition->z ) / v.z );
+						t2 = ( ( worldZNear - ver1_0->w_pos->z ) / v.z );
 
 						//计算交点x、y坐标
-						xi = ver1_0->worldPosition->x + v.x * t2;
-						yi = ver1_0->worldPosition->y + v.y * t2;
+						xi = ver1_0->w_pos->x + v.x * t2;
+						yi = ver1_0->w_pos->y + v.y * t2;
 
 						//用交点覆盖原来的顶点
-						ver1_2->worldPosition->x = xi;
-						ver1_2->worldPosition->y = yi;
-						ver1_2->worldPosition->z = worldZNear;
+						ver1_2->w_pos->x = xi;
+						ver1_2->w_pos->y = yi;
+						ver1_2->w_pos->z = worldZNear;
 
 						//检查多边形是否带纹理
 						//如果有，则对纹理坐标进行裁剪
@@ -475,37 +476,37 @@ int frustumCulling( Viewport * viewport, Entity * entity, float worldZNear, floa
 						//对各边裁剪
 
 						//=======================对v0->v1边进行裁剪=======================
-						vector3D_subtract( &v, ver1_1->worldPosition, ver1_0->worldPosition );
+						vector3D_subtract( &v, ver1_1->w_pos, ver1_0->w_pos );
 
-						t1 = ( ( worldZNear - ver1_0->worldPosition->z ) / v.z );
+						t1 = ( ( worldZNear - ver1_0->w_pos->z ) / v.z );
 
-						x01i = ver1_0->worldPosition->x + v.x * t1;
-						y01i = ver1_0->worldPosition->y + v.y * t1;
+						x01i = ver1_0->w_pos->x + v.x * t1;
+						y01i = ver1_0->w_pos->y + v.y * t1;
 
 						//=======================对v0->v2边进行裁剪=======================
-						vector3D_subtract( &v, ver1_2->worldPosition, ver1_0->worldPosition );
+						vector3D_subtract( &v, ver1_2->w_pos, ver1_0->w_pos );
 
-						t2 = ( ( worldZNear - ver1_0->worldPosition->z ) / v.z );
+						t2 = ( ( worldZNear - ver1_0->w_pos->z ) / v.z );
 
-						x02i = ver1_0->worldPosition->x + v.x * t2;
-						y02i = ver1_0->worldPosition->y + v.y * t2;
+						x02i = ver1_0->w_pos->x + v.x * t2;
+						y02i = ver1_0->w_pos->y + v.y * t2;
 
 						//计算出交点后需要用交点1覆盖原来的三角形顶点
 						//分割后的第一个三角形
 
 						//用交点1覆盖原来三角形的顶点0
-						ver1_0->worldPosition->x = x01i;
-						ver1_0->worldPosition->y = y01i;
-						ver1_0->worldPosition->z = worldZNear;
+						ver1_0->w_pos->x = x01i;
+						ver1_0->w_pos->y = y01i;
+						ver1_0->w_pos->z = worldZNear;
 
 						//用交点1覆盖新三角形的顶点1，交点2覆盖顶点0
-						ver2_1->worldPosition->x = x01i;
-						ver2_1->worldPosition->y = y01i;
-						ver2_1->worldPosition->z = worldZNear;
+						ver2_1->w_pos->x = x01i;
+						ver2_1->w_pos->y = y01i;
+						ver2_1->w_pos->z = worldZNear;
 
-						ver2_0->worldPosition->x = x02i;
-						ver2_0->worldPosition->y = y02i;
-						ver2_0->worldPosition->z = worldZNear;
+						ver2_0->w_pos->x = x02i;
+						ver2_0->w_pos->y = y02i;
+						ver2_0->w_pos->z = worldZNear;
 
 						//检查多边形是否带纹理
 						//如果有，则对纹理坐标进行裁剪
@@ -578,7 +579,7 @@ void viewport_project( Viewport * viewport )
 	SceneNode * sceneNode;
 	Camera * camera;
 	Entity * entity;
-	Matrix3D view_projection;
+	Matrix3D projection;
 	float worldZNear, worldZFar;
 	RenderList * rl_ptr, * cl_ptr, * renderList;
 
@@ -614,7 +615,7 @@ void viewport_project( Viewport * viewport )
 	if ( NULL != scene->lights )
 		if( ( vLightsToObject = ( Vector3D * )calloc( scene->nLights, sizeof( Vector3D ) ) ) == NULL ) exit( TRUE );
 
-	matrix3D_append4x4( & view_projection, camera->eye->world, camera->projectionMatrix );
+	matrix3D_append4x4( & projection, camera->eye->world, camera->projectionMatrix );
 
 	//把渲染列表的指针指向表头的下一个结点
 	rl_ptr = viewport->renderList->next;
@@ -629,10 +630,10 @@ void viewport_project( Viewport * viewport )
 
 		//连接摄像机矩阵
 		//matrix3D_append( entity->view, entity->world, camera->eye->world );
-		//matrix3D_getPosition( entity->viewPosition, entity->view );
+		//matrix3D_getPosition( entity->s_pos, entity->view );
 
 		//连接透视投影矩阵
-		matrix3D_append4x4( entity->projection, entity->world, & view_projection );
+		matrix3D_append4x4( entity->projection, entity->world, & projection );
 		matrix3D_getPosition( entity->CVVPosition, entity->projection );
 		vector3D_project( entity->CVVPosition );
 
@@ -669,7 +670,7 @@ void viewport_project( Viewport * viewport )
 			if ( TRUE == lights->light->bOnOff )
 			{
 				//用实体的世界逆矩阵变换光源的位置得到以实体为参考点的光源的位置，保存在数组
-				matrix3D_transformVector( & vLightsToObject[l], entity->worldInvert, lights->light->source->worldPosition );
+				matrix3D_transformVector( & vLightsToObject[l], entity->worldInvert, lights->light->source->w_pos );
 			}
 
 			lights = lights->next;
@@ -885,18 +886,18 @@ void viewport_project( Viewport * viewport )
 				}
 
 				//把顶点变换到CVV
-				matrix3D_transformVector( vs->viewPosition, & view_projection, vs->worldPosition );
+				matrix3D_transformVector( vs->s_pos, & projection, vs->w_pos );
 
-				oneOverMag = 1.0f / vs->viewPosition->w;
+				oneOverMag = 1.0f / vs->s_pos->w;
 
-				vs->viewPosition->x *= oneOverMag;
-				vs->viewPosition->y *= oneOverMag;
+				vs->s_pos->x *= oneOverMag;
+				vs->s_pos->y *= oneOverMag;
 
-				vs->viewPosition->x += 0.5f;
-				vs->viewPosition->y += 0.5f;
+				vs->s_pos->x += 0.5f;
+				vs->s_pos->y += 0.5f;
 
-				vs->viewPosition->x *= viewport->width;
-				vs->viewPosition->y *= viewport->height;
+				vs->s_pos->x *= viewport->width;
+				vs->s_pos->y *= viewport->height;
 
 				vs->color->red = (WORD)(lastColor.red * 255.0f);
 				vs->color->green = (WORD)(lastColor.green * 255.0f);
@@ -918,15 +919,6 @@ void viewport_project( Viewport * viewport )
 		vLightsToObject = NULL;
 	}
 }
-
-//INLINE void getMixedColor( WORD a, WORD r, WORD g, WORD b, int u, int v, int pos, Texture * texture, LPDWORD videoBuffer );
-//void wireframe_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 );
-//void triangle_rasterize( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 );
-//void triangle_rasterize_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture );
-//void triangle_rasterize_light( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2 );
-//void triangle_rasterize_light_texture( Viewport * view, Vertex * ver0, Vertex * ver1, Vertex * ver2, Texture * texture );
-
-void Draw_Textured_TriangleINVZB_16( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y );
 
 void viewport_render(Viewport * view)
 {

@@ -70,17 +70,17 @@ int main()
 
 	texture = newTexture(64, 64, bitmapData);
 
-	pos[0] = -50.0f;
-	pos[1] = -50.0f;
+	pos[0] = -10.0f;
+	pos[1] = -10.0f;
 
-	pos[2] = -50.0f;
-	pos[3] = 50.0f;
+	pos[2] = -10.0f;
+	pos[3] = 10.0f;
 
-	pos[4] = 50.0f;
-	pos[5] = -50.0f;
+	pos[4] = 10.0f;
+	pos[5] = -10.0f;
 
-	pos[6] = 50.0f;
-	pos[7] = 50.0f;
+	pos[6] = 10.0f;
+	pos[7] = 10.0f;
 
 	//========================
 	pos2[0] = -50.0f;
@@ -161,7 +161,7 @@ int main()
 
 	do3d = newEntity();
 	//entity_setRotationX(do3d, 45.0f);
-	entity_setRotationZ(do3d, 91.0f);
+	entity_setRotationZ(do3d, 134.0f);
 	//entity_setY(do3d, -20.0f);
 	entity_setZ(do3d, 200.0f);
 	entity_setMesh( do3d, mesh1 );
@@ -176,7 +176,7 @@ int main()
 	//entity_setTexture( do3d2, texture );
 
 	camera = newCamera( 90.0f, 100.0f, 5000.0f, newEntity() );
-	camera_setTarget( camera, do3d->worldPosition );
+	camera_setTarget( camera, do3d->w_pos );
 
 	//lightSource = newEntity();
 	//entity_setZ(lightSource, 300.0f);

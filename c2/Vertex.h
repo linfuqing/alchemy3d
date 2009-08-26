@@ -20,7 +20,7 @@ typedef struct Vertex
 {
 	int nContectedFaces, transformed;
 
-	Vector3D * position, * worldPosition, * viewPosition, * normal, * normalLength;
+	Vector3D * position, * w_pos, * s_pos, * normal, * normalLength;
 
 	Vector * uv;
 
@@ -36,8 +36,8 @@ Vertex * newVertex( float x, float y, float z )
 	if( ( v = ( Vertex * )malloc( sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
 
 	v->position = newVector3D(x, y, z, 1.0f);
-	v->worldPosition = newVector3D(x, y, z, 1.0f);
-	v->viewPosition = newVector3D(x, y, z, 1.0f);
+	v->w_pos = newVector3D(x, y, z, 1.0f);
+	v->s_pos = newVector3D(x, y, z, 1.0f);
 
 	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
 	v->normalLength = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
@@ -57,8 +57,8 @@ Vertex * newVertex( float x, float y, float z )
 INLINE void vertex_copy( Vertex * dest, Vertex * src )
 {
 	vector3D_copy( dest->position, src->position );
-	vector3D_copy( dest->worldPosition, src->worldPosition );
-	vector3D_copy( dest->viewPosition, src->viewPosition );
+	vector3D_copy( dest->w_pos, src->w_pos );
+	vector3D_copy( dest->s_pos, src->s_pos );
 
 	vector3D_copy( dest->normal, src->normal );
 	vector3D_copy( dest->normalLength, src->normalLength );
@@ -81,8 +81,8 @@ INLINE Vertex * vertex_clone( Vertex * src )
 	if( ( dest = ( Vertex * )malloc( sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
 
 	dest->position		= vector3D_clone( src->position );
-	dest->worldPosition	= vector3D_clone( src->worldPosition );
-	dest->viewPosition	= vector3D_clone( src->viewPosition );
+	dest->w_pos	= vector3D_clone( src->w_pos );
+	dest->s_pos	= vector3D_clone( src->s_pos );
 
 	dest->normal		= vector3D_clone( src->normal );
 	dest->normalLength	= vector3D_clone( src->normalLength );
@@ -122,8 +122,8 @@ INLINE void vertex_dispose( Vertex * v )
 	vector3D_dispose( v->normal );
 	vector3D_dispose( v->normalLength );
 	vector3D_dispose( v->position );
-	vector3D_dispose( v->worldPosition );
-	vector3D_dispose( v->viewPosition );
+	vector3D_dispose( v->w_pos );
+	vector3D_dispose( v->s_pos );
 	vector_dispose( v->uv );
 	argbColor_dispose( v->color );
 
@@ -131,8 +131,8 @@ INLINE void vertex_dispose( Vertex * v )
 	v->normal = NULL;
 	v->normalLength = NULL;
 	v->position = NULL;
-	v->worldPosition = NULL;
-	v->viewPosition = NULL;
+	v->w_pos = NULL;
+	v->s_pos = NULL;
 	v->uv = NULL;
 	v->color = NULL;
 }
