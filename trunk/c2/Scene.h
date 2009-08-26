@@ -401,27 +401,38 @@ void scene_project(Scene * scene)
 			//遍历顶点
 			v = entity->mesh->vertices;
 #ifdef __AS3__
+			meshBuffer = entity->mesh->meshBuffer;
+
 			for( i = 0, j = 0; i < entity->mesh->nVertices; i ++, j += VERTEX_SIZE)
+			{
+				//如果顶点局部坐标发生改变
+				if ( TRUE == entity->mesh->dirty )
+				{
+					v[i].position->x = meshBuffer[j];
+					v[i].position->y = meshBuffer[j + 1];
+					v[i].position->z = meshBuffer[j + 2];
+				}
+
+				matrix3D_transformVector( v[i].w_pos, entity->world, v[i].position );
+			}
 #else
 			for( i = 0; i < entity->mesh->nVertices; i ++)
-#endif
 			{
-#ifdef __AS3__
-				meshBuffer = entity->mesh->meshBuffer;
-				v[i].position->x = meshBuffer[j];
-				v[i].position->y = meshBuffer[j + 1];
-				v[i].position->z = meshBuffer[j + 2];
-#endif
 				//用世界矩阵把顶点变换到世界坐标系
-				matrix3D_transformVector( v[i].worldPosition, entity->world, v[i].position );
-			}//end vertex
+				matrix3D_transformVector( v[i].w_pos, entity->world, v[i].position );
+			}
+#endif
 		}
 
 		sceneNode = sceneNode->next;
 	}//end entity
 }
 
-void scene_updateBeforeRender( Scene * scene )
+//void scene_updateBeforeRender( Scene * scene )
+//{
+//}
+
+void scene_updateAfterRender( Scene * scene )
 {
 	SceneNode * sceneNode;
 
@@ -430,14 +441,11 @@ void scene_updateBeforeRender( Scene * scene )
 	//遍历场景结点，更新实体
 	while( NULL != sceneNode )
 	{
-		entity_updateBeforeRender( sceneNode->entity );
+		entity_updateAfterRender( sceneNode->entity );
 
 		sceneNode = sceneNode->next;
 	}
-}
 
-void scene_updateAfterRender( Scene * scene )
-{
 	scene->lightOn = FALSE;
 	scene->dirty = FALSE;
 }

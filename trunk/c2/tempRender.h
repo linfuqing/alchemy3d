@@ -106,18 +106,18 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	float			z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, currZ, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dzdx, temp2;
 //	WORD			a, r, g, b;
 //
-//	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-//		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-//		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-//		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-//		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-//		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
+//	if (((ver0->s_pos->y < 0) && (ver1->s_pos->y < 0) && (ver2->s_pos->y < 0)) ||
+//		((ver0->s_pos->y > resY) && (ver1->s_pos->y > resY) && (ver2->s_pos->y > resY)) ||
+//		((ver0->s_pos->x < 0) && (ver1->s_pos->x < 0) && (ver2->s_pos->x < 0)) ||
+//		((ver0->s_pos->x > resX) && (ver1->s_pos->x > resX) && (ver2->s_pos->x > resX)) ||
+//		((ver0->s_pos->z > 1) && (ver1->s_pos->z > 1) && (ver2->s_pos->z > 1)) ||
+//		((ver0->s_pos->z < 0 ) && (ver1->s_pos->z < 0) && (ver2->s_pos->z < 0)))
 //	{
 //		return;
 //	}
 //
 //	//判断是否是一条线，如果是，则返回。
-//	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
+//	if (((ver0->s_pos->x == ver1->s_pos->x) && (ver1->s_pos->x == ver2->s_pos->x)) || ((ver0->s_pos->y == ver1->s_pos->y) && (ver1->s_pos->y == ver2->s_pos->y)))
 //	{
 //		return;
 //	}
@@ -127,19 +127,19 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	nh = resY - 1;
 //
 //	//调整y0,y1,y2,让它们的y值从小到大
-//	if (ver1->viewPosition->y < ver0->viewPosition->y)
+//	if (ver1->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver0;
 //		ver0 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver0->viewPosition->y)
+//	if (ver2->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver0;
 //		ver0 = ver2;
 //		ver2 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver1->viewPosition->y)
+//	if (ver2->s_pos->y < ver1->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver2;
@@ -147,22 +147,22 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	}
 //
 //	//判断三角形的类型
-//	if (ver0->viewPosition->y == ver1->viewPosition->y)
+//	if (ver0->s_pos->y == ver1->s_pos->y)
 //	{
 //		tri_type = TRI_TYPE_FLAT_TOP;
 //
-//		if (ver1->viewPosition->x < ver0->viewPosition->x)
+//		if (ver1->s_pos->x < ver0->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver0;
 //			ver0 = tmpV;
 //		}
 //	}
-//	else if (ver1->viewPosition->y == ver2->viewPosition->y)
+//	else if (ver1->s_pos->y == ver2->s_pos->y)
 //	{
 //		tri_type = TRI_TYPE_FLAT_BOTTOM;
 //
-//		if (ver2->viewPosition->x < ver1->viewPosition->x)
+//		if (ver2->s_pos->x < ver1->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver2;
@@ -174,17 +174,17 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //		tri_type = TRI_TYPE_GENERAL;
 //	}
 //
-//	x0 = (int)ver0->viewPosition->x;
-//	y0 = (int)ver0->viewPosition->y;
-//	z0 = ver0->viewPosition->z;
+//	x0 = (int)ver0->s_pos->x;
+//	y0 = (int)ver0->s_pos->y;
+//	z0 = ver0->s_pos->z;
 //
-//	x1 = (int)ver1->viewPosition->x;
-//	y1 = (int)ver1->viewPosition->y;
-//	z1 = ver1->viewPosition->z;
+//	x1 = (int)ver1->s_pos->x;
+//	y1 = (int)ver1->s_pos->y;
+//	z1 = ver1->s_pos->z;
 //
-//	x2 = (int)ver2->viewPosition->x;
-//	y2 = (int)ver2->viewPosition->y;
-//	z2 = ver2->viewPosition->z;
+//	x2 = (int)ver2->s_pos->x;
+//	y2 = (int)ver2->s_pos->y;
+//	z2 = ver2->s_pos->z;
 //
 //	a = ver0->color->alpha;
 //	r = ver0->color->red;
@@ -702,18 +702,18 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	float			z0, z1, z2, xStart, xEnd, yStart, yEnd, zStart, zEnd, currZ, dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dzdx, temp2;
 //	WORD			a, r, g, b;
 //
-//	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-//		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-//		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-//		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-//		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-//		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
+//	if (((ver0->s_pos->y < 0) && (ver1->s_pos->y < 0) && (ver2->s_pos->y < 0)) ||
+//		((ver0->s_pos->y > resY) && (ver1->s_pos->y > resY) && (ver2->s_pos->y > resY)) ||
+//		((ver0->s_pos->x < 0) && (ver1->s_pos->x < 0) && (ver2->s_pos->x < 0)) ||
+//		((ver0->s_pos->x > resX) && (ver1->s_pos->x > resX) && (ver2->s_pos->x > resX)) ||
+//		((ver0->s_pos->z > 1) && (ver1->s_pos->z > 1) && (ver2->s_pos->z > 1)) ||
+//		((ver0->s_pos->z < 0 ) && (ver1->s_pos->z < 0) && (ver2->s_pos->z < 0)))
 //	{
 //		return;
 //	}
 //
 //	//判断是否是一条线，如果是，则返回。
-//	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
+//	if (((ver0->s_pos->x == ver1->s_pos->x) && (ver1->s_pos->x == ver2->s_pos->x)) || ((ver0->s_pos->y == ver1->s_pos->y) && (ver1->s_pos->y == ver2->s_pos->y)))
 //	{
 //		return;
 //	}
@@ -723,19 +723,19 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	nh = resY - 1;
 //
 //	//调整y0,y1,y2,让它们的y值从小到大
-//	if (ver1->viewPosition->y < ver0->viewPosition->y)
+//	if (ver1->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver0;
 //		ver0 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver0->viewPosition->y)
+//	if (ver2->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver0;
 //		ver0 = ver2;
 //		ver2 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver1->viewPosition->y)
+//	if (ver2->s_pos->y < ver1->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver2;
@@ -743,22 +743,22 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	}
 //
 //	//判断三角形的类型
-//	if (ver0->viewPosition->y == ver1->viewPosition->y)
+//	if (ver0->s_pos->y == ver1->s_pos->y)
 //	{
 //		tri_type = TRI_TYPE_FLAT_TOP;
 //
-//		if (ver1->viewPosition->x < ver0->viewPosition->x)
+//		if (ver1->s_pos->x < ver0->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver0;
 //			ver0 = tmpV;
 //		}
 //	}
-//	else if (ver1->viewPosition->y == ver2->viewPosition->y)
+//	else if (ver1->s_pos->y == ver2->s_pos->y)
 //	{
 //		tri_type = TRI_TYPE_FLAT_BOTTOM;
 //
-//		if (ver2->viewPosition->x < ver1->viewPosition->x)
+//		if (ver2->s_pos->x < ver1->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver2;
@@ -770,17 +770,17 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //		tri_type = TRI_TYPE_GENERAL;
 //	}
 //
-//	x0 = (int)ver0->viewPosition->x;
-//	y0 = (int)ver0->viewPosition->y;
-//	z0 = ver0->viewPosition->z;
+//	x0 = (int)ver0->s_pos->x;
+//	y0 = (int)ver0->s_pos->y;
+//	z0 = ver0->s_pos->z;
 //
-//	x1 = (int)ver1->viewPosition->x;
-//	y1 = (int)ver1->viewPosition->y;
-//	z1 = ver1->viewPosition->z;
+//	x1 = (int)ver1->s_pos->x;
+//	y1 = (int)ver1->s_pos->y;
+//	z1 = ver1->s_pos->z;
 //
-//	x2 = (int)ver2->viewPosition->x;
-//	y2 = (int)ver2->viewPosition->y;
-//	z2 = ver2->viewPosition->z;
+//	x2 = (int)ver2->s_pos->x;
+//	y2 = (int)ver2->s_pos->y;
+//	z2 = ver2->s_pos->z;
 //
 //	a = ver0->color->alpha;
 //	r = ver0->color->red;
@@ -1299,21 +1299,21 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //			dx, dy, dyr, dyl, dxdyl, dxdyr, dzdyl, dzdyr, dudyl, dudyr, dvdyl, dvdyr, dzdx, dudx, dvdx, temp2;
 //	WORD	a, r, g, b;
 //
-//	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-//		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-//		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-//		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-//		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-//		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
+//	if (((ver0->s_pos->y < 0) && (ver1->s_pos->y < 0) && (ver2->s_pos->y < 0)) ||
+//		((ver0->s_pos->y > resY) && (ver1->s_pos->y > resY) && (ver2->s_pos->y > resY)) ||
+//		((ver0->s_pos->x < 0) && (ver1->s_pos->x < 0) && (ver2->s_pos->x < 0)) ||
+//		((ver0->s_pos->x > resX) && (ver1->s_pos->x > resX) && (ver2->s_pos->x > resX)) ||
+//		((ver0->s_pos->z > 1) && (ver1->s_pos->z > 1) && (ver2->s_pos->z > 1)) ||
+//		((ver0->s_pos->z < 0 ) && (ver1->s_pos->z < 0) && (ver2->s_pos->z < 0)))
 //	{
 //		return;
 //	}
 //
 //	//判断是否是一条线，如果是，则返回。
-//	if ( ( FCMP( ver0->viewPosition->x, ver1->viewPosition->x ) &&
-//		FCMP( ver1->viewPosition->x, ver2->viewPosition->x) ) ||
-//		( FCMP( ver0->viewPosition->y, ver1->viewPosition->y ) &&
-//		FCMP( ver1->viewPosition->y, ver2->viewPosition->y ) ) )
+//	if ( ( FCMP( ver0->s_pos->x, ver1->s_pos->x ) &&
+//		FCMP( ver1->s_pos->x, ver2->s_pos->x) ) ||
+//		( FCMP( ver0->s_pos->y, ver1->s_pos->y ) &&
+//		FCMP( ver1->s_pos->y, ver2->s_pos->y ) ) )
 //	{
 //		return;
 //	}
@@ -1323,19 +1323,19 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	nh = resY - 1;
 //
 //	//调整y0,y1,y2,让它们的y值从小到大
-//	if (ver1->viewPosition->y < ver0->viewPosition->y)
+//	if (ver1->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver0;
 //		ver0 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver0->viewPosition->y)
+//	if (ver2->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver0;
 //		ver0 = ver2;
 //		ver2 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver1->viewPosition->y)
+//	if (ver2->s_pos->y < ver1->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver2;
@@ -1343,22 +1343,22 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	}
 //
 //	//判断三角形的类型
-//	if ( FCMP( ver0->viewPosition->y, ver1->viewPosition->y ) )
+//	if ( FCMP( ver0->s_pos->y, ver1->s_pos->y ) )
 //	{
 //		tri_type = TRI_TYPE_FLAT_TOP;
 //
-//		if (ver1->viewPosition->x < ver0->viewPosition->x)
+//		if (ver1->s_pos->x < ver0->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver0;
 //			ver0 = tmpV;
 //		}
 //	}
-//	else if ( FCMP( ver1->viewPosition->y, ver2->viewPosition->y ) )
+//	else if ( FCMP( ver1->s_pos->y, ver2->s_pos->y ) )
 //	{
 //		tri_type = TRI_TYPE_FLAT_BOTTOM;
 //
-//		if (ver2->viewPosition->x < ver1->viewPosition->x)
+//		if (ver2->s_pos->x < ver1->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver2;
@@ -1370,17 +1370,17 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //		tri_type = TRI_TYPE_GENERAL;
 //	}
 //
-//	x0 = (int)( ver0->viewPosition->x + 0.5 );
-//	y0 = (int)( ver0->viewPosition->y + 0.5 );
-//	z0 = ver0->viewPosition->z;
+//	x0 = (int)( ver0->s_pos->x + 0.5 );
+//	y0 = (int)( ver0->s_pos->y + 0.5 );
+//	z0 = ver0->s_pos->z;
 //
-//	x1 = (int)( ver1->viewPosition->x + 0.5 );
-//	y1 = (int)( ver1->viewPosition->y + 0.5 );
-//	z1 = ver1->viewPosition->z;
+//	x1 = (int)( ver1->s_pos->x + 0.5 );
+//	y1 = (int)( ver1->s_pos->y + 0.5 );
+//	z1 = ver1->s_pos->z;
 //
-//	x2 = (int)( ver2->viewPosition->x + 0.5 );
-//	y2 = (int)( ver2->viewPosition->y + 0.5 );
-//	z2 = ver2->viewPosition->z;
+//	x2 = (int)( ver2->s_pos->x + 0.5 );
+//	y2 = (int)( ver2->s_pos->y + 0.5 );
+//	z2 = ver2->s_pos->z;
 //
 //	u0 = (int)( ver0->uv->x * (texture->width - 1) );
 //	v0 = (int)( ver0->uv->y * (texture->height - 1) );
@@ -2068,20 +2068,20 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	//背面剔除
 //	if ( BACKFACE_CULLING_MODE == 2)
 //	{
-//		if ( ( ver2->viewPosition->x - ver0->viewPosition->x ) * ( ver1->viewPosition->y - ver2->viewPosition->y ) > ( ver2->viewPosition->y - ver0->viewPosition->y ) * ( ver1->viewPosition->x - ver2->viewPosition->x ) )
+//		if ( ( ver2->s_pos->x - ver0->s_pos->x ) * ( ver1->s_pos->y - ver2->s_pos->y ) > ( ver2->s_pos->y - ver0->s_pos->y ) * ( ver1->s_pos->x - ver2->s_pos->x ) )
 //			return;
 //	}
 //
-//	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-//		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-//		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-//		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)))
+//	if (((ver0->s_pos->y < 0) && (ver1->s_pos->y < 0) && (ver2->s_pos->y < 0)) ||
+//		((ver0->s_pos->y > resY) && (ver1->s_pos->y > resY) && (ver2->s_pos->y > resY)) ||
+//		((ver0->s_pos->x < 0) && (ver1->s_pos->x < 0) && (ver2->s_pos->x < 0)) ||
+//		((ver0->s_pos->x > resX) && (ver1->s_pos->x > resX) && (ver2->s_pos->x > resX)))
 //	{
 //		return;
 //	}
 //
 //	//判断是否是一条线，如果是，则返回。
-//	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
+//	if (((ver0->s_pos->x == ver1->s_pos->x) && (ver1->s_pos->x == ver2->s_pos->x)) || ((ver0->s_pos->y == ver1->s_pos->y) && (ver1->s_pos->y == ver2->s_pos->y)))
 //	{
 //		return;
 //	}
@@ -2091,19 +2091,19 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	nh = resY - 1;
 //
 //	//调整y0,y1,y2,让它们的y值从小到大
-//	if (ver1->viewPosition->y < ver0->viewPosition->y)
+//	if (ver1->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver0;
 //		ver0 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver0->viewPosition->y)
+//	if (ver2->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver0;
 //		ver0 = ver2;
 //		ver2 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver1->viewPosition->y)
+//	if (ver2->s_pos->y < ver1->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver2;
@@ -2111,22 +2111,22 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	}
 //
 //	//判断三角形的类型
-//	if (ver0->viewPosition->y == ver1->viewPosition->y)
+//	if (ver0->s_pos->y == ver1->s_pos->y)
 //	{
 //		tri_type = TRI_TYPE_FLAT_TOP;
 //
-//		if (ver1->viewPosition->x < ver0->viewPosition->x)
+//		if (ver1->s_pos->x < ver0->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver0;
 //			ver0 = tmpV;
 //		}
 //	}
-//	else if (ver1->viewPosition->y == ver2->viewPosition->y)
+//	else if (ver1->s_pos->y == ver2->s_pos->y)
 //	{
 //		tri_type = TRI_TYPE_FLAT_BOTTOM;
 //
-//		if (ver2->viewPosition->x < ver1->viewPosition->x)
+//		if (ver2->s_pos->x < ver1->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver2;
@@ -2138,17 +2138,17 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //		tri_type = TRI_TYPE_GENERAL;
 //	}
 //
-//	x0 = (int)ver0->viewPosition->x;
-//	y0 = (int)ver0->viewPosition->y;
-//	z0 = ver0->viewPosition->z;
+//	x0 = (int)ver0->s_pos->x;
+//	y0 = (int)ver0->s_pos->y;
+//	z0 = ver0->s_pos->z;
 //
-//	x1 = (int)ver1->viewPosition->x;
-//	y1 = (int)ver1->viewPosition->y;
-//	z1 = ver1->viewPosition->z;
+//	x1 = (int)ver1->s_pos->x;
+//	y1 = (int)ver1->s_pos->y;
+//	z1 = ver1->s_pos->z;
 //
-//	x2 = (int)ver2->viewPosition->x;
-//	y2 = (int)ver2->viewPosition->y;
-//	z2 = ver2->viewPosition->z;
+//	x2 = (int)ver2->s_pos->x;
+//	y2 = (int)ver2->s_pos->y;
+//	z2 = ver2->s_pos->z;
 //
 //	u0 = ver0->uv->x;
 //	v0 = ver0->uv->y;
@@ -2806,18 +2806,18 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //					dadyl, dadyr, dadx, currA, drdyl, drdyr, drdx, currR, dgdyl, dgdyr, dgdx, currG, dbdyl, dbdyr, dbdx, currB,
 //					a0, r0, g0, b0, a1, r1, g1, b1, a2, r2, g2, b2, aStart, aEnd, rStart, rEnd, gStart, gEnd, bStart, bEnd;
 //
-//	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-//		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-//		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-//		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-//		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-//		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
+//	if (((ver0->s_pos->y < 0) && (ver1->s_pos->y < 0) && (ver2->s_pos->y < 0)) ||
+//		((ver0->s_pos->y > resY) && (ver1->s_pos->y > resY) && (ver2->s_pos->y > resY)) ||
+//		((ver0->s_pos->x < 0) && (ver1->s_pos->x < 0) && (ver2->s_pos->x < 0)) ||
+//		((ver0->s_pos->x > resX) && (ver1->s_pos->x > resX) && (ver2->s_pos->x > resX)) ||
+//		((ver0->s_pos->z > 1) && (ver1->s_pos->z > 1) && (ver2->s_pos->z > 1)) ||
+//		((ver0->s_pos->z < 0 ) && (ver1->s_pos->z < 0) && (ver2->s_pos->z < 0)))
 //	{
 //		return;
 //	}
 //
 //	//判断是否是一条线，如果是，则返回。
-//	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
+//	if (((ver0->s_pos->x == ver1->s_pos->x) && (ver1->s_pos->x == ver2->s_pos->x)) || ((ver0->s_pos->y == ver1->s_pos->y) && (ver1->s_pos->y == ver2->s_pos->y)))
 //	{
 //		return;
 //	}
@@ -2827,19 +2827,19 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	nh = resY - 1;
 //
 //	//调整y0,y1,y2,让它们的y值从小到大
-//	if (ver1->viewPosition->y < ver0->viewPosition->y)
+//	if (ver1->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver0;
 //		ver0 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver0->viewPosition->y)
+//	if (ver2->s_pos->y < ver0->s_pos->y)
 //	{
 //		tmpV = ver0;
 //		ver0 = ver2;
 //		ver2 = tmpV;
 //	}
-//	if (ver2->viewPosition->y < ver1->viewPosition->y)
+//	if (ver2->s_pos->y < ver1->s_pos->y)
 //	{
 //		tmpV = ver1;
 //		ver1 = ver2;
@@ -2847,22 +2847,22 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	}
 //
 //	//判断三角形的类型
-//	if (ver0->viewPosition->y == ver1->viewPosition->y)
+//	if (ver0->s_pos->y == ver1->s_pos->y)
 //	{
 //		tri_type = TRI_TYPE_FLAT_TOP;
 //
-//		if (ver1->viewPosition->x < ver0->viewPosition->x)
+//		if (ver1->s_pos->x < ver0->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver0;
 //			ver0 = tmpV;
 //		}
 //	}
-//	else if (ver1->viewPosition->y == ver2->viewPosition->y)
+//	else if (ver1->s_pos->y == ver2->s_pos->y)
 //	{
 //		tri_type = TRI_TYPE_FLAT_BOTTOM;
 //
-//		if (ver2->viewPosition->x < ver1->viewPosition->x)
+//		if (ver2->s_pos->x < ver1->s_pos->x)
 //		{
 //			tmpV = ver1;
 //			ver1 = ver2;
@@ -2874,17 +2874,17 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //		tri_type = TRI_TYPE_GENERAL;
 //	}
 //
-//	x0 = (int)ver0->viewPosition->x;
-//	y0 = (int)ver0->viewPosition->y;
-//	z0 = ver0->viewPosition->z;
+//	x0 = (int)ver0->s_pos->x;
+//	y0 = (int)ver0->s_pos->y;
+//	z0 = ver0->s_pos->z;
 //
-//	x1 = (int)ver1->viewPosition->x;
-//	y1 = (int)ver1->viewPosition->y;
-//	z1 = ver1->viewPosition->z;
+//	x1 = (int)ver1->s_pos->x;
+//	y1 = (int)ver1->s_pos->y;
+//	z1 = ver1->s_pos->z;
 //
-//	x2 = (int)ver2->viewPosition->x;
-//	y2 = (int)ver2->viewPosition->y;
-//	z2 = ver2->viewPosition->z;
+//	x2 = (int)ver2->s_pos->x;
+//	y2 = (int)ver2->s_pos->y;
+//	z2 = ver2->s_pos->z;
 //
 //	a0 = ver0->color->alpha;
 //	r0 = ver0->color->red;
@@ -3705,18 +3705,18 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //					dadyl, dadyr, dadx, currA, drdyl, drdyr, drdx, currR, dgdyl, dgdyr, dgdx, currG, dbdyl, dbdyr, dbdx, currB,
 //					a0, r0, g0, b0, a1, r1, g1, b1, a2, r2, g2, b2, aStart, aEnd, rStart, rEnd, gStart, gEnd, bStart, bEnd;
 //
-//	if (((ver0->viewPosition->y < 0) && (ver1->viewPosition->y < 0) && (ver2->viewPosition->y < 0)) ||
-//		((ver0->viewPosition->y > resY) && (ver1->viewPosition->y > resY) && (ver2->viewPosition->y > resY)) ||
-//		((ver0->viewPosition->x < 0) && (ver1->viewPosition->x < 0) && (ver2->viewPosition->x < 0)) ||
-//		((ver0->viewPosition->x > resX) && (ver1->viewPosition->x > resX) && (ver2->viewPosition->x > resX)) ||
-//		((ver0->viewPosition->z > 1) && (ver1->viewPosition->z > 1) && (ver2->viewPosition->z > 1)) ||
-//		((ver0->viewPosition->z < 0 ) && (ver1->viewPosition->z < 0) && (ver2->viewPosition->z < 0)))
+//	if (((ver0->s_pos->y < 0) && (ver1->s_pos->y < 0) && (ver2->s_pos->y < 0)) ||
+//		((ver0->s_pos->y > resY) && (ver1->s_pos->y > resY) && (ver2->s_pos->y > resY)) ||
+//		((ver0->s_pos->x < 0) && (ver1->s_pos->x < 0) && (ver2->s_pos->x < 0)) ||
+//		((ver0->s_pos->x > resX) && (ver1->s_pos->x > resX) && (ver2->s_pos->x > resX)) ||
+//		((ver0->s_pos->z > 1) && (ver1->s_pos->z > 1) && (ver2->s_pos->z > 1)) ||
+//		((ver0->s_pos->z < 0 ) && (ver1->s_pos->z < 0) && (ver2->s_pos->z < 0)))
 //	{
 //		return;
 //	}
 //
 //	//判断是否是一条线，如果是，则返回。
-//	if (((ver0->viewPosition->x == ver1->viewPosition->x) && (ver1->viewPosition->x == ver2->viewPosition->x)) || ((ver0->viewPosition->y == ver1->viewPosition->y) && (ver1->viewPosition->y == ver2->viewPosition->y)))
+//	if (((ver0->s_pos->x == ver1->s_pos->x) && (ver1->s_pos->x == ver2->s_pos->x)) || ((ver0->s_pos->y == ver1->s_pos->y) && (ver1->s_pos->y == ver2->s_pos->y)))
 //	{
 //		return;
 //	}
@@ -3726,19 +3726,19 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	nh = resY - 1;
 //
 //	//调整y0,y1,y2,让它们的y值从小到大
-//	if ( ver1->viewPosition->y < ver0->viewPosition->y )
+//	if ( ver1->s_pos->y < ver0->s_pos->y )
 //	{
 //		tmpV = ver1;
 //		ver1 = ver0;
 //		ver0 = tmpV;
 //	}
-//	if ( ver2->viewPosition->y < ver0->viewPosition->y )
+//	if ( ver2->s_pos->y < ver0->s_pos->y )
 //	{
 //		tmpV = ver0;
 //		ver0 = ver2;
 //		ver2 = tmpV;
 //	}
-//	if ( ver2->viewPosition->y < ver1->viewPosition->y )
+//	if ( ver2->s_pos->y < ver1->s_pos->y )
 //	{
 //		tmpV = ver1;
 //		ver1 = ver2;
@@ -3746,22 +3746,22 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //	}
 //
 //	//判断三角形的类型
-//	if ( ver0->viewPosition->y == ver1->viewPosition->y )
+//	if ( ver0->s_pos->y == ver1->s_pos->y )
 //	{
 //		tri_type = TRI_TYPE_FLAT_TOP;
 //
-//		if ( ver1->viewPosition->x < ver0->viewPosition->x )
+//		if ( ver1->s_pos->x < ver0->s_pos->x )
 //		{
 //			tmpV = ver1;
 //			ver1 = ver0;
 //			ver0 = tmpV;
 //		}
 //	}
-//	else if ( ver1->viewPosition->y == ver2->viewPosition->y )
+//	else if ( ver1->s_pos->y == ver2->s_pos->y )
 //	{
 //		tri_type = TRI_TYPE_FLAT_BOTTOM;
 //
-//		if ( ver2->viewPosition->x < ver1->viewPosition->x )
+//		if ( ver2->s_pos->x < ver1->s_pos->x )
 //		{
 //			tmpV = ver1;
 //			ver1 = ver2;
@@ -3773,17 +3773,17 @@ INLINE void getPixelFromTexture( int u, int v, Texture * texture, int pos, LPDWO
 //		tri_type = TRI_TYPE_GENERAL;
 //	}
 //
-//	x0 = (int)ver0->viewPosition->x;
-//	y0 = (int)ver0->viewPosition->y;
-//	z0 = ver0->viewPosition->z;
+//	x0 = (int)ver0->s_pos->x;
+//	y0 = (int)ver0->s_pos->y;
+//	z0 = ver0->s_pos->z;
 //
-//	x1 = (int)ver1->viewPosition->x;
-//	y1 = (int)ver1->viewPosition->y;
-//	z1 = ver1->viewPosition->z;
+//	x1 = (int)ver1->s_pos->x;
+//	y1 = (int)ver1->s_pos->y;
+//	z1 = ver1->s_pos->z;
 //
-//	x2 = (int)ver2->viewPosition->x;
-//	y2 = (int)ver2->viewPosition->y;
-//	z2 = ver2->viewPosition->z;
+//	x2 = (int)ver2->s_pos->x;
+//	y2 = (int)ver2->s_pos->y;
+//	z2 = ver2->s_pos->z;
 //
 //	u0 = ver0->uv->x * (texture->width - 1);
 //	v0 = ver0->uv->y * (texture->height - 1);

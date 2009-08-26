@@ -321,7 +321,7 @@ void device_render(Device * device)
 	{
 		scene = scenes->scene;
 
-		scene_updateBeforeRender( scene );
+		//scene_updateBeforeRender( scene );
 
 		//如果场景已经连接到视口，则更新，反之不做任何处理
 		if ( TRUE == scene->isAttached ) scene_project( scene );

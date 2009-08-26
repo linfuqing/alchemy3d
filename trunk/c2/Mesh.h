@@ -8,7 +8,7 @@
 
 typedef struct Mesh
 {
-	int nFaces, nVertices;
+	int nFaces, nVertices, dirty;
 
 	Triangle  * faces;
 
@@ -40,6 +40,7 @@ Mesh * newMesh( int nVertices, int nFaces )
 
 	m->nFaces		= 0;
 	m->nVertices	= 0;
+	m->dirty		= FALSE;
 
 #ifdef __AS3__
 	m->meshBuffer = meshBuffer;
@@ -48,13 +49,13 @@ Mesh * newMesh( int nVertices, int nFaces )
 	return m;
 }
 
-void mesh_push_vertex( Mesh * m, float x, float y, float z )
+Vertex *  mesh_push_vertex( Mesh * m, float x, float y, float z )
 {
 	Vertex * v = & m->vertices[m->nVertices];
 
 	v->position = newVector3D(x, y, z, 1.0f);
-	v->worldPosition = newVector3D(x, y, z, 1.0f);
-	v->viewPosition = newVector3D(x, y, z, 1.0f);
+	v->w_pos = newVector3D(x, y, z, 1.0f);
+	v->s_pos = newVector3D(x, y, z, 1.0f);
 
 	v->uv = newVector( 0.0f, 0.0f );
 
@@ -69,9 +70,11 @@ void mesh_push_vertex( Mesh * m, float x, float y, float z )
 	v->transformed = FALSE;
 
 	m->nVertices ++;
+
+	return v;
 }
 
-void mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Texture * texture )
+Triangle *  mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Texture * texture )
 {
 	Triangle * p = & m->faces[m->nFaces];
 
@@ -90,6 +93,8 @@ void mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector
 	vertex_addContectedFaces( p, vc );
 
 	m->nFaces ++;
+
+	return p;
 }
 
 void computeFaceNormal( Mesh * m )

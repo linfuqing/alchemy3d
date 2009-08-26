@@ -129,12 +129,14 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 	Texture * texture;
 	Material * material;
 	float * meshBuffer;
+	DWORD ** p_meshBuffer, *** pp_meshBuffer;
 
 	int vNum, fNum, vLen, i, j;
 
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, PtrType, IntType, IntType", &scene, &parent, &material, &texture, &meshBuffer, &vNum, &fNum ); 
 
-	Vertex * vArr[vNum];
+	p_meshBuffer = ( DWORD ** )meshBuffer;
+	pp_meshBuffer = ( DWORD *** )meshBuffer;
 
 	mesh = newMesh( vNum, fNum, meshBuffer );
 
@@ -149,12 +151,20 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 		for ( ; i < vNum; i ++, j += VERTEX_SIZE )
 		{
-			mesh_push_vertex( mesh, meshBuffer[j], meshBuffer[j + 1], meshBuffer[j + 2] );
-			vArr[i] = & mesh->vertices[i];
+			p_meshBuffer[j + 4] = ( DWORD * )mesh_push_vertex( mesh, meshBuffer[j + 0], meshBuffer[j + 1], meshBuffer[j + 2] );
 		}
 
 		for ( i = 0, j = vLen; i < fNum; i ++, j += FACE_SIZE )
-			mesh_push_triangle( mesh, vArr[(int)meshBuffer[j]], vArr[(int)meshBuffer[j+1]], vArr[(int)meshBuffer[j+2]], newVector(meshBuffer[j + 3], meshBuffer[j + 4]), newVector(meshBuffer[j + 5], meshBuffer[j + 6]), newVector(meshBuffer[j + 7], meshBuffer[j + 8]), NULL );
+		{
+			mesh_push_triangle( mesh,
+								(Vertex * )( * p_meshBuffer[j] ),
+								(Vertex * )( * p_meshBuffer[j + 1] ),
+								(Vertex * )( * p_meshBuffer[j + 2] ),
+								newVector( meshBuffer[j + 3], meshBuffer[j + 4] ),
+								newVector( meshBuffer[j + 5], meshBuffer[j + 6] ),
+								newVector( meshBuffer[j + 7], meshBuffer[j + 8] ),
+								NULL );
+		}
 
 		entity_setMesh( entity, mesh );
 	}
@@ -165,7 +175,7 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 	if ( scene != FALSE ) scene_addEntity(scene, entity, parent);
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, IntType, IntType", entity, &entity->material, &entity->texture, entity->position, entity->direction, entity->scale, entity->worldPosition, entity->mesh->vertices, entity->mesh->faces, sizeof( Vertex ), sizeof( Triangle ) );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, IntType, IntType", entity, &entity->material, &entity->texture, entity->position, entity->direction, entity->scale, entity->w_pos, entity->mesh->dirty );
 }
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
@@ -203,58 +213,6 @@ AS3_Val propertySetting( void* self, AS3_Val args )
 //测试函数
 AS3_Val test( void* self, AS3_Val args )
 {
-	/*WORD wa = RGBTo16(255, 255, 255);
-	WORD wb = RGBTo16(125, 125, 125);
-	DWORD walpha = 127;
-	ULONG wc;*/
-
-	/*int a = 10, b = 20, c;
-
-	c = a + b;*/
-
-	/*__asm__ __volatile__("movl $0x7e0f81f, %%edi;\n\t"
-				"movl %%edi, %0;"
-				:"=r"(wc)
-				:"r"(wa), "r"(wb), "r"(walpha));*/
-
-	//__asm__("__asm(push(0x7e0f81f), push(mstate.edi), op(0x3c))"); 
-
-	/*push ebp ; ebp 压栈
-		mov ebp,esp ; 保存 esp 到 ebp
-		mov edi,0x7e0f81f ; dx=00000111111000001111100000011111
-		add esp,8 ; esp 指向参数 c1
-
-		pop eax ; 弹出 c1 到 ax
-		pop ebx ; 弹出 c2 到 bx
-		; 处理颜色
-		mov cx,ax ; cx=r1..b1
-		mov dx,bx ; dx=r2..b2
-
-		sal eax,16 ; eax=r1g1b1......
-		sal ebx,16 ; ebx=r2g2b2......
-		mov ax,cx ; eax=r1g1b1r1g1b1
-		mov bx,dx ; ebx=r2g2b2r2g2b2
-
-		and eax,edi ; eax=..g1..r1..b1
-
-		pop esi ; 弹出 alpha
-		mul esi ; eax*=alpha
-		neg esi ; -alpha
-		and ebx,edi ; ebx=..g2..r2..b2
-		add esi,0x20 ; 32-alpha
-		xchg eax,ebx ; 交换 eax,ebx
-		mul esi ; c2*=(32-alpha)
-		add eax,ebx ; c1*alpha+c2*(32-alpha)
-		mov esp,ebp
-		sar eax,5 ；color=(c1*alpha+c2*(32-alpha))/32
-		;还原成 RGB 形式
-		pop ebp
-		and eax,edi ; color=..g..r..b
-		mov cx,ax ;
-	sar eax,16 ;
-	or ax,cx ; color=rgb (eax)
-		ret*/
-
 	return 0;
 }
 

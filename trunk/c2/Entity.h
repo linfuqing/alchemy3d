@@ -23,7 +23,7 @@ typedef struct Entity
 	//N
 	struct Scene * scene;
 	//RW
-	Vector3D * position, * direction, * scale, * worldPosition, * viewPosition, * CVVPosition, * viewerToLocal;
+	Vector3D * position, * direction, * scale, * w_pos, * s_pos, * CVVPosition, * viewerToLocal;
 	//R
 	Matrix3D * transform, * world, * worldInvert, * view, * projection;
 	//R
@@ -54,8 +54,8 @@ Entity * newEntity()
 	entity->position		= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->direction		= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->scale			= newVector3D(1.0f, 1.0f, 1.0f, 1.0f);
-	entity->worldPosition	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
-	entity->viewPosition	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
+	entity->w_pos	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
+	entity->s_pos	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->CVVPosition	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->viewerToLocal	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -164,8 +164,8 @@ void entity_removeChild( Entity * entity, Entity * child )
 void entity_dispose( Entity * entity )
 {
 	vector3D_dispose( entity->position );
-	vector3D_dispose( entity->worldPosition );
-	vector3D_dispose( entity->viewPosition );
+	vector3D_dispose( entity->w_pos );
+	vector3D_dispose( entity->s_pos );
 	vector3D_dispose( entity->CVVPosition );
 	vector3D_dispose( entity->viewerToLocal );
 	vector3D_dispose( entity->direction );
@@ -195,8 +195,8 @@ void entity_setMesh( Entity * entity, Mesh * m )
 
 		for( i = 0; i < m->nVertices; i ++ )
 		{
-			m->vertices[i].uv->u *= (int)( entity->texture->width + 0.5 );
-			m->vertices[i].uv->u *= (int)( entity->texture->height + 0.5 );
+			m->vertices[i].uv->u *= entity->texture->width;
+			m->vertices[i].uv->v *= entity->texture->height;
 		}
 	}
 
@@ -221,17 +221,19 @@ void entity_setTexture( Entity * entity, Texture * t )
 
 		for( i = 0; i < entity->mesh->nVertices; i ++ )
 		{
-			entity->mesh->vertices[i].uv->u *= (int)( t->width + 0.5 );
-			entity->mesh->vertices[i].uv->v *= (int)( t->height + 0.5 );
+			entity->mesh->vertices[i].uv->u *= t->width;
+			entity->mesh->vertices[i].uv->v *= t->height;
 		}
 	}
 
 	entity->texture = t;
 }
 
-void entity_updateBeforeRender( Entity * entity )
+void entity_updateAfterRender( Entity * entity )
 {
 	Mesh * m = entity->mesh;
+
+	m->dirty = FALSE;
 
 	int i = 0, l = m->nVertices;
 
@@ -264,7 +266,7 @@ INLINE void entity_updateTransform( Entity * entity )
 	//世界逆矩阵
 	matrix3D_fastInvert( entity->worldInvert );
 	//从世界矩阵获得世界位置
-	matrix3D_getPosition( entity->worldPosition, entity->world );
+	matrix3D_getPosition( entity->w_pos, entity->world );
 }
 
 /**

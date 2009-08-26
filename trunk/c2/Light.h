@@ -139,7 +139,7 @@ void light_updateTransform(Light * light)
 
 	matrix3D_copy( source->world, source->transform );
 	//从世界矩阵获得世界位置
-	matrix3D_getPosition( source->worldPosition, source->world );
+	matrix3D_getPosition( source->w_pos, source->world );
 }
 
 #endif
