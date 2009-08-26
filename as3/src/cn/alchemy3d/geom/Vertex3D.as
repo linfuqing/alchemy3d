@@ -11,6 +11,8 @@ package cn.alchemy3d.geom
 		
 		public var normal:Vector3D;
 		
+		public var pointer:uint;
+		
 		public function Vertex3D(x:Number = 0, y:Number = 0, z:Number = 0, w:Number = 1)
 		{
 			this.x = x;

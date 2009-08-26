@@ -9,6 +9,7 @@ package cn.alchemy3d.objects
 	
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
+	import flash.utils.Dictionary;
 	
 	public class Mesh3D extends Entity implements ISceneNode
 	{
@@ -26,9 +27,13 @@ package cn.alchemy3d.objects
 		public var meshBuffPointer:uint;
 		public var verticesPointer:uint;
 		public var facesPointer:uint;
+		public var dirtyPointer:uint;
 		
 		public var sizeOfVertex:int;
 		public var sizeOfFace:int;
+		
+		private const vSize:uint = 5;
+		private const fSize:uint = 9;
 		
 		public function get nFaces():int
 		{
@@ -45,33 +50,45 @@ package cn.alchemy3d.objects
 			vertices[index].x = v.x;
 			vertices[index].y = v.y;
 			vertices[index].z = v.z;
-			buffer.position = meshBuffPointer + index * 16;
+			buffer.position = meshBuffPointer + index * sizeOfInt * vSize;
 			buffer.writeFloat(v.x);
 			buffer.writeFloat(v.y);
 			buffer.writeFloat(v.z);
+			
+			buffer.position = dirtyPointer;
+			buffer.writeUnsignedInt(1);
 		}
 		
 		public function setVerticesX(index:int, value:Number):void
 		{
 			vertices[index].x = value;
-			buffer.position = meshBuffPointer + index * 16;
+			buffer.position = meshBuffPointer + index * sizeOfInt * vSize;
 			buffer.writeFloat(value);
+			
+			buffer.position = dirtyPointer;
+			buffer.writeUnsignedInt(1);
 		}
 		
 		public function setVerticesY(index:int, value:Number):void
 		{
 			vertices[index].y = value;
-			buffer.position = meshBuffPointer + index * 16 + 4;
+			buffer.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt;
 			buffer.writeFloat(value);
+			
+			buffer.position = dirtyPointer;
+			buffer.writeUnsignedInt(1);
 		}
 		
 		public function setVerticesZ(index:int, value:Number):void
 		{
 			vertices[index].z = value;
 			//获得顶点缓冲区的起始指针
-			buffer.position = meshBuffPointer + index * 16 + 8;
+			buffer.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt * 2;
 			//写入数据
 			buffer.writeFloat(value);
+			
+			buffer.position = dirtyPointer;
+			buffer.writeUnsignedInt(1);
 		}
 		
 		public function fillVerticesToBuffer():void
@@ -82,24 +99,27 @@ package cn.alchemy3d.objects
 			
 			for each (v in vertices)
 			{
+				v.pointer = buffer.position + 4 * sizeOfInt;	//4代表保存指针的偏移量
+				
 				buffer.writeFloat(v.x);
 				buffer.writeFloat(v.y);
 				buffer.writeFloat(v.z);
 				buffer.writeFloat(v.w);
+				buffer.writeUnsignedInt(0);	//for saving pointer
 			}
 		}
 		
 		public function fillFacesToBuffer():void
 		{
-			buffer.position = meshBuffPointer + vertices.length * 4 * sizeOfType;
+			buffer.position = meshBuffPointer + vertices.length * vSize * sizeOfInt;
 			
 			var f:Triangle3D;
 			
 			for each (f in faces)
 			{
-				buffer.writeFloat(f.p0Index);
-				buffer.writeFloat(f.p1Index);
-				buffer.writeFloat(f.p2Index);
+				buffer.writeUnsignedInt(f.v0.pointer);
+				buffer.writeUnsignedInt(f.v1.pointer);
+				buffer.writeUnsignedInt(f.v2.pointer);
 				buffer.writeFloat(f.uv0.x);
 				buffer.writeFloat(f.uv0.y);
 				buffer.writeFloat(f.uv1.x);
@@ -111,7 +131,7 @@ package cn.alchemy3d.objects
 		
 		protected function applyForMeshBuffer():void
 		{
-			meshBuffPointer = lib.alchemy3DLib.applyForTmpBuffer(4, (vertices.length * 4 + faces.length * 9) * 4);
+			meshBuffPointer = lib.alchemy3DLib.applyForTmpBuffer(sizeOfInt, (vertices.length * vSize + faces.length * fSize) * sizeOfInt);
 		}
 		
 		override public function initialize(scene:Scene3D):void
@@ -136,10 +156,7 @@ package cn.alchemy3d.objects
 		{
 			super.allotPtr(ps);
 			
-			verticesPointer	= ps[7];
-			facesPointer	= ps[8];
-			sizeOfVertex	= ps[9];
-			sizeOfFace		= ps[10];
+			dirtyPointer = ps[7];
 		}
 		
 		override public function clone():Entity
@@ -151,9 +168,9 @@ package cn.alchemy3d.objects
 		{
 			for each(var f:Triangle3D in this.faces)
 			{
-				var tmp:int = f.p0Index;
-				f.p0Index = f.p2Index;
-				f.p2Index = tmp;
+				var tmp:Vertex3D = f.v0;
+				f.v0 = f.v2;
+				f.v2 = tmp;
 				
 				var tmpUV:Point = f.uv0;
 				f.uv0 = f.uv2;
@@ -166,6 +183,48 @@ package cn.alchemy3d.objects
 			for each(var v:Vertex3D in this.vertices)
 			{
 				v.y = - v.y;
+			}
+		}
+		
+		/**
+		* [internal-use]合并共有顶点
+		*/
+		protected function mergeVertices():void
+		{
+			var uniqueDic:Dictionary = new Dictionary();
+			var indexDic:Dictionary = new Dictionary();
+			var uniqueList:Vector.<Vertex3D> = new Vector.<Vertex3D>();
+	
+			//找出共有顶点
+			var v:Vertex3D;
+			var vu:Vertex3D;
+			for each(v in this.vertices)
+			{
+				for each(vu in uniqueDic)
+				{
+					if (v.equals(vu))
+					{
+						uniqueDic[v] = vu;
+						break;
+					}
+				}
+				
+				if( ! uniqueDic[v] )
+				{
+					uniqueDic[v] = v;
+					uniqueList.push(v);
+				}
+			}
+
+			this.vertices = uniqueList;
+
+			//更新面信息
+			var f:Triangle3D;
+			for each(f in this.faces)
+			{
+				f.v0 = uniqueDic[f.v0];
+			    f.v1 = uniqueDic[f.v1];
+			    f.v2 = uniqueDic[f.v2];
 			}
 		}
 	}

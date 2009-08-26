@@ -113,8 +113,8 @@ package cn.alchemy3d.objects.primitives
 						var aP3uv:Point = new Point(fI1,fJ1);
 						
 						// 2 faces
-						if (j<(aVtc.length-1))	faces.push(new Triangle3D(aP1Index, aP2Index, aP3Index, aP1uv, aP2uv, aP3uv, this));
-						if (j>1)				faces.push(new Triangle3D(aP1Index, aP3Index, aP4Index, aP1uv, aP3uv, aP4uv, this));
+						if (j<(aVtc.length-1))	faces.push(new Triangle3D(aP1, aP2, aP3, aP1uv, aP2uv, aP3uv, this));
+						if (j>1)				faces.push(new Triangle3D(aP1, aP3, aP4, aP1uv, aP3uv, aP4uv, this));
 	
 					}
 				}

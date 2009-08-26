@@ -66,6 +66,8 @@ package cn.alchemy3d.texture
 			var i:int = 0, j:int = bitmapdata.width * bitmapdata.height;
 			bitmapDataPtr = lib.alchemy3DLib.applyForTmpBuffer(4, j);
 			buffer.position = bitmapDataPtr;
+			
+//			buffer.writeBytes(byte, 0, j * 4);
 			var uint32:uint;
 			for (; i < j; i ++)
 			{
