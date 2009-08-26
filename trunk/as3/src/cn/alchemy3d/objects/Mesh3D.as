@@ -28,6 +28,7 @@ package cn.alchemy3d.objects
 		public var verticesPointer:uint;
 		public var facesPointer:uint;
 		public var dirtyPointer:uint;
+		public var renderModePointer:uint;
 		
 		public var sizeOfVertex:int;
 		public var sizeOfFace:int;
@@ -45,8 +46,21 @@ package cn.alchemy3d.objects
 			return vertices.length;
 		}
 		
+		/**
+		 * 设置渲染模式
+		 */
+		public function set renderMode(mode:uint):void
+		{
+			if (!checkInitialized()) return;
+			
+			buffer.position = renderModePointer;
+			buffer.writeUnsignedInt(mode);
+		}
+		
 		public function setVertices(index:int, v:Vector3D):void
 		{
+			if (!checkInitialized()) return;
+			
 			vertices[index].x = v.x;
 			vertices[index].y = v.y;
 			vertices[index].z = v.z;
@@ -61,6 +75,8 @@ package cn.alchemy3d.objects
 		
 		public function setVerticesX(index:int, value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			vertices[index].x = value;
 			buffer.position = meshBuffPointer + index * sizeOfInt * vSize;
 			buffer.writeFloat(value);
@@ -71,6 +87,8 @@ package cn.alchemy3d.objects
 		
 		public function setVerticesY(index:int, value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			vertices[index].y = value;
 			buffer.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt;
 			buffer.writeFloat(value);
@@ -81,6 +99,8 @@ package cn.alchemy3d.objects
 		
 		public function setVerticesZ(index:int, value:Number):void
 		{
+			if (!checkInitialized()) return;
+			
 			vertices[index].z = value;
 			//获得顶点缓冲区的起始指针
 			buffer.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt * 2;
@@ -156,7 +176,10 @@ package cn.alchemy3d.objects
 		{
 			super.allotPtr(ps);
 			
-			dirtyPointer = ps[7];
+			renderModePointer	= ps[5];
+			dirtyPointer		= ps[6];
+			materialPtr			= ps[7];
+			texturePtr			= ps[8];
 		}
 		
 		override public function clone():Entity
@@ -178,16 +201,8 @@ package cn.alchemy3d.objects
 			}
 		}
 		
-		public function test():void
-		{
-			for each(var v:Vertex3D in this.vertices)
-			{
-				v.y = - v.y;
-			}
-		}
-		
 		/**
-		* [internal-use]合并共有顶点
+		* 合并共有顶点
 		*/
 		protected function mergeVertices():void
 		{

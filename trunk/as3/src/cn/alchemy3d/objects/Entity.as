@@ -345,13 +345,11 @@ package cn.alchemy3d.objects
 		
 		protected function allotPtr(ps:Array):void
 		{
-			pointer = ps[0];
-			materialPtr = ps[1];
-			texturePtr = ps[2];
-			positionPtr = ps[3];
-			directionPtr = ps[4];
-			scalePtr = ps[5];
-			worldPositionPtr = ps[6];
+			pointer				= ps[0];
+			positionPtr			= ps[1];
+			directionPtr		= ps[2];
+			scalePtr			= ps[3];
+			worldPositionPtr	= ps[4];
 		}
 		
 		/**
