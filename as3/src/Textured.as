@@ -27,7 +27,7 @@ package
 	import flash.ui.Keyboard;
 
 	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
-	public class Test extends Device
+	public class Textured extends Device
 	{
 		protected var viewport:Viewport3D;
 		protected var camera:Camera3D;
@@ -44,7 +44,7 @@ package
 		protected var light:Light3D;
 		protected var lightObj:Sphere;
 
-		public function Test()
+		public function Textured()
 		{
 			super();
 			
