@@ -4,7 +4,6 @@ package
 	import br.com.stimuli.loading.BulkProgressEvent;
 	
 	import cn.alchemy3d.cameras.Camera3D;
-	import cn.alchemy3d.device.Device;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.Entity;
@@ -13,6 +12,7 @@ package
 	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.texture.Texture;
+	import cn.alchemy3d.view.Basic;
 	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
 	
@@ -27,7 +27,7 @@ package
 	import flash.ui.Keyboard;
 
 	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
-	public class Test extends Device
+	public class Test extends Basic
 	{
 		protected var viewport:Viewport3D;
 		protected var camera:Camera3D;
@@ -136,13 +136,13 @@ package
 			
 			p = new Cube(m, t1, 90, 90, 90, 2, 2, 2, 0, 0, "p");
 			scene.addEntity(p);
-			p.renderMode = RenderMode.RENDER_TEXTRUED_BILERP_TRIANGLEINVZB_32;
+			p.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			p.x = 90;
 			p.z = 230;
 			
 			p2 = new Cube(m, t1, 90, 90, 90, 2, 2, 2, 0, 0, "p");
 			scene.addEntity(p2);
-			p2.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLEINVZB_32;
+			p2.renderMode = RenderMode.RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32;
 			p2.x = -90;
 			p2.z = 230;
 			

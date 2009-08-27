@@ -9,7 +9,6 @@ package cn.alchemy3d.view
 	import flash.display.BitmapData;
 	import flash.display.PixelSnapping;
 	import flash.display.Sprite;
-	import flash.utils.ByteArray;
 
 	public class Viewport3D extends Sprite implements IDevice
 	{
@@ -28,25 +27,23 @@ package cn.alchemy3d.view
 		protected var mixedChannel:BitmapData;
 		protected var wh:int;
 		
-		protected var lib:Library;
-		protected var buffer:ByteArray;
 		
 		public function get nRenderList():int
 		{
-			buffer.position = nRenderListPointer;
-			return buffer.readInt();
+			Library.memory.position = nRenderListPointer;
+			return Library.memory.readInt();
 		}
 		
 		public function get nCullList():int
 		{
-			buffer.position = nCullListPointer;
-			return buffer.readInt();
+			Library.memory.position = nCullListPointer;
+			return Library.memory.readInt();
 		}
 		
 		public function get nClippList():int
 		{
-			buffer.position = nClippListPointer;
-			return buffer.readInt();
+			Library.memory.position = nClippListPointer;
+			return Library.memory.readInt();
 		}
 		
 		override public function get mouseX():Number
@@ -89,19 +86,16 @@ package cn.alchemy3d.view
 			mixedChannel = new BitmapData(width, height, true, 0);
 			addChild(new Bitmap(mixedChannel, PixelSnapping.NEVER, false));
 			
-			lib = Library.getInstance();
-			buffer = lib.buffer;
-			
 			//初始化场景
 			//返回该对象起始指针
-			//var pointerArr:Array = lib.alchemy3DLib.initializeViewport(viewWidth, viewHeight, scene.pointer, camera.pointer);
+			//var pointerArr:Array = Library.alchemy3DLib.initializeViewport(viewWidth, viewHeight, scene.pointer, camera.pointer);
 			//pointer = pointerArr[0];
 			//gfxPointer = pointerArr[1];
 		}
 		
 		public function initialize(devicePointer:uint):void
 		{
-			allotPtr(lib.alchemy3DLib.initializeViewport(devicePointer, viewWidth, viewHeight, scene.pointer, camera.pointer));
+			allotPtr(Library.alchemy3DLib.initializeViewport(devicePointer, viewWidth, viewHeight, scene.pointer, camera.pointer));
 		}
 		
 		public function allotPtr(ps:Array):void
@@ -115,17 +109,17 @@ package cn.alchemy3d.view
 		
 		public function render():void
 		{
-			buffer.position = mixedChannelPointer;
+			Library.memory.position = mixedChannelPointer;
 			
 			mixedChannel.lock();
 //			mixedChannel.fillRect(mixedChannel.rect, 0);
-			mixedChannel.setPixels(mixedChannel.rect, buffer);
+			mixedChannel.setPixels(mixedChannel.rect, Library.memory);
 			
-//			buffer.position = gfx2Pointer;
+//			Library.memory.position = gfx2Pointer;
 //			
 //			gfx2.lock();
 //			gfx2.fillRect(gfx2.rect, 0);
-//			gfx2.setPixels(gfx2.rect, buffer);
+//			gfx2.setPixels(gfx2.rect, memory);
 //			gfx2.unlock();
 //			
 //			gfx.merge(gfx2, gfx.rect, new Point(), 1, 1, 1, 1);

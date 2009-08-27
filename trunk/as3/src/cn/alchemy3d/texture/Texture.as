@@ -15,8 +15,6 @@ package cn.alchemy3d.texture
 	public class Texture extends EventDispatcher
 	{
 		public var pointer:uint = 0;
-		protected var buffer:ByteArray;
-		protected var lib:Library;
 		
 		public var name:String;
 		public var bitmapDataPtr:uint;
@@ -34,12 +32,12 @@ package cn.alchemy3d.texture
 		public function set doubleSide(bool:Boolean):void
 		{
 			_doubleSide = bool;
-			buffer.position = doubleSidePtr;
+			Library.memory.position = doubleSidePtr;
 			
 			if (bool)
-				buffer.writeFloat(1);
+				Library.memory.writeFloat(1);
 			else
-				buffer.writeFloat(0);
+				Library.memory.writeFloat(0);
 		}
 		
 		public function Texture(bitmapdata:BitmapData = null, name:String = "")
@@ -48,9 +46,6 @@ package cn.alchemy3d.texture
 			
 			this.name = name;
 			this.bitmapdata = bitmapdata;
-			
-			lib = Library.getInstance();
-			buffer = lib.buffer;
 			
 			initialize();
 		}
@@ -64,21 +59,20 @@ package cn.alchemy3d.texture
 			byte.position = 0;
 			
 			var i:int = 0, j:int = bitmapdata.width * bitmapdata.height;
-			bitmapDataPtr = lib.alchemy3DLib.applyForTmpBuffer(4, j);
-			buffer.position = bitmapDataPtr;
+			bitmapDataPtr = Library.alchemy3DLib.applyForTmpBuffer(4, j);
+			Library.memory.position = bitmapDataPtr;
 			
-//			buffer.writeBytes(byte, 0, j * 4);
 			var uint32:uint;
 			for (; i < j; i ++)
 			{
 				uint32 = byte.readUnsignedInt();
 				
-				buffer.writeUnsignedInt(uint32);
+				Library.memory.writeUnsignedInt(uint32);
 			}
 			
-			var ps:Array = lib.alchemy3DLib.initializeTexture(bitmapdata.width, bitmapdata.height, bitmapDataPtr);
+			var ps:Array = Library.alchemy3DLib.initializeTexture(bitmapdata.width, bitmapdata.height, bitmapDataPtr);
 			pointer = ps[0];
-			buffer.position = ps[1];
+			Library.memory.position = ps[1];
 		}
 		
 		public function load(url:String):void

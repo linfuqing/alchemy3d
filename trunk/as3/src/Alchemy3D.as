@@ -1,7 +1,7 @@
 package
 {
 	import cn.alchemy3d.cameras.Camera3D;
-	import cn.alchemy3d.device.Device;
+	import cn.alchemy3d.device.Basic;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.scene.Scene3D;
@@ -15,7 +15,7 @@ package
 	import flash.geom.ColorTransform;
 
 	[SWF(width="642",height="482",backgroundColor="#000000",frameRate="60")]
-	public class Alchemy3D extends Device
+	public class Alchemy3D extends Basic
 	{
 		private var viewport:Viewport3D;
 		private var viewport2:Viewport3D;

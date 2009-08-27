@@ -9,8 +9,6 @@ package cn.alchemy3d.materials
 	public class Material
 	{
 		public var pointer:uint = 0;
-		protected var buffer:ByteArray;
-		protected var lib:Library;
 		
 		public var ambientPtr:uint;
 		public var diffusePtr:uint;
@@ -36,11 +34,11 @@ package cn.alchemy3d.materials
 			if (!checkInitialized()) return;
 			
 			_ambient = c;
-			buffer.position = ambientPtr;
-			buffer.writeFloat(c.redMultiplier);
-			buffer.writeFloat(c.greenMultiplier);
-			buffer.writeFloat(c.blueMultiplier);
-			buffer.writeFloat(c.alphaMultiplier);
+			Library.memory.position = ambientPtr;
+			Library.memory.writeFloat(c.redMultiplier);
+			Library.memory.writeFloat(c.greenMultiplier);
+			Library.memory.writeFloat(c.blueMultiplier);
+			Library.memory.writeFloat(c.alphaMultiplier);
 		}
 		
 		public function get diffuse():ColorTransform
@@ -53,11 +51,11 @@ package cn.alchemy3d.materials
 			if (!checkInitialized()) return;
 			
 			_diffuse = c;
-			buffer.position = diffusePtr;
-			buffer.writeFloat(c.redMultiplier);
-			buffer.writeFloat(c.greenMultiplier);
-			buffer.writeFloat(c.blueMultiplier);
-			buffer.writeFloat(c.alphaMultiplier);
+			Library.memory.position = diffusePtr;
+			Library.memory.writeFloat(c.redMultiplier);
+			Library.memory.writeFloat(c.greenMultiplier);
+			Library.memory.writeFloat(c.blueMultiplier);
+			Library.memory.writeFloat(c.alphaMultiplier);
 		}
 		
 		public function get specular():ColorTransform
@@ -70,11 +68,11 @@ package cn.alchemy3d.materials
 			if (!checkInitialized()) return;
 			
 			_specular = c;
-			buffer.position = specularPtr;
-			buffer.writeFloat(c.redMultiplier);
-			buffer.writeFloat(c.greenMultiplier);
-			buffer.writeFloat(c.blueMultiplier);
-			buffer.writeFloat(c.alphaMultiplier);
+			Library.memory.position = specularPtr;
+			Library.memory.writeFloat(c.redMultiplier);
+			Library.memory.writeFloat(c.greenMultiplier);
+			Library.memory.writeFloat(c.blueMultiplier);
+			Library.memory.writeFloat(c.alphaMultiplier);
 		}
 		
 		public function get emissive():ColorTransform
@@ -87,11 +85,11 @@ package cn.alchemy3d.materials
 			if (!checkInitialized()) return;
 			
 			_emissive = c;
-			buffer.position = emissivePtr;
-			buffer.writeFloat(c.redMultiplier);
-			buffer.writeFloat(c.greenMultiplier);
-			buffer.writeFloat(c.blueMultiplier);
-			buffer.writeFloat(c.alphaMultiplier);
+			Library.memory.position = emissivePtr;
+			Library.memory.writeFloat(c.redMultiplier);
+			Library.memory.writeFloat(c.greenMultiplier);
+			Library.memory.writeFloat(c.blueMultiplier);
+			Library.memory.writeFloat(c.alphaMultiplier);
 		}
 		
 		public function get power():Number
@@ -104,8 +102,8 @@ package cn.alchemy3d.materials
 			if (!checkInitialized()) return;
 			
 			_power = value;
-			buffer.position = powerPtr;
-			buffer.writeFloat(value);
+			Library.memory.position = powerPtr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get doubleSide():Boolean
@@ -118,12 +116,12 @@ package cn.alchemy3d.materials
 			if (!checkInitialized()) return;
 			
 			_doubleSide = bool;
-			buffer.position = doubleSidePtr;
+			Library.memory.position = doubleSidePtr;
 			
 			if (bool)
-				buffer.writeFloat(1);
+				Library.memory.writeFloat(1);
 			else
-				buffer.writeFloat(0);
+				Library.memory.writeFloat(0);
 		}
 		
 		public function Material()
@@ -134,10 +132,7 @@ package cn.alchemy3d.materials
 			_emissive = new ColorTransform(0, 0, 0, 0);
 			_power = 4;
 			
-			lib = Library.getInstance();
-			buffer = lib.buffer;
-			
-			var ps:Array = lib.alchemy3DLib.initializeMaterial();
+			var ps:Array = Library.alchemy3DLib.initializeMaterial();
 			pointer = ps[0];
 			ambientPtr = ps[1];
 			diffusePtr = ps[2];

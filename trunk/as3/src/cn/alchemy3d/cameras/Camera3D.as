@@ -10,8 +10,6 @@ package cn.alchemy3d.cameras
 	public class Camera3D implements IDevice
 	{
 		public var pointer:uint = 0;
-		protected var lib:Library;
-		protected var buffer:ByteArray;
 		
 		public var targetPtr:uint;
 		public var hasTargetPtr:uint;
@@ -40,18 +38,18 @@ package cn.alchemy3d.cameras
 			
 			if (target)
 			{
-				buffer.position = targetPtr;
-				buffer.writeFloat(target.x);
-				buffer.writeFloat(target.y);
-				buffer.writeFloat(target.z);
+				Library.memory.position = targetPtr;
+				Library.memory.writeFloat(target.x);
+				Library.memory.writeFloat(target.y);
+				Library.memory.writeFloat(target.z);
 				
-				buffer.position = hasTargetPtr;
-				buffer.writeInt(1);
+				Library.memory.position = hasTargetPtr;
+				Library.memory.writeInt(1);
 			}
 			else
 			{
-				buffer.position = hasTargetPtr;
-				buffer.writeInt(0);
+				Library.memory.position = hasTargetPtr;
+				Library.memory.writeInt(0);
 			}
 		}
 		
@@ -64,11 +62,11 @@ package cn.alchemy3d.cameras
 		{
 			this._fov = value;
 			
-			buffer.position = fovPtr;
-			buffer.writeFloat(value);
+			Library.memory.position = fovPtr;
+			Library.memory.writeFloat(value);
 			
-			buffer.position = fnfDirtyPtr;
-			buffer.writeInt(1);
+			Library.memory.position = fnfDirtyPtr;
+			Library.memory.writeInt(1);
 		}
 		
 		public function get far():Number
@@ -80,11 +78,11 @@ package cn.alchemy3d.cameras
 		{
 			this._far = value;
 			
-			buffer.position = farPtr;
-			buffer.writeFloat(value);
+			Library.memory.position = farPtr;
+			Library.memory.writeFloat(value);
 			
-			buffer.position = fnfDirtyPtr;
-			buffer.writeInt(1);
+			Library.memory.position = fnfDirtyPtr;
+			Library.memory.writeInt(1);
 		}
 		
 		public function get near():Number
@@ -96,11 +94,11 @@ package cn.alchemy3d.cameras
 		{
 			this._near = value;
 			
-			buffer.position = nearPtr;
-			buffer.writeFloat(value);
+			Library.memory.position = nearPtr;
+			Library.memory.writeFloat(value);
 			
-			buffer.position = fnfDirtyPtr;
-			buffer.writeInt(1);
+			Library.memory.position = fnfDirtyPtr;
+			Library.memory.writeInt(1);
 		}
 		
 		public function Camera3D(type:int = 0, fov:Number = 90, near:Number = 100, far:Number = 5000, eye:Entity = null)
@@ -110,9 +108,6 @@ package cn.alchemy3d.cameras
 			this._near = near;
 			this._far = far;
 			
-			lib = Library.getInstance();
-			buffer = lib.buffer;
-			
 			this.eye = eye == null ? new Entity(null, null, "camera") : eye;
 		}
 		
@@ -120,7 +115,7 @@ package cn.alchemy3d.cameras
 		{
 			eye.initialize(null);
 			
-			allotPtr(lib.alchemy3DLib.initializeCamera(devicePointer, eye.pointer, _fov, _near, _far));
+			allotPtr(Library.alchemy3DLib.initializeCamera(devicePointer, eye.pointer, _fov, _near, _far));
 		}
 		
 		public function allotPtr(ps:Array):void
