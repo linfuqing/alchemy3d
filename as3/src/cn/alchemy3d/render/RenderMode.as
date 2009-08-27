@@ -6,7 +6,7 @@ package cn.alchemy3d.render
 		/**
 		 * 不渲染
 		 */
-		public static const RENDER_NONE:uint												= 0x000000;
+		public static const RENDER_NONE:uint												= 0x000001;
 		
 		/**
 		 * 32位模式 + 1/z深度缓冲 + 纹理映射
@@ -26,31 +26,36 @@ package cn.alchemy3d.render
 		/**
 		 * 32位模式 + 1/z深度缓冲 + Gouraud光照模型 + 纹理映射
 		 */
-		public static const RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:uint						= 0x000016;
+		public static const RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:uint						= 0x000010;
 		
 		/**
 		 * 32位模式 + 1/z深度缓冲 + Flat光照模型
 		 */
-		public static const RENDER_FLAT_TRIANGLE_INVZB_32:uint								= 0x000032;
+		public static const RENDER_FLAT_TRIANGLE_INVZB_32:uint								= 0x000020;
 		
 		/**
 		 * 32位模式 + 1/z深度缓冲 + Gouraud光照模型
 		 */
-		public static const RENDER_GOURAUD_TRIANGLE_INVZB_32:uint							= 0x000064;
+		public static const RENDER_GOURAUD_TRIANGLE_INVZB_32:uint							= 0x000040;
 		
 		/**
-		 * 32位模式 + 1/z深度缓冲 + 透视矫正 + 纹理映射
+		 * 32位模式 + 1/z深度缓冲 + 透视矫正纹理映射
 		 */
-		public static const RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:uint				= 0x000128;
+		public static const RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:uint				= 0x000080;
 		
 		/**
-		 * 32位模式 + 1/z深度缓冲 + 透视矫正 + Flat光照模型 + 纹理映射
+		 * 32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射
 		 */
-		public static const RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:uint			= 0x000256;
+		public static const RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:uint			= 0x000100;
 		
 		/**
-		 * 32位模式 + 1/z深度缓冲 + 透视矫正 + Gouraud光照模型 + 纹理映射
+		 * 32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Flat光照模型
 		 */
-		public static const RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:uint			= 0x001024;
+		public static const RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:uint			= 0x000200;
+		
+		/**
+		 * 32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射 + Flat光照模型
+		 */
+		public static const RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:uint			= 0x000400;
 	}
 }
