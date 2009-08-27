@@ -12,8 +12,6 @@ package cn.alchemy3d.lights
 	public class Light3D implements ISceneNode
 	{
 		public var pointer:uint = 0;
-		protected var buffer:ByteArray;
-		protected var lib:Library;
 		
 		public var modePtr:uint;
 		public var bOnOffPtr:uint;
@@ -60,8 +58,8 @@ package cn.alchemy3d.lights
 			
 			this._mode = mode;
 			
-			buffer.position = modePtr;
-			buffer.writeInt(mode);
+			Library.memory.position = modePtr;
+			Library.memory.writeInt(mode);
 		}
 		
 		public function get bOnOff():Boolean
@@ -75,11 +73,11 @@ package cn.alchemy3d.lights
 			
 			this._bOnOff = bOnOff;
 			
-			buffer.position = bOnOffPtr;
+			Library.memory.position = bOnOffPtr;
 			if (bOnOff)
-				buffer.writeInt(1);
+				Library.memory.writeInt(1);
 			else
-				buffer.writeInt(0);
+				Library.memory.writeInt(0);
 		}
 		
 		public function get type():int
@@ -93,8 +91,8 @@ package cn.alchemy3d.lights
 			
 			this._type = type;
 			
-			buffer.position = typePtr;
-			buffer.writeInt(type);
+			Library.memory.position = typePtr;
+			Library.memory.writeInt(type);
 		}
 		
 		public function get ambient():ColorTransform
@@ -107,11 +105,11 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			_ambient = c;
-			buffer.position = ambientPtr;
-			buffer.writeFloat(c.redMultiplier);
-			buffer.writeFloat(c.greenMultiplier);
-			buffer.writeFloat(c.blueMultiplier);
-			buffer.writeFloat(c.alphaMultiplier);
+			Library.memory.position = ambientPtr;
+			Library.memory.writeFloat(c.redMultiplier);
+			Library.memory.writeFloat(c.greenMultiplier);
+			Library.memory.writeFloat(c.blueMultiplier);
+			Library.memory.writeFloat(c.alphaMultiplier);
 		}
 		
 		public function get diffuse():ColorTransform
@@ -124,11 +122,11 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			_diffuse = c;
-			buffer.position = diffusePtr;
-			buffer.writeFloat(c.redMultiplier);
-			buffer.writeFloat(c.greenMultiplier);
-			buffer.writeFloat(c.blueMultiplier);
-			buffer.writeFloat(c.alphaMultiplier);
+			Library.memory.position = diffusePtr;
+			Library.memory.writeFloat(c.redMultiplier);
+			Library.memory.writeFloat(c.greenMultiplier);
+			Library.memory.writeFloat(c.blueMultiplier);
+			Library.memory.writeFloat(c.alphaMultiplier);
 		}
 		
 		public function get specular():ColorTransform
@@ -141,11 +139,11 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			_specular = c;
-			buffer.position = specularPtr;
-			buffer.writeFloat(c.redMultiplier);
-			buffer.writeFloat(c.greenMultiplier);
-			buffer.writeFloat(c.blueMultiplier);
-			buffer.writeFloat(c.alphaMultiplier);
+			Library.memory.position = specularPtr;
+			Library.memory.writeFloat(c.redMultiplier);
+			Library.memory.writeFloat(c.greenMultiplier);
+			Library.memory.writeFloat(c.blueMultiplier);
+			Library.memory.writeFloat(c.alphaMultiplier);
 		}
 		
 		public function get range():Number
@@ -158,8 +156,8 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			this._range = value;
-			buffer.position = rangePtr;
-			buffer.writeFloat(value);
+			Library.memory.position = rangePtr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get falloff():Number
@@ -172,8 +170,8 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			this._falloff = value;
-			buffer.position = falloffPtr;
-			buffer.writeFloat(value);
+			Library.memory.position = falloffPtr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get theta():Number
@@ -186,8 +184,8 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			this._theta = value;
-			buffer.position = thetaPtr;
-			buffer.writeFloat(value);
+			Library.memory.position = thetaPtr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get phi():Number
@@ -200,8 +198,8 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			this._phi = value;
-			buffer.position = phiPtr;
-			buffer.writeFloat(value);
+			Library.memory.position = phiPtr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get attenuation0():Number
@@ -214,8 +212,8 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			this._attenuation0 = value;
-			buffer.position = attenuation0Ptr;
-			buffer.writeFloat(value);
+			Library.memory.position = attenuation0Ptr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get attenuation1():Number
@@ -228,8 +226,8 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			this._attenuation1 = value;
-			buffer.position = attenuation1Ptr;
-			buffer.writeFloat(value);
+			Library.memory.position = attenuation1Ptr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get attenuation2():Number
@@ -242,8 +240,8 @@ package cn.alchemy3d.lights
 			if (!checkInitialized()) return;
 			
 			this._attenuation2 = value;
-			buffer.position = attenuation2Ptr;
-			buffer.writeFloat(value);
+			Library.memory.position = attenuation2Ptr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function Light3D(source:Entity)
@@ -255,15 +253,12 @@ package cn.alchemy3d.lights
 			_diffuse = new ColorTransform(1, 1, 1, 1);
 			_specular = new ColorTransform(0.6, 0.6, 0.6, 1);
 			
-			lib = Library.getInstance();
-			buffer = lib.buffer;
-			
 			this.source = source;
 		}
 		
 		public function initialize(scene:Scene3D):void
 		{
-			allotPtr(lib.alchemy3DLib.initializeLight(scene.pointer, source.pointer, _type));
+			allotPtr(Library.alchemy3DLib.initializeLight(scene.pointer, source.pointer, _type));
 		}
 		
 		public function allotPtr(ps:Array):void

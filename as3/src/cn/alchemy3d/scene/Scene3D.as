@@ -15,8 +15,6 @@ package cn.alchemy3d.scene
 		{
 			nodes = new Dictionary();
 			lights = new Vector.<Light3D>();
-			
-			lib = Library.getInstance();
 		}
 		
 		public var pointer:uint = 0;
@@ -27,11 +25,9 @@ package cn.alchemy3d.scene
 		public var facesNum:int = 0;
 		public var verticesNum:int = 0;
 		
-		protected var lib:Library;
-		
 		public function initialize(devicePointer:uint):void
 		{	
-			this.pointer = lib.alchemy3DLib.initializeScene(devicePointer);
+			this.pointer = Library.alchemy3DLib.initializeScene(devicePointer);
 		}
 		
 		public function allotPtr(ps:Array):void

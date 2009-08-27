@@ -4,7 +4,6 @@ package
 	import br.com.stimuli.loading.BulkProgressEvent;
 	
 	import cn.alchemy3d.cameras.Camera3D;
-	import cn.alchemy3d.device.Device;
 	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
@@ -13,6 +12,7 @@ package
 	import cn.alchemy3d.objects.primitives.Sphere;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.texture.Texture;
+	import cn.alchemy3d.view.Basic;
 	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
 	
@@ -27,7 +27,7 @@ package
 	import gs.TweenLite;
 
 	[SWF(width="600",height="400",backgroundColor="#000000",frameRate="60")]
-	public class Cloth extends Device
+	public class Cloth extends Basic
 	{
 		protected var viewport:Viewport3D;
 		protected var camera:Camera3D;

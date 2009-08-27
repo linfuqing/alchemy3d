@@ -3,6 +3,7 @@ package cn.alchemy3d.objects
 
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
+	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.texture.Texture;
@@ -53,8 +54,8 @@ package cn.alchemy3d.objects
 		{
 			if (!checkInitialized()) return;
 			
-			buffer.position = renderModePointer;
-			buffer.writeUnsignedInt(mode);
+			Library.memory.position = renderModePointer;
+			Library.memory.writeUnsignedInt(mode);
 		}
 		
 		public function setVertices(index:int, v:Vector3D):void
@@ -64,13 +65,13 @@ package cn.alchemy3d.objects
 			vertices[index].x = v.x;
 			vertices[index].y = v.y;
 			vertices[index].z = v.z;
-			buffer.position = meshBuffPointer + index * sizeOfInt * vSize;
-			buffer.writeFloat(v.x);
-			buffer.writeFloat(v.y);
-			buffer.writeFloat(v.z);
+			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize;
+			Library.memory.writeFloat(v.x);
+			Library.memory.writeFloat(v.y);
+			Library.memory.writeFloat(v.z);
 			
-			buffer.position = dirtyPointer;
-			buffer.writeUnsignedInt(1);
+			Library.memory.position = dirtyPointer;
+			Library.memory.writeUnsignedInt(1);
 		}
 		
 		public function setVerticesX(index:int, value:Number):void
@@ -78,11 +79,11 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			vertices[index].x = value;
-			buffer.position = meshBuffPointer + index * sizeOfInt * vSize;
-			buffer.writeFloat(value);
+			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize;
+			Library.memory.writeFloat(value);
 			
-			buffer.position = dirtyPointer;
-			buffer.writeUnsignedInt(1);
+			Library.memory.position = dirtyPointer;
+			Library.memory.writeUnsignedInt(1);
 		}
 		
 		public function setVerticesY(index:int, value:Number):void
@@ -90,11 +91,11 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			vertices[index].y = value;
-			buffer.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt;
-			buffer.writeFloat(value);
+			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt;
+			Library.memory.writeFloat(value);
 			
-			buffer.position = dirtyPointer;
-			buffer.writeUnsignedInt(1);
+			Library.memory.position = dirtyPointer;
+			Library.memory.writeUnsignedInt(1);
 		}
 		
 		public function setVerticesZ(index:int, value:Number):void
@@ -103,55 +104,55 @@ package cn.alchemy3d.objects
 			
 			vertices[index].z = value;
 			//获得顶点缓冲区的起始指针
-			buffer.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt * 2;
+			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt * 2;
 			//写入数据
-			buffer.writeFloat(value);
+			Library.memory.writeFloat(value);
 			
-			buffer.position = dirtyPointer;
-			buffer.writeUnsignedInt(1);
+			Library.memory.position = dirtyPointer;
+			Library.memory.writeUnsignedInt(1);
 		}
 		
 		public function fillVerticesToBuffer():void
 		{
-			buffer.position = meshBuffPointer;
+			Library.memory.position = meshBuffPointer;
 			
 			var v:Vertex3D;
 			
 			for each (v in vertices)
 			{
-				v.pointer = buffer.position + 4 * sizeOfInt;	//4代表保存指针的偏移量
+				v.pointer = Library.memory.position + 4 * sizeOfInt;	//4代表保存指针的偏移量
 				
-				buffer.writeFloat(v.x);
-				buffer.writeFloat(v.y);
-				buffer.writeFloat(v.z);
-				buffer.writeFloat(v.w);
-				buffer.writeUnsignedInt(0);	//for saving pointer
+				Library.memory.writeFloat(v.x);
+				Library.memory.writeFloat(v.y);
+				Library.memory.writeFloat(v.z);
+				Library.memory.writeFloat(v.w);
+				Library.memory.writeUnsignedInt(0);	//for saving pointer
 			}
 		}
 		
 		public function fillFacesToBuffer():void
 		{
-			buffer.position = meshBuffPointer + vertices.length * vSize * sizeOfInt;
+			Library.memory.position = meshBuffPointer + vertices.length * vSize * sizeOfInt;
 			
 			var f:Triangle3D;
 			
 			for each (f in faces)
 			{
-				buffer.writeUnsignedInt(f.v0.pointer);
-				buffer.writeUnsignedInt(f.v1.pointer);
-				buffer.writeUnsignedInt(f.v2.pointer);
-				buffer.writeFloat(f.uv0.x);
-				buffer.writeFloat(f.uv0.y);
-				buffer.writeFloat(f.uv1.x);
-				buffer.writeFloat(f.uv1.y);
-				buffer.writeFloat(f.uv2.x);
-				buffer.writeFloat(f.uv2.y);
+				Library.memory.writeUnsignedInt(f.v0.pointer);
+				Library.memory.writeUnsignedInt(f.v1.pointer);
+				Library.memory.writeUnsignedInt(f.v2.pointer);
+				Library.memory.writeFloat(f.uv0.x);
+				Library.memory.writeFloat(f.uv0.y);
+				Library.memory.writeFloat(f.uv1.x);
+				Library.memory.writeFloat(f.uv1.y);
+				Library.memory.writeFloat(f.uv2.x);
+				Library.memory.writeFloat(f.uv2.y);
 			}
 		}
 		
 		protected function applyForMeshBuffer():void
 		{
-			meshBuffPointer = lib.alchemy3DLib.applyForTmpBuffer(sizeOfInt, (vertices.length * vSize + faces.length * fSize) * sizeOfInt);
+			meshBuffPointer = Library.alchemy3DLib.applyForTmpBuffer(sizeOfInt, (vertices.length * vSize + faces.length * fSize) * sizeOfInt);
 		}
 		
 		override public function initialize(scene:Scene3D):void
@@ -169,7 +170,7 @@ package cn.alchemy3d.objects
 			var parentPtr:uint = parent == null ? 0 : parent.pointer;
 			var scenePtr:uint = scene == null ? 0 : scene.pointer;
 			
-			return lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, meshBuffPointer, vertices.length, faces.length);
+			return Library.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, meshBuffPointer, vertices.length, faces.length);
 		}
 		
 		override protected function allotPtr(ps:Array):void

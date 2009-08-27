@@ -30,15 +30,9 @@ package cn.alchemy3d.objects
 			
 			this._children = new Vector.<Entity>();
 			this._root = this;
-			
-			lib = Library.getInstance();
-			
-			buffer = lib.buffer;
 		}
 		
 		public var pointer:uint;
-		protected var lib:Library;	
-		protected var buffer:ByteArray;
 		
 		public var directionPtr:uint;
 		public var positionPtr:uint;
@@ -94,8 +88,8 @@ package cn.alchemy3d.objects
 		{
 			if (!checkInitialized()) return;
 			
-			buffer.position = materialPtr;
-			buffer.writeUnsignedInt(material.pointer);
+			Library.memory.position = materialPtr;
+			Library.memory.writeUnsignedInt(material.pointer);
 		}
 		
 		public function get texture():Texture
@@ -107,11 +101,12 @@ package cn.alchemy3d.objects
 		{
 			if (!checkInitialized()) return;
 			
-			buffer.position = texturePtr;
+			Library.memory.position = texturePtr;
+			
 			if (texture)
-				buffer.writeUnsignedInt(texture.pointer);
+				Library.memory.writeUnsignedInt(texture.pointer);
 			else
-				buffer.writeUnsignedInt(0);
+				Library.memory.writeUnsignedInt(0);
 		}
 		
 		public function get direction():Vector3D
@@ -124,15 +119,16 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_direction = direction;
-			buffer.position = directionPtr;
-			buffer.writeFloat(direction.x);
-			buffer.writeFloat(direction.y);
-			buffer.writeFloat(direction.z);
+			
+			Library.memory.position = directionPtr;
+			Library.memory.writeFloat(direction.x);
+			Library.memory.writeFloat(direction.y);
+			Library.memory.writeFloat(direction.z);
 		}
 		
 		public function get position():Vector3D
 		{
-			return _direction;
+			return _position;
 		}
 		
 		public function set position(position:Vector3D):void
@@ -140,18 +136,19 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_position = position;
-			buffer.position = positionPtr;
-			buffer.writeFloat(direction.x);
-			buffer.writeFloat(direction.y);
-			buffer.writeFloat(direction.z);
+			
+			Library.memory.position = positionPtr;
+			Library.memory.writeFloat(position.x);
+			Library.memory.writeFloat(position.y);
+			Library.memory.writeFloat(position.z);
 		}
 		
 		public function get worldPosition():Vector3D
 		{
-			buffer.position = worldPositionPtr;
-			_worldPosition.x = buffer.readFloat();
-			_worldPosition.y = buffer.readFloat();
-			_worldPosition.z = buffer.readFloat();
+			Library.memory.position = worldPositionPtr;
+			_worldPosition.x = Library.memory.readFloat();
+			_worldPosition.y = Library.memory.readFloat();
+			_worldPosition.z = Library.memory.readFloat();
 			
 			return _worldPosition;
 		}
@@ -169,10 +166,10 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_scale.x = _scale.y = _scale.z = value;
-			buffer.position = scalePtr;
-			buffer.writeFloat(value);
-			buffer.writeFloat(value);
-			buffer.writeFloat(value);
+			Library.memory.position = scalePtr;
+			Library.memory.writeFloat(value);
+			Library.memory.writeFloat(value);
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get x():Number
@@ -185,8 +182,8 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_position.x = value;
-			buffer.position = positionPtr;
-			buffer.writeFloat(value);
+			Library.memory.position = positionPtr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get y():Number
@@ -199,8 +196,8 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_position.y = value;
-			buffer.position = positionPtr + sizeOfInt;
-			buffer.writeFloat(value);
+			Library.memory.position = positionPtr + sizeOfInt;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get z():Number
@@ -213,8 +210,8 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_position.z = value;
-			buffer.position = positionPtr + sizeOfInt * 2;
-			buffer.writeFloat(value);
+			Library.memory.position = positionPtr + sizeOfInt * 2;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get scaleX():Number
@@ -227,8 +224,8 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_scale.x = value;
-			buffer.position = scalePtr;
-			buffer.writeFloat(value);
+			Library.memory.position = scalePtr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get scaleY():Number
@@ -241,8 +238,8 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_scale.y = value;
-			buffer.position = scalePtr + sizeOfInt;
-			buffer.writeFloat(value);
+			Library.memory.position = scalePtr + sizeOfInt;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get scaleZ():Number
@@ -255,8 +252,8 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_scale.z = value;
-			buffer.position = scalePtr + sizeOfInt * 2;
-			buffer.writeFloat(value);
+			Library.memory.position = scalePtr + sizeOfInt * 2;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function set rotationX(value:Number):void
@@ -264,8 +261,8 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_direction.x = value;
-			buffer.position = directionPtr;
-			buffer.writeFloat(value);
+			Library.memory.position = directionPtr;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get rotationX():Number
@@ -278,8 +275,8 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_direction.y = value;
-			buffer.position = directionPtr + sizeOfInt;
-			buffer.writeFloat(value);
+			Library.memory.position = directionPtr + sizeOfInt;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get rotationY():Number
@@ -292,8 +289,8 @@ package cn.alchemy3d.objects
 			if (!checkInitialized()) return;
 			
 			_direction.z = value;
-			buffer.position = directionPtr + sizeOfInt * 2;
-			buffer.writeFloat(value);
+			Library.memory.position = directionPtr + sizeOfInt * 2;
+			Library.memory.writeFloat(value);
 		}
 		
 		public function get rotationZ():Number
@@ -340,7 +337,7 @@ package cn.alchemy3d.objects
 			var parentPtr:uint = _parent == null ? 0 : _parent.pointer;
 			var scenePtr:uint = scene == null ? 0 : scene.pointer;
 			
-			return lib.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0);
+			return Library.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0);
 		}
 		
 		protected function allotPtr(ps:Array):void

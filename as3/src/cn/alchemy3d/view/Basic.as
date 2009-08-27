@@ -1,4 +1,4 @@
-package cn.alchemy3d.device
+package cn.alchemy3d.view
 {
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.lib.Library;
@@ -6,11 +6,10 @@ package cn.alchemy3d.device
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Viewport3D;
 	
-	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.utils.ByteArray;
 
-	public class Device extends Sprite
+	public class Basic extends Library
 	{
 		public var pointer:uint;
 		
@@ -19,10 +18,7 @@ package cn.alchemy3d.device
 		public var cameras:Vector.<Camera3D>;
 		public var lights:Vector.<Light3D>;
 		
-		protected var lib:Library;
-		protected var buffer:ByteArray;
-		
-		public function Device()
+		public function Basic()
 		{
 			super();
 			
@@ -30,15 +26,11 @@ package cn.alchemy3d.device
 			viewports = new Vector.<Viewport3D>();
 			cameras = new Vector.<Camera3D>();
 			lights = new Vector.<Light3D>();
-			
-			lib = Library.getInstance();
-			buffer = lib.buffer;
-			this.pointer = lib.alchemy3DLib.initializeDevice();
 		}
 		
 		public function propertySetting(property:int, value:int):void
 		{
-			lib.alchemy3DLib.propertySetting(property, value);
+			alchemy3DLib.propertySetting(property, value);
 		}
 		
 		public function addViewport(viewport:Viewport3D):void
@@ -77,7 +69,7 @@ package cn.alchemy3d.device
 		
 		protected function onRenderTick(e:Event = null):void
 		{
-			lib.alchemy3DLib.render(this.pointer);
+			alchemy3DLib.render(this.pointer);
 			
 			var viewport:Viewport3D;
 			
