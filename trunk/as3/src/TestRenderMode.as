@@ -45,7 +45,9 @@ package
 		protected var bl:BulkLoader;
 		
 		protected var light:Light3D;
+		protected var light2:Light3D;
 		protected var lightObj:Sphere;
+		protected var lightObj2:Sphere;
 		
 		protected var side:Mesh3D;
 
@@ -138,10 +140,12 @@ package
 			lightM.diffuse = new ColorTransform(1, 1, 1, 1);
 			lightObj = new Sphere(lightM, null, 10, 3, 2)
 			scene.addEntity(lightObj);
+			lightObj2 = new Sphere(lightM, null, 10, 3, 2)
+			scene.addEntity(lightObj2);
 			
 			p = new Cube(m, t1, 90, 90, 90, 2, 2, 2, 0, 0, "p");
 			scene.addEntity(p);
-			p.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_FSINVZB_32;
+			p.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_INVZB_32;
 			p.x = 90;
 			p.z = 230;
 			
@@ -150,6 +154,12 @@ package
 			p2.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
 			p2.x = -90;
 			p2.z = 230;
+			
+//			center = new Entity();
+//			scene.addEntity(center);
+//			center.x = 0;
+//			center.y = 0;
+//			center.z = 230;
 			
 			light = new Light3D(lightObj);
 			scene.addLight(light);
@@ -160,10 +170,24 @@ package
 			light.source.x = -200;
 			light.source.z = 0;
 			light.ambient = new ColorTransform(0, 0, 0, 1);
-			light.diffuse = new ColorTransform(1, 1, 1, 1);
-			light.specular = new ColorTransform(1, 1, 1, 1);
+			light.diffuse = new ColorTransform(0, .8, .3, 1);
+			light.specular = new ColorTransform(0, .8, .3, 1);
 			light.attenuation1 = .001;
 			light.attenuation2 = .000001;
+			
+			light2 = new Light3D(lightObj2);
+			scene.addLight(light2);
+			light2.type = LightType.POINT_LIGHT;
+			light2.mode = LightType.HIGH_MODE;
+			light2.bOnOff = LightType.LIGHT_ON;
+			light2.source.y = 0;
+			light2.source.x = -200;
+			light2.source.z = 0;
+			light2.ambient = new ColorTransform(0, 0, 0, 1);
+			light2.diffuse = new ColorTransform(1, .55, .3, 1);
+			light2.specular = new ColorTransform(1, .55, .3, 1);
+			light2.attenuation1 = .001;
+			light2.attenuation2 = .000001;
 			
 			side = p;
 			
@@ -176,20 +200,18 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
-//			camera.target = center.worldPosition;
-//			var mx:Number = viewport.mouseX / 200;
-//			var my:Number = - viewport.mouseY / 200;
-//			
-//			camera.hover(mx, my, 10);
-			
 			p.rotationX ++;
 			p.rotationZ ++;
 			p2.rotationX ++;
 			p2.rotationZ ++;
 			
 			super.onRenderTick(e);
-
-			trace(p.worldPosition);
+			
+//			camera.target = center.worldPosition;
+//			var mx:Number = viewport.mouseX / 200;
+//			var my:Number = - viewport.mouseY / 200;
+//			
+//			camera.hover(mx, my, 10);
 		}
 		
 		protected function onKeyDown(e:KeyboardEvent):void
@@ -209,7 +231,7 @@ package
 		{
 			if (side == p)
 			{
-				side.renderMode = RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32;
+//				side.renderMode = RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32;
 				side = p2;
 			}
 			else
