@@ -10,6 +10,7 @@ package
 	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.Mesh3D;
 	import cn.alchemy3d.objects.primitives.Cube;
+	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.objects.primitives.Sphere;
 	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.scene.Scene3D;
@@ -36,8 +37,8 @@ package
 		protected var camera:Camera3D;
 		protected var scene:Scene3D;
 		
-		protected var p:Cube;
-		protected var p2:Cube;
+		protected var p:Mesh3D;
+		protected var p2:Mesh3D;
 		protected var center:Entity;
 		
 		protected var t1:Texture;
@@ -128,7 +129,7 @@ package
 			scene = new Scene3D();
 			addScene(scene);
 			
-			camera = new Camera3D(0, 90, 50, 5000);
+			camera = new Camera3D(0, 90, 100, 5000);
 			addCamera(camera);
 			camera.eye.z = -100;
 			
@@ -139,19 +140,19 @@ package
 			lightM.ambient = new ColorTransform(1, 1, 1, 1);
 			lightM.diffuse = new ColorTransform(1, 1, 1, 1);
 			lightObj = new Sphere(lightM, null, 10, 3, 2)
-			scene.addEntity(lightObj);
+//			scene.addEntity(lightObj);
 			lightObj2 = new Sphere(lightM, null, 10, 3, 2)
-			scene.addEntity(lightObj2);
+//			scene.addEntity(lightObj2);
 			
 			p = new Cube(m, t1, 90, 90, 90, 2, 2, 2, 0, 0, "p");
 			scene.addEntity(p);
-			p.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_INVZB_32;
+			p.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			p.x = 90;
 			p.z = 230;
 			
 			p2 = new Cube(m, t1, 90, 90, 90, 2, 2, 2, 0, 0, "p");
 			scene.addEntity(p2);
-			p2.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
+			p2.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_INVZB_32;
 			p2.x = -90;
 			p2.z = 230;
 			
@@ -162,7 +163,7 @@ package
 //			center.z = 230;
 			
 			light = new Light3D(lightObj);
-			scene.addLight(light);
+//			scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
 			light.mode = LightType.HIGH_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
@@ -176,7 +177,7 @@ package
 			light.attenuation2 = .000001;
 			
 			light2 = new Light3D(lightObj2);
-			scene.addLight(light2);
+//			scene.addLight(light2);
 			light2.type = LightType.POINT_LIGHT;
 			light2.mode = LightType.HIGH_MODE;
 			light2.bOnOff = LightType.LIGHT_ON;
