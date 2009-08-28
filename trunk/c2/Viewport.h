@@ -581,7 +581,7 @@ void viewport_project( Viewport * viewport )
 	Entity * entity;
 	Matrix3D projection;
 	float worldZNear, worldZFar;
-	RenderList * rl_ptr, * cl_ptr, * renderList;
+	RenderList * curr_rl_ptr, * rl_ptr, * cl_ptr, * renderList;
 
 	//光照变量
 	Vertex * vs;
@@ -601,6 +601,10 @@ void viewport_project( Viewport * viewport )
 	worldZNear = camera->near + camera->eye->position->z;
 	worldZFar = camera->far + camera->eye->position->z;
 
+	//把渲染列表的指针指向表头的下一个结点
+	rl_ptr = viewport->renderList->next;
+	cl_ptr = viewport->clippedList->next;
+
 	//如果摄像机或视口的属性改变
 	//则重新计算投影矩阵
 	if ( TRUE == camera->fnfDirty || TRUE == viewport->dirty)
@@ -612,18 +616,12 @@ void viewport_project( Viewport * viewport )
 
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
-	if ( NULL != scene->lights )
-		if( ( vLightsToObject = ( Vector3D * )calloc( scene->nLights, sizeof( Vector3D ) ) ) == NULL ) exit( TRUE );
+	if ( NULL != scene->lights ) if( ( vLightsToObject = ( Vector3D * )calloc( scene->nLights, sizeof( Vector3D ) ) ) == NULL ) exit( TRUE );
 
 	matrix3D_append4x4( & projection, camera->eye->world, camera->projectionMatrix );
 
-	//把渲染列表的指针指向表头的下一个结点
-	rl_ptr = viewport->renderList->next;
-	cl_ptr = viewport->clippedList->next;
-
-	sceneNode = scene->nodes;
-
 	//遍历实体
+	sceneNode = scene->nodes;
 	while( NULL != sceneNode && NULL != sceneNode->entity->mesh )
 	{
 		entity = sceneNode->entity;
@@ -644,6 +642,9 @@ void viewport_project( Viewport * viewport )
 
 		matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
 
+		//记录当前的渲染列表指针
+		curr_rl_ptr	= rl_ptr;
+
 		//基于包围盒的视锥体剔除
 		if ( frustumCulling( viewport, entity, worldZNear, worldZFar, & rl_ptr, & cl_ptr ) > 0 )
 		{
@@ -659,7 +660,7 @@ void viewport_project( Viewport * viewport )
 		//光源索引为零
 		l = 0;
 
-		material = entity->material;
+		material = entity->mesh->material;
 
 		//更新光源位置
 		lights = scene->lights;
@@ -682,15 +683,20 @@ void viewport_project( Viewport * viewport )
 		floatColor_zero( & mColor );
 		floatColor_add_self( & mColor, material->ambient );
 
-		//遍历顶点
-		renderList = viewport->renderList->next;
+		//遍历渲染列表
+		renderList = curr_rl_ptr;
 
 		while ( NULL != renderList && NULL != renderList->polygon )
 		{
+			//为多边形标记渲染模式
+			renderList->polygon->render_mode = entity->mesh->render_mode;
+
+			//遍历顶点
 			for ( j = 0; j < 3; j ++)
 			{
 				vs = renderList->polygon->vertex[j];
 
+				//如果顶点已经变换或计算，则直接进入下一个顶点
 				if ( TRUE == vs->transformed ) continue;
 
 				//===================光照和顶点颜色值===================
@@ -723,6 +729,7 @@ void viewport_project( Viewport * viewport )
 							continue;
 						}
 
+						//允许光源开关
 						scene->lightOn = TRUE;
 
 						light = lights->light;	
@@ -940,31 +947,49 @@ void viewport_render(Viewport * view)
 
 		vertex = face->vertex;
 
-		Draw_Textured_TriangleINVZB_16( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+		//选择渲染器
+		switch ( face->render_mode )
+		{
+			case RENDER_TEXTRUED_TRIANGLE_INVZB_32 :
+				Draw_Textured_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
 
-		//if ( NULL == scene->lights)
-		//{
-		//	if ( NULL == face->texture )
-		//	{
-		//		triangle_rasterize( view, vertex[0], vertex[1], vertex[2] );
-		//		//wireframe_rasterize( view, vertex[0], vertex[1], vertex[2] );
-		//	}
-		//	else
-		//	{
-		//		triangle_rasterize_texture( view, vertex[0], vertex[1], vertex[2], face->texture );
-		//	}
-		//}
-		//else
-		//{
-		//	if ( NULL == face->texture )
-		//	{
-		//		triangle_rasterize_light( view, vertex[0], vertex[1], vertex[2] );
-		//	}
-		//	else
-		//	{
-		//		triangle_rasterize_light_texture( view,  vertex[0], vertex[1], vertex[2], face->texture );
-		//	}
-		//}
+			case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
+				Draw_Textured_Bilerp_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
+
+			case RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
+				Draw_Textured_Triangle_FSINVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
+
+			case RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:
+				Draw_Textured_Triangle_GSINVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
+
+			case RENDER_FLAT_TRIANGLE_INVZB_32:
+				Draw_Flat_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
+
+			case RENDER_GOURAUD_TRIANGLE_INVZB_32:
+				Draw_Gouraud_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
+				Draw_Textured_Perspective_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
+				Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
+				Draw_Textured_Perspective_Triangle_FSINVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
+				Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+				break;
+		}
 
 		rl = rl->next;
 	}

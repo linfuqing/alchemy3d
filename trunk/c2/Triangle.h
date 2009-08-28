@@ -8,6 +8,8 @@
 //R
 typedef struct Triangle
 {
+	int render_mode;
+
 	Texture * texture;
 
 	Vector3D * normal, * center;
@@ -49,6 +51,8 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	vertex_addContectedFaces( p, vc );
 
 	p->texture = texture;
+
+	p->render_mode = RENDER_NONE;
 
 	return p;
 }

@@ -22,8 +22,6 @@
 
 Device * device;
 
-extern ULONG alpha(ULONG c1, ULONG c2, ULONG calpha); 
-
 int main()
 {
 	Camera * camera;
@@ -45,18 +43,6 @@ int main()
 	int j = 0;
 
 	LPBYTE bitmapData;
-
-	//WORD wd;
-
-	/*WORD wa = RGBTo16(255, 255, 255);
-	WORD wb = RGBTo16(125, 125, 125);*/
-	//DWORD walpha = 10;
-	//ULONG wc = alpha((ULONG)wa, (ULONG)wb, walpha);
-
-	//DWORD d1 = (((((((wa << 16) | wa) & 0x7e0f81f) - (((wb << 16) | wb) & 0x7e0f81f)) * walpha) >> 5) + (((wb << 16) | wb) & 0x7e0f81f)) & 0x7e0f81f;
-	//wa = (d1 & 0xffff0000)>>16; // g...r...b => ..g..
-	//wb = d1 & 0xffff; // g...r...b => r...b
-	//wd = wa | wb; // rgb
 
 	if( ( bitmapData = ( LPBYTE )calloc( 64*64*sizeof(DWORD), sizeof( BYTE ) ) ) == NULL )
 	{
@@ -111,6 +97,10 @@ int main()
 	pos2[17] = 50.0f;
 
 	mesh1 = newMesh( 4, 2 );
+	mesh2 = newMesh( 18, 9 );
+
+	mesh1->render_mode = RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32;
+	mesh2->render_mode = RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
 
 	for ( i = 0; i < 8; i += 2)
 	{
@@ -126,7 +116,6 @@ int main()
 
 	i = 0;
 	j = 0;
-	mesh2 = newMesh( 18, 9 );
 
 	for (; i < 18; i += 2)
 	{
@@ -158,22 +147,24 @@ int main()
 							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 							4.0f );
+	
+	mesh_setMaterial( mesh1, material );
+	mesh_setTexture( mesh1, texture );
+
+	mesh_setMaterial( mesh2, material2 );
+	mesh_setTexture( mesh2, texture );
 
 	do3d = newEntity();
 	//entity_setRotationX(do3d, 45.0f);
-	entity_setRotationZ(do3d, 134.0f);
+	//entity_setRotationZ(do3d, 134.0f);
 	//entity_setY(do3d, -20.0f);
 	entity_setZ(do3d, 200.0f);
 	entity_setMesh( do3d, mesh1 );
-	entity_setMaterial( do3d, material );
-	entity_setTexture( do3d, texture );
 
 	do3d2 = newEntity();
 	entity_setRotationX(do3d2, 90.0f);
 	entity_setZ(do3d2, 40.0f);
 	entity_setMesh( do3d2, mesh2 );
-	entity_setMaterial( do3d2, material2 );
-	//entity_setTexture( do3d2, texture );
 
 	camera = newCamera( 90.0f, 100.0f, 5000.0f, newEntity() );
 	camera_setTarget( camera, do3d->w_pos );
