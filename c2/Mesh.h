@@ -5,16 +5,22 @@
 #include "Vertex.h"
 #include "Vector.h"
 #include "AABB.h"
+#include "Material.h"
+#include "Texture.h"
 
 typedef struct Mesh
 {
-	int nFaces, nVertices, dirty;
+	int nFaces, nVertices, dirty, render_mode;
 
 	Triangle  * faces;
 
 	Vertex * vertices;
 
 	AABB * aabb, * worldAABB, * CVVAABB;
+
+	Material * material;
+
+	Texture * texture;
 
 #ifdef __AS3__
 	float * meshBuffer;
@@ -34,13 +40,18 @@ Mesh * newMesh( int nVertices, int nFaces )
 	if( ( m->faces		= ( Triangle * )malloc( sizeof( Triangle ) * nFaces ) ) == NULL ) exit( TRUE );
 	if( ( m->vertices	= ( Vertex * )malloc( sizeof( Vertex ) * nVertices ) ) == NULL ) exit( TRUE );
 	
-	m->aabb			= newAABB();
-	m->worldAABB	= newAABB();
-	m->CVVAABB		= newAABB();
+	m->aabb				= newAABB();
+	m->worldAABB		= newAABB();
+	m->CVVAABB			= newAABB();
 
-	m->nFaces		= 0;
-	m->nVertices	= 0;
-	m->dirty		= FALSE;
+	m->nFaces			= 0;
+	m->nVertices		= 0;
+	m->dirty			= FALSE;
+
+	m->material			= NULL;
+	m->texture			= NULL;
+
+	m->render_mode			= RENDER_NONE;
 
 #ifdef __AS3__
 	m->meshBuffer = meshBuffer;
@@ -104,6 +115,8 @@ void computeFaceNormal( Mesh * m )
 	Triangle * face;
 	Vertex * v0, * v1, * v2;
 
+	if ( ! m->faces || m->nFaces == 0) exit( TRUE );
+
 	for( ; i < m->nFaces; i ++ )
 	{
 		face = & m->faces[i];
@@ -129,6 +142,8 @@ void computeVerticesNormal( Mesh * m )
 	Vector3D * nv, posN;
 	float d;
 	int i = 0;
+
+	if ( ! m->vertices || m->nVertices == 0) exit( TRUE );
 
 	for( ; i < m->nVertices; i ++ )
 	{
@@ -168,6 +183,29 @@ void computeVerticesNormal( Mesh * m )
 
 		m->vertices[i].normalLength = nv;
 	}
+}
+
+void mesh_setMaterial( Mesh * mesh, Material * m )
+{
+	mesh->material = m;
+}
+
+void mesh_setTexture( Mesh * m, Texture * t )
+{
+	int i = 0;
+
+	for( ; i < m->nFaces; i ++ )
+	{
+		m->faces[i].texture = t;
+	}
+
+	for( i = 0; i < m->nVertices; i ++ )
+	{
+		m->vertices[i].uv->u *= t->width;
+		m->vertices[i].uv->v *= t->height;
+	}
+
+	m->texture = t;
 }
 
 INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )

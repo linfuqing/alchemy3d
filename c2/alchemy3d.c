@@ -138,12 +138,12 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 	p_meshBuffer = ( DWORD ** )meshBuffer;
 	pp_meshBuffer = ( DWORD *** )meshBuffer;
 
-	mesh = newMesh( vNum, fNum, meshBuffer );
-
 	entity = newEntity();
 
-	if (vNum != 0 && fNum != 0)
+	if ( vNum != 0 && fNum != 0 && meshBuffer!= 0 )
 	{
+		mesh = newMesh( vNum, fNum, meshBuffer );
+
 		vLen = vNum * VERTEX_SIZE;
 
 		i = 0;
@@ -166,16 +166,17 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 								NULL );
 		}
 
+		if ( texture ) mesh_setTexture( mesh, texture );
+
+		if ( material ) mesh_setMaterial( mesh, material );
+
 		entity_setMesh( entity, mesh );
 	}
 
-	if ( texture != FALSE ) entity_setTexture( entity, texture );
+	if ( scene ) scene_addEntity(scene, entity, parent);
 
-	if ( material != FALSE ) entity_setMaterial( entity, material );
-
-	if ( scene != FALSE ) scene_addEntity(scene, entity, parent);
-
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, IntType, IntType", entity, &entity->material, &entity->texture, entity->position, entity->direction, entity->scale, entity->w_pos, entity->mesh->dirty );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
 }
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )

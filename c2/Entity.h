@@ -7,9 +7,7 @@
 #include "Matrix3D.h"
 #include "Quaternion.h"
 #include "Mesh.h"
-#include "Material.h"
 #include "Math.h"
-#include "Texture.h"
 #include "AABB.h"
 
 typedef struct Entity
@@ -29,10 +27,6 @@ typedef struct Entity
 	//R
 	Mesh * mesh;
 
-	Material * material;
-
-	Texture * texture;
-
 }Entity;
 
 typedef struct SceneNode
@@ -40,6 +34,7 @@ typedef struct SceneNode
 	Entity * entity;
 
 	struct SceneNode * next;
+
 }SceneNode;
 
 Entity * newEntity()
@@ -68,8 +63,6 @@ Entity * newEntity()
 	entity->children		= NULL;
 	entity->parent			= NULL;
 	entity->mesh			= NULL;
-	entity->material		= NULL;
-	entity->texture			= NULL;
 	entity->scene			= NULL;
 
 	entity->visible = entity->transformDirty = TRUE;
@@ -178,68 +171,32 @@ void entity_dispose( Entity * entity )
 	free( entity );
 }
 
+//为实体配置网格
 void entity_setMesh( Entity * entity, Mesh * m )
 {
-	int i = 0;
+	if ( ! m->vertices || ! m->faces || m->nFaces == 0 || m->nVertices == 0 ) exit( TRUE );
 
 	computeFaceNormal( m );
 
 	computeVerticesNormal( m );
 
-	if ( NULL != entity->texture )
-	{
-		for( ; i < m->nFaces; i ++ )
-		{
-			m->faces[i].texture = entity->texture;
-		}
-
-		for( i = 0; i < m->nVertices; i ++ )
-		{
-			m->vertices[i].uv->u *= entity->texture->width;
-			m->vertices[i].uv->v *= entity->texture->height;
-		}
-	}
-
 	entity->mesh = m;
-}
-
-void entity_setMaterial( Entity * entity, Material * m )
-{
-	entity->material = m;
-}
-
-void entity_setTexture( Entity * entity, Texture * t )
-{
-	int i = 0;
-
-	if ( NULL != entity->mesh )
-	{
-		for( ; i < entity->mesh->nFaces; i ++ )
-		{
-			entity->mesh->faces[i].texture = t;
-		}
-
-		for( i = 0; i < entity->mesh->nVertices; i ++ )
-		{
-			entity->mesh->vertices[i].uv->u *= t->width;
-			entity->mesh->vertices[i].uv->v *= t->height;
-		}
-	}
-
-	entity->texture = t;
 }
 
 void entity_updateAfterRender( Entity * entity )
 {
-	Mesh * m = entity->mesh;
-
-	m->dirty = FALSE;
-
-	int i = 0, l = m->nVertices;
-
-	for( ; i < l; i ++ )
+	if ( entity->mesh )
 	{
-		m->vertices[i].transformed = FALSE;
+		Mesh * m = entity->mesh;
+
+		int i = 0, l = m->nVertices;
+
+		m->dirty = FALSE;
+
+		for( ; i < l; i ++ )
+		{
+			m->vertices[i].transformed = FALSE;
+		}
 	}
 }
 

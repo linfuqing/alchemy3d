@@ -9,21 +9,18 @@ typedef struct Texture
 	
 	LPBYTE pRGBABuffer;
 
-	BYTE * ARGBBuffer;
+	//BYTE * ARGBBuffer;
 }Texture;
 
 Texture * newTexture( int width, int height, LPBYTE pRGBABuffer )
 {
 	Texture * texture;
-	BYTE * ARGBBuffer;
+	//BYTE * ARGBBuffer;
 	int lSize = 0, i = 0, j = 0;
-	DWORD dwPixel;
-	DWORD a,r,g,b;
+	//DWORD dwPixel;
+	//DWORD a,r,g,b;
 
-	if( ( texture = ( Texture * )malloc( sizeof( Texture ) ) ) == NULL )
-	{
-		exit( TRUE );
-	}
+	if( ( texture = ( Texture * )malloc( sizeof( Texture ) ) ) == NULL ) exit( TRUE );
 
 	lSize = width * height;
 
@@ -32,24 +29,24 @@ Texture * newTexture( int width, int height, LPBYTE pRGBABuffer )
 	texture->wh = lSize;
 	texture->pRGBABuffer = pRGBABuffer;
 
-	if( ( ARGBBuffer = ( BYTE * )malloc( sizeof( BYTE ) * lSize * 4 ) ) == NULL ) exit( TRUE );
+	//if( ( ARGBBuffer = ( BYTE * )malloc( sizeof( BYTE ) * lSize * 4 ) ) == NULL ) exit( TRUE );
 
-	for ( ; i < lSize; i ++, j += 4 )
-	{
-		dwPixel = pRGBABuffer[i];
+	//for ( ; i < lSize; i ++, j += 4 )
+	//{
+	//	dwPixel = pRGBABuffer[i];
 
-		a = ( ( dwPixel >> 24 ) & 0xff );
-		r = ( ( dwPixel >> 16 ) & 0xff );
-		g = ( ( dwPixel >> 8 ) & 0xff );
-		b = ( ( dwPixel) & 0xff);
+	//	a = ( ( dwPixel >> FIXP24_SHIFT ) & 0xff );
+	//	r = ( ( dwPixel >> FIXP16_SHIFT ) & 0xff );
+	//	g = ( ( dwPixel >> FIXP8_SHIFT ) & 0xff );
+	//	b = ( ( dwPixel) & 0xff);
 
-		ARGBBuffer[j] = a;
-		ARGBBuffer[j+1] = r;
-		ARGBBuffer[j+2] = g;
-		ARGBBuffer[j+3] = b;
-	}
+	//	ARGBBuffer[j] = a;
+	//	ARGBBuffer[j+1] = r;
+	//	ARGBBuffer[j+2] = g;
+	//	ARGBBuffer[j+3] = b;
+	//}
 
-	texture->ARGBBuffer = ARGBBuffer;
+	//texture->ARGBBuffer = ARGBBuffer;
 
 	return texture;
 }
