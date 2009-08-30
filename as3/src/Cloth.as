@@ -10,6 +10,7 @@ package
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.objects.primitives.Sphere;
+	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.texture.Texture;
 	import cn.alchemy3d.view.Basic;
@@ -53,7 +54,7 @@ package
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
-			bl.add("asset/horde.jpg", {id:"0"});
+			bl.add("asset/wood01.jpg", {id:"0"});
 			bl.start();
 		}
 		
@@ -78,7 +79,7 @@ package
 			t1 = new Texture(bl.getBitmapData("0"));
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(0, 0, 0, 1);
+			m.ambient = new ColorTransform(0.2, 0.2, 0.2, 1);
 			m.diffuse = new ColorTransform(.7, .7, 0, 1);
 			m.specular = new ColorTransform(1, 1, 0, 1);
 			m.power = 48;
@@ -92,7 +93,7 @@ package
 			
 			camera = new Camera3D(0, 90, 100, 5000);
 			addCamera(camera);
-			camera.eye.z = -400;
+			camera.z = -400;
 			
 			viewport = new Viewport3D(600, 400, scene, camera);
 			addViewport(viewport);
@@ -102,6 +103,7 @@ package
 			
 			p = new Plane(m, t1, 700, 500, 20, 10);
 			scene.addEntity(p);
+			p.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
 			p.rotationX = 30;
 			p.rotationY = 15;
 			p.z = 500;
