@@ -123,7 +123,7 @@ package
 			
 			camera = new Camera3D(0, 90, 50, 5000);
 			addCamera(camera);
-			camera.eye.z = -100;
+			camera.z = -100;
 			
 			viewport = new Viewport3D(640, 480, scene, camera);
 			addViewport(viewport);
@@ -187,12 +187,12 @@ package
 		{
 			if (e.keyCode == Keyboard.UP)
 			{
-				camera.eye.z += 3;
+				camera.z += 3;
 			}
 			
 			if (e.keyCode == Keyboard.DOWN)
 			{
-				camera.eye.z -= 3;
+				camera.z -= 3;
 			}
 		}
 	}

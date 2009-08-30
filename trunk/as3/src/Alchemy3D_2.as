@@ -9,6 +9,7 @@ package
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.objects.primitives.Sphere;
+	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.texture.Texture;
 	import cn.alchemy3d.view.Basic;
@@ -59,15 +60,15 @@ package
 		{
 			super();
 			
-			stage.scaleMode = StageScaleMode.NO_SCALE;
-			stage.align = StageAlign.TOP_LEFT;
-			stage.quality = StageQuality.BEST;
-			stage.frameRate = 60;
+//			stage.scaleMode = StageScaleMode.NO_SCALE;
+//			stage.align = StageAlign.TOP_LEFT;
+//			stage.quality = StageQuality.BEST;
+//			stage.frameRate = 60;
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
 			bl.add("asset/earth.jpg", {id:"0"});
-			bl.add("asset/metal.jpg", {id:"1"});
+			bl.add("asset/lava01.jpg", {id:"1"});
 			bl.start();
 		}
 		
@@ -80,9 +81,9 @@ package
 			var tf:TextField = new TextField();
 			tf.defaultTextFormat = tformat;
 			tf.autoSize = "left";
-			tf.text = "Press \"M\" to change the lighting mode\nPress \"T\" for using texture\nPress \"R\" to turn on/off red light\nPress \"G\" to turn on/off green light\nPress \"B\" to turn on/off blue light\nPress \"S\" to begin/stop moving lights";
+			tf.text = "Press \"W\" to change to Wireframe mode\nPress \"M\" to change to Gouraud mode\nPress \"L\" to change lighting mode\nPress \"T\" for using texture\nPress \"R\" to turn on/off red light\nPress \"G\" to turn on/off green light\nPress \"B\" to turn on/off blue light\nPress \"S\" to begin/stop moving lights";
 			tf.x = 0;
-			tf.y = 320;
+			tf.y = 290;
 			addChild(tf);
 			
 			var tformat2:TextFormat = new TextFormat("arial", 12, 0xffffff, null, null, null, null, null, "right");
@@ -104,21 +105,21 @@ package
 			t2 = new Texture(bl.getBitmapData("1"));
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(0.05, 0.05, 0.05, 1);
-			m.diffuse = new ColorTransform(.3, .3, .3, 1);
-			m.specular = new ColorTransform(.2, .2, .2, 1);
-			m.power = 4;
+			m.ambient = new ColorTransform(0.1, 0.1, 0.1, 1);
+			m.diffuse = new ColorTransform(.8, .8, .8, 1);
+			m.specular = new ColorTransform(1, 1, 1, 1);
+			m.power = 32;
 			
 			var m1:Material = new Material();
-			m1.ambient = new ColorTransform(0, 0, 0, 1);
-			m1.diffuse = new ColorTransform(.2, .2, .2, 1);
-			m1.specular = new ColorTransform(.2, .2, .2, 1);
+			m1.ambient = new ColorTransform(0.2, 0.2, 0.2, 1);
+			m1.diffuse = new ColorTransform(.8, .8, .8, 1);
+			m1.specular = new ColorTransform(1, 1, 1, 1);
 			m1.power = 4;
 			
 			var m2:Material = new Material();
-			m2.ambient = new ColorTransform(0, 0, 0, 1);
+			m2.ambient = new ColorTransform(0.2, 0.2, 0.2, 1);
 			m2.diffuse = new ColorTransform(0.4, .4, .4, 1);
-			m2.specular = new ColorTransform(.6, .6, .6, 1);
+			m2.specular = new ColorTransform(1, 1, 1, 1);
 			m2.power = 4;
 			
 			var m3:Material = new Material();
@@ -144,38 +145,49 @@ package
 			
 			camera = new Camera3D(0, 90, 100, 5000);
 			addCamera(camera);
-			camera.eye.z = -400;
+			camera.z = -300;
 			
 			viewport = new Viewport3D(600, 400, scene, camera);
 			addViewport(viewport);
 			
 			lightObj = new Sphere(lightM, null, 20, 3, 2);
 			scene.addEntity(lightObj);
+			lightObj.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			
 			lightObj2 = new Sphere(lightM2, null, 20, 3, 2);
 			scene.addEntity(lightObj2);
+			lightObj2.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			
 			lightObj3 = new Sphere(lightM3, null, 20, 3, 2);
 			scene.addEntity(lightObj3);
+			lightObj3.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			
 			p = new Plane(m, null, 800, 800, 1, 1);
 			scene.addEntity(p);
+			p.lightEnable = true;
+			p.renderMode = RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32;
 			p.rotationX = 90;
 			p.y = -180;
 			p.z = 800;
 			
-			s = new Sphere(m1, t2, 180, 16, 12);
+			s = new Sphere(m1, t1, 180, 16, 12);
 			scene.addEntity(s);
+			s.lightEnable = true;
+			s.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
 			s.z = 1100;
 
-			s3 = new Sphere(m3, null, 120, 24, 18);
+			s3 = new Sphere(m3, null, 120, 16, 12);
 			scene.addEntity(s3);
+			s3.lightEnable = true;
+			s3.renderMode = RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32;
 			s3.x = 150;
 			s3.y = -60;
 			s3.z = 700;
 			
-			s2 = new Sphere(m2, t1, 120, 16, 12);
+			s2 = new Sphere(m2, t2, 120, 16, 12);
 			scene.addEntity(s2);
+			s2.lightEnable = true;
+			s2.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
 			s2.x = -130;
 			s2.y = -60;
 			s2.z = 750;
@@ -243,7 +255,7 @@ package
 			if (e.keyCode == 66)
 				light3.bOnOff = !light3.bOnOff;
 			
-			if (e.keyCode == 77)
+			if (e.keyCode == 76)
 			{
 				_lightingMode ++ ;
 				
@@ -304,6 +316,30 @@ package
 					_lightMoving = true;
 				}
 			}
+			
+			if (e.keyCode == 87 )
+			{
+				p.lightEnable = false;
+				p.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
+				s.lightEnable = false;
+				s.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
+				s2.lightEnable = false;
+				s2.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
+				s3.lightEnable = false;
+				s3.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
+			}
+			
+			if (e.keyCode == 77 )
+			{
+				p.lightEnable = true;
+				p.renderMode = RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32;
+				s.lightEnable = true;
+				s.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
+				s2.lightEnable = true;
+				s2.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
+				s3.lightEnable = true;
+				s3.renderMode = RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32;
+			}
 		}
 		
 		protected function moveLight1(dir:int = 1):void
@@ -326,15 +362,15 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
+			s2.rotationY ++;
+			
+			super.onRenderTick(e);
+			
 			camera.target = s.worldPosition;
 			var mx:Number = viewport.mouseX / 200;
 			var my:Number = - viewport.mouseY / 200;
 			
 			camera.hover(mx, my, 10);
-
-			s2.rotationY ++;
-			
-			super.onRenderTick(e);
 		}
 	}
 }

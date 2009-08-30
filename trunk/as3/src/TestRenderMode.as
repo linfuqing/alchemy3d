@@ -10,7 +10,6 @@ package
 	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.Mesh3D;
 	import cn.alchemy3d.objects.primitives.Cube;
-	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.objects.primitives.Sphere;
 	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.scene.Scene3D;
@@ -19,9 +18,6 @@ package
 	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
 	
-	import flash.display.StageAlign;
-	import flash.display.StageQuality;
-	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
@@ -29,8 +25,11 @@ package
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	import flash.ui.Keyboard;
+	
+	import gs.TweenLite;
+	import gs.easing.Quad;
 
-	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
+	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="40")]
 	public class TestRenderMode extends Basic
 	{
 		protected var viewport:Viewport3D;
@@ -47,8 +46,10 @@ package
 		
 		protected var light:Light3D;
 		protected var light2:Light3D;
+		protected var light3:Light3D;
 		protected var lightObj:Sphere;
 		protected var lightObj2:Sphere;
+		protected var lightObj3:Sphere;
 		
 		protected var side:Mesh3D;
 
@@ -56,17 +57,37 @@ package
 		{
 			super();
 			
-			stage.scaleMode = StageScaleMode.NO_SCALE;
-			stage.align = StageAlign.TOP_LEFT;
-			stage.quality = StageQuality.BEST;
-			stage.frameRate = 60;
+//			stage.scaleMode = StageScaleMode.NO_SCALE;
+//			stage.align = StageAlign.TOP_LEFT;
+//			stage.quality = StageQuality.BEST;
+//			stage.frameRate = 40;
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
+			bl.addEventListener(BulkProgressEvent.PROGRESS, onProgress);
 			bl.add("asset/wood01.jpg", {id:"0"});
-			bl.add("asset/lava01.jpg", {id:"1"});
+			bl.add("asset/skin01.jpg", {id:"1"});
 			bl.start();
+			
+			var tformat:TextFormat = new TextFormat("宋体", 14, 0xffffff, null, null, null, null, null, "center");
+			tf4 = new TextField();
+			tf4.defaultTextFormat = tformat;
+			tf4.autoSize = "center";
+			tf4.text = "Loading texture : 0.00%";
+			tf4.selectable = false;
+			tf4.x = 220;
+			tf4.y = 240;
+			addChild(tf4);
 		}
+		
+		private function onProgress(e:BulkProgressEvent):void
+		{
+			tf4.text = "Loading texture : " + (e.percentLoaded * 100).toFixed(2) + "%";
+		}
+		
+		private var tf4:TextField;
+		private var tf3:TextField;
+		private var tf5:TextField;
 		
 		private function showInfo():void
 		{
@@ -74,6 +95,9 @@ package
 			addChild(fps);
 			
 			var tformat:TextFormat = new TextFormat("arial", 10, 0xffffff, null, null, null, null, null, "right");
+			var tformat1:TextFormat = new TextFormat("宋体", 14, 0xffffff, null, null, null, null, null, "center");
+			var tformat2:TextFormat = new TextFormat("宋体", 14, 0xffffff, true, null, null, null, null, "center");
+			
 			var tf2:TextField = new TextField();
 			tf2.defaultTextFormat = tformat;
 			tf2.autoSize = "right";
@@ -83,132 +107,272 @@ package
 			tf2.y = 430;
 			addChild(tf2);
 			
-			var tformat1:TextFormat = new TextFormat("宋体", 12, 0xffffff, null, true, null, null, null, "center");
-			var tf3:TextField = new TextField();
+			tf3 = new TextField();
 			tf3.defaultTextFormat = tformat1;
 			tf3.autoSize = "center";
-			tf3.text = "32位模式\n1/z深度缓冲\nGouraud光照模型混合纹理映射";
 			tf3.selectable = false;
-			tf3.x = 90;
-			tf3.y = 365;
+			tf3.x = 270;
+			tf3.y = 35;
 			addChild(tf3);
 			
-			var tf4:TextField = new TextField();
-			tf4.defaultTextFormat = tformat1;
-			tf4.autoSize = "center";
-			tf4.text = "32位模式\n1/z深度缓冲\n双线性插值纹理映射";
-			tf4.selectable = false;
-			tf4.x = 420;
-			tf4.y = 365;
-			addChild(tf4);
-			
-			var tformat2:TextFormat = new TextFormat("宋体", 18, 0xffffff, true, null, null, null, null, "center");
-			var tf5:TextField = new TextField();
+			tf5 = new TextField();
 			tf5.defaultTextFormat = tformat2;
 			tf5.autoSize = "center";
-			tf5.text = "up / down to move camera";
+			tf5.text = "Alchemy3D 13种渲染模式";
 			tf5.selectable = false;
-			tf5.x = 205;
-			tf5.y = 420;
+			tf5.x = 180;
+			tf5.y = 10;
 			addChild(tf5);
 		}
 		
 		protected function init(e:Event = null):void
 		{
 			bl.removeEventListener(BulkProgressEvent.COMPLETE, init);
+			bl.removeEventListener(BulkProgressEvent.PROGRESS, onProgress);
+			
+			removeChild(tf4);
+			tf4 = null;
 			
 			t1 = new Texture(bl.getBitmapData("0"));
 			t2 = new Texture(bl.getBitmapData("1"));
 			
+			//============设置材质===============
 			var m:Material = new Material();
 			m.ambient = new ColorTransform(.1, .1, .1, 1);
-			m.diffuse = new ColorTransform(.8, .8, .8, 1);
-			m.specular = new ColorTransform(1, 1, 1, 1);
-			m.power = 128;
+			m.diffuse = new ColorTransform(1, 1, 1, 1);
+			m.specular = new ColorTransform(.7, .7, .7, 1);
+			m.power = 32;
+			
+			var m2:Material = new Material();
+			m2.ambient = new ColorTransform(.1, .1, .1, 1);
+			m2.diffuse = new ColorTransform(.8, .8, .8, 1);
+			m2.specular = new ColorTransform(1, 1, 1, 1);
+			m2.power = 16;
+			
+			var lightM:Material = new Material();
+			lightM.ambient = new ColorTransform(1, 0, 0, 1);
+			
+			var lightM1:Material = new Material();
+			lightM1.ambient = new ColorTransform(0, 1, 0, 1);
+			
+			var lightM2:Material = new Material();
+			lightM2.ambient = new ColorTransform(0, 0, 1, 1);
+			//============设置材质===============
 			
 			scene = new Scene3D();
 			addScene(scene);
 			
-			camera = new Camera3D(0, 90, 100, 5000);
+			camera = new Camera3D(0, 90, 20, 3000);
 			addCamera(camera);
-			camera.eye.z = -100;
+			camera.z = -200;
 			
 			viewport = new Viewport3D(640, 480, scene, camera);
 			addViewport(viewport);
 			
-			var lightM:Material = new Material();
-			lightM.ambient = new ColorTransform(1, 1, 1, 1);
-			lightM.diffuse = new ColorTransform(1, 1, 1, 1);
-			lightObj = new Sphere(lightM, null, 10, 3, 2)
-//			scene.addEntity(lightObj);
-			lightObj2 = new Sphere(lightM, null, 10, 3, 2)
-//			scene.addEntity(lightObj2);
+			lightObj = new Sphere(lightM, null, 6, 3, 2)
+			scene.addEntity(lightObj);
+			lightObj.lightEnable = false;
+			lightObj.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
 			
-			p = new Cube(m, t1, 90, 90, 90, 2, 2, 2, 0, 0, "p");
+			lightObj2 = new Sphere(lightM1, null, 6, 3, 2)
+			scene.addEntity(lightObj2);
+			lightObj2.lightEnable = false;
+			lightObj2.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
+			
+			lightObj3 = new Sphere(lightM2, null, 6, 3, 2)
+			scene.addEntity(lightObj3);
+			lightObj3.lightEnable = false;
+			lightObj3.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
+			
+			p = new Cube(m, t1, 90, 90, 90, 4, 4, 4, 0, 0, "p");
 			scene.addEntity(p);
-			p.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
+			p.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
 			p.x = 90;
 			p.z = 230;
 			
-			p2 = new Cube(m, t1, 90, 90, 90, 2, 2, 2, 0, 0, "p");
+			p2 = new Cube(m2, t2, 90, 90, 90, 4, 4, 4, 0, 0, "p");
 			scene.addEntity(p2);
-			p2.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_INVZB_32;
+			p2.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
 			p2.x = -90;
 			p2.z = 230;
 			
-//			center = new Entity();
-//			scene.addEntity(center);
-//			center.x = 0;
-//			center.y = 0;
-//			center.z = 230;
+			center = new Entity();
+			scene.addEntity(center);
+			center.x = 0;
+			center.y = 0;
+			center.z = 230;
 			
 			light = new Light3D(lightObj);
-//			scene.addLight(light);
+			scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
 			light.mode = LightType.HIGH_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
-			light.source.y = 400;
-			light.source.x = -200;
-			light.source.z = 0;
+			light.source.y = 150;
+			light.source.x = 0;
+			light.source.z = 200;
 			light.ambient = new ColorTransform(0, 0, 0, 1);
-			light.diffuse = new ColorTransform(0, .8, .3, 1);
-			light.specular = new ColorTransform(0, .8, .3, 1);
+			light.diffuse = new ColorTransform(1, 0, 0, 1);
+			light.specular = new ColorTransform(1, 0, 0, 1);
 			light.attenuation1 = .001;
-			light.attenuation2 = .000001;
+			light.attenuation2 = .00002;
 			
 			light2 = new Light3D(lightObj2);
-//			scene.addLight(light2);
+			scene.addLight(light2);
 			light2.type = LightType.POINT_LIGHT;
 			light2.mode = LightType.HIGH_MODE;
 			light2.bOnOff = LightType.LIGHT_ON;
 			light2.source.y = 0;
-			light2.source.x = -200;
-			light2.source.z = 0;
+			light2.source.x = -250;
+			light2.source.z = 200;
 			light2.ambient = new ColorTransform(0, 0, 0, 1);
-			light2.diffuse = new ColorTransform(1, .55, .3, 1);
-			light2.specular = new ColorTransform(1, .55, .3, 1);
+			light2.diffuse = new ColorTransform(0, 1, 0, 1);
+			light2.specular = new ColorTransform(0, 1, 0, 1);
 			light2.attenuation1 = .001;
-			light2.attenuation2 = .000001;
+			light2.attenuation2 = .00002;
+			
+			light3 = new Light3D(lightObj3);
+			scene.addLight(light3);
+			light3.type = LightType.POINT_LIGHT;
+			light3.mode = LightType.HIGH_MODE;
+			light3.bOnOff = LightType.LIGHT_ON;
+			light3.source.y = -150;
+			light3.source.x = 150;
+			light3.source.z = 200;
+			light3.ambient = new ColorTransform(0, 0, 0, 1);
+			light3.diffuse = new ColorTransform(0, 0, 1, 1);
+			light3.specular = new ColorTransform(0, 0, 1, 1);
+			light3.attenuation1 = .001;
+			light3.attenuation2 = .000005;
 			
 			side = p;
 			
 			showInfo();
 			
 			startRendering();
-			addEventListener(MouseEvent.CLICK, onMouseClick);
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+//			addEventListener(MouseEvent.CLICK, onMouseClick);
+//			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			
+			callBack();
+			
+			changeRenderMode();
+		}
+		
+		private function callBack():void
+		{
+			TweenLite.delayedCall(2, moveTarget);
+		}
+		
+		private function moveTarget(x:Number = 0, y:Number = 0, z:Number = 0, angleX:Number = 0, angleY:Number = 0, angleZ:Number = 0):void
+		{
+			TweenLite.to(center, 1.5, {x:Math.random() * 180 - 90});
+			TweenLite.to(camera, 1.5, {x:Math.random() * 600 - 300, y:Math.random() * 600 - 300, z:Math.random() * 300 - 300, onComplete:callBack, ease:Quad.easeInOut});
+		}
+		
+		private var ri:uint = 0x000001;
+		private function changeRenderMode():void
+		{
+			switch (ri)
+			{
+				case RenderMode.RENDER_WIREFRAME_TRIANGLE_32:
+					tf3.text = "32位线框模式";
+					p.lightEnable = false;
+					p2.lightEnable = false;
+					break;
+					
+				case RenderMode.RENDER_TEXTRUED_TRIANGLE_INVZB_32:
+					tf3.text = "32位模式 / 支持1/z深度缓冲 / 线性插值纹理映射";
+					p.lightEnable = false;
+					p2.lightEnable = false;
+					break;
+					
+				case RenderMode.RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
+					tf3.text = "32位模式 / 支持1/z深度缓冲 / 双线性插值纹理";
+					p.lightEnable = false;
+					p2.lightEnable = false;
+					break;
+					
+				case RenderMode.RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
+					tf3.text = "32位模式 / 支持1/z深度缓冲 / Flat光照模型 / 线性插值纹理映射";
+					p.lightEnable = true;
+					p2.lightEnable = true;
+					break;
+					
+				case RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:
+					tf3.text = "32位模式 / 支持1/z深度缓冲 / Gouraud光照模型 / 线性插值纹理映射";
+					p.lightEnable = true;
+					p2.lightEnable = true;
+					break;
+					
+				case RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32:
+					tf3.text = "32位模式 / 1/z深度缓冲 / Flat光照模型";
+					p.lightEnable = true;
+					p2.lightEnable = true;
+					break;
+					
+				case RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32:
+					tf3.text = "32位模式 / 支持1/z深度缓冲 / Gouraud光照模型";
+					p.lightEnable = true;
+					p2.lightEnable = true;
+					break;
+					
+				case RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
+					tf3.text = "32位模式 / 支持1/z深度缓冲 / 透视矫正纹理映射";
+					p.lightEnable = false;
+					p2.lightEnable = false;
+					break;
+					
+				case RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
+					tf3.text = "32位模式 / 支持1/z深度缓冲 / 线性分段透视矫正纹理映射";
+					p.lightEnable = false;
+					p2.lightEnable = false;
+					break;
+					
+				case RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
+					tf3.text = "32位模式 / 支持1/z深度缓冲 / 透视矫正纹理映射 / Flat光照模型";
+					p.lightEnable = true;
+					p2.lightEnable = true;
+					break;
+					
+				case RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
+					tf3.text = "32位模式 / 支持1/z深度缓冲 / 线性分段透视矫正纹理映射 / Flat光照模型";
+					p.lightEnable = true;
+					p2.lightEnable = true;
+					break;
+					
+				case RenderMode.RENDER_FLAT_TRIANGLE_32:
+					tf3.text = "32位Flat模式不带Z缓冲";
+					p.lightEnable = true;
+					p2.lightEnable = true;
+					break;
+					
+				case RenderMode.RENDER_FLAT_TRIANGLEFP_32:
+					tf3.text = "32位Flat定点模式不带Z缓冲";
+					p.lightEnable = true;
+					p2.lightEnable = true;
+					break;
+			}
+			
+			p.renderMode = p2.renderMode = ri;
+			
+			ri <<= 1;
+			
+			if (ri == 0x001000) ri = 0x000001;
+			
+			TweenLite.delayedCall(8, changeRenderMode);
 		}
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
 			p.rotationX ++;
+			p.rotationY ++;
 			p.rotationZ ++;
 			p2.rotationX ++;
+			p2.rotationY ++;
 			p2.rotationZ ++;
 			
 			super.onRenderTick(e);
 			
-//			camera.target = center.worldPosition;
+			camera.target = center.worldPosition;
 //			var mx:Number = viewport.mouseX / 200;
 //			var my:Number = - viewport.mouseY / 200;
 //			
@@ -219,17 +383,19 @@ package
 		{
 			if (e.keyCode == Keyboard.UP)
 			{
-				camera.eye.z += 3;
+				camera.z += 3;
 			}
 			
 			if (e.keyCode == Keyboard.DOWN)
 			{
-				camera.eye.z -= 3;
+				camera.z -= 3;
 			}
 		}
 		
 		protected function onMouseClick(e:MouseEvent):void
 		{
+//			p.rotationY += 10;
+//			p2.rotationY += 10;
 			if (side == p)
 			{
 //				side.renderMode = RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32;
