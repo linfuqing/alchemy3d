@@ -6,6 +6,7 @@ package cn.alchemy3d.scene
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.Mesh3D;
+	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.utils.Dictionary;
 	
@@ -37,7 +38,7 @@ package cn.alchemy3d.scene
 		
 		public function addEntity(node:Entity, parent:Entity = null):void
 		{
-			if (node.scene || node.parent) throw new Error("已存在父节点");
+			if (node.scene || node.parent) Alchemy3DLog.error("已存在父节点");
 			
 			nodes[node.name] = node;
 			childrenNum ++;

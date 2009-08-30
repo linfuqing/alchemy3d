@@ -6,5 +6,10 @@ package cn.alchemy3d.tools
 		{
 			trace("WARNING: " + str);
 		}
+		
+		static public function error(str:String):void
+		{
+			throw new Error(str);
+		}
 	}
 }

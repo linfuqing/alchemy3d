@@ -177,10 +177,10 @@ package cn.alchemy3d.objects
 		{
 			super.allotPtr(ps);
 			
-			renderModePointer	= ps[5];
-			dirtyPointer		= ps[6];
-			materialPtr			= ps[7];
-			texturePtr			= ps[8];
+			renderModePointer	= ps[6];
+			dirtyPointer		= ps[7];
+			materialPtr			= ps[8];
+			texturePtr			= ps[9];
 		}
 		
 		override public function clone():Entity
