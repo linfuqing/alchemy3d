@@ -1,6 +1,7 @@
 package cn.alchemy3d.texture
 {
 	import cn.alchemy3d.lib.Library;
+	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -47,7 +48,27 @@ package cn.alchemy3d.texture
 			this.name = name;
 			this.bitmapdata = bitmapdata;
 			
+			if (bitmapdata)
+			{
+				checkBitmapSize(bitmapdata.width, bitmapdata.height);
+			}
+			
 			initialize();
+		}
+		
+		protected function checkBitmapSize(w:Number, h:Number):void
+		{
+			var j:int;
+				
+			for (var i:int = 4; i <= 11; i ++)
+			{
+				j = 2 << i;
+					
+				if (bitmapdata.width == j || bitmapdata.height == j)
+					break;
+			}
+				
+			if (i == 11) Alchemy3DLog.error("位图大小不正确，高宽必须为2的幂");
 		}
 		
 		public function initialize():void
@@ -101,6 +122,8 @@ package cn.alchemy3d.texture
 			loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
 			
 			this.bitmapdata = Bitmap(loader.content).bitmapData;
+			
+			checkBitmapSize(bitmapdata.width, bitmapdata.height);
 			
 			initialize();
 			

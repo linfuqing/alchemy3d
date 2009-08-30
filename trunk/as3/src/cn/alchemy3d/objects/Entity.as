@@ -11,7 +11,6 @@ package cn.alchemy3d.objects
 	
 	import flash.events.EventDispatcher;
 	import flash.geom.Vector3D;
-	import flash.utils.ByteArray;
 	
 	public class Entity extends EventDispatcher implements ISceneNode
 	{
@@ -30,6 +29,7 @@ package cn.alchemy3d.objects
 			
 			this._children = new Vector.<Entity>();
 			this._root = this;
+			this._lightEnable = false;
 		}
 		
 		public var pointer:uint;
@@ -40,6 +40,7 @@ package cn.alchemy3d.objects
 		public var worldPositionPtr:uint;
 		public var materialPtr:int;
 		public var texturePtr:int;
+		public var lightEnablePtr:uint;
 		
 		public var name:String;
 		public var visible:Boolean;
@@ -56,6 +57,7 @@ package cn.alchemy3d.objects
 		private var _children:Vector.<Entity>;
 		private var _root:Entity;
 		private var _scene:Scene3D;
+		private var _lightEnable:Boolean;
 		
 		protected static const sizeOfInt:int = 4;
 		
@@ -77,6 +79,25 @@ package cn.alchemy3d.objects
 		public function get scene():Scene3D
 		{
 			return this._scene;
+		}
+		
+		public function get lightEnable():Boolean
+		{
+			return _lightEnable;
+		}
+		
+		public function set lightEnable(bool:Boolean):void
+		{
+			if (!checkInitialized()) return;
+			
+			_lightEnable = bool;
+			
+			Library.memory.position = lightEnablePtr;
+			
+			if (bool)
+				Library.memory.writeUnsignedInt(1);
+			else
+				Library.memory.writeUnsignedInt(0);
 		}
 		
 		public function get material():Material
@@ -347,6 +368,7 @@ package cn.alchemy3d.objects
 			directionPtr		= ps[2];
 			scalePtr			= ps[3];
 			worldPositionPtr	= ps[4];
+			lightEnablePtr		= ps[5];
 		}
 		
 		/**

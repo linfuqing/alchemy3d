@@ -4,6 +4,7 @@ package cn.alchemy3d.view
 	import cn.alchemy3d.device.IDevice;
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.scene.Scene3D;
+	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -13,7 +14,9 @@ package cn.alchemy3d.view
 	public class Viewport3D extends Sprite implements IDevice
 	{
 		public var pointer:uint;
-		public var mixedChannelPointer:uint;
+		public var videoBufferPointer:uint;
+		public var cameraPointer:uint;
+		public var scenePointer:uint;
 		public var nRenderListPointer:uint;
 		public var nCullListPointer:uint;
 		public var nClippListPointer:uint;
@@ -24,7 +27,7 @@ package cn.alchemy3d.view
 		public var camera:Camera3D;
 		public var scene:Scene3D;
 		
-		protected var mixedChannel:BitmapData;
+		protected var videoBuffer:BitmapData;
 		protected var wh:int;
 		
 		
@@ -71,10 +74,10 @@ package cn.alchemy3d.view
 			super();
 			
 			if (scene.pointer == 0)
-				throw new Error("场景没有被添加到设备列表");
+				Alchemy3DLog.error("场景没有被添加到设备列表");
 			
 			if (camera.pointer == 0)
-				throw new Error("摄像机没有被添加到设备列表");
+				Alchemy3DLog.error("摄像机没有被添加到设备列表");
 			
 			this.scene = scene;
 			this.camera = camera;
@@ -83,14 +86,8 @@ package cn.alchemy3d.view
 			viewHeight = height;
 			wh = int(width) * int(height);
 			
-			mixedChannel = new BitmapData(width, height, true, 0);
-			addChild(new Bitmap(mixedChannel, PixelSnapping.NEVER, false));
-			
-			//初始化场景
-			//返回该对象起始指针
-			//var pointerArr:Array = Library.alchemy3DLib.initializeViewport(viewWidth, viewHeight, scene.pointer, camera.pointer);
-			//pointer = pointerArr[0];
-			//gfxPointer = pointerArr[1];
+			videoBuffer = new BitmapData(width, height, true, 0);
+			addChild(new Bitmap(videoBuffer, PixelSnapping.NEVER, false));
 		}
 		
 		public function initialize(devicePointer:uint):void
@@ -100,31 +97,22 @@ package cn.alchemy3d.view
 		
 		public function allotPtr(ps:Array):void
 		{
-			pointer = ps[0];
-			mixedChannelPointer = ps[1];
-			nRenderListPointer = ps[2];
-			nCullListPointer = ps[3];
-			nClippListPointer = ps[4];
+			pointer				= ps[0];
+			videoBufferPointer	= ps[1];
+			cameraPointer		= ps[2];
+			scenePointer		= ps[3];
+			nRenderListPointer	= ps[4];
+			nCullListPointer	= ps[5];
+			nClippListPointer	= ps[6];
 		}
 		
 		public function render():void
 		{
-			Library.memory.position = mixedChannelPointer;
+			Library.memory.position = videoBufferPointer;
 			
-			mixedChannel.lock();
-//			mixedChannel.fillRect(mixedChannel.rect, 0);
-			mixedChannel.setPixels(mixedChannel.rect, Library.memory);
-			
-//			Library.memory.position = gfx2Pointer;
-//			
-//			gfx2.lock();
-//			gfx2.fillRect(gfx2.rect, 0);
-//			gfx2.setPixels(gfx2.rect, memory);
-//			gfx2.unlock();
-//			
-//			gfx.merge(gfx2, gfx.rect, new Point(), 1, 1, 1, 1);
-
-			mixedChannel.unlock();
+			videoBuffer.lock();
+			videoBuffer.setPixels(videoBuffer.rect, Library.memory);
+			videoBuffer.unlock();
 		}
 	}
 }

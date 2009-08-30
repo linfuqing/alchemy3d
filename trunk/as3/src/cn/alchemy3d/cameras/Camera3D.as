@@ -5,7 +5,6 @@ package cn.alchemy3d.cameras
 	import cn.alchemy3d.objects.Entity;
 	
 	import flash.geom.Vector3D;
-	import flash.utils.ByteArray;
 	
 	public class Camera3D implements IDevice
 	{
@@ -25,7 +24,37 @@ package cn.alchemy3d.cameras
 		private var _near:Number;
 		private var _far:Number;
 		
-		public var eye:Entity;
+		protected var eye:Entity;
+		
+		public function get x():Number
+		{
+			return eye.x;
+		}
+		
+		public function set x(value:Number):void
+		{
+			eye.x = value;
+		}
+		
+		public function get y():Number
+		{
+			return eye.y;
+		}
+		
+		public function set y(value:Number):void
+		{
+			eye.y = value;
+		}
+		
+		public function get z():Number
+		{
+			return eye.z;
+		}
+		
+		public function set z(value:Number):void
+		{
+			eye.z = value;
+		}
 		
 		public function get target():Vector3D
 		{
