@@ -27,7 +27,7 @@ package
 	import flash.ui.Keyboard;
 	
 	import gs.TweenLite;
-	import gs.easing.Quad;
+	import gs.easing.Back;
 
 	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="40")]
 	public class TestRenderMode extends Basic
@@ -137,26 +137,12 @@ package
 			t2 = new Texture(bl.getBitmapData("1"));
 			
 			//============设置材质===============
-			var m:Material = new Material();
-			m.ambient = new ColorTransform(.1, .1, .1, 1);
-			m.diffuse = new ColorTransform(1, 1, 1, 1);
-			m.specular = new ColorTransform(.7, .7, .7, 1);
-			m.power = 32;
+			var m:Material = new Material(new ColorTransform(.1, .1, .1, 1), new ColorTransform(1, 1, 1, 1), new ColorTransform(.7, .7, .7, 1), null, 32);
+			var m2:Material = new Material(new ColorTransform(.1, .1, .1, 1), new ColorTransform(.8, .8, .8, 1), new ColorTransform(1, 1, 1, 1), null, 16);
 			
-			var m2:Material = new Material();
-			m2.ambient = new ColorTransform(.1, .1, .1, 1);
-			m2.diffuse = new ColorTransform(.8, .8, .8, 1);
-			m2.specular = new ColorTransform(1, 1, 1, 1);
-			m2.power = 16;
-			
-			var lightM:Material = new Material();
-			lightM.ambient = new ColorTransform(1, 0, 0, 1);
-			
-			var lightM1:Material = new Material();
-			lightM1.ambient = new ColorTransform(0, 1, 0, 1);
-			
-			var lightM2:Material = new Material();
-			lightM2.ambient = new ColorTransform(0, 0, 1, 1);
+			var lightM:Material = new Material(new ColorTransform(1, 0, 0, 1));
+			var lightM1:Material = new Material(new ColorTransform(0, 1, 0, 1));
+			var lightM2:Material = new Material(new ColorTransform(0, 0, 1, 1));
 			//============设置材质===============
 			
 			scene = new Scene3D();
@@ -259,13 +245,13 @@ package
 		
 		private function callBack():void
 		{
-			TweenLite.delayedCall(2, moveTarget);
+			TweenLite.delayedCall(3, moveTarget);
 		}
 		
 		private function moveTarget(x:Number = 0, y:Number = 0, z:Number = 0, angleX:Number = 0, angleY:Number = 0, angleZ:Number = 0):void
 		{
-			TweenLite.to(center, 1.5, {x:Math.random() * 180 - 90});
-			TweenLite.to(camera, 1.5, {x:Math.random() * 600 - 300, y:Math.random() * 600 - 300, z:Math.random() * 300 - 300, onComplete:callBack, ease:Quad.easeInOut});
+			TweenLite.to(center, 1.5, {x:Math.random() * 280 - 140});
+			TweenLite.to(camera, 1.5, {x:Math.random() * 900 - 450, y:Math.random() * 900 - 450, z:Math.random() * 500 - 300, onComplete:callBack, ease:Back.easeIn});
 		}
 		
 		private var ri:uint = 0x000001;
