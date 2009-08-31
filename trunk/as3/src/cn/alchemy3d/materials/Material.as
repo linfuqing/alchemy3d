@@ -4,7 +4,6 @@ package cn.alchemy3d.materials
 	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.geom.ColorTransform;
-	import flash.utils.ByteArray;
 	
 	public class Material
 	{
@@ -124,15 +123,15 @@ package cn.alchemy3d.materials
 				Library.memory.writeFloat(0);
 		}
 		
-		public function Material()
+		public function Material(ambient:ColorTransform = null, diffuse:ColorTransform = null, specular:ColorTransform = null, emissive:ColorTransform = null, power:Number = 32)
 		{
-			_ambient = new ColorTransform(.1, .1, .1, 1);
-			_diffuse = new ColorTransform(.6, .6, .6, 1);
-			_specular = new ColorTransform(.8, .8, .8, 1);
-			_emissive = new ColorTransform(0, 0, 0, 1);
+			_ambient = ambient || new ColorTransform(.1, .1, .1, 1);
+			_diffuse = diffuse || new ColorTransform(.6, .6, .6, 1);
+			_specular = specular || new ColorTransform(.8, .8, .8, 1);
+			_emissive = emissive || new ColorTransform(0, 0, 0, 1);
 			_power = 32;
 			
-			var ps:Array = Library.alchemy3DLib.initializeMaterial();
+			var ps:Array = Library.alchemy3DLib.initializeMaterial(_ambient, _diffuse, _specular, _emissive, _power);
 			pointer = ps[0];
 			ambientPtr = ps[1];
 			diffusePtr = ps[2];

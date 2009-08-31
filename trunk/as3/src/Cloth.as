@@ -27,7 +27,7 @@ package
 	
 	import gs.TweenLite;
 
-	[SWF(width="600",height="400",backgroundColor="#000000",frameRate="60")]
+	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
 	public class Cloth extends Basic
 	{
 		protected var viewport:Viewport3D;
@@ -95,18 +95,20 @@ package
 			addCamera(camera);
 			camera.z = -400;
 			
-			viewport = new Viewport3D(600, 400, scene, camera);
+			viewport = new Viewport3D(640, 480, scene, camera);
 			addViewport(viewport);
 			
 			lightObj = new Sphere(lightM, null, 10, 3, 2)
 			scene.addEntity(lightObj);
+			lightObj.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
 			
 			p = new Plane(m, t1, 700, 500, 20, 10);
 			scene.addEntity(p);
+			p.lightEnable = true;
 			p.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
 			p.rotationX = 30;
 			p.rotationY = 15;
-			p.z = 500;
+			p.z = 400;
 			
 			light = new Light3D(lightObj);
 			scene.addLight(light);
