@@ -358,7 +358,7 @@ package cn.alchemy3d.objects
 			var parentPtr:uint = _parent == null ? 0 : _parent.pointer;
 			var scenePtr:uint = scene == null ? 0 : scene.pointer;
 			
-			return Library.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, 0, 0, 0);
+			return Library.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, name, 0, 0, 0);
 		}
 		
 		protected function allotPtr(ps:Array):void

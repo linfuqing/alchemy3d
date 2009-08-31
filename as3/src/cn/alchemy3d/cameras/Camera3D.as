@@ -137,7 +137,7 @@ package cn.alchemy3d.cameras
 			this._near = near;
 			this._far = far;
 			
-			this.eye = eye == null ? new Entity(null, null, "camera") : eye;
+			this.eye = eye == null ? new Entity(null, null, "camera_eye") : eye;
 		}
 		
 		public function initialize(devicePointer:uint):void

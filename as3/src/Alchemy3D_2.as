@@ -150,19 +150,22 @@ package
 			viewport = new Viewport3D(600, 400, scene, camera);
 			addViewport(viewport);
 			
-			lightObj = new Sphere(lightM, null, 20, 3, 2);
+			lightObj = new Sphere(lightM, null, 10, 3, 2, "lightO1");
 			scene.addEntity(lightObj);
+			lightObj.lightEnable = false;
 			lightObj.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			
-			lightObj2 = new Sphere(lightM2, null, 20, 3, 2);
+			lightObj2 = new Sphere(lightM2, null, 10, 3, 2, "lightO2");
 			scene.addEntity(lightObj2);
+			lightObj2.lightEnable = false;
 			lightObj2.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			
-			lightObj3 = new Sphere(lightM3, null, 20, 3, 2);
+			lightObj3 = new Sphere(lightM3, null, 10, 3, 2, "lightO3");
 			scene.addEntity(lightObj3);
+			lightObj3.lightEnable = false;
 			lightObj3.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			
-			p = new Plane(m, null, 800, 800, 1, 1);
+			p = new Plane(m, null, 800, 800, 1, 1, "p");
 			scene.addEntity(p);
 			p.lightEnable = true;
 			p.renderMode = RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32;
@@ -170,13 +173,13 @@ package
 			p.y = -180;
 			p.z = 800;
 			
-			s = new Sphere(m1, t1, 180, 16, 12);
+			s = new Sphere(m1, t1, 180, 16, 12, "s");
 			scene.addEntity(s);
 			s.lightEnable = true;
 			s.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
 			s.z = 1100;
 
-			s3 = new Sphere(m3, null, 120, 16, 12);
+			s3 = new Sphere(m3, null, 120, 16, 12, "s3");
 			scene.addEntity(s3);
 			s3.lightEnable = true;
 			s3.renderMode = RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32;
@@ -184,7 +187,7 @@ package
 			s3.y = -60;
 			s3.z = 700;
 			
-			s2 = new Sphere(m2, t2, 120, 16, 12);
+			s2 = new Sphere(m2, t2, 120, 16, 12, "s2");
 			scene.addEntity(s2);
 			s2.lightEnable = true;
 			s2.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
