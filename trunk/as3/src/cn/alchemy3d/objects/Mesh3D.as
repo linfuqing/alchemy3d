@@ -152,7 +152,7 @@ package cn.alchemy3d.objects
 		
 		protected function applyForMeshBuffer():void
 		{
-			meshBuffPointer = Library.alchemy3DLib.applyForTmpBuffer(sizeOfInt, (vertices.length * vSize + faces.length * fSize) * sizeOfInt);
+			meshBuffPointer = Library.alchemy3DLib.applyForTmpBuffer((vertices.length * vSize + faces.length * fSize) * 4);
 		}
 		
 		override public function initialize(scene:Scene3D):void
@@ -170,7 +170,7 @@ package cn.alchemy3d.objects
 			var parentPtr:uint = parent == null ? 0 : parent.pointer;
 			var scenePtr:uint = scene == null ? 0 : scene.pointer;
 			
-			return Library.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, meshBuffPointer, vertices.length, faces.length);
+			return Library.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, name, meshBuffPointer, vertices.length, faces.length);
 		}
 		
 		override protected function allotPtr(ps:Array):void

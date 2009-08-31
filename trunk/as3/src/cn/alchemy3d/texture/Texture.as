@@ -80,7 +80,7 @@ package cn.alchemy3d.texture
 			byte.position = 0;
 			
 			var i:int = 0, j:int = bitmapdata.width * bitmapdata.height;
-			bitmapDataPtr = Library.alchemy3DLib.applyForTmpBuffer(4, j);
+			bitmapDataPtr = Library.alchemy3DLib.applyForTmpBuffer(j * 4);
 			Library.memory.position = bitmapDataPtr;
 			
 			var uint32:uint;
@@ -93,7 +93,9 @@ package cn.alchemy3d.texture
 			
 			var ps:Array = Library.alchemy3DLib.initializeTexture(bitmapdata.width, bitmapdata.height, bitmapDataPtr);
 			pointer = ps[0];
-			Library.memory.position = ps[1];
+			
+			bitmapdata.dispose();
+			bitmapdata = null;
 		}
 		
 		public function load(url:String):void
