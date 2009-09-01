@@ -1176,7 +1176,7 @@ INLINE void matrix3D_transformVector_self( Matrix3D * m, Vector3D * v )
 	v->z = z;
 	v->w = w;
 
-	if (v->w != 1) vector3D_project( v );
+	//if (v->w != 1) vector3D_project( v );
 }
 
 /**

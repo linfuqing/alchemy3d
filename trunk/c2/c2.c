@@ -5,13 +5,13 @@
 #define __NOT_AS3__
 
 #include "Base.h"
+#include "Math.h"
 #include "Device.h"
 #include "Scene.h"
 #include "Entity.h"
 #include "Viewport.h"
 #include "Triangle.h"
 #include "Mesh.h"
-#include "Render.h"
 #include "Vector3D.h"
 #include "Matrix3D.h"
 #include "FloatColor.h"
@@ -19,6 +19,7 @@
 #include "Texture.h"
 #include "Light.h"
 #include "Plane3D.h"
+#include "3DSLoader.h"
 
 Device * device;
 
@@ -42,31 +43,31 @@ int main()
 	int i = 0;
 	int j = 0;
 
-	LPBYTE bitmapData;
+	LPDWORD bitmapData;
 
-	if( ( bitmapData = ( LPBYTE )calloc( 64*64*sizeof(DWORD), sizeof( BYTE ) ) ) == NULL )
+	if( ( bitmapData = ( LPDWORD )calloc( 256*256, sizeof( DWORD ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
-	for ( i = 0; i < 64 * 64; i ++ )
+	for ( i = 0; i < 256 * 256; i ++ )
 	{
-		bitmapData[i] = i;
+		bitmapData[i] = 0xffffffff;
 	}
 
-	texture = newTexture(64, 64, bitmapData);
+	texture = newTexture(256, 256, (LPBYTE)bitmapData);
 
-	pos[0] = -10.0f;
-	pos[1] = -10.0f;
+	pos[0] = -50.0f;
+	pos[1] = -50.0f;
 
-	pos[2] = -10.0f;
-	pos[3] = 10.0f;
+	pos[2] = -50.0f;
+	pos[3] = 50.0f;
 
-	pos[4] = 10.0f;
-	pos[5] = -10.0f;
+	pos[4] = 50.0f;
+	pos[5] = -50.0f;
 
-	pos[6] = 10.0f;
-	pos[7] = 10.0f;
+	pos[6] = 50.0f;
+	pos[7] = 50.0f;
 
 	//========================
 	pos2[0] = -50.0f;
@@ -99,7 +100,7 @@ int main()
 	mesh1 = newMesh( 4, 2 );
 	mesh2 = newMesh( 18, 9 );
 
-	mesh1->render_mode = RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32;
+	mesh1->render_mode = RENDER_WIREFRAME_TRIANGLE_32;
 	mesh2->render_mode = RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
 
 	for ( i = 0; i < 8; i += 2)
@@ -136,7 +137,7 @@ int main()
 	mesh_push_triangle(mesh2, vArr2[4], vArr2[7], vArr2[5], point2, point2, point2, NULL);
 	mesh_push_triangle(mesh2, vArr2[8], vArr2[5], vArr2[7], point2, point2, point2, NULL);
 
-	material = newMaterial( newFloatColor( 0.05f, 0.05f, 0.05f, 1.0f ),
+	material = newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
 							newFloatColor( 0.3f, 0.8f, 0.6f, 1.0f ),
 							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
@@ -155,15 +156,16 @@ int main()
 	mesh_setTexture( mesh2, texture );
 
 	do3d = newEntity();
-	//entity_setRotationX(do3d, 45.0f);
+	do3d->name = "hello";
+	//entity_setRotationY(do3d, 10.0f);
 	//entity_setRotationZ(do3d, 134.0f);
 	//entity_setY(do3d, -20.0f);
-	entity_setZ(do3d, 200.0f);
+	entity_setZ(do3d, 300.0f);
 	entity_setMesh( do3d, mesh1 );
 
 	do3d2 = newEntity();
-	entity_setRotationX(do3d2, 90.0f);
-	entity_setZ(do3d2, 40.0f);
+	//entity_setRotationX(do3d2, 90.0f);
+	entity_setZ(do3d2, 540.0f);
 	entity_setMesh( do3d2, mesh2 );
 
 	camera = newCamera( 90.0f, 100.0f, 5000.0f, newEntity() );

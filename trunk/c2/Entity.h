@@ -12,19 +12,27 @@
 
 typedef struct Entity
 {
-	//RW
-	int visible, transformDirty, nChildren;
-	//N
+	char * name;
+
+	//是否可见，是否进行变换，子结点数
+	int visible, transformDirty, nChildren, lightEnable;
+
+	//子结点
 	struct SceneNode * children;
-	//N
+
+	//父结点
 	struct Entity * parent;
-	//N
+
+	//场景
 	struct Scene * scene;
-	//RW
+
+	//局部坐标，朝向，缩放因子，世界坐标，相机坐标，裁剪空间坐标，视点局部坐标
 	Vector3D * position, * direction, * scale, * w_pos, * s_pos, * CVVPosition, * viewerToLocal;
-	//R
+
+	//局部矩阵，世界矩阵，世界逆矩阵，相机矩阵，投影矩阵
 	Matrix3D * transform, * world, * worldInvert, * view, * projection;
-	//R
+
+	//网格
 	Mesh * mesh;
 
 }Entity;
@@ -58,7 +66,7 @@ Entity * newEntity()
 	entity->world			= newMatrix3D(NULL);
 	entity->worldInvert		= newMatrix3D(NULL);
 	entity->view			= newMatrix3D(NULL);
-	entity->projection			= newMatrix3D(NULL);
+	entity->projection		= newMatrix3D(NULL);
 
 	entity->children		= NULL;
 	entity->parent			= NULL;
@@ -66,6 +74,8 @@ Entity * newEntity()
 	entity->scene			= NULL;
 
 	entity->visible = entity->transformDirty = TRUE;
+
+	entity->lightEnable = FALSE;
 
 	entity->nChildren = 0;
 

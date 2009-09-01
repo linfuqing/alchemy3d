@@ -9,13 +9,13 @@ typedef struct ARGBColor
 	{
 		struct
 		{
-			WORD red;
-			WORD green;
-			WORD blue;
-			WORD alpha;
+			BYTE red;
+			BYTE green;
+			BYTE blue;
+			BYTE alpha;
 		};
 
-		WORD color[4];
+		BYTE color[4];
 	};
 }ARGBColor;
 
@@ -42,7 +42,7 @@ INLINE void argbColor_identity( ARGBColor * c )
 	c->red = c->green = c->blue = c->alpha = 255;
 }
 
-ARGBColor * newARGBColor( WORD r, WORD g, WORD b, WORD a )
+ARGBColor * newARGBColor( BYTE r, BYTE g, BYTE b, BYTE a )
 {
 	ARGBColor * c;
 

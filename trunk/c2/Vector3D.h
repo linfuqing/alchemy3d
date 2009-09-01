@@ -12,9 +12,10 @@
 
 #include <malloc.h>
 #include <stdio.h>
-# include<string.h>
+#include <string.h>
 
 #include "Base.h"
+#include "Math.h"
 
 //RW
 typedef struct Vector3D
@@ -111,7 +112,6 @@ INLINE Vector3D * vector3D_add( Vector3D * output, Vector3D * v1, Vector3D * v2 
 	output->x = v1->x + v2->x;
 	output->y = v1->y + v2->y;
 	output->z = v1->z + v2->z;
-	output->w = 1;
 
 	return output;
 }
@@ -121,7 +121,6 @@ INLINE void vector3D_add_self( Vector3D * v1, Vector3D * v2 )
 	v1->x += v2->x;
 	v1->y += v2->y;
 	v1->z += v2->z;
-	v1->w = 1;
 }
 
 INLINE Vector3D * vector3D_subtract( Vector3D * output, Vector3D * v1, Vector3D * v2 )
@@ -129,7 +128,6 @@ INLINE Vector3D * vector3D_subtract( Vector3D * output, Vector3D * v1, Vector3D 
 	output->x = v1->x - v2->x;
 	output->y = v1->y - v2->y;
 	output->z = v1->z - v2->z;
-	output->w = 1;
 
 	return output;
 }
@@ -139,7 +137,6 @@ INLINE void vector3D_subtract_self( Vector3D * v1, Vector3D * v2 )
 	v1->x -= v2->x;
 	v1->y -= v2->y;
 	v1->z -= v2->z;
-	v1->w = 1;
 }
 
 INLINE Vector3D * vector3D_crossProduct( Vector3D * output, Vector3D * v1, Vector3D * v2 )
@@ -147,7 +144,6 @@ INLINE Vector3D * vector3D_crossProduct( Vector3D * output, Vector3D * v1, Vecto
 	output->x = v1->y * v2->z - v1->z * v2->y;
 	output->y = v1->z * v2->x - v1->x * v2->z;
 	output->z = v1->x * v2->y - v1->y * v2->x;
-	output->w = 1;
 
 	return output;
 }
@@ -223,7 +219,6 @@ INLINE void vector3D_scaleBy( Vector3D * v, float value )
 	v->x *= value;
 	v->y *= value;
 	v->z *= value;
-	v->w = 1;
 }
 
 /*char *toString( Vector3D v )

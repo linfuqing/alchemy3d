@@ -32,7 +32,6 @@
 #define FLOAT_IS_IND(x)			((*(const unsigned long *)&x) == 0xffc00000)
 #define	FLOAT_IS_DENORMAL(x)	(((*(const unsigned long *)&x) & 0x7f800000) == 0x00000000 && \
 								 ((*(const unsigned long *)&x) & 0x007fffff) != 0x00000000 )
-
 #define IEEE_FLT_MANTISSA_BITS	23
 #define IEEE_FLT_EXPONENT_BITS	8
 #define IEEE_FLT_EXPONENT_BIAS	127
@@ -106,6 +105,28 @@ BYTE logbase2ofx[513] =
 #define RGB16BIT565(r, g, b) ((b & 31) + ((g & 63) << 5) + ((r & 31) << 11))
 #define RGB24BIT(a, r, g, b) ((b) + ((g) << 8) + ((r) << 16) )
 #define RGB32BIT(a, r, g, b) ((b) + ((g) << 8) + ((r) << 16) + ((a) << 24))
+
+#define FCMP(a,b) ( (fabs(a-b) < EPSILON_E3) ? 1 : 0)
+#define ABS(x)	(((x) < 0) ? -(x) : (((x) > 0) ? (x) : 0))
+#define BOUND(x,a,b) (((x) < (a)) ? (a) : (((x) > (b)) ? (b) : (x)))
+#define MAX(a, b) (a > b) ? (a) : (b)
+#define MIN(a, b) (a < b) ? (a) : (b)
+#define SWAP(a,b,t) {t=a; a=b; b=t;}
+
+#ifdef __NOT_AS3__
+
+INLINE void Mem_Set_QUAD( void *dest, DWORD data, int count )
+{
+	__asm
+	{
+		mov edi, dest ; edi points to destination memory
+		mov ecx, count ; number of 32-bit words to move
+		mov eax, data ; 32-bit data
+		rep stosd ; move data
+	}
+}
+
+#endif
 
 INLINE void swapf(float * x, float * y)
 {
