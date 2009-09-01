@@ -155,86 +155,85 @@ int Clip_Line(int * x1p,int * y1p,int * x2p, int * y2p, int min_clip_x, int max_
 
 	switch(p1_code)
 	{
-	case CLIP_CODE_C: break;
+		case CLIP_CODE_C: break;
 
-	case CLIP_CODE_N:
-		{
-			yc1 = min_clip_y;
-			xc1 = x1 + (int)( 0.5 + (min_clip_y - y1)*(x2 - x1) / (y2 - y1) );
-		}break;
-	case CLIP_CODE_S:
-		{
-			yc1 = max_clip_y;
-			xc1 = x1 + (int)( 0.5 + (max_clip_y-y1)*(x2 - x1) / (y2 - y1) );
-		}break;
-
-	case CLIP_CODE_W:
-		{
-			xc1 = min_clip_x;
-			yc1 = y1 + (int)( 0.5 + (min_clip_x-x1)*(y2 - y1) / (x2 - x1) );
-		}break;
-
-	case CLIP_CODE_E:
-		{
-			xc1 = max_clip_x;
-			yc1 = y1 + (int)( 0.5 + (max_clip_x-x1)*(y2 - y1) / (x2 - x1) );
-		}break;
-
-	case CLIP_CODE_NE:
-		{
-			yc1 = min_clip_y;
-			xc1 = x1 + (int)( 0.5+(min_clip_y - y1)*(x2-x1)/(y2-y1) );
-
-			if (xc1 < min_clip_x || xc1 > max_clip_x)
+		case CLIP_CODE_N:
 			{
-				xc1 = max_clip_x;
-				yc1 = y1 + (int)( 0.5+(max_clip_x-x1)*(y2-y1)/(x2-x1) );
-			} // end if
-
-		}break;
-
-	case CLIP_CODE_SE:
-		{
-			yc1 = max_clip_y;
-			xc1 = x1 + (int)( 0.5+(max_clip_y-y1)*(x2-x1)/(y2-y1) );
-
-			if (xc1 < min_clip_x || xc1 > max_clip_x)
+				yc1 = min_clip_y;
+				xc1 = x1 + (int)( 0.5 + (min_clip_y - y1)*(x2 - x1) / (y2 - y1) );
+			}break;
+		case CLIP_CODE_S:
 			{
-				xc1 = max_clip_x;
-				yc1 = y1 + (int)( 0.5+(max_clip_x-x1)*(y2-y1)/(x2-x1) );
-			} // end if
+				yc1 = max_clip_y;
+				xc1 = x1 + (int)( 0.5 + (max_clip_y-y1)*(x2 - x1) / (y2 - y1) );
+			}break;
 
-		}break;
-
-	case CLIP_CODE_NW:
-		{
-			yc1 = min_clip_y;
-			xc1 = x1 + (int)( 0.5+(min_clip_y - y1)*(x2-x1)/(y2-y1) );
-
-			if (xc1 < min_clip_x || xc1 > max_clip_x)
+		case CLIP_CODE_W:
 			{
 				xc1 = min_clip_x;
-				yc1 = y1 + (int)( 0.5+(min_clip_x-x1)*(y2-y1)/(x2-x1) );
-			} // end if
+				yc1 = y1 + (int)( 0.5 + (min_clip_x-x1)*(y2 - y1) / (x2 - x1) );
+			}break;
 
-		}break;
-
-	case CLIP_CODE_SW:
-		{
-			yc1 = max_clip_y;
-			xc1 = x1 + (int)( 0.5+(max_clip_y-y1)*(x2-x1)/(y2-y1) );
-
-			if (xc1 < min_clip_x || xc1 > max_clip_x)
+		case CLIP_CODE_E:
 			{
-				xc1 = min_clip_x;
-				yc1 = y1 + (int)( 0.5+(min_clip_x-x1)*(y2-y1)/(x2-x1) );
-			} // end if
+				xc1 = max_clip_x;
+				yc1 = y1 + (int)( 0.5 + (max_clip_x-x1)*(y2 - y1) / (x2 - x1) );
+			}break;
 
-		}break;
+		case CLIP_CODE_NE:
+			{
+				yc1 = min_clip_y;
+				xc1 = x1 + (int)( 0.5+(min_clip_y - y1)*(x2-x1)/(y2-y1) );
 
-	default:break;
+				if (xc1 < min_clip_x || xc1 > max_clip_x)
+				{
+					xc1 = max_clip_x;
+					yc1 = y1 + (int)( 0.5+(max_clip_x-x1)*(y2-y1)/(x2-x1) );
+				}
 
-	} // end switch
+			}break;
+
+		case CLIP_CODE_SE:
+			{
+				yc1 = max_clip_y;
+				xc1 = x1 + (int)( 0.5+(max_clip_y-y1)*(x2-x1)/(y2-y1) );
+
+				if (xc1 < min_clip_x || xc1 > max_clip_x)
+				{
+					xc1 = max_clip_x;
+					yc1 = y1 + (int)( 0.5+(max_clip_x-x1)*(y2-y1)/(x2-x1) );
+				}
+
+			}break;
+
+		case CLIP_CODE_NW:
+			{
+				yc1 = min_clip_y;
+				xc1 = x1 + (int)( 0.5+(min_clip_y - y1)*(x2-x1)/(y2-y1) );
+
+				if (xc1 < min_clip_x || xc1 > max_clip_x)
+				{
+					xc1 = min_clip_x;
+					yc1 = y1 + (int)( 0.5+(min_clip_x-x1)*(y2-y1)/(x2-x1) );
+				}
+
+			}break;
+
+		case CLIP_CODE_SW:
+			{
+				yc1 = max_clip_y;
+				xc1 = x1 + (int)( 0.5+(max_clip_y-y1)*(x2-x1)/(y2-y1) );
+
+				if (xc1 < min_clip_x || xc1 > max_clip_x)
+				{
+					xc1 = min_clip_x;
+					yc1 = y1 + (int)( 0.5+(min_clip_x-x1)*(y2-y1)/(x2-x1) );
+				}
+
+			}break;
+
+		default:break;
+	}
 
 	switch(p2_code)
 	{
@@ -299,7 +298,7 @@ int Clip_Line(int * x1p,int * y1p,int * x2p, int * y2p, int min_clip_x, int max_
 				{
 					xc2 = min_clip_x;
 					yc2 = y2 + (int)( 0.5+(min_clip_x-x2)*(y1-y2)/(x1-x2) );
-				} // end if
+				}
 
 			}break;
 
@@ -312,12 +311,12 @@ int Clip_Line(int * x1p,int * y1p,int * x2p, int * y2p, int min_clip_x, int max_
 				{
 					xc2 = min_clip_x;
 					yc2 = y2 + (int)( 0.5+(min_clip_x-x2)*(y1-y2)/(x1-x2) );
-				} // end if
+				}
 
 			}break;
 
 		default:break;
-	} // end switch
+	}
 
 	if ((xc1 < min_clip_x) || (xc1 > max_clip_x) ||
 		(yc1 < min_clip_y) || (yc1 > max_clip_y) ||
@@ -325,7 +324,7 @@ int Clip_Line(int * x1p,int * y1p,int * x2p, int * y2p, int min_clip_x, int max_
 		(yc2 < min_clip_y) || (yc2 > max_clip_y) )
 	{
 		return(0);
-	} // end if
+	}
 
 	* x1p = xc1;
 	* y1p = yc1;
@@ -551,7 +550,7 @@ void Draw_Bottom_Tri32(int x1, int y1, int x2, int y2, int x3, int y3, DWORD col
 				if (left > max_clip_x)
 					continue;
 			}
-			
+
 			for (temp_x = (int)left; temp_x < (int)right + 1; temp_x ++)
 			{
 				dest_addr[temp_x] = color;
@@ -690,7 +689,7 @@ void Draw_Top_TriFP(int x1,int y1, int x2,int y2, int x3,int y3, DWORD color, BY
 		for (temp_y=y1; temp_y<=y3; temp_y++,dest_addr+=mempitch)
 		{
 			/*memset((BYTE * )dest_addr+((xs+FIXP16_ROUND_UP)>>FIXP16_SHIFT),
-				color, (((xe-xs+FIXP16_ROUND_UP)>>FIXP16_SHIFT)+1));*/
+			color, (((xe-xs+FIXP16_ROUND_UP)>>FIXP16_SHIFT)+1));*/
 
 			for (temp_x = ((xs+FIXP16_ROUND_UP)>>FIXP16_SHIFT); temp_x < ((xe+FIXP16_ROUND_UP)>>FIXP16_SHIFT)+1; temp_x ++)
 			{
@@ -726,7 +725,7 @@ void Draw_Top_TriFP(int x1,int y1, int x2,int y2, int x3,int y3, DWORD color, BY
 			}
 
 			/*memset((BYTE * )dest_addr+(unsigned int)left,
-				color,(unsigned int)(right-left+1));*/
+			color,(unsigned int)(right-left+1));*/
 
 			for (temp_x = (int)left; temp_x < (int)right + 1; temp_x ++)
 			{
@@ -792,7 +791,7 @@ void Draw_Bottom_TriFP(int x1,int y1, int x2,int y2, int x3,int y3, DWORD color,
 		for (temp_y=y1; temp_y<=y3; temp_y++,dest_addr+=mempitch)
 		{
 			/*memset((DWORD *)dest_addr+((xs+FIXP16_ROUND_UP)>>FIXP16_SHIFT),
-				color, (((xe-xs+FIXP16_ROUND_UP)>>FIXP16_SHIFT)+1)<<2);*/
+			color, (((xe-xs+FIXP16_ROUND_UP)>>FIXP16_SHIFT)+1)<<2);*/
 
 			for (temp_x = ((xs+FIXP16_ROUND_UP)>>FIXP16_SHIFT); temp_x < ((xe+FIXP16_ROUND_UP)>>FIXP16_SHIFT)+1; temp_x ++)
 			{
@@ -828,7 +827,7 @@ void Draw_Bottom_TriFP(int x1,int y1, int x2,int y2, int x3,int y3, DWORD color,
 			}
 
 			/*memset((DWORD *)dest_addr+left,
-				color, (right-left+1)<<2);*/
+			color, (right-left+1)<<2);*/
 
 			for (temp_x = (int)left; temp_x < (int)right + 1; temp_x ++)
 			{
