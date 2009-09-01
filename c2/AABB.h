@@ -60,8 +60,8 @@ typedef struct AABB
 
 INLINE void aabb_empty(AABB * aabb)
 {
-	aabb->min->x = aabb->min->y = aabb->min->z = FLT_MAX;
-	aabb->max->x = aabb->max->y = aabb->max->z = -FLT_MAX;
+	aabb->min->x = aabb->min->y = aabb->min->z = aabb->min->w = FLT_MAX;
+	aabb->max->x = aabb->max->y = aabb->max->z = aabb->min->w = -FLT_MAX;
 }
 
 AABB * newAABB()
@@ -70,8 +70,8 @@ AABB * newAABB()
 
 	if( ( aabb = ( AABB * )malloc( sizeof( AABB ) ) ) == NULL ) exit( TRUE );
 
-	aabb->min = newVector3D( FLT_MAX, FLT_MAX, FLT_MAX, 1 );
-	aabb->max = newVector3D( - FLT_MAX, - FLT_MAX, - FLT_MAX, 1 );
+	aabb->min = newVector3D( FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX );
+	aabb->max = newVector3D( - FLT_MAX, - FLT_MAX, - FLT_MAX, - FLT_MAX );
 
 	return aabb;
 }
@@ -108,6 +108,18 @@ INLINE void aabb_add(AABB * aabb, Vector3D * p)
 	if (p->y > aabb->max->y) aabb->max->y = p->y;
 	if (p->z < aabb->min->z) aabb->min->z = p->z;
 	if (p->z > aabb->max->z) aabb->max->z = p->z;
+}
+
+INLINE void aabb_add_4D(AABB * aabb, Vector3D * p)
+{
+	if (p->x < aabb->min->x) aabb->min->x = p->x;
+	if (p->x > aabb->max->x) aabb->max->x = p->x;
+	if (p->y < aabb->min->y) aabb->min->y = p->y;
+	if (p->y > aabb->max->y) aabb->max->y = p->y;
+	if (p->z < aabb->min->z) aabb->min->z = p->z;
+	if (p->z > aabb->max->z) aabb->max->z = p->z;
+	if (p->w < aabb->min->w) aabb->min->w = p->w;
+	if (p->w > aabb->max->w) aabb->max->w = p->w;
 }
 
 INLINE AABB * aabb_createFromAABB(AABB * box)

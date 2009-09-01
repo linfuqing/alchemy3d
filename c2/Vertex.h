@@ -20,6 +20,8 @@ typedef struct Vertex
 {
 	int nContectedFaces, transformed;
 
+	int fix_inv_z;
+
 	Vector3D * position, * w_pos, * s_pos, * normal, * normalLength;
 
 	Vector * uv;
@@ -67,6 +69,8 @@ INLINE void vertex_copy( Vertex * dest, Vertex * src )
 
 	argbColor_copy( dest->color, src->color );
 
+	dest->fix_inv_z = src->fix_inv_z;
+
 	dest->contectedFaces = NULL;
 
 	dest->nContectedFaces = 0;
@@ -90,6 +94,8 @@ INLINE Vertex * vertex_clone( Vertex * src )
 	dest->uv			= vector_clone( src->uv );
 
 	dest->color			= argbColor_clone( src->color );
+
+	dest->fix_inv_z = src->fix_inv_z;
 
 	dest->contectedFaces = NULL;
 

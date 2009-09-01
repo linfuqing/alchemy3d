@@ -6,7 +6,6 @@
 #include "Viewport.h"
 #include "Scene.h"
 #include "Camera.h"
-#include "Render.h"
 
 typedef struct Viewports
 {
@@ -312,21 +311,6 @@ void device_render(Device * device)
 		if ( TRUE == camera->isAttached ) camera_updateTransform( camera );
 
 		cameras = cameras->next;
-	}
-
-	//更新所有场景
-	scenes = device->scenes;
-
-	while( NULL != scenes )
-	{
-		scene = scenes->scene;
-
-		//scene_updateBeforeRender( scene );
-
-		//如果场景已经连接到视口，则更新，反之不做任何处理
-		if ( TRUE == scene->isAttached ) scene_project( scene );
-
-		scenes = scenes->next;
 	}
 
 	//对所有视口进行投影和光栅化

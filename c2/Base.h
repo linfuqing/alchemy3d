@@ -13,22 +13,18 @@ typedef unsigned short *	LPWORD;
 
 typedef unsigned int		DWORD;		// 32 bits[0-4294967295]size:4Bytes FFFFFFFF
 typedef unsigned int *		LPDWORD;
-typedef unsigned int		UINT32;
+typedef unsigned int		UINT;
 
 typedef unsigned long		ULONG;
 
-#define TRUE			1
-#define FALSE			0
+#define TRUE				1
+#define FALSE				0
 
-#define VERTEX_SIZE		5
-#define FACE_SIZE		9
-#define USERADIANS TRUE
+#define USERADIANS			TRUE
 
-#define ABS(x)	(((x) < 0) ? -(x) : (((x) > 0) ? (x) : 0))
-#define BOUND(x,a,b) (((x) < (a)) ? (a) : (((x) > (b)) ? (b) : (x)))
-#define MAX(a, b) (a > b) ? (a) : (b)
-#define MIN(a, b) (a < b) ? (a) : (b)
-#define SWAP(a,b,t) {t=a; a=b; b=t;}
+#define VERTEX_SIZE			5
+#define FACE_SIZE			9
+#define MAX_LIGHTS			10
 
 #define X_AXIS (NULL == g_X_AXIS) ? newVector3D( 1.0f, 0, 0, 1.0f ) : g_X_AXIS
 #define Y_AXIS (NULL == g_Y_AXIS) ? newVector3D( 0, 1.0f, 0, 1.0f ) : g_Y_AXIS
@@ -38,21 +34,24 @@ typedef unsigned long		ULONG;
 #define INV_Y_AXIS (NULL == g_INV_Y_AXIS) ? newVector3D( 0, - 1.0f, 0, 1.0f ) : g_INV_Y_AXIS
 #define INV_Z_AXIS (NULL == g_INV_Z_AXIS) ? newVector3D( 0, 0, - 1.0f, 1.0f ) : g_INV_Z_AXIS
 
-#define FCMP(a,b) ( (fabs(a-b) < EPSILON_E3) ? 1 : 0)
-
 //定义渲染模式
-#define RENDER_NONE											0x000001	//不渲染
+#define RENDER_NONE											0x000000	//不渲染
+#define RENDER_WIREFRAME_TRIANGLE_32						0x000001	//线框模式
 
+//带纹理光栅化
 #define RENDER_TEXTRUED_TRIANGLE_INVZB_32					0x000002	//32位模式 + 1/z深度缓冲 + 纹理映射
 #define RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32			0x000004	//32位模式 + 1/z深度缓冲 + 双线性纹理
 #define RENDER_TEXTRUED_TRIANGLE_FSINVZB_32					0x000008	//32位模式 + 1/z深度缓冲 + Flat光照模型 + 纹理映射
 #define RENDER_TEXTRUED_TRIANGLE_GSINVZB_32					0x000010	//32位模式 + 1/z深度缓冲 + Gouraud光照模型 + 纹理映射
-#define RENDER_FLAT_TRIANGLE_INVZB_32						0x000020	//32位模式 + 1/z深度缓冲 + Flat光照模型
-#define RENDER_GOURAUD_TRIANGLE_INVZB_32					0x000040	//32位模式 + 1/z深度缓冲 + Gouraud光照模型
+#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32		0x000020	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射
+#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32		0x000040	//32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射
+#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32		0x000080	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Flat光照模型
+#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32	0x000100	//32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射 + Flat光照模型
 
-#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32		0x000080	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射
-#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32		0x000100	//32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射
-#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32		0x000200	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Flat光照模型
-#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32	0x000400	//32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射 + Flat光照模型
+//不带纹理光栅化
+#define RENDER_FLAT_TRIANGLE_32								0x000200	//32位Flat模式不带Z缓冲
+#define RENDER_FLAT_TRIANGLEFP_32							0x000400	//32位Flat定点模式不带Z缓冲
+#define RENDER_FLAT_TRIANGLE_INVZB_32						0x000800	//32位模式 + 1/z深度缓冲 + Flat光照模型
+#define RENDER_GOURAUD_TRIANGLE_INVZB_32					0x001000	//32位模式 + 1/z深度缓冲 + Gouraud光照模型
 
 #endif

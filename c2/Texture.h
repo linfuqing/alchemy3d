@@ -16,7 +16,7 @@ Texture * newTexture( int width, int height, LPBYTE pRGBABuffer )
 {
 	Texture * texture;
 	//BYTE * ARGBBuffer;
-	int lSize = 0, i = 0, j = 0;
+	int lSize = 0;
 	//DWORD dwPixel;
 	//DWORD a,r,g,b;
 

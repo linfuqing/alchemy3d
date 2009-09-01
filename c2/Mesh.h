@@ -201,8 +201,9 @@ void mesh_setTexture( Mesh * m, Texture * t )
 
 	for( i = 0; i < m->nVertices; i ++ )
 	{
-		m->vertices[i].uv->u *= t->width;
-		m->vertices[i].uv->v *= t->height;
+		//ÎÆÀí×ø·¶Î§ÔÚ[width-1, height-1]
+		m->vertices[i].uv->u *= t->width - 1;
+		m->vertices[i].uv->v *= t->height - 1;
 	}
 
 	m->texture = t;
@@ -210,6 +211,8 @@ void mesh_setTexture( Mesh * m, Texture * t )
 
 INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )
 {
+	float invw;
+
 	Vector3D T_L_F_V;
 	Vector3D T_R_F_V;
 	Vector3D T_L_B_V;
@@ -231,22 +234,53 @@ INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )
 	B_R_B_V.x = max->x;	B_R_B_V.y = max->y;	B_R_B_V.z = max->z;	B_R_B_V.w = 1;
 
 	matrix3D_transformVector_self( m, & T_L_F_V );
-	matrix3D_transformVector_self( m, & T_R_F_V );
-	matrix3D_transformVector_self( m, & T_L_B_V );
-	matrix3D_transformVector_self( m, & T_R_B_V );
-	matrix3D_transformVector_self( m, & B_L_F_V );
-	matrix3D_transformVector_self( m, & B_R_F_V );
-	matrix3D_transformVector_self( m, & B_L_B_V );
-	matrix3D_transformVector_self( m, & B_R_B_V );
+	invw = 1.0f / T_L_F_V.w;
+	T_L_F_V.x *= invw;
+	T_L_F_V.y *= invw;
 
-	aabb_add( output, & T_L_F_V );
-	aabb_add( output, & T_R_F_V );
-	aabb_add( output, & T_L_B_V );
-	aabb_add( output, & T_R_B_V );
-	aabb_add( output, & B_L_F_V );
-	aabb_add( output, & B_R_F_V );
-	aabb_add( output, & B_L_B_V );
-	aabb_add( output, & B_R_B_V );
+	matrix3D_transformVector_self( m, & T_R_F_V );
+	invw = 1.0f / T_R_F_V.w;
+	T_R_F_V.x *= invw;
+	T_R_F_V.y *= invw;
+
+	matrix3D_transformVector_self( m, & T_L_B_V );
+	invw = 1.0f / T_L_B_V.w;
+	T_L_B_V.x *= invw;
+	T_L_B_V.y *= invw;
+
+	matrix3D_transformVector_self( m, & T_R_B_V );
+	invw = 1.0f / T_R_B_V.w;
+	T_R_B_V.x *= invw;
+	T_R_B_V.y *= invw;
+
+	matrix3D_transformVector_self( m, & B_L_F_V );
+	invw = 1.0f / B_L_F_V.w;
+	B_L_F_V.x *= invw;
+	B_L_F_V.y *= invw;
+
+	matrix3D_transformVector_self( m, & B_R_F_V );
+	invw = 1.0f / B_R_F_V.w;
+	B_R_F_V.x *= invw;
+	B_R_F_V.y *= invw;
+
+	matrix3D_transformVector_self( m, & B_L_B_V );
+	invw = 1.0f / B_L_B_V.w;
+	B_L_B_V.x *= invw;
+	B_L_B_V.y *= invw;
+
+	matrix3D_transformVector_self( m, & B_R_B_V );
+	invw = 1.0f / B_R_B_V.w;
+	B_R_B_V.x *= invw;
+	B_R_B_V.y *= invw;
+
+	aabb_add_4D( output, & T_L_F_V );
+	aabb_add_4D( output, & T_R_F_V );
+	aabb_add_4D( output, & T_L_B_V );
+	aabb_add_4D( output, & T_R_B_V );
+	aabb_add_4D( output, & B_L_F_V );
+	aabb_add_4D( output, & B_R_F_V );
+	aabb_add_4D( output, & B_L_B_V );
+	aabb_add_4D( output, & B_R_B_V );
 
 	return output;
 }
