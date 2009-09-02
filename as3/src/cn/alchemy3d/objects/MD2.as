@@ -3,15 +3,22 @@ package cn.alchemy3d.objects
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.texture.Texture;
+	
+	import flash.events.Event;
+	import flash.net.URLLoader;
+	import flash.net.URLLoaderDataFormat;
+	import flash.net.URLRequest;
 
 	public class MD2 extends Entity
 	{
+		private var loader:URLLoader;
+		
 		public function MD2(material:Material=null, texture:Texture=null, name:String="")
 		{
 			super(material, texture, name);
 		}
 		
-		public function loader( URL:String )
+		public function load( URL:String ):void
 		{
 			loader = new URLLoader();
 			loader.dataFormat = URLLoaderDataFormat.BINARY;
@@ -43,7 +50,7 @@ package cn.alchemy3d.objects
 			
 			if( buffer )
 			{
-				Library.alchemy3DLib.test( pointer, pos );
+				Library.alchemy3DLib.test( pointer, buffer );
 			}
 		}
 		
