@@ -28,11 +28,7 @@ typedef struct Mesh
 
 }Mesh;
 
-#ifdef __AS3__
 Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
-#else
-Mesh * newMesh( int nVertices, int nFaces )
-#endif
 {
 	Mesh * m;
 
