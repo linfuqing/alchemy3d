@@ -47,8 +47,12 @@ int main()
 
 	FILE *fp;
 	UCHAR * buffer;
+	
+	scene = newScene();
 
 	do3d3 = newEntity();
+
+	scene_addEntity(scene, do3d3, NULL);
 
 	buffer = (UCHAR * )malloc(486251 * sizeof(UCHAR));
 
@@ -197,9 +201,7 @@ int main()
 	//light->attenuation1 = .001f;
 	//light->attenuation2 = .0000001f;
 
-	scene = newScene();
 	//scene_addLight(scene, light);
-	scene_addEntity(scene, do3d3, NULL);
 	//scene_addEntity(scene, do3d, NULL);
 	//scene_addEntity(scene, do3d2, NULL);
 	//scene_addEntity(scene, lightSource, NULL);

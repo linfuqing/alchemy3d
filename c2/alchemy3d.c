@@ -223,8 +223,10 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType", &scene, &entity, &parent );
 
+	//如果有父亲，加入父亲的孩子列表
 	if ( parent ) entity_addChild( parent, entity );
 
+	//加入场景列表
 	if ( parent ) scene_addEntity( scene, entity, parent );
 	else scene_addEntity( scene, entity, NULL );
 
@@ -233,21 +235,15 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 AS3_Val initialize3DS( void* self, AS3_Val args )
 {
-	Scene * scene = NULL;
-
 	Entity * entity = NULL;
 
 	UCHAR * buffer = NULL;
 
 	UINT length = 0;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, IntType", &scene, & buffer, & length );
-
-	entity = newEntity();
+	AS3_ArrayValue( args, "PtrType, PtrType, IntType", &entity, & buffer, & length );
 
 	A3DS_LoadData( entity, & buffer, length );
-
-	if ( scene ) scene_addEntity(scene, entity, NULL);
 
 	return 0;
 }
