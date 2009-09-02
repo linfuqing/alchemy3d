@@ -1,7 +1,6 @@
 package cn.alchemy3d.scene
 {
 
-	import cn.alchemy3d.device.IDevice;
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.objects.Entity;
@@ -10,7 +9,7 @@ package cn.alchemy3d.scene
 	
 	import flash.utils.Dictionary;
 	
-	public class Scene3D implements IDevice
+	public class Scene3D
 	{
 		public function Scene3D()
 		{

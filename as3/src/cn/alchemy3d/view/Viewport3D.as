@@ -1,7 +1,6 @@
 package cn.alchemy3d.view
 {
 	import cn.alchemy3d.cameras.Camera3D;
-	import cn.alchemy3d.device.IDevice;
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.tools.Alchemy3DLog;
@@ -11,7 +10,7 @@ package cn.alchemy3d.view
 	import flash.display.PixelSnapping;
 	import flash.display.Sprite;
 
-	public class Viewport3D extends Sprite implements IDevice
+	public class Viewport3D extends Sprite
 	{
 		public var pointer:uint;
 		public var videoBufferPointer:uint;
