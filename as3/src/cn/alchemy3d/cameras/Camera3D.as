@@ -142,7 +142,7 @@ package cn.alchemy3d.cameras
 		
 		public function initialize(devicePointer:uint):void
 		{
-			eye.initialize(null);
+			eye.initialize();
 			
 			allotPtr(Library.alchemy3DLib.initializeCamera(devicePointer, eye.pointer, _fov, _near, _far));
 		}

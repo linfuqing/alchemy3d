@@ -39,13 +39,25 @@ package cn.alchemy3d.scene
 		public function addEntity(node:Entity, parent:Entity = null):void
 		{
 			if (node.scene || node.parent) Alchemy3DLog.error("已存在父节点");
+			if (!node.pointer || node.pointer == 0)  Alchemy3DLog.error("结点没有实例化");
+			
+			var parentPtr:uint = 0;
+			
+			if (parent)
+			{
+				if (!parent.pointer || parent.pointer == 0)  Alchemy3DLog.error("父结点没有实例化");
+				
+				parentPtr = parent.pointer;
+				
+				node.parent = parent;
+			}
 			
 			nodes[node.name] = node;
 			childrenNum ++;
 			
 			//创建实体并添加到指定节点
 			//返回该对象起始指针
-			node.initialize(this);
+			Library.alchemy3DLib.addEntity(this.pointer, node.pointer, parentPtr);
 			
 			if (node is Mesh3D)
 			{
