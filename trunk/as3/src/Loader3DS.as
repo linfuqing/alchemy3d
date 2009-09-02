@@ -26,6 +26,7 @@ package
 		protected var scene:Scene3D;
 		
 		protected var p:Plane;
+		protected var p0:Entity;
 		
 		public function Loader3DS()
 		{
@@ -34,7 +35,7 @@ package
 			loader = new URLLoader();
 			loader.dataFormat = URLLoaderDataFormat.BINARY;
 			loader.addEventListener(Event.COMPLETE, init);
-			loader.load(new URLRequest("asset/3ds/EarthII.3ds"));
+			loader.load(new URLRequest("asset/man.3ds"));
 		}
 		
 		protected function init(e:Event = null):void
@@ -57,14 +58,15 @@ package
 			m.specular = new ColorTransform(1, 1, 1, 1);
 			m.power = 32;
 			
-			var parent:Entity = new Entity();
-			scene.addEntity(parent);
+			p0 = new Entity();
+			p0.z =500;
+			scene.addEntity(p0);
 			
 			p = new Plane(m, null, 800, 800, 1, 1, "p");
 			p.lightEnable = true;
 			p.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
-			p.z = 800;
-			scene.addEntity(p, parent);
+			p.z = 1200;
+			scene.addEntity(p, p0);
 			
 			//Start 3DS
 			var length:uint = loader.data.length;
@@ -77,9 +79,17 @@ package
 			loader.data.clear();
 			loader.data = null;
 			
-//			alchemy3DLib.initialize3DS(scene.pointer, pos, length);
+			alchemy3DLib.initialize3DS(scene.pointer, pos, length);
 			
 			startRendering();
+		}
+		
+		override protected function onRenderTick(e:Event = null):void
+		{
+			p0.rotationY ++;
+			p.rotationX ++;
+			
+			super.onRenderTick(e);
 		}
 	}
 }
