@@ -2,16 +2,11 @@ package
 {
 	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.lib.Library;
-	import cn.alchemy3d.materials.Material;
-	import cn.alchemy3d.objects.Entity;
-	import cn.alchemy3d.objects.primitives.Plane;
-	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Basic;
 	import cn.alchemy3d.view.Viewport3D;
 	
 	import flash.events.Event;
-	import flash.geom.ColorTransform;
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
@@ -24,9 +19,6 @@ package
 		protected var viewport:Viewport3D;
 		protected var camera:Camera3D;
 		protected var scene:Scene3D;
-		
-		protected var p:Plane;
-		protected var p0:Entity;
 		
 		public function Loader3DS()
 		{
@@ -52,22 +44,6 @@ package
 			viewport = new Viewport3D(600, 400, scene, camera);
 			addViewport(viewport);
 			
-			var m:Material = new Material();
-			m.ambient = new ColorTransform(0.1, 0.1, 0.1, 1);
-			m.diffuse = new ColorTransform(.8, .8, .8, 1);
-			m.specular = new ColorTransform(1, 1, 1, 1);
-			m.power = 32;
-			
-			p0 = new Entity();
-			p0.z =500;
-			scene.addEntity(p0);
-			
-			p = new Plane(m, null, 800, 800, 1, 1, "p");
-			p.lightEnable = true;
-			p.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
-			p.z = 1200;
-			scene.addEntity(p, p0);
-			
 			//Start 3DS
 			var length:uint = loader.data.length;
 			
@@ -86,9 +62,6 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
-			p0.rotationY ++;
-			p.rotationX ++;
-			
 			super.onRenderTick(e);
 		}
 	}
