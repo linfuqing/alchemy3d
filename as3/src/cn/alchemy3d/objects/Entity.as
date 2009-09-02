@@ -43,6 +43,7 @@ package cn.alchemy3d.objects
 		public var materialPtr:int;
 		public var texturePtr:int;
 		public var lightEnablePtr:uint;
+		public var renderModePointer:uint;
 		
 		public var name:String;
 		public var visible:Boolean;
@@ -86,6 +87,16 @@ package cn.alchemy3d.objects
 		public function get scene():Scene3D
 		{
 			return this._scene;
+		}
+		/**
+		 * 设置渲染模式
+		 */
+		public function set renderMode(mode:uint):void
+		{
+			if (!checkInitialized()) return;
+			
+			Library.memory.position = renderModePointer;
+			Library.memory.writeUnsignedInt(mode);
 		}
 		
 		public function get lightEnable():Boolean
@@ -347,6 +358,7 @@ package cn.alchemy3d.objects
 			scalePtr			= ps[3];
 			worldPositionPtr	= ps[4];
 			lightEnablePtr		= ps[5];
+			renderModePointer	= ps[6];
 		}
 		
 		/**

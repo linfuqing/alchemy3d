@@ -29,7 +29,6 @@ package cn.alchemy3d.objects
 		public var verticesPointer:uint;
 		public var facesPointer:uint;
 		public var dirtyPointer:uint;
-		public var renderModePointer:uint;
 		
 		public var sizeOfVertex:int;
 		public var sizeOfFace:int;
@@ -45,17 +44,6 @@ package cn.alchemy3d.objects
 		public function get nVertices():int
 		{
 			return vertices.length;
-		}
-		
-		/**
-		 * 设置渲染模式
-		 */
-		public function set renderMode(mode:uint):void
-		{
-			if (!checkInitialized()) return;
-			
-			Library.memory.position = renderModePointer;
-			Library.memory.writeUnsignedInt(mode);
 		}
 		
 		public function setVertices(index:int, v:Vector3D):void
@@ -175,7 +163,6 @@ package cn.alchemy3d.objects
 		{
 			super.allotPtr(ps);
 			
-			renderModePointer	= ps[6];
 			dirtyPointer		= ps[7];
 			materialPtr			= ps[8];
 			texturePtr			= ps[9];
