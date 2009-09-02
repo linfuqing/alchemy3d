@@ -16,46 +16,49 @@ package cn.alchemy3d.objects.primitives
 		 * 
 		 * @param material 材质
 		 * @param width 宽度
-		 * @param height 高度
+		 * @param _height 高度
 		 * @param segmentsWidth 水平方向分段
-		 * @param segmentsHeight 垂直方向分段
+		 * @param segments_height 垂直方向分段
 		 * @param name 名字
 		 */
-		public function Plane(material:Material = null, texture:Texture = null, width:Number = 500, height:Number = 500, segmentsWidth:uint = 1, segmentsHeight:uint = 1, name:String = "")
+		public function Plane(material:Material = null, texture:Texture = null, width:Number = 500, height:Number = 500, segments_width:uint = 1, segments_height:uint = 1, name:String = "")
 		{
+			this._width = width;
+			this._height = height;
+			this._segments_width = segments_width;
+			this._segments_height = segments_height;
+			
 			super(material, texture, name);
-			
-			this.width = width;
-			this.height = height;
-			this.segmentsWidth = segmentsWidth;
-			this.segmentsHeight = segmentsHeight;
-			
+		}
+		
+		override protected function initialize():void
+		{
 			buildPlane();
 			
 			applyForMeshBuffer();
 			
-			initialize();
+			super.initialize();
 			
 //			flipFaces();
 		}
 		
-		private var height:Number;
-		private var segmentsHeight:uint;
-		private var segmentsWidth:uint;
-		private var width:Number;
+		private var _height:Number;
+		private var _segments_height:uint;
+		private var _segments_width:uint;
+		private var _width:Number;
 		
 		protected function buildPlane():void
 		{
-			var gridX:Number = this.segmentsWidth;
-			var gridY:Number = this.segmentsHeight;
+			var gridX:Number = this._segments_width;
+			var gridY:Number = this._segments_height;
 			var gridX1:Number = gridX + 1;
 			var gridY1:Number = gridY + 1;
 	
-			var textureX :Number = width * .5;
-			var textureY :Number = height * .5;
+			var textureX :Number = _width * .5;
+			var textureY :Number = _height * .5;
 	
-			var iW:Number = width / gridX;
-			var iH:Number = height / gridY;
+			var iW:Number = _width / gridX;
+			var iH:Number = _height / gridY;
 			
 			// Vertices
 			for( var ix:int = 0; ix < gridX + 1; ix++ )

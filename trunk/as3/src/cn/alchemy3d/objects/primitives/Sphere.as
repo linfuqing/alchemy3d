@@ -18,34 +18,44 @@ package cn.alchemy3d.objects.primitives
 		public static  var DEFAULT_SEGMENTSW :Number = 8;
 		public static  var MIN_SEGMENTSH :Number = 2;
 		public static  var MIN_SEGMENTSW :Number = 3;
+		
+		private var _radius:Number;
+		private var _segmentsW:Number;
+		private var _segmentsH:Number;
+		
+		private var v:Dictionary = new Dictionary();
 
 		public function Sphere(material:Material = null, texture:Texture = null, radius:Number = 100, segmentsW:int = 8, segmentsH:int = 6, name:String = "")
 		{
-			super(material, texture, name);
-	
-			this.segmentsW = Math.max( MIN_SEGMENTSW, segmentsW || DEFAULT_SEGMENTSW); // Defaults to 8
-			this.segmentsH = Math.max( MIN_SEGMENTSH, segmentsH || DEFAULT_SEGMENTSH); // Defaults to 6
+			_radius = radius;
 			
-			if (radius==0) radius = DEFAULT_RADIUS;
+			_segmentsW = segmentsW;
+			
+			_segmentsH = segmentsH;
+			
+			super(material, texture, name);
+		}
+		
+		override protected function initialize():void
+		{
+			_segmentsW = Math.max( MIN_SEGMENTSW, _segmentsW || DEFAULT_SEGMENTSW); // Defaults to 8
+			_segmentsH = Math.max( MIN_SEGMENTSH, _segmentsH || DEFAULT_SEGMENTSH); // Defaults to 6
+			
+			if (_radius==0) _radius = DEFAULT_RADIUS;
 	
-			buildSphere( radius );
+			buildSphere( _radius );
 			
 			applyForMeshBuffer();
 			
-			initialize();
+			super.initialize();
 		}
-		
-		private var segmentsH :Number;
-		private var segmentsW :Number;
-		
-		private var v:Dictionary = new Dictionary();
 	
 		private function buildSphere( fRadius:Number ):void
 		{
 			var i:Number, j:Number, k:Number;
 			
-			var iHor:Number = Math.max(3,this.segmentsW);
-			var iVer:Number = Math.max(2,this.segmentsH);
+			var iHor:Number = Math.max(3, _segmentsW);
+			var iVer:Number = Math.max(2, _segmentsH);
 			
 			var aVtc:Array = new Array();
 			var vv:int = 0;

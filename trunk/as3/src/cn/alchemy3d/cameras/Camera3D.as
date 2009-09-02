@@ -1,12 +1,11 @@
 package cn.alchemy3d.cameras
 {
-	import cn.alchemy3d.device.IDevice;
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.objects.Entity;
 	
 	import flash.geom.Vector3D;
 	
-	public class Camera3D implements IDevice
+	public class Camera3D
 	{
 		public var pointer:uint = 0;
 		
@@ -142,8 +141,6 @@ package cn.alchemy3d.cameras
 		
 		public function initialize(devicePointer:uint):void
 		{
-			eye.initialize();
-			
 			allotPtr(Library.alchemy3DLib.initializeCamera(devicePointer, eye.pointer, _fov, _near, _far));
 		}
 		

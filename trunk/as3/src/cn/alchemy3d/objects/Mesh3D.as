@@ -16,10 +16,10 @@ package cn.alchemy3d.objects
 	{
 		public function Mesh3D(material:Material = null, texture:Texture = null, name:String = "")
 		{
-			super(material == null ? new Material() : material, texture, name);
-			
 			vertices = new Vector.<Vertex3D>();
 			faces = new Vector.<Triangle3D>();
+			
+			super(material == null ? new Material() : material, texture, name);
 		}
 		
 		public var faces:Vector.<Triangle3D>;
@@ -155,7 +155,7 @@ package cn.alchemy3d.objects
 			meshBuffPointer = Library.alchemy3DLib.applyForTmpBuffer((vertices.length * vSize + faces.length * fSize) * 4);
 		}
 		
-		override public function initialize():void
+		override protected function initialize():void
 		{
 			fillVerticesToBuffer();
 			fillFacesToBuffer();

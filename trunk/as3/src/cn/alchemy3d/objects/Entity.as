@@ -30,6 +30,8 @@ package cn.alchemy3d.objects
 			this._children = new Vector.<Entity>();
 			this._root = this;
 			this._lightEnable = false;
+			
+			initialize();
 		}
 		
 		public var pointer:uint;
@@ -324,7 +326,7 @@ package cn.alchemy3d.objects
 			return _direction.z;
 		}
 		
-		public function initialize():void
+		protected function initialize():void
 		{
 			allotPtr(callAlchemy());
 		}

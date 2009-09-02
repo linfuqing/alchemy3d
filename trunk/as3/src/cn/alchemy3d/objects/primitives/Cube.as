@@ -55,22 +55,43 @@ package cn.alchemy3d.objects.primitives
 		*/
 		static public var ALL:int = FRONT + BACK + RIGHT + LEFT + TOP + BOTTOM;
 		
-		private var insideFaces:int;
-		private var excludeFaces:int;
+		private var _insideFaces:int;
+		private var _excludeFaces:int;
+		private var _width:Number;
+		private var _height:Number;
+		private var _depth:Number;
+		private var _segmentsS:Number;
+		private var _segmentsT:Number;
+		private var _segmentsH:Number;
 		
-		public function Cube(material:Material = null, texture:Texture = null,  width:Number=500, depth:Number=500, height:Number=500, segmentsS:int=1, segmentsT:int=1, segmentsH:int=1, insideFaces:int=0, excludeFaces:int=0, name:String = "")
+		public function Cube(material:Material = null, texture:Texture = null, width:Number=500, depth:Number=500, height:Number=500, segmentsS:int=1, segmentsT:int=1, segmentsH:int=1, insideFaces:int=0, excludeFaces:int=0, name:String = "")
 		{
-			super(material, texture, name);
+			_insideFaces  = insideFaces;
+			_excludeFaces = excludeFaces;
+			_width  = width;
+			_height = height;
+			_depth  = depth;
+			_segmentsS = segmentsS;
+			_segmentsT  = segmentsT;
+			_segmentsH = segmentsH;
 			
-			this.insideFaces  = insideFaces;
-			this.excludeFaces = excludeFaces;
-	
+			super(material, texture, name);
+		}
+		
+		override protected function initialize():void
+		{
 			segments = new Vector.<Number>();
-			segments.push(segmentsS);
-			segments.push(segmentsT);
-			segments.push(segmentsH);
+			segments.push(_segmentsS);
+			segments.push(_segmentsT);
+			segments.push(_segmentsH);
 	
-			buildCube(width, height, depth);
+			buildCube(_width, _height, _depth);
+			
+//			mergeVertices();
+			
+			applyForMeshBuffer();
+			
+			super.initialize();
 		}
 	
 		protected function buildCube( width:Number, height:Number, depth:Number ):void
@@ -79,30 +100,23 @@ package cn.alchemy3d.objects.primitives
 			var height2 :Number = height * .5;
 			var depth2  :Number = depth * .5;
 			
-			if( ! (excludeFaces & FRONT) )
-				buildPlane( material, 0, 1, width, height, depth2, ! Boolean( insideFaces & FRONT ) );
+			if( ! (_excludeFaces & FRONT) )
+				buildPlane( material, 0, 1, width, height, depth2, ! Boolean( _insideFaces & FRONT ) );
 	
-			if( ! (excludeFaces & BACK) )
-				buildPlane( material, 0, 1, width, height, -depth2, Boolean( insideFaces & BACK ) );
+			if( ! (_excludeFaces & BACK) )
+				buildPlane( material, 0, 1, width, height, -depth2, Boolean( _insideFaces & BACK ) );
 	
-			if( ! (excludeFaces & RIGHT) )
-				buildPlane( material, 2, 1, depth, height, width2, Boolean( insideFaces & RIGHT ) );
+			if( ! (_excludeFaces & RIGHT) )
+				buildPlane( material, 2, 1, depth, height, width2, Boolean( _insideFaces & RIGHT ) );
 	
-			if( ! (excludeFaces & LEFT) )
-				buildPlane( material, 2, 1, depth, height, -width2, ! Boolean( insideFaces & LEFT ) );
+			if( ! (_excludeFaces & LEFT) )
+				buildPlane( material, 2, 1, depth, height, -width2, ! Boolean( _insideFaces & LEFT ) );
 	
-			if( ! (excludeFaces & TOP) )
-				buildPlane( material, 0, 2, width, depth, height2, Boolean( insideFaces & TOP ) );
+			if( ! (_excludeFaces & TOP) )
+				buildPlane( material, 0, 2, width, depth, height2, Boolean( _insideFaces & TOP ) );
 	
-			if( ! (excludeFaces & BOTTOM) )
-				buildPlane( material, 0, 2, width, depth, -height2, ! Boolean( insideFaces & BOTTOM ) );
-			
-			//合并共有顶点
-//			mergeVertices();
-			
-			applyForMeshBuffer();
-			
-			initialize();
+			if( ! (_excludeFaces & BOTTOM) )
+				buildPlane( material, 0, 2, width, depth, -height2, ! Boolean( _insideFaces & BOTTOM ) );
 		}
 	
 		protected function buildPlane(mat:Material, u:int, v:int, width:Number, height:Number, depth:Number, reverse:Boolean=false):void
