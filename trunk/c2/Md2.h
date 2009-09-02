@@ -54,7 +54,9 @@ MD2 * newMD2( Entity * entity )
 
 int md2_read( UCHAR ** buffer, MD2 * m )
 {
-	UCHAR        * pointer, * vertexPointer, name[FRAME_NAME_LENGTH];
+	UCHAR        * pointer, * vertexPointer;
+
+	char			name[FRAME_NAME_LENGTH];
 
 	int            i, j;
 
@@ -72,9 +74,13 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 
 	Frame  *       frames;
 
-	Texture   *    texture;
+	//Texture   *    texture;
 
 	Animation *    animation;
+
+	//测试使用
+	Material * material;
+	//结束测试使用
 
 	memcpy( & ( m -> header ), * buffer, sizeof( MD2Header ) );
 
@@ -104,8 +110,8 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 		memcpy( & u, pointer                  , sizeof( short ) );
 		memcpy( & v, pointer + sizeof( short ), sizeof( short ) );
 
-		uvs[i].u = ( float )u * .0 / ( m -> header.skinwidth );
-		uvs[i].v = ( float )v * .0 / ( m -> header.skinheight );
+		uvs[i].u = ( float )(u * .0 / ( m -> header.skinwidth ));
+		uvs[i].v = ( float )(v * .0 / ( m -> header.skinheight ));
 
 		//AS3_Trace( AS3_Int( uvs[i].u ) );
 	}
@@ -138,7 +144,20 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 		//AS3_Trace( AS3_Int( vertexIndex[0] ) );
 	}
 
-	m -> entity -> mesh = mesh;
+	//m -> entity -> mesh = mesh;
+	entity_setMesh( m->entity, mesh );
+
+	//测试使用
+	material = newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
+		newFloatColor( 0.8f, 0.8f, 0.8f, 1.0f ),
+		newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+		newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+		4.0f );
+
+	mesh_setMaterial( m->entity->mesh, material );
+
+	m->entity->mesh->render_mode = RENDER_WIREFRAME_TRIANGLE_32;
+	//结束测试使用
 
 	for( i = 0; i < m -> header.num_frames; i ++ )
 	{

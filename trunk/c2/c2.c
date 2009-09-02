@@ -20,6 +20,7 @@
 #include "Light.h"
 #include "Plane3D.h"
 #include "3DSLoader.h"
+#include "MD2.h"
 
 Device * device;
 
@@ -56,14 +57,14 @@ int main()
 
 	buffer = (UCHAR * )malloc(486251 * sizeof(UCHAR));
 
-	fp = fopen("C:\\Inetpub\\wwwroot\\graphic3D\\alchemy3d\\c2\\man.3ds","rb");
+	fp = fopen("C:\\Inetpub\\wwwroot\\graphic3D\\alchemy3d\\c2\\tris.MD2","rb");
 
-	for ( i = 0; i < 486251; i ++)
+	for ( i = 0; i < 9000000; i ++)
 	{
 		buffer[i] = fgetc( fp );
 	}
 
-	A3DS_LoadData( do3d3, & buffer, 486251 );
+	A3DS_LoadData( do3d3, & buffer, 9000000 );
 
 	if( ( bitmapData = ( LPDWORD )calloc( 256*256, sizeof( DWORD ) ) ) == NULL )
 	{
