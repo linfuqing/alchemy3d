@@ -9,6 +9,7 @@
 #include "Mesh.h"
 #include "Math.h"
 #include "AABB.h"
+#include "Animation.h"
 
 typedef struct Entity
 {
@@ -34,6 +35,9 @@ typedef struct Entity
 
 	//Íø¸ñ
 	Mesh * mesh;
+
+	//µçÓ°
+	Movie * movie;
 
 }Entity;
 
@@ -80,6 +84,23 @@ Entity * newEntity()
 	entity->nChildren = 0;
 
 	return entity;
+}
+
+void animation_updateToFrame( Animation * animation, Entity * parent, unsigned int keyFrame )
+{
+	int i;
+
+	if( keyFrame > animation -> length || parent -> mesh == NULL )
+	{
+		return;
+	}
+
+	for( i = 0; i < ( parent -> mesh -> nVertices ); i ++ )
+	{
+		parent -> mesh -> vertices[i].position -> x = animation -> frames[keyFrame].vertices[i].x;
+		parent -> mesh -> vertices[i].position -> y = animation -> frames[keyFrame].vertices[i].y;
+		parent -> mesh -> vertices[i].position -> z = animation -> frames[keyFrame].vertices[i].z;
+	}
 }
 
 SceneNode * entity_findChild( SceneNode * childNode, Entity * child )
