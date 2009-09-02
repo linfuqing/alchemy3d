@@ -12,9 +12,9 @@ package cn.alchemy3d.objects
 	import flash.geom.Vector3D;
 	import flash.utils.Dictionary;
 	
-	public class Mesh3D extends Entity implements ISceneNode
+	public class Mesh3D extends Entity
 	{
-		public function Mesh3D(material:Material, texture:Texture = null, name:String = "")
+		public function Mesh3D(material:Material = null, texture:Texture = null, name:String = "")
 		{
 			super(material == null ? new Material() : material, texture, name);
 			
@@ -155,22 +155,20 @@ package cn.alchemy3d.objects
 			meshBuffPointer = Library.alchemy3DLib.applyForTmpBuffer((vertices.length * vSize + faces.length * fSize) * 4);
 		}
 		
-		override public function initialize(scene:Scene3D):void
+		override public function initialize():void
 		{
 			fillVerticesToBuffer();
-			fillFacesToBuffer()
+			fillFacesToBuffer();
 			
-			super.initialize(scene);
+			super.initialize();
 		}
 		
 		override protected function callAlchemy():Array
 		{
 			var tPtr:uint = texture == null ? 0 : texture.pointer;
 			var mPtr:uint = material == null ? 0 : material.pointer;
-			var parentPtr:uint = parent == null ? 0 : parent.pointer;
-			var scenePtr:uint = scene == null ? 0 : scene.pointer;
 			
-			return Library.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, name, meshBuffPointer, vertices.length, faces.length);
+			return Library.alchemy3DLib.initializeEntity(mPtr, tPtr, name, meshBuffPointer, vertices.length, faces.length);
 		}
 		
 		override protected function allotPtr(ps:Array):void

@@ -34,6 +34,8 @@ package cn.alchemy3d.objects.primitives
 			
 			applyForMeshBuffer();
 			
+			initialize();
+			
 //			flipFaces();
 		}
 		

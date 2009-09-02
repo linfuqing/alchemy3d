@@ -12,7 +12,7 @@ package cn.alchemy3d.objects
 	import flash.events.EventDispatcher;
 	import flash.geom.Vector3D;
 	
-	public class Entity extends EventDispatcher implements ISceneNode
+	public class Entity extends EventDispatcher
 	{
 		public function Entity(material:Material = null, texture:Texture = null, name:String = "")
 		{
@@ -64,6 +64,11 @@ package cn.alchemy3d.objects
 		public function get parent():Entity
 		{
 			return this._parent;
+		}
+		
+		public function set parent(parent:Entity):void
+		{
+			this._parent = parent;
 		}
 		
 		public function get children():Vector.<Entity>
@@ -319,46 +324,17 @@ package cn.alchemy3d.objects
 			return _direction.z;
 		}
 		
-		public function addEntity(child:Entity):void
+		public function initialize():void
 		{
-			if (child._parent || child._scene) throw new Error("已存在父节点");
-			
-			this._children.push(child);
-			child._parent = this;
-			child._root = this;
-			
-			if (this.scene)
-			{
-				child.initialize(this.scene);
-				
-				if (child is Mesh3D)
-				{
-					this.scene.verticesNum += Mesh3D(child).nVertices;
-					this.scene.facesNum += Mesh3D(child).nFaces;
-				}
-			}
-		}
-		
-		public function initialize(scene:Scene3D):void
-		{
-			this._scene = scene;
-			
 			allotPtr(callAlchemy());
-			
-			for each (var child:Entity in this._children)
-			{
-				child.initialize(scene);
-			}
 		}
 		
 		protected function callAlchemy():Array
 		{
 			var tPtr:uint = texture == null ? 0 : texture.pointer;
 			var mPtr:uint = material == null ? 0 : material.pointer;
-			var parentPtr:uint = _parent == null ? 0 : _parent.pointer;
-			var scenePtr:uint = scene == null ? 0 : scene.pointer;
 			
-			return Library.alchemy3DLib.initializeEntity(scenePtr, parentPtr, mPtr, tPtr, name, 0, 0, 0);
+			return Library.alchemy3DLib.initializeEntity(mPtr, tPtr, name, 0, 0, 0);
 		}
 		
 		protected function allotPtr(ps:Array):void

@@ -1,31 +1,35 @@
 package
 {
-	import cmodule.loader3DS.CLibInit;
-	
+	import cn.alchemy3d.cameras.Camera3D;
+	import cn.alchemy3d.lib.Library;
+	import cn.alchemy3d.materials.Material;
+	import cn.alchemy3d.objects.Entity;
+	import cn.alchemy3d.objects.primitives.Plane;
+	import cn.alchemy3d.render.RenderMode;
+	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Basic;
+	import cn.alchemy3d.view.Viewport3D;
 	
 	import flash.events.Event;
+	import flash.geom.ColorTransform;
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import flash.utils.ByteArray;
 
 	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
 	public class Loader3DS extends Basic
 	{
 		private var loader:URLLoader;
-		private var loader3DS:Object;
-		private var memory3ds:ByteArray;
+		
+		protected var viewport:Viewport3D;
+		protected var camera:Camera3D;
+		protected var scene:Scene3D;
+		
+		protected var p:Plane;
 		
 		public function Loader3DS()
 		{
 			super();
-			
-			var clib:CLibInit = new CLibInit();
-			loader3DS = clib.init();
-			
-			var ns:Namespace = new Namespace("cmodule.loader3DS");
-			memory3ds = (ns::gstate).ds;
 			
 			loader = new URLLoader();
 			loader.dataFormat = URLLoaderDataFormat.BINARY;
@@ -37,20 +41,45 @@ package
 		{
 			loader.removeEventListener(Event.COMPLETE, init);
 			
-			var pos:uint = loader3DS.applyForTmpBuffer(loader.data.length);
+			scene = new Scene3D();
+			addScene(scene);
 			
-			var length:int = loader.data.length;
+			camera = new Camera3D(0, 90, 100, 5000);
+			addCamera(camera);
+			camera.z = -300;
 			
-			memory3ds.position = pos;
-			memory3ds.writeBytes(loader.data, 0, length);
+			viewport = new Viewport3D(600, 400, scene, camera);
+			addViewport(viewport);
+			
+			var m:Material = new Material();
+			m.ambient = new ColorTransform(0.1, 0.1, 0.1, 1);
+			m.diffuse = new ColorTransform(.8, .8, .8, 1);
+			m.specular = new ColorTransform(1, 1, 1, 1);
+			m.power = 32;
+			
+			var parent:Entity = new Entity();
+			scene.addEntity(parent);
+			
+			p = new Plane(m, null, 800, 800, 1, 1, "p");
+			p.lightEnable = true;
+			p.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
+			p.z = 800;
+			scene.addEntity(p, parent);
+			
+			//Start 3DS
+			var length:uint = loader.data.length;
+			
+			var pos:uint = alchemy3DLib.applyForTmpBuffer(length);
+			
+			Library.memory.position = pos;
+			Library.memory.writeBytes(loader.data, 0, length);
 			
 			loader.data.clear();
 			loader.data = null;
 			
-			memory3ds.position = pos;
-			trace(memory3ds.readShort());
+//			alchemy3DLib.initialize3DS(scene.pointer, pos, length);
 			
-			loader3DS.load_from_bytes(pos, length);
+			startRendering();
 		}
 	}
 }

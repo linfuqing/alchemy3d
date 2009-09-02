@@ -101,6 +101,8 @@ package cn.alchemy3d.objects.primitives
 //			mergeVertices();
 			
 			applyForMeshBuffer();
+			
+			initialize();
 		}
 	
 		protected function buildPlane(mat:Material, u:int, v:int, width:Number, height:Number, depth:Number, reverse:Boolean=false):void
