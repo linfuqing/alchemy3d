@@ -28,7 +28,7 @@ int main()
 	Camera * camera;
 	Viewport * view;
 	Scene * scene;
-	Entity * do3d, * do3d2;
+	Entity * do3d, * do3d2, * do3d3;
 	Vertex * vArr[4], * vArr2[9];
 	Vector * point, * point2;
 	Material * material, * material2;
@@ -44,6 +44,22 @@ int main()
 	int j = 0;
 
 	LPDWORD bitmapData;
+
+	FILE *fp;
+	UCHAR * buffer;
+
+	do3d3 = newEntity();
+
+	buffer = (UCHAR * )malloc(486251 * sizeof(UCHAR));
+
+	fp = fopen("C:\\Inetpub\\wwwroot\\graphic3D\\alchemy3d\\c2\\man.3ds","rb");
+
+	for ( i = 0; i < 486251; i ++)
+	{
+		buffer[i] = fgetc( fp );
+	}
+
+	A3DS_LoadData( do3d3, & buffer, 486251 );
 
 	if( ( bitmapData = ( LPDWORD )calloc( 256*256, sizeof( DWORD ) ) ) == NULL )
 	{
@@ -97,8 +113,8 @@ int main()
 	pos2[16] = 50.0f;
 	pos2[17] = 50.0f;
 
-	mesh1 = newMesh( 4, 2 );
-	mesh2 = newMesh( 18, 9 );
+	mesh1 = newMesh( 4, 2, NULL );
+	mesh2 = newMesh( 18, 9, NULL );
 
 	mesh1->render_mode = RENDER_WIREFRAME_TRIANGLE_32;
 	mesh2->render_mode = RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
@@ -183,7 +199,8 @@ int main()
 
 	scene = newScene();
 	//scene_addLight(scene, light);
-	scene_addEntity(scene, do3d, NULL);
+	scene_addEntity(scene, do3d3, NULL);
+	//scene_addEntity(scene, do3d, NULL);
 	//scene_addEntity(scene, do3d2, NULL);
 	//scene_addEntity(scene, lightSource, NULL);
 

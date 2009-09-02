@@ -15,6 +15,7 @@
 #include "Viewport.h"
 #include "Triangle.h"
 #include "Mesh.h"
+#include "3DSLoader.h"
 
 AS3_Val initializeDevice( void* self, AS3_Val args )
 {
@@ -154,7 +155,6 @@ AS3_Val initializeLight( void* self, AS3_Val args )
 
 AS3_Val initializeEntity( void* self, AS3_Val args )
 {
-	Scene * scene = NULL;
 	Entity * entity = NULL, * parent = NULL;
 	Mesh * mesh = NULL;
 	Texture * texture = NULL;
@@ -165,7 +165,7 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 	int vNum, fNum, vLen, i, j;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, StrType, PtrType, IntType, IntType", &scene, &parent, &material, &texture, &name, &meshBuffer, &vNum, &fNum );
+	AS3_ArrayValue( args, "PtrType, PtrType, StrType, PtrType, IntType, IntType", &material, &texture, &name, &meshBuffer, &vNum, &fNum );
 
 	p_meshBuffer = ( DWORD ** )meshBuffer;
 	pp_meshBuffer = ( DWORD *** )meshBuffer;
@@ -173,6 +173,10 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 	entity = newEntity();
 
 	* entity->name = * name;
+	entity->parent = parent;
+
+	free( name );
+	name = NULL;
 
 	if ( vNum != 0 && fNum != 0 && meshBuffer!= 0 )
 	{
@@ -207,10 +211,45 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 		entity_setMesh( entity, mesh );
 	}
 
-	if ( scene ) scene_addEntity(scene, entity, parent);
-
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
 		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->lightEnable, & entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
+}
+
+AS3_Val addEntity( void* self, AS3_Val args )
+{
+	Scene * scene = NULL;
+
+	Entity * entity = NULL, * parent = NULL;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType", &scene, &entity, &parent );
+
+	if ( parent ) entity_addChild( parent, entity );
+
+	if ( parent ) scene_addEntity( scene, entity, parent );
+	else scene_addEntity( scene, entity, NULL );
+
+	return 0;
+}
+
+AS3_Val initialize3DS( void* self, AS3_Val args )
+{
+	Scene * scene = NULL;
+
+	Entity * entity = NULL;
+
+	UCHAR * buffer = NULL;
+
+	UINT length = 0;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, IntType", &scene, & buffer, & length );
+
+	entity = newEntity();
+
+	A3DS_LoadData( entity, & buffer, length );
+
+	if ( scene ) scene_addEntity(scene, entity, NULL);
+
+	return 0;
 }
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
@@ -262,6 +301,8 @@ int main()
 	AS3_Val initializeTextureMethod = AS3_Function( NULL, initializeTexture );
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
+	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
+	AS3_Val initialize3DSMethod = AS3_Function( NULL, initialize3DS );
 	AS3_Val applyForTmpBufferMethod = AS3_Function( NULL, applyForTmpBuffer );
 	AS3_Val renderMethod = AS3_Function( NULL, render );
 	AS3_Val propertySettingMethod = AS3_Function( NULL, propertySetting );
@@ -269,8 +310,8 @@ int main()
 
 
 
-	AS3_Val result = AS3_Object( "initializeDevice:AS3ValType, initializeCamera:AS3ValType, initializeScene:AS3ValType, initializeViewport:AS3ValType, initializeMaterial:AS3ValType, initializeTexture:AS3ValType, initializeLight:AS3ValType, initializeEntity:AS3ValType, applyForTmpBuffer:AS3ValType, render:AS3ValType, propertySetting:AS3ValType, test:AS3ValType",
-		initializeDeviceMethod, initializeCameraMethod, initializeSceneMethod, initializeViewportMethod, initializeMaterialMethod, initializeTextureMethod, initializeLightMethod, initializeEntityMethod, applyForTmpBufferMethod, renderMethod, propertySettingMethod, testMethod );
+	AS3_Val result = AS3_Object( "initializeDevice:AS3ValType, initializeCamera:AS3ValType, initializeScene:AS3ValType, initializeViewport:AS3ValType, initializeMaterial:AS3ValType, initializeTexture:AS3ValType, initializeLight:AS3ValType, initializeEntity:AS3ValType, addEntity:AS3ValType, initialize3DS:AS3ValType, applyForTmpBuffer:AS3ValType, render:AS3ValType, propertySetting:AS3ValType, test:AS3ValType",
+		initializeDeviceMethod, initializeCameraMethod, initializeSceneMethod, initializeViewportMethod, initializeMaterialMethod, initializeTextureMethod, initializeLightMethod, initializeEntityMethod, addEntityMethod, initialize3DSMethod, applyForTmpBufferMethod, renderMethod, propertySettingMethod, testMethod );
 
 
 
@@ -282,6 +323,8 @@ int main()
 	AS3_Release( initializeTextureMethod );
 	AS3_Release( initializeLightMethod );
 	AS3_Release( initializeEntityMethod );
+	AS3_Release( addEntityMethod );
+	AS3_Release( initialize3DSMethod );
 	AS3_Release( applyForTmpBufferMethod );
 	AS3_Release( renderMethod );
 	AS3_Release( propertySettingMethod );

@@ -201,8 +201,8 @@ INLINE void insertFaceToList( RenderList ** rl_ptr, Triangle * face)
 
 //基于AABB包围盒的视空间裁剪
 //viewport		视口
-//camera		摄像机
 //entity		当前要处理的实体
+//near			近截面
 //rl_ptr		当前渲染列表的指针
 //cl_ptr		当前裁剪列表的指针
 void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderList ** rl_ptr, RenderList ** cl_ptr )
@@ -240,7 +240,7 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 		tmpVert1 = tmpVert2 = NULL;
 
 		//背面剔除
-		//线框模式将不会进行背面剔除
+		//线框模式将不进行背面剔除
 		if ( entity->mesh->render_mode != RENDER_WIREFRAME_TRIANGLE_32 )
 		{
 			vector3D_subtract( & viewerToLocal, entity->viewerToLocal, face->center );
