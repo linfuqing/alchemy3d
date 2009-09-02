@@ -1,27 +1,22 @@
 package
 {
-	import cn.alchemy3d.cameras.Camera3D;
-	import cn.alchemy3d.objects.A3DS;
-	import cn.alchemy3d.scene.Scene3D;
+	import cn.alchemy3d.objects.external.A3DS;
 	import cn.alchemy3d.view.Basic;
-	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
 	
 	import flash.events.Event;
 	import flash.net.URLLoader;
+	import flash.text.TextField;
+	import flash.text.TextFormat;
 
 	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
-	public class Loader3DS extends Basic
+	public class Test3DS extends Basic
 	{
 		private var loader:URLLoader;
 		
-		protected var viewport:Viewport3D;
-		protected var camera:Camera3D;
-		protected var scene:Scene3D;
-		
 		protected var a3ds:A3DS;
 		
-		public function Loader3DS()
+		public function Test3DS()
 		{
 			super();
 			
@@ -30,30 +25,30 @@ package
 		
 		private function showInfo():void
 		{
-			var fps:FPS = new FPS(scene, viewport);
+			var fps:FPS = new FPS(viewport);
 			addChild(fps);
+			
+			var tformat:TextFormat = new TextFormat("宋体", 16, 0xffffff, true);
+			var tf:TextField = new TextField();
+			tf.defaultTextFormat = tformat;
+			tf.autoSize = "left";
+			tf.text = "3DS加载器Demo";
+			tf.x = 280;
+			tf.y = 20;
+			addChild(tf);
 		}
 		
 		protected function init(e:Event = null):void
 		{
-			scene = new Scene3D();
-			addScene(scene);
-			
-			camera = new Camera3D(0, 90, 5, 5000);
-			addCamera(camera);
-			camera.z = -300;
-			
-			viewport = new Viewport3D(600, 400, scene, camera);
-			addViewport(viewport);
-			
 			//Start 3DS
 			a3ds = new A3DS();
 			a3ds.load("asset/man.3ds");
 			scene.addEntity(a3ds);
 			
 			a3ds.rotationX = -90;
-			a3ds.scale = 3;
+			a3ds.scale = 2.5;
 			a3ds.y = -50;
+			a3ds.z = 100;
 
 			startRendering();
 			

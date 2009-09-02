@@ -30,10 +30,6 @@ package
 	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
 	public class Cloth extends Basic
 	{
-		protected var viewport:Viewport3D;
-		protected var camera:Camera3D;
-		protected var scene:Scene3D;
-		
 		protected var light:Light3D;
 		protected var lightObj:Sphere;
 		
@@ -60,7 +56,7 @@ package
 		
 		private function showInfo():void
 		{
-			var fps:FPS = new FPS(scene, viewport);
+			var fps:FPS = new FPS(viewport);
 			addChild(fps);
 			
 			var tformat:TextFormat = new TextFormat("arial", 12, 0xffffff, null, null, null, null, null, "right");
@@ -88,15 +84,7 @@ package
 			lightM.ambient = new ColorTransform(1, 1, 0, 1);
 			lightM.diffuse = new ColorTransform(1, 1, 0, 1);
 			
-			scene = new Scene3D();
-			addScene(scene);
-			
-			camera = new Camera3D(0, 90, 100, 5000);
-			addCamera(camera);
 			camera.z = -400;
-			
-			viewport = new Viewport3D(640, 480, scene, camera);
-			addViewport(viewport);
 			
 			lightObj = new Sphere(lightM, null, 10, 3, 2)
 			scene.addEntity(lightObj);

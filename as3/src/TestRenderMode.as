@@ -32,10 +32,6 @@ package
 	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="40")]
 	public class TestRenderMode extends Basic
 	{
-		protected var viewport:Viewport3D;
-		protected var camera:Camera3D;
-		protected var scene:Scene3D;
-		
 		protected var p:Mesh3D;
 		protected var p2:Mesh3D;
 		protected var center:Entity;
@@ -91,7 +87,7 @@ package
 		
 		private function showInfo():void
 		{
-			var fps:FPS = new FPS(scene, viewport);
+			var fps:FPS = new FPS(viewport);
 			addChild(fps);
 			
 			var tformat:TextFormat = new TextFormat("arial", 10, 0xffffff, null, null, null, null, null, "right");
@@ -145,15 +141,7 @@ package
 			var lightM2:Material = new Material(new ColorTransform(0, 0, 1, 1));
 			//============设置材质===============
 			
-			scene = new Scene3D();
-			addScene(scene);
-			
-			camera = new Camera3D(0, 90, 20, 3000);
-			addCamera(camera);
 			camera.z = -200;
-			
-			viewport = new Viewport3D(640, 480, scene, camera);
-			addViewport(viewport);
 			
 			lightObj = new Sphere(lightM, null, 6, 3, 2)
 			scene.addEntity(lightObj);

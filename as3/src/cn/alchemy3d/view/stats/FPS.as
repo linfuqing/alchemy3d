@@ -1,6 +1,5 @@
 package cn.alchemy3d.view.stats
 {
-	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.view.Viewport3D;
 	
 	import flash.display.Bitmap;
@@ -36,7 +35,6 @@ package cn.alchemy3d.view.stats
 		private const hgap:int = 2;
 		private const textHeight:int = 10;
 
-		private var scene:Scene3D;
 		private var viewport:Viewport3D;
 
 		static private var instance:FPS;
@@ -45,9 +43,8 @@ package cn.alchemy3d.view.stats
 		static private const tfDelayMax:int = 10;
 		static private const diagramHeight:uint = 40;
 
-		public function FPS(scene:Scene3D = null, viewport:Viewport3D = null)
+		public function FPS(viewport:Viewport3D = null)
 		{
-			this.scene = scene;
 			this.viewport = viewport;
 
 			this.addEventListener(Event.ADDED_TO_STAGE, run);
@@ -85,20 +82,6 @@ package cn.alchemy3d.view.stats
 				addChild(mem);
 
 				currentY += textHeight + hgap;
-
-				if (scene)
-				{
-					faces = new TextField();
-					faces.defaultTextFormat = tf;
-					faces.autoSize = TextFieldAutoSize.LEFT;
-					faces.text = "TRIS: " + scene.facesNum;
-					faces.selectable = false;
-					faces.x = -diagramWidth - 2;
-					faces.y = currentY;
-					addChild(faces);
-
-					currentY += textHeight + hgap;
-				}
 
 				if (viewport)
 				{
@@ -206,7 +189,6 @@ package cn.alchemy3d.view.stats
 
 			mem.text = "MEM: " + bytesToString(System.totalMemory);
 			
-			if (scene) faces.text = "FACES: " + scene.facesNum;
 			if (viewport) rendered.text = "TRI RENDERED: " + viewport.nRenderList;
 			if (viewport) culled.text = "TRI CULLED: " + viewport.nCullList;
 			if (viewport) clipped.text = "TRI CLIPPED: " + viewport.nClippList;

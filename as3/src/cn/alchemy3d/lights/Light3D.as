@@ -2,14 +2,13 @@ package cn.alchemy3d.lights
 {
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.objects.Entity;
-	import cn.alchemy3d.objects.ISceneNode;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.geom.ColorTransform;
 	import flash.utils.ByteArray;
 
-	public class Light3D implements ISceneNode
+	public class Light3D
 	{
 		public var pointer:uint = 0;
 		
