@@ -16,8 +16,6 @@ package cn.alchemy3d.cameras
 		public var farPtr:uint;
 		public var fnfDirtyPtr:int;
 		
-		public var type:int;
-		
 		private var _target:Vector3D;
 		private var _fov:Number;
 		private var _near:Number;
@@ -129,9 +127,8 @@ package cn.alchemy3d.cameras
 			Library.memory.writeInt(1);
 		}
 		
-		public function Camera3D(type:int = 0, fov:Number = 90, near:Number = 100, far:Number = 5000, eye:Entity = null)
+		public function Camera3D(fov:Number = 90, near:Number = 100, far:Number = 5000, eye:Entity = null)
 		{
-			this.type = type;
 			this._fov = fov;
 			this._near = near;
 			this._far = far;

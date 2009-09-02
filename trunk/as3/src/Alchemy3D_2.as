@@ -30,10 +30,6 @@ package
 	[SWF(width="600",height="400",backgroundColor="#000000",frameRate="60")]
 	public class Alchemy3D_2 extends Basic
 	{
-		protected var viewport:Viewport3D;
-		protected var camera:Camera3D;
-		protected var scene:Scene3D;
-		
 		protected var light:Light3D;
 		protected var light2:Light3D;
 		protected var light3:Light3D;
@@ -58,7 +54,7 @@ package
 		
 		public function Alchemy3D_2()
 		{
-			super();
+			super(600, 400);
 			
 //			stage.scaleMode = StageScaleMode.NO_SCALE;
 //			stage.align = StageAlign.TOP_LEFT;
@@ -74,7 +70,7 @@ package
 		
 		private function showInfo():void
 		{
-			var fps:FPS = new FPS(scene, viewport);
+			var fps:FPS = new FPS(viewport);
 			addChild(fps);
 			
 			var tformat:TextFormat = new TextFormat("arial", 10, 0xffffff);
@@ -140,15 +136,7 @@ package
 			lightM3.ambient = new ColorTransform(0, 0, 0.5, 1);
 			lightM3.diffuse = new ColorTransform(0, 0, 1, 1);
 			
-			scene = new Scene3D();
-			addScene(scene);
-			
-			camera = new Camera3D(0, 90, 100, 5000);
-			addCamera(camera);
 			camera.z = -300;
-			
-			viewport = new Viewport3D(600, 400, scene, camera);
-			addViewport(viewport);
 			
 			lightObj = new Sphere(lightM, null, 10, 3, 2, "lightO1");
 			scene.addEntity(lightObj);
