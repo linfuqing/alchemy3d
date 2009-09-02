@@ -554,7 +554,6 @@ void viewport_project( Viewport * viewport )
 	SceneNode * sceneNode;
 	Camera * camera;
 	Entity * entity;
-	float zn, worldZFar;
 	RenderList * curr_rl_ptr, * rl_ptr, * cl_ptr, * renderList;
 
 	//光照变量
@@ -582,8 +581,6 @@ void viewport_project( Viewport * viewport )
 
 	scene = viewport->scene;
 	camera = viewport->camera;
-	zn = camera->near + camera->eye->position->z;
-	worldZFar = camera->far + camera->eye->position->z;
 
 	//把渲染列表的指针指向表头的下一个结点
 	rl_ptr = viewport->renderList->next;

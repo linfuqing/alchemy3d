@@ -39,6 +39,7 @@
 #define CHUNK_ROTATEW		 0xA35C	//W方向旋转角
 #define CHUNK_KEYFRAMER 	 0xB000	//关键帧块
 
+#include "Scene.h"
 #include "Entity.h"
 #include "Mesh.h"
 #include "Vertex.h"
@@ -322,6 +323,7 @@ void A3DS_LoadData( Entity * entity, UCHAR ** buffer, DWORD length )
 			case CHUNK_OBJBLOCK:
 				node = A3DS_Chunk_Objblock_Handler( buffer );
 				entity_addChild( entity, node );
+				if ( entity->scene )scene_addEntity( entity->scene, node, entity );
 				break;
 
 			default:

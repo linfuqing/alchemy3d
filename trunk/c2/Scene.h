@@ -74,10 +74,12 @@ SceneNode * scene_findEntity2( SceneNode * node, Entity * entity )
 
 void scene_addEntity( Scene * scene, Entity * entity, Entity * parent )
 {
-	SceneNode * sceneNode, * n;
+	SceneNode * sceneNode, * n, * child;
 
 	if (parent != NULL)
 	{
+		if ( ! parent->scene ) exit( TRUE );
+
 		sceneNode = scene_findEntity( scene->nodes, parent );
 
 		if (sceneNode == NULL)
@@ -85,8 +87,7 @@ void scene_addEntity( Scene * scene, Entity * entity, Entity * parent )
 			exit(TRUE);
 		}
 
-		entity->parent = parent;
-		entity_addChild( parent, entity );
+		if ( ! entity->parent ) entity_addChild( parent, entity );
 	}
 	else
 	{
@@ -129,6 +130,19 @@ void scene_addEntity( Scene * scene, Entity * entity, Entity * parent )
 	{
 		scene->nFaces += n->entity->mesh->nFaces;
 		scene->nVertices += n->entity->mesh->nVertices;
+	}
+
+	//扫描孩子列表，查看是否有孩子没有加入场景列表，是则添加之
+	child = entity->children;
+
+	while ( NULL != child )
+	{
+		if ( ! child->entity->scene )
+		{
+			scene_addEntity( scene, child->entity, entity );
+		}
+
+		child = child->next;
 	}
 }
 
