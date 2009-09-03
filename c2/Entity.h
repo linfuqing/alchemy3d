@@ -37,7 +37,7 @@ typedef struct Entity
 	Mesh * mesh;
 
 	//µçÓ°
-	Movie * movie;
+	Animation * animation;
 
 }Entity;
 
@@ -76,6 +76,7 @@ Entity * newEntity()
 	entity->parent			= NULL;
 	entity->mesh			= NULL;
 	entity->scene			= NULL;
+	entity->animation       = NULL;
 
 	entity->visible = entity->transformDirty = TRUE;
 
@@ -84,23 +85,6 @@ Entity * newEntity()
 	entity->nChildren = 0;
 
 	return entity;
-}
-
-void animation_updateToFrame( Animation * animation, Entity * parent, unsigned int keyFrame )
-{
-	int i;
-
-	if( keyFrame > animation -> length || parent -> mesh == NULL )
-	{
-		return;
-	}
-
-	for( i = 0; i < ( parent -> mesh -> nVertices ); i ++ )
-	{
-		parent -> mesh -> vertices[i].position -> x = animation -> frames[keyFrame].vertices[i].x;
-		parent -> mesh -> vertices[i].position -> y = animation -> frames[keyFrame].vertices[i].y;
-		parent -> mesh -> vertices[i].position -> z = animation -> frames[keyFrame].vertices[i].z;
-	}
 }
 
 SceneNode * entity_findChild( SceneNode * childNode, Entity * child )

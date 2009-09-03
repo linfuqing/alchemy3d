@@ -198,11 +198,11 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 		}
 	}
 
-	animation = newAnimation( frames, m -> header.num_frames );
+	animation = newAnimation( mesh, frames, m -> header.num_frames );
 
-	animation_updateToFrame( animation, m -> entity, 0 );
+	animation_updateToFrame( animation, 0 );
 
-	m -> entity -> movie = newMovie( animation, 1 );
+	m -> entity -> animation = animation;
 
 	return TRUE;
 }

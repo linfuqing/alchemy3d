@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+# define INLINE
+
 typedef unsigned char		UCHAR;
 typedef unsigned char		BYTE;		// 8 bits[0-255]size:1Byte FF
 typedef unsigned char * 	LPBYTE;

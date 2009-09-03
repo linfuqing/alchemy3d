@@ -1,5 +1,6 @@
 #pragma once
 
+# include "Mesh.h"
 # define FRAME_NAME_LENGTH 16
 
 typedef struct
@@ -14,6 +15,9 @@ typedef struct
 typedef struct
 {
 	Frame        * frames;
+	Mesh         * parent;
+	int            isPlay;
+	unsigned int   currentFrameIndex;
 	unsigned int   length;
 }Animation;
 
@@ -23,7 +27,7 @@ typedef struct
 	unsigned int length;
 }Movie;
 
-Animation   * newAnimation( Frame * frames, unsigned int length )
+Animation   * newAnimation( Mesh * parent, Frame * frames, unsigned int length )
 {
 	Animation * a;
 
@@ -32,23 +36,41 @@ Animation   * newAnimation( Frame * frames, unsigned int length )
 		exit( TRUE );
 	}
 
-	a -> frames = frames;
-	a -> length = length;
+	a -> parent            = parent;
+	a -> frames            = frames;
+	a -> length            = length;
+	a -> isPlay            = TRUE;
+	a -> currentFrameIndex = 0;
 
 	return a;
 }
 
-Movie * newMovie( Animation * animation, unsigned int length )
-{
-	Movie * m;
 
-	if( ( m = ( Movie * )malloc( sizeof( Movie ) ) ) == NULL )
+void animation_updateToFrame( Animation * animation, unsigned int keyFrame )
+{
+	int i;
+
+	if( animation -> length == 0 || animation -> length < keyFrame || animation -> parent == NULL )
 	{
-		exit( TRUE );
+		return;
 	}
 
-	m -> animation = animation;
-	m -> length    = length;
+	for( i = 0; i < ( animation -> parent -> nVertices ); i ++ )
+	{
+		animation -> parent -> vertices[i].position -> x = animation -> frames[keyFrame].vertices[i].x;
+		animation -> parent -> vertices[i].position -> y = animation -> frames[keyFrame].vertices[i].y;
+		animation -> parent -> vertices[i].position -> z = animation -> frames[keyFrame].vertices[i].z;
+	}
+}
 
-	return m;
+void animation_update( Animation * animation )
+{
+	if( animation -> isPlay )
+	{
+		animation -> currentFrameIndex = ( animation -> currentFrameIndex ) > ( animation -> length ) ? 0 : ( animation -> currentFrameIndex );
+
+		animation_updateToFrame( animation, animation -> currentFrameIndex );
+
+		animation -> currentFrameIndex ++;
+	}
 }
