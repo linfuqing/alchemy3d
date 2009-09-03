@@ -44,8 +44,9 @@
 #include "Mesh.h"
 #include "Vertex.h"
 #include "Vector.h"
+#include "Material.h"
 
-DWORD A3DS_Chunk( UCHAR ** buffer, WORD wID, DWORD dwLength )
+DWORD A3DS_Main_Chunk_Handler( UCHAR ** buffer, WORD wID, DWORD dwLength )
 {
 	WORD	wIDRead = 0;
 	DWORD	dwBlockLength = 0;
@@ -94,14 +95,12 @@ DWORD A3DS_Chunk( UCHAR ** buffer, WORD wID, DWORD dwLength )
 }
 
 //构造实体
-Entity * A3DS_Chunk_Objblock_Handler( UCHAR ** buffer )
+Entity * A3DS_Objblock_Chunk_Handler( UCHAR ** buffer )
 {
-	UINT i = 0;
-
-	WORD	wID;
-	DWORD	dwBlockLength;
-
-	UCHAR	* end = 0;
+	UINT	i = 0;
+	WORD	wID = 0;
+	DWORD	dwBlockLength = 0;
+	UCHAR	* end = NULL;
 
 	Material * material;
 
@@ -115,26 +114,24 @@ Entity * A3DS_Chunk_Objblock_Handler( UCHAR ** buffer )
 
 	//=========================读取名字=========================
 
-	if( ( entity->name = ( char * )malloc( sizeof(char) * 20 ) ) == NULL ) exit( TRUE );
+	if( ( entity->name = ( char * )malloc( sizeof(char) * 200 ) ) == NULL ) exit( TRUE );
 
-	while( ** buffer != '\0' )   
+	while( ** buffer != '\0' )
 	{
-		* ( entity->name ) = ( char )( * * buffer );
+		* ( entity->name ) = ( char )( ** buffer );
 
-		entity->name++;
+		entity->name ++;
 
-		(* buffer)++;
+		(* buffer) ++;
 
-		i++;
+		i ++;
 	}
 
 	* ( entity->name ) = '\0';
 
-	(* buffer)++;
+	(* buffer) ++;
 
 	entity->name -= i;
-
-	//AS3_Trace(AS3_String(entity->name));
 
 	//=========================结束读取名字=========================
 
@@ -270,12 +267,229 @@ Entity * A3DS_Chunk_Objblock_Handler( UCHAR ** buffer )
 		entity->lightEnable = FALSE;
 		entity_setMesh( entity, mesh );
 		entity->mesh->render_mode = RENDER_WIREFRAME_TRIANGLE_32;
+
+		free( vList );
+		free( uvList );
+		free( fList );
+
+		free( vertArr );
+		free( vectArr );
 	}
 	//=========================结束读取网格信息=========================
 
 	return entity;
 }
 
+INLINE void A3DS_Color_Chunk_Handler( UCHAR ** buffer, WORD wID, float * r, float * g, float * b )
+{
+	if( wID == CHUNK_RGB1 )
+	{
+		memcpy( r, ( * buffer ), sizeof( * r ) );
+		( * buffer ) += sizeof( * r );
+
+		memcpy( g, ( * buffer ), sizeof( * g ) );
+		( * buffer ) += sizeof( * g );
+
+		memcpy( b, ( * buffer ), sizeof( * b ) );
+		( * buffer ) += sizeof( * b );
+	}
+	else if( wID == CHUNK_RGB2 )
+	{
+		UCHAR rb, gb, bb;
+
+		memcpy( & rb, ( * buffer ), sizeof( rb ) );
+		( * buffer ) += sizeof( rb );
+
+		memcpy( & gb, ( * buffer ), sizeof( gb ) );
+		( * buffer ) += sizeof( gb );
+
+		memcpy( & bb, ( * buffer ), sizeof( bb ) );
+		( * buffer ) += sizeof( bb );
+
+		* r = (float)rb / 255.0f;
+		* g = (float)gb / 255.0f;
+		* b = (float)bb / 255.0f;
+	}
+}
+
+void A3DS_Texture_Chunk_Handler( UCHAR ** buffer, DWORD dwLength )
+{
+	UINT	i = 0;
+	WORD	wID = 0;
+	DWORD	dwBlockLength = 0;
+	UCHAR	* end = NULL;
+
+	char	* name = NULL;
+
+	end = ( * buffer ) + dwLength;
+
+	while( ( * buffer ) <= end )
+	{
+		//读取块ID
+		memcpy( & wID, ( * buffer ), sizeof( wID ) );
+		( * buffer ) += sizeof( wID );
+
+		//读取块长度
+		memcpy( & dwBlockLength, ( * buffer ), sizeof( dwBlockLength ) );
+		( * buffer ) += sizeof( dwBlockLength );
+		
+		switch( wID )
+		{
+			case CHUNK_MAPFILENAME:
+
+				if( ( name = ( char * )malloc( sizeof(char) * 200 ) ) == NULL ) exit( TRUE );
+				
+				while( ** buffer != '\0' )
+				{
+					* name = ( char )( ** buffer );
+
+					name ++;
+
+					(* buffer) ++;
+
+					 i++;
+				}
+
+				* name = '\0';
+
+				(* buffer) ++;
+
+				name -= i;
+
+				break;
+
+			case CHUNK_OFFSETU:
+				break;
+
+			case CHUNK_OFFSETV:
+				break;
+
+			case CHUNK_TILINGU:
+				break;
+
+			case CHUNK_TILINGV:
+				break;
+
+			case CHUNK_ROTATEW:
+				break;
+
+			default:
+				( * buffer ) += dwBlockLength - sizeof( wID ) - sizeof( dwBlockLength );
+				break;
+		}
+	}
+}
+
+Material * A3DS_Material_Chunk_Handler( UCHAR ** buffer, DWORD dwLength )
+{
+	UINT	i = 0;
+	WORD	wID = 0;
+	WORD	wID1 = 0;
+	DWORD	dwBlockLength = 0;
+	DWORD	dwBlockLength1 = 0;
+	UCHAR	* end = NULL;
+
+	float		r, g, b;
+	char		* name = NULL;
+	FloatColor	* ambient = NULL;
+	FloatColor	* diffuse = NULL;
+	FloatColor	* specular = NULL;
+	Material	* material = NULL;
+
+	end = ( * buffer ) + dwLength;
+
+	while( ( * buffer ) <= end )
+	{
+		//读取块ID
+		memcpy( & wID, ( * buffer ), sizeof( wID ) );
+		( * buffer ) += sizeof( wID );
+
+		//读取块长度
+		memcpy( & dwBlockLength, ( * buffer ), sizeof( dwBlockLength ) );
+		( * buffer ) += sizeof( dwBlockLength );
+		
+		switch( wID )
+		{
+			case CHUNK_MATNAME:
+
+				if( ( name = ( char * )malloc( sizeof(char) * 200 ) ) == NULL ) exit( TRUE );
+				
+				while( ** buffer != '\0' )
+				{
+					* name = ( char )( ** buffer );
+
+					name ++;
+
+					(* buffer) ++;
+
+					 i++;
+				}
+
+				* name = '\0';
+
+				(* buffer) ++;
+
+				name -= i;
+
+				break;
+
+			case CHUNK_AMBIENT:
+
+				memcpy( & wID1, ( * buffer ), sizeof( wID1 ) );
+				( * buffer ) += sizeof( wID1 );
+
+				memcpy( & dwBlockLength1, ( * buffer ), sizeof( dwBlockLength1 ) );
+				( * buffer ) += sizeof( dwBlockLength1 );
+
+				A3DS_Color_Chunk_Handler( buffer, wID1, &r, &g, &b );
+
+				ambient = newFloatColor( r, g, b,  1.0f );
+
+				break;
+
+			case CHUNK_DIFFUSE:
+
+				memcpy( & wID1, ( * buffer ), sizeof( wID1 ) );
+				( * buffer ) += sizeof( wID1 );
+
+				memcpy( & dwBlockLength1, ( * buffer ), sizeof( dwBlockLength1 ) );
+				( * buffer ) += sizeof( dwBlockLength1 );
+
+				A3DS_Color_Chunk_Handler( buffer, wID1, &r, &g, &b );
+
+				diffuse = newFloatColor( r, g, b,  1.0f );
+
+				break;
+
+			case CHUNK_SPECULAR:
+
+				memcpy( & wID1, ( * buffer ), sizeof( wID1 ) );
+				( * buffer ) += sizeof( wID1 );
+
+				memcpy( & dwBlockLength1, ( * buffer ), sizeof( dwBlockLength1 ) );
+				( * buffer ) += sizeof( dwBlockLength1 );
+
+				A3DS_Color_Chunk_Handler( buffer, wID1, &r, &g, &b );
+
+				specular = newFloatColor( r, g, b,  1.0f );
+
+				break;
+
+			case CHUNK_TEXTURE:
+				A3DS_Texture_Chunk_Handler( buffer, dwBlockLength );
+				break;
+
+			default:
+				( * buffer ) += dwBlockLength - sizeof( wID ) - sizeof( dwBlockLength );
+				break;
+		}
+	}
+
+	material = newMaterial( ambient, diffuse, specular, NULL, 64.0f );
+	material->name = name;
+
+	return material;
+}
 //buffer	指向缓冲区起始位置的指针
 //length	缓冲区长度
 void A3DS_LoadData( Entity * entity, UCHAR ** buffer, DWORD length )
@@ -288,13 +502,13 @@ void A3DS_LoadData( Entity * entity, UCHAR ** buffer, DWORD length )
 	Entity	* node;
 
 	//主编辑块
-	if ( ! ( dwLength = A3DS_Chunk( buffer, CHUNK_MAIN, dwLength ) ) )
+	if ( ! ( dwLength = A3DS_Main_Chunk_Handler( buffer, CHUNK_MAIN, dwLength ) ) )
 	{
 		//不是3DS文件
 		exit( TRUE );
 	}
 
-	if ( ! ( dwBlockLength = A3DS_Chunk( buffer, CHUNK_OBJMESH, dwLength ) ) )
+	if ( ! ( dwBlockLength = A3DS_Main_Chunk_Handler( buffer, CHUNK_OBJMESH, dwLength ) ) )
 	{
 		//可能的文件I/O错误
 		exit( TRUE );
@@ -315,13 +529,14 @@ void A3DS_LoadData( Entity * entity, UCHAR ** buffer, DWORD length )
 		switch( wID )
 		{
 			case CHUNK_MATERIAL:
+				A3DS_Material_Chunk_Handler( buffer, dwBlockLength );
 				break;
 
 			case CHUNK_OBJMESH:
 				break;
 
 			case CHUNK_OBJBLOCK:
-				node = A3DS_Chunk_Objblock_Handler( buffer );
+				node = A3DS_Objblock_Chunk_Handler( buffer );
 				entity_addChild( entity, node );
 				if ( entity->scene )scene_addEntity( entity->scene, node, entity );
 				break;
