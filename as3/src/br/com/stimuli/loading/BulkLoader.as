@@ -1412,7 +1412,7 @@ bulkLoader.start(3)
             return null;
         }
         
-        /** This will delete this item from memory. It's content will be inaccessible after that.
+        /** This will delete this item from Library.memory. It's content will be inaccessible after that.
         *   @param key A url (as a string or urlrequest) or an id to fetch
         *   @return <code>True</code> if an item with that key has been removed, and <code>false</code> othersiwe.
         *   */
@@ -1464,7 +1464,7 @@ bulkLoader.start(3)
             _name = null;
         }
         
-        /** Deletes all content from all instances of <code>BulkLoader</code> class. This will stop any pending loading operations as well as free memory.
+        /** Deletes all content from all instances of <code>BulkLoader</code> class. This will stop any pending loading operations as well as free Library.memory.
         *   @see #removeAll()
         */ 
         public static function removeAllLoaders() : void{
