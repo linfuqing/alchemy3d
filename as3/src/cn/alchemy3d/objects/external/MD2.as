@@ -14,9 +14,9 @@ package cn.alchemy3d.objects.external
 	{
 		private var loader:URLLoader;
 		
-		public function MD2(material:Material=null, texture:Texture=null, name:String="MD2_root")
+		public function MD2()
 		{
-			super(material, texture, name);
+			super("MD2_root");
 		}
 		
 		public function load(url:String):void

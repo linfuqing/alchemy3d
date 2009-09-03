@@ -14,7 +14,7 @@ package cn.alchemy3d.objects.external
 		
 		public function A3DS()
 		{
-			super(null, null, "3DS_root");
+			super("3DS_root");
 		}
 		
 		public function load(url:String):void
