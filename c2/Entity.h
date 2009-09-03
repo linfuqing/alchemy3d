@@ -36,7 +36,7 @@ typedef struct Entity
 	//网格
 	Mesh * mesh;
 
-	//电影
+	//动画
 	Animation * animation;
 
 }Entity;
@@ -220,6 +220,11 @@ INLINE void entity_updateTransform( Entity * entity )
 {
 	Quaternion qua;
 	Matrix3D quaMtr;
+
+	if( entity -> animation != NULL )
+	{
+		animation_update( entity -> animation );
+	}
 
 	//单位化
 	matrix3D_identity( entity->transform );
