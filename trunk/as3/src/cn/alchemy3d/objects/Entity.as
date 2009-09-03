@@ -14,13 +14,10 @@ package cn.alchemy3d.objects
 	
 	public class Entity extends EventDispatcher
 	{
-		public function Entity(material:Material = null, texture:Texture = null, name:String = "")
+		public function Entity(name:String = "")
 		{
 			this.name = name;
 			this.visible = true;
-			
-			this._material = material;
-			this._texture = texture;
 			
 			this._direction = new Vector3D();
 			this._position = new Vector3D();
@@ -29,7 +26,6 @@ package cn.alchemy3d.objects
 			
 			this._children = new Vector.<Entity>();
 			this._root = this;
-			this._lightEnable = false;
 			
 			initialize();
 		}
@@ -40,10 +36,7 @@ package cn.alchemy3d.objects
 		public var positionPtr:uint;
 		public var scalePtr:uint;
 		public var worldPositionPtr:uint;
-		public var materialPtr:int;
-		public var texturePtr:int;
 		public var lightEnablePtr:uint;
-		public var renderModePointer:uint;
 		
 		public var name:String;
 		public var visible:Boolean;
@@ -53,14 +46,10 @@ package cn.alchemy3d.objects
 		private var _scale:Vector3D;
 		private var _worldPosition:Vector3D;
 		
-		private var _material:Material;
-		private var _texture:Texture;
-		
 		private var _parent:Entity;
 		private var _children:Vector.<Entity>;
 		private var _root:Entity;
 		private var _scene:Scene3D;
-		private var _lightEnable:Boolean;
 		
 		protected static const sizeOfInt:int = 4;
 		
@@ -87,65 +76,6 @@ package cn.alchemy3d.objects
 		public function get scene():Scene3D
 		{
 			return this._scene;
-		}
-		/**
-		 * 设置渲染模式
-		 */
-		public function set renderMode(mode:uint):void
-		{
-			if (!checkInitialized()) return;
-			
-			Library.memory.position = renderModePointer;
-			Library.memory.writeUnsignedInt(mode);
-		}
-		
-		public function get lightEnable():Boolean
-		{
-			return _lightEnable;
-		}
-		
-		public function set lightEnable(bool:Boolean):void
-		{
-			if (!checkInitialized()) return;
-			
-			_lightEnable = bool;
-			
-			Library.memory.position = lightEnablePtr;
-			
-			if (bool)
-				Library.memory.writeUnsignedInt(1);
-			else
-				Library.memory.writeUnsignedInt(0);
-		}
-		
-		public function get material():Material
-		{
-			return _material;
-		}
-		
-		public function set material(material:Material):void
-		{
-			if (!checkInitialized()) return;
-			
-			Library.memory.position = materialPtr;
-			Library.memory.writeUnsignedInt(material.pointer);
-		}
-		
-		public function get texture():Texture
-		{
-			return _texture;
-		}
-		
-		public function set texture(texture:Texture):void
-		{
-			if (!checkInitialized()) return;
-			
-			Library.memory.position = texturePtr;
-			
-			if (texture)
-				Library.memory.writeUnsignedInt(texture.pointer);
-			else
-				Library.memory.writeUnsignedInt(0);
 		}
 		
 		public function get direction():Vector3D
@@ -344,10 +274,7 @@ package cn.alchemy3d.objects
 		
 		protected function callAlchemy():Array
 		{
-			var tPtr:uint = texture == null ? 0 : texture.pointer;
-			var mPtr:uint = material == null ? 0 : material.pointer;
-			
-			return Library.alchemy3DLib.initializeEntity(mPtr, tPtr, name, 0, 0, 0);
+			return Library.alchemy3DLib.initializeEntity(0, 0, name, 0, 0, 0);
 		}
 		
 		protected function allotPtr(ps:Array):void
@@ -357,8 +284,6 @@ package cn.alchemy3d.objects
 			directionPtr		= ps[2];
 			scalePtr			= ps[3];
 			worldPositionPtr	= ps[4];
-			lightEnablePtr		= ps[5];
-			renderModePointer	= ps[6];
 		}
 		
 		/**

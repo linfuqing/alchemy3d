@@ -16,10 +16,14 @@ package cn.alchemy3d.objects
 	{
 		public function Mesh3D(material:Material = null, texture:Texture = null, name:String = "")
 		{
+			this._material = material == null ? new Material() : material;
+			this._texture = texture;
+			this._lightEnable = false;
+			
 			vertices = new Vector.<Vertex3D>();
 			faces = new Vector.<Triangle3D>();
 			
-			super(material == null ? new Material() : material, texture, name);
+			super(name);
 		}
 		
 		public var faces:Vector.<Triangle3D>;
@@ -29,9 +33,16 @@ package cn.alchemy3d.objects
 		public var verticesPointer:uint;
 		public var facesPointer:uint;
 		public var dirtyPointer:uint;
+		public var renderModePointer:uint;
+		public var materialPtr:int;
+		public var texturePtr:int;
 		
 		public var sizeOfVertex:int;
 		public var sizeOfFace:int;
+		
+		private var _material:Material;
+		private var _texture:Texture;
+		private var _lightEnable:Boolean;
 		
 		private const vSize:uint = 5;
 		private const fSize:uint = 9;
@@ -44,6 +55,66 @@ package cn.alchemy3d.objects
 		public function get nVertices():int
 		{
 			return vertices.length;
+		}
+		
+		public function get material():Material
+		{
+			return _material;
+		}
+		
+		public function set material(material:Material):void
+		{
+			if (!checkInitialized()) return;
+			
+			Library.memory.position = materialPtr;
+			Library.memory.writeUnsignedInt(material.pointer);
+		}
+		
+		public function get texture():Texture
+		{
+			return _texture;
+		}
+		
+		public function set texture(texture:Texture):void
+		{
+			if (!checkInitialized()) return;
+			
+			Library.memory.position = texturePtr;
+			
+			if (texture)
+				Library.memory.writeUnsignedInt(texture.pointer);
+			else
+				Library.memory.writeUnsignedInt(0);
+		}
+		
+		/**
+		 * 设置渲染模式
+		 */
+		public function set renderMode(mode:uint):void
+		{
+			if (!checkInitialized()) return;
+			
+			Library.memory.position = renderModePointer;
+			Library.memory.writeUnsignedInt(mode);
+		}
+		
+		public function get lightEnable():Boolean
+		{
+			return _lightEnable;
+		}
+		
+		public function set lightEnable(bool:Boolean):void
+		{
+			if (!checkInitialized()) return;
+			
+			_lightEnable = bool;
+			
+			Library.memory.position = lightEnablePtr;
+			
+			if (bool)
+				Library.memory.writeUnsignedInt(1);
+			else
+				Library.memory.writeUnsignedInt(0);
 		}
 		
 		public function setVertices(index:int, v:Vector3D):void
@@ -163,6 +234,8 @@ package cn.alchemy3d.objects
 		{
 			super.allotPtr(ps);
 			
+			lightEnablePtr		= ps[5];
+			renderModePointer	= ps[6];
 			dirtyPointer		= ps[7];
 			materialPtr			= ps[8];
 			texturePtr			= ps[9];
