@@ -87,11 +87,13 @@ package cn.alchemy3d.view
 			
 			videoBuffer = new BitmapData(width, height, true, 0);
 			addChild(new Bitmap(videoBuffer, PixelSnapping.NEVER, false));
+			
+			initialize();
 		}
 		
-		public function initialize(devicePointer:uint):void
+		public function initialize():void
 		{
-			allotPtr(Library.alchemy3DLib.initializeViewport(devicePointer, viewWidth, viewHeight, scene.pointer, camera.pointer));
+			allotPtr(Library.alchemy3DLib.initializeViewport(viewWidth, viewHeight, scene.pointer, camera.pointer));
 		}
 		
 		public function allotPtr(ps:Array):void
