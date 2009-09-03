@@ -72,6 +72,7 @@ Entity * newEntity()
 	entity->view			= newMatrix3D(NULL);
 	entity->projection		= newMatrix3D(NULL);
 
+	entity->name			= NULL;
 	entity->children		= NULL;
 	entity->parent			= NULL;
 	entity->mesh			= NULL;

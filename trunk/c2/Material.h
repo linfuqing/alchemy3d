@@ -7,6 +7,7 @@
 
 typedef struct Material
 {
+	char * name;
 	FloatColor * ambient;	//指定此表面反射的环境光数量
 	FloatColor * diffuse;	//指定此表面反射的漫射光数量
 	FloatColor * specular;	//指定此表面反射的镜面光数量
@@ -23,6 +24,12 @@ Material * newMaterial( FloatColor * ambient, FloatColor * diffuse, FloatColor *
 		exit( TRUE );
 	}
 
+	ambient = NULL != ambient ? ambient : newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f );
+	diffuse = NULL != diffuse ? diffuse : newFloatColor( 0.6f, 0.6f, 0.6f, 0.6f );
+	specular = NULL != specular ? specular : newFloatColor( 0.8f, 0.8f, 0.8f, 0.8f );
+	emissive = NULL != emissive ? emissive : newFloatColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
+	m->name		= NULL;
 	m->ambient	= ambient;
 	m->diffuse	= diffuse;
 	m->specular	= specular;
@@ -34,10 +41,11 @@ Material * newMaterial( FloatColor * ambient, FloatColor * diffuse, FloatColor *
 
 void material_dispose( Material * m )
 {
-	m->ambient = NULL;
-	m->diffuse = NULL;
-	m->emissive = NULL;
-	m->specular = NULL;
+	m->name		= NULL;
+	m->ambient	= NULL;
+	m->diffuse	= NULL;
+	m->emissive	= NULL;
+	m->specular	= NULL;
 	free( m );
 	m = NULL;
 }

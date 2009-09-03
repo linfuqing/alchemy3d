@@ -27,7 +27,7 @@ int main()
 	Camera * camera;
 	Viewport * view;
 	Scene * scene;
-	Entity * do3d, * do3d2;
+	Entity * do3d, * do3d2, * do3d3;
 	Vertex * vArr[4], * vArr2[9];
 	Vector * point, * point2;
 	Material * material, * material2;
@@ -44,8 +44,8 @@ int main()
 
 	LPDWORD bitmapData;
 
-	//FILE *fp;
-	//UCHAR * buffer;
+	FILE *fp;
+	UCHAR * buffer;
 	
 	scene = newScene();
 
@@ -53,20 +53,20 @@ int main()
 
 	view = newViewport( 600, 400, scene, camera );
 
-	/*do3d3 = newEntity();
+	do3d3 = newEntity();
 
 	scene_addEntity(scene, do3d3, NULL);
 
-	buffer = (UCHAR * )malloc(486251 * sizeof(UCHAR));
+	buffer = (UCHAR * )malloc(60000 * sizeof(UCHAR));
 
-	fp = fopen("C:\\Inetpub\\wwwroot\\graphic3D\\alchemy3d\\c2\\tris.MD2","rb");
+	fp = fopen("D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\man.3ds","rb");
 
-	for ( i = 0; i < 9000000; i ++)
+	for ( i = 0; i < 60000; i ++)
 	{
 		buffer[i] = fgetc( fp );
 	}
 
-	A3DS_LoadData( do3d3, & buffer, 9000000 );*/
+	A3DS_LoadData( do3d3, & buffer, 60000 );
 
 	if( ( bitmapData = ( LPDWORD )calloc( 256*256, sizeof( DWORD ) ) ) == NULL )
 	{
