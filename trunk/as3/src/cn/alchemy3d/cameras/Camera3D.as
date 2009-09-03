@@ -10,7 +10,7 @@ package cn.alchemy3d.cameras
 		public var pointer:uint = 0;
 		
 		public var targetPtr:uint;
-		public var hasTargetPtr:uint;
+		public var isUVNPtr:uint;
 		public var fovPtr:uint;
 		public var nearPtr:uint;
 		public var farPtr:uint;
@@ -69,12 +69,12 @@ package cn.alchemy3d.cameras
 				Library.memory.writeFloat(target.y);
 				Library.memory.writeFloat(target.z);
 				
-				Library.memory.position = hasTargetPtr;
+				Library.memory.position = isUVNPtr;
 				Library.memory.writeInt(1);
 			}
 			else
 			{
-				Library.memory.position = hasTargetPtr;
+				Library.memory.position = isUVNPtr;
 				Library.memory.writeInt(0);
 			}
 		}
@@ -134,11 +134,13 @@ package cn.alchemy3d.cameras
 			this._far = far;
 			
 			this.eye = eye == null ? new Entity(null, null, "camera_eye") : eye;
+			
+			initialize();
 		}
 		
-		public function initialize(devicePointer:uint):void
+		public function initialize():void
 		{
-			allotPtr(Library.alchemy3DLib.initializeCamera(devicePointer, eye.pointer, _fov, _near, _far));
+			allotPtr(Library.alchemy3DLib.initializeCamera(eye.pointer, _fov, _near, _far));
 		}
 		
 		public function allotPtr(ps:Array):void
@@ -149,7 +151,7 @@ package cn.alchemy3d.cameras
 			nearPtr = ps[3];
 			farPtr = ps[4];
 			fnfDirtyPtr = ps[5];
-			hasTargetPtr = ps[6];
+			isUVNPtr = ps[6];
 		}
 		
 		public function hover(mouseX:Number, mouseY:Number, camSpeed:Number):void
