@@ -42,7 +42,7 @@ package
 		{
 			//Start 3DS
 			a3ds = new A3DS();
-			a3ds.load("asset/3ds/EarthII.3ds");
+			a3ds.load("asset/a.3ds");
 			scene.addEntity(a3ds);
 			
 			a3ds.rotationX = -90;
