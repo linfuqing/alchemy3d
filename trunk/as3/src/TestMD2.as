@@ -18,7 +18,7 @@ package
 		
 		public function TestMD2()
 		{
-			super();
+			super(12);
 			
 			init();
 		}
@@ -41,11 +41,12 @@ package
 		protected function init(e:Event = null):void
 		{
 			md2 = new MD2();
-			md2.load("asset/tris.md2");
+			md2.load("asset/tris.jpg");
 			scene.addEntity(md2);
 			
 			md2.rotationX = -90;
 			md2.scale = 3.5;
+			md2.y = -30;
 			md2.z = 200;
 
 			startRendering();
