@@ -18,7 +18,7 @@ package
 		
 		public function Test3DS()
 		{
-			super();
+			super(12);
 			
 			init();
 		}
