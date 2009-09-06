@@ -32,6 +32,8 @@ typedef struct
 
 typedef struct
 {
+	unsigned int  fps;
+
 	MD2Skin     * skins;
 	MD2Header     header;
 	Entity      * entity;
@@ -45,6 +47,8 @@ MD2 * newMD2( Entity * entity )
 	{
 		exit( TRUE );
 	}
+
+	m -> fps    = 24;
 
 	m -> skins  = NULL;
 	m -> entity = entity != NULL ? entity : newEntity();
@@ -67,6 +71,8 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 	short          u, v;
 
 	float          sx, sy, sz, tx, ty, tz;
+
+	clock_t        duration = 1000 / ( m -> fps );
 
 	Vector *       uvs;
 
@@ -181,6 +187,9 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 			exit( TRUE );
 		}
 
+		frames[i].length = m -> header.num_vertices;
+		frames[i].time   = i * duration;
+
 		for( j = 0; j < m -> header.num_vertices; j ++ )
 		{
 			vertexPointer = pointer + sizeof( float ) * 6 + sizeof( char ) * FRAME_NAME_LENGTH + sizeof( unsigned char ) * 4 * j;
@@ -198,7 +207,7 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 		}
 	}
 
-	animation = newAnimation( mesh, frames, m -> header.num_frames );
+	animation = newAnimation( mesh, frames, m -> header.num_frames, m -> header.num_frames * duration );
 
 	animation_updateToFrame( animation, 0 );
 
