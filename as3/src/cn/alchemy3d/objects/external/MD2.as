@@ -2,7 +2,8 @@ package cn.alchemy3d.objects.external
 {
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.materials.Material;
-	import cn.alchemy3d.objects.Entity;
+	import cn.alchemy3d.objects.Mesh3D;
+	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.texture.Texture;
 	
 	import flash.events.Event;
@@ -10,13 +11,13 @@ package cn.alchemy3d.objects.external
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 
-	public class MD2 extends Entity
+	public class MD2 extends Mesh3D
 	{
 		private var loader:URLLoader;
 		
-		public function MD2()
+		public function MD2(material:Material = null, texture:Texture = null, name:String = "MD2_root")
 		{
-			super("MD2_root");
+			super(material, texture, name);
 		}
 		
 		public function load(url:String):void
@@ -57,7 +58,12 @@ package cn.alchemy3d.objects.external
 			loader.data.clear();
 			loader.data = null;
 			
-			Library.alchemy3DLib.initializeMD2(this.pointer, fileBuffer, length);
+			var mesh:Array = Library.alchemy3DLib.initializeMD2(pointer, fileBuffer, material ? material.pointer : 0, texture ? texture.pointer : 0, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
+			
+//			this.renderModePointer = mesh[0];
+//			this.dirtyPointer      = mesh[1];
+//			this.materialPtr       = mesh[2];
+//			this.texturePtr        = mesh[3];
 		}
 	}
 }
