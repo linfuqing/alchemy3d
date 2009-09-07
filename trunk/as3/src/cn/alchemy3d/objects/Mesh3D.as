@@ -1,11 +1,11 @@
 package cn.alchemy3d.objects
 {
 
+	import cn.alchemy3d.events.LoadEvent;
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.materials.Material;
-	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.texture.Texture;
 	
 	import flash.geom.Point;
@@ -18,12 +18,21 @@ package cn.alchemy3d.objects
 		{
 			this._material = material == null ? new Material() : material;
 			this._texture = texture;
+			
 			this._lightEnable = false;
 			
 			vertices = new Vector.<Vertex3D>();
 			faces = new Vector.<Triangle3D>();
 			
 			super(name);
+			
+			if (texture)
+			{
+				if (texture.ready)
+					Library.alchemy3DLib.onTextureReady(this.pointer, texture.pointer);
+				else
+					texture.addEventListener(LoadEvent.TEXTURE_READY, onTextureReady);
+			}
 		}
 		
 		public var faces:Vector.<Triangle3D>;
@@ -32,20 +41,15 @@ package cn.alchemy3d.objects
 		public var meshBuffPointer:uint;
 		public var verticesPointer:uint;
 		public var facesPointer:uint;
-		public var dirtyPointer:uint;
-		public var renderModePointer:uint;
-		public var materialPtr:int;
-		public var texturePtr:int;
-		
-		public var sizeOfVertex:int;
-		public var sizeOfFace:int;
+		public var vDirtyPointer:uint;
+		public var fDirtyPointer:uint;
 		
 		private var _material:Material;
 		private var _texture:Texture;
 		private var _lightEnable:Boolean;
 		
 		private const vSize:uint = 5;
-		private const fSize:uint = 9;
+		private const fSize:uint = 12;
 		
 		public function get nFaces():int
 		{
@@ -66,8 +70,18 @@ package cn.alchemy3d.objects
 		{
 			if (!checkInitialized()) return;
 			
-			Library.memory.position = materialPtr;
-			Library.memory.writeUnsignedInt(material.pointer);
+			for (var i:int = 0; i < faces.length; i ++)
+			{
+				Library.memory.position = meshBuffPointer + (vSize * vertices.length + 10 + i * fSize) * sizeOfInt;
+				
+				if (material)
+					Library.memory.writeUnsignedInt(material.pointer);
+				else
+					Library.memory.writeUnsignedInt(0);
+			}
+				
+			Library.memory.position = fDirtyPointer;
+			Library.memory.writeUnsignedInt(1);
 		}
 		
 		public function get texture():Texture
@@ -79,12 +93,18 @@ package cn.alchemy3d.objects
 		{
 			if (!checkInitialized()) return;
 			
-			Library.memory.position = texturePtr;
-			
-			if (texture)
-				Library.memory.writeUnsignedInt(texture.pointer);
-			else
-				Library.memory.writeUnsignedInt(0);
+			for (var i:int = 0; i < faces.length; i ++)
+			{
+				Library.memory.position = meshBuffPointer + (vSize * vertices.length + 11 + i * fSize) * sizeOfInt;
+				
+				if (texture)
+					Library.memory.writeUnsignedInt(texture.pointer);
+				else
+					Library.memory.writeUnsignedInt(0);
+			}
+				
+			Library.memory.position = fDirtyPointer;
+			Library.memory.writeUnsignedInt(1);
 		}
 		
 		/**
@@ -94,8 +114,14 @@ package cn.alchemy3d.objects
 		{
 			if (!checkInitialized()) return;
 			
-			Library.memory.position = renderModePointer;
-			Library.memory.writeUnsignedInt(mode);
+			for (var i:int = 0; i < faces.length; i ++)
+			{
+				Library.memory.position = meshBuffPointer + (vSize * vertices.length + 9 + i * fSize) * sizeOfInt;
+				Library.memory.writeUnsignedInt(mode);
+			}
+			
+			Library.memory.position = fDirtyPointer;
+			Library.memory.writeUnsignedInt(1);
 		}
 		
 		public function get lightEnable():Boolean
@@ -129,7 +155,7 @@ package cn.alchemy3d.objects
 			Library.memory.writeFloat(v.y);
 			Library.memory.writeFloat(v.z);
 			
-			Library.memory.position = dirtyPointer;
+			Library.memory.position = vDirtyPointer;
 			Library.memory.writeUnsignedInt(1);
 		}
 		
@@ -141,7 +167,7 @@ package cn.alchemy3d.objects
 			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize;
 			Library.memory.writeFloat(value);
 			
-			Library.memory.position = dirtyPointer;
+			Library.memory.position = vDirtyPointer;
 			Library.memory.writeUnsignedInt(1);
 		}
 		
@@ -153,7 +179,7 @@ package cn.alchemy3d.objects
 			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt;
 			Library.memory.writeFloat(value);
 			
-			Library.memory.position = dirtyPointer;
+			Library.memory.position = vDirtyPointer;
 			Library.memory.writeUnsignedInt(1);
 		}
 		
@@ -167,7 +193,7 @@ package cn.alchemy3d.objects
 			//写入数据
 			Library.memory.writeFloat(value);
 			
-			Library.memory.position = dirtyPointer;
+			Library.memory.position = vDirtyPointer;
 			Library.memory.writeUnsignedInt(1);
 		}
 		
@@ -206,12 +232,23 @@ package cn.alchemy3d.objects
 				Library.memory.writeFloat(f.uv1.y);
 				Library.memory.writeFloat(f.uv2.x);
 				Library.memory.writeFloat(f.uv2.y);
+				Library.memory.writeUnsignedInt(0);
+				
+				if (_material)
+					Library.memory.writeUnsignedInt(_material.pointer);
+				else
+					Library.memory.writeUnsignedInt(0);
+				
+				if (_texture)
+					Library.memory.writeUnsignedInt(_texture.pointer);
+				else
+					Library.memory.writeUnsignedInt(0);
 			}
 		}
 		
 		protected function applyForMeshBuffer():void
 		{
-			meshBuffPointer = Library.alchemy3DLib.applyForTmpBuffer((vertices.length * vSize + faces.length * fSize) * 4);
+			meshBuffPointer = Library.alchemy3DLib.applyForTmpBuffer((vertices.length * vSize + faces.length * fSize) * sizeOfInt);
 		}
 		
 		override protected function initialize():void
@@ -235,10 +272,15 @@ package cn.alchemy3d.objects
 			super.allotPtr(ps);
 			
 			lightEnablePtr		= ps[5];
-			renderModePointer	= ps[6];
-			dirtyPointer		= ps[7];
-			materialPtr			= ps[8];
-			texturePtr			= ps[9];
+			vDirtyPointer		= ps[6];
+			fDirtyPointer		= ps[7];
+		}
+		
+		protected function onTextureReady(e:LoadEvent):void
+		{
+			texture.removeEventListener(LoadEvent.TEXTURE_READY, onTextureReady);
+			
+			Library.alchemy3DLib.onTextureReady(this.pointer, texture.pointer);
 		}
 		
 		override public function clone():Entity

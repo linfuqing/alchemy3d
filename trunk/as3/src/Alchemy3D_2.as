@@ -54,7 +54,7 @@ package
 		
 		public function Alchemy3D_2()
 		{
-			super(600, 400);
+			super(60, 600, 400);
 			
 //			stage.scaleMode = StageScaleMode.NO_SCALE;
 //			stage.align = StageAlign.TOP_LEFT;

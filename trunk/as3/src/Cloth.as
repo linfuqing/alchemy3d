@@ -75,7 +75,7 @@ package
 			t1 = new Texture(bl.getBitmapData("0"));
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(0.2, 0.2, 0.2, 1);
+			m.ambient = new ColorTransform(0.01, 0.01, 0, 1);
 			m.diffuse = new ColorTransform(.7, .7, 0, 1);
 			m.specular = new ColorTransform(1, 1, 0, 1);
 			m.power = 48;
@@ -90,7 +90,7 @@ package
 			scene.addEntity(lightObj);
 			lightObj.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
 			
-			p = new Plane(m, t1, 700, 500, 20, 10);
+			p = new Plane(m, t1, 500, 400, 20, 10);
 			scene.addEntity(p);
 			p.lightEnable = true;
 			p.renderMode = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
@@ -103,9 +103,9 @@ package
 			light.type = LightType.POINT_LIGHT;
 			light.mode = LightType.HIGH_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
-			light.source.y = 300;
+			light.source.y = 200;
 			light.source.x = 0;
-			light.source.z = 480;
+			light.source.z = 400;
 			light.ambient = new ColorTransform(0.4, 0.4, 0, 1);
 			light.diffuse = new ColorTransform(.7, .7, 0, 1);
 			light.specular = new ColorTransform(1, 1, 0, 1);
