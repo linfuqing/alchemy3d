@@ -200,9 +200,14 @@ void mesh_correctUV( Mesh * m, Texture * t )
 
 	for( i = 0; i < m->nVertices; i ++ )
 	{
-		//ÎÆÀí×ø·¶Î§ÔÚ[width-1, height-1]
-		m->vertices[i].uv->u *= t->width - 1;
-		m->vertices[i].uv->v *= t->height - 1;
+		if ( ! m->vertices[i].uvTransformed )
+		{
+			//ÎÆÀí×ø·¶Î§ÔÚ[width-1, height-1]
+			m->vertices[i].uv->u *= t->width - 1;
+			m->vertices[i].uv->v *= t->height - 1;
+
+			m->vertices[i].uvTransformed = TRUE;
+		}
 	}
 }
 
