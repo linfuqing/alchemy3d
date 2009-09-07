@@ -58,10 +58,39 @@ int main()
 
 	LPDWORD bitmapData;
 
+	MD2 * md2;
+
 	A3DS * a3ds;
 	FILE *fp;
 	UCHAR * buffer;
 	long length=0;
+
+	material = newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
+							newFloatColor( 0.3f, 0.8f, 0.6f, 1.0f ),
+							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							4.0f );
+
+	material2 = newMaterial( newFloatColor( 0.0f, 1.0f, 0.0f, 1.0f ),
+							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+							4.0f );
+
+	if( ( bitmapData = ( LPDWORD )calloc( 256*256, sizeof( DWORD ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	for ( i = 0; i < 256 * 256; i ++ )
+	{
+		bitmapData[i] = 0xffffffff;
+	}
+
+	texture = newTexture( "default_tex" );
+	texture_setData( texture, 256, 256, (LPBYTE)bitmapData );
+
+	/////////////////////////////////////////////////////////////////////////////////////
 	
 	scene = newScene();
 
@@ -76,7 +105,7 @@ int main()
 
 	//*******************************
 
-	fp = fopen("D:\\3Dmodel\\3ds\\xiniu.3DS","rb");
+	fp = fopen("D:\\3dmod\\Tris.md2","rb");
 
 	length = GetFileSize(fp);
 
@@ -84,24 +113,15 @@ int main()
 
 	fread(buffer,1,length,fp);
 
-	a3ds = A3DS_Create( do3d3, & buffer, length );
+	/*a3ds = A3DS_Create( do3d3, & buffer, length );
 
-	A3DS_Dispose( a3ds );
+	A3DS_Dispose( a3ds );*/
+
+	md2 = newMD2( do3d3 );
+
+	md2_read( & buffer, md2, material, texture, 1 );
 
 	//*******************************
-
-	if( ( bitmapData = ( LPDWORD )calloc( 256*256, sizeof( DWORD ) ) ) == NULL )
-	{
-		exit( TRUE );
-	}
-
-	for ( i = 0; i < 256 * 256; i ++ )
-	{
-		bitmapData[i] = 0xffffffff;
-	}
-
-	texture = newTexture( "default_tex" );
-	texture_setData( texture, 256, 256, (LPBYTE)bitmapData );
 
 	pos[0] = -50.0f;
 	pos[1] = -50.0f;
@@ -180,18 +200,6 @@ int main()
 	mesh_push_triangle(mesh2, vArr2[4], vArr2[7], vArr2[5], point2, point2, point2, NULL, NULL);
 	mesh_push_triangle(mesh2, vArr2[8], vArr2[5], vArr2[7], point2, point2, point2, NULL, NULL);
 
-	material = newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
-							newFloatColor( 0.3f, 0.8f, 0.6f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-							4.0f );
-
-	material2 = newMaterial( newFloatColor( 0.0f, 1.0f, 0.0f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-							4.0f );
-	
 	mesh_setRenderMode( mesh1, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 	mesh_setMaterial( mesh1, material );
 	mesh_setTexture( mesh1, texture );
