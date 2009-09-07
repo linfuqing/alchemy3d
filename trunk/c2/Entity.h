@@ -53,10 +53,7 @@ Entity * newEntity()
 {
 	Entity * entity;
 
-	if( ( entity = ( Entity * )malloc( sizeof( Entity ) ) ) == NULL )
-	{
-		exit( TRUE );
-	}
+	if( ( entity = ( Entity * )malloc( sizeof( Entity ) ) ) == NULL ) exit( TRUE );
 
 	entity->position		= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->direction		= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
@@ -207,7 +204,8 @@ void entity_updateAfterRender( Entity * entity )
 
 		int i = 0, l = m->nVertices;
 
-		m->dirty = FALSE;
+		m->v_dirty = FALSE;
+		m->f_dirty = FALSE;
 
 		for( ; i < l; i ++ )
 		{

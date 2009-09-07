@@ -10,17 +10,13 @@
 
 typedef struct Mesh
 {
-	int nFaces, nVertices, dirty, render_mode;
+	int nFaces, nVertices, v_dirty, f_dirty;
 
 	Triangle  * faces;
 
 	Vertex * vertices;
 
 	AABB * aabb, * worldAABB, * CVVAABB;
-
-	Material * material;
-
-	Texture * texture;
 
 #ifdef __AS3__
 	float * meshBuffer;
@@ -32,9 +28,9 @@ Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
 {
 	Mesh * m;
 
-	if( ( m				= ( Mesh * )malloc( sizeof( Mesh ) ) ) == NULL) exit( TRUE );
-	if( ( m->faces		= ( Triangle * )malloc( sizeof( Triangle ) * nFaces ) ) == NULL ) exit( TRUE );
-	if( ( m->vertices	= ( Vertex * )malloc( sizeof( Vertex ) * nVertices ) ) == NULL ) exit( TRUE );
+	if( ( m				= ( Mesh * )calloc( 1, sizeof( Mesh ) ) ) == NULL) exit( TRUE );
+	if( ( m->faces		= ( Triangle * )calloc( nFaces, sizeof( Triangle ) ) ) == NULL ) exit( TRUE );
+	if( ( m->vertices	= ( Vertex * )calloc( nVertices, sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
 	
 	m->aabb				= newAABB();
 	m->worldAABB		= newAABB();
@@ -42,12 +38,8 @@ Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
 
 	m->nFaces			= 0;
 	m->nVertices		= 0;
-	m->dirty			= FALSE;
-
-	m->material			= NULL;
-	m->texture			= NULL;
-
-	m->render_mode			= RENDER_NONE;
+	m->v_dirty			= FALSE;
+	m->f_dirty			= FALSE;
 
 #ifdef __AS3__
 	m->meshBuffer = meshBuffer;
@@ -56,7 +48,7 @@ Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
 	return m;
 }
 
-Vertex *  mesh_push_vertex( Mesh * m, float x, float y, float z )
+Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 {
 	Vertex * v = & m->vertices[m->nVertices];
 
@@ -81,7 +73,7 @@ Vertex *  mesh_push_vertex( Mesh * m, float x, float y, float z )
 	return v;
 }
 
-Triangle *  mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Texture * texture )
+Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Material * material, Texture * texture )
 {
 	Triangle * p = & m->faces[m->nFaces];
 
@@ -94,6 +86,7 @@ Triangle *  mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc,
 	vc->uv = uvc;
 
 	p->texture = texture;
+	p->material = material;
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );
@@ -128,7 +121,7 @@ void computeFaceNormal( Mesh * m )
 
 		face->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 
-		triangle_normal( face->normal, face->vertex[0], face->vertex[1], face->vertex[2]);
+		triangle_normal( face->normal, face->vertex[0], face->vertex[1], face->vertex[2] );
 	}
 }
 
@@ -181,9 +174,36 @@ void computeVerticesNormal( Mesh * m )
 	}
 }
 
-void mesh_setMaterial( Mesh * mesh, Material * m )
+void mesh_setRenderMode(  Mesh * m, DWORD renderMode )
 {
-	mesh->material = m;
+	int i = 0;
+
+	for( ; i < m->nFaces; i ++ )
+	{
+		m->faces[i].render_mode = renderMode;
+	}
+}
+
+void mesh_setMaterial( Mesh * m, Material * mat )
+{
+	int i = 0;
+
+	for( ; i < m->nFaces; i ++ )
+	{
+		m->faces[i].material = mat;
+	}
+}
+
+void mesh_correctUV( Mesh * m, Texture * t )
+{
+	int i = 0;
+
+	for( i = 0; i < m->nVertices; i ++ )
+	{
+		//ÎÆÀí×ø·¶Î§ÔÚ[width-1, height-1]
+		m->vertices[i].uv->u *= t->width - 1;
+		m->vertices[i].uv->v *= t->height - 1;
+	}
 }
 
 void mesh_setTexture( Mesh * m, Texture * t )
@@ -195,14 +215,10 @@ void mesh_setTexture( Mesh * m, Texture * t )
 		m->faces[i].texture = t;
 	}
 
-	for( i = 0; i < m->nVertices; i ++ )
+	if ( t->pRGBABuffer )
 	{
-		//ÎÆÀí×ø·¶Î§ÔÚ[width-1, height-1]
-		m->vertices[i].uv->u *= t->width - 1;
-		m->vertices[i].uv->v *= t->height - 1;
+		mesh_correctUV( m, t );
 	}
-
-	m->texture = t;
 }
 
 INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )

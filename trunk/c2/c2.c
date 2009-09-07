@@ -21,6 +21,20 @@
 #include "3DSLoader.h"
 #include "MD2.h"
 
+long GetFileSize(FILE* f)
+{
+	long pos, len;
+
+    pos = ftell(f);
+
+    fseek(f,0,SEEK_END);
+
+    len = ftell(f);
+
+    fseek(f,pos,SEEK_SET);
+
+    return len;
+}
 
 int main()
 {
@@ -44,8 +58,10 @@ int main()
 
 	LPDWORD bitmapData;
 
+	A3DS * a3ds;
 	FILE *fp;
 	UCHAR * buffer;
+	long length=0;
 	
 	scene = newScene();
 
@@ -54,19 +70,25 @@ int main()
 	view = newViewport( 600, 400, scene, camera );
 
 	do3d3 = newEntity();
+	do3d3->name = "root";
 
 	scene_addEntity(scene, do3d3, NULL);
 
-	buffer = (UCHAR * )malloc(60000 * sizeof(UCHAR));
+	//*******************************
 
-	fp = fopen("D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\man.3ds","rb");
+	fp = fopen("D:\\3Dmodel\\3ds\\xiniu.3DS","rb");
 
-	for ( i = 0; i < 60000; i ++)
-	{
-		buffer[i] = fgetc( fp );
-	}
+	length = GetFileSize(fp);
 
-	A3DS_LoadData( do3d3, & buffer, 60000 );
+	buffer = (UCHAR * )malloc(length * sizeof(UCHAR));
+
+	fread(buffer,1,length,fp);
+
+	a3ds = A3DS_Create( do3d3, & buffer, length );
+
+	A3DS_Dispose( a3ds );
+
+	//*******************************
 
 	if( ( bitmapData = ( LPDWORD )calloc( 256*256, sizeof( DWORD ) ) ) == NULL )
 	{
@@ -78,7 +100,8 @@ int main()
 		bitmapData[i] = 0xffffffff;
 	}
 
-	texture = newTexture(256, 256, (LPBYTE)bitmapData);
+	texture = newTexture( "default_tex" );
+	texture_setData( texture, 256, 256, (LPBYTE)bitmapData );
 
 	pos[0] = -50.0f;
 	pos[1] = -50.0f;
@@ -123,9 +146,6 @@ int main()
 	mesh1 = newMesh( 4, 2, NULL );
 	mesh2 = newMesh( 18, 9, NULL );
 
-	mesh1->render_mode = RENDER_WIREFRAME_TRIANGLE_32;
-	mesh2->render_mode = RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
-
 	for ( i = 0; i < 8; i += 2)
 	{
 		mesh_push_vertex(mesh1, pos[i], pos[i+1], 0.0f);
@@ -135,8 +155,8 @@ int main()
 
 	point = newVector(1.0f, 1.0f);
 
-	mesh_push_triangle(mesh1, vArr[0], vArr[2], vArr[1], newVector(0.0f, 0.0f), newVector(1.0f, 0.0f), newVector(0.0f, 1.0f), NULL);
-	mesh_push_triangle(mesh1, vArr[3], vArr[1], vArr[2], newVector(1.0f, 1.0f), newVector(0.0f, 1.0f), newVector(1.0f, 0.0f), NULL);
+	mesh_push_triangle(mesh1, vArr[0], vArr[2], vArr[1], newVector(0.0f, 0.0f), newVector(1.0f, 0.0f), newVector(0.0f, 1.0f), NULL, NULL);
+	mesh_push_triangle(mesh1, vArr[3], vArr[1], vArr[2], newVector(1.0f, 1.0f), newVector(0.0f, 1.0f), newVector(1.0f, 0.0f), NULL, NULL);
 
 	i = 0;
 	j = 0;
@@ -150,15 +170,15 @@ int main()
 
 	point2 = newVector(.5f, .5f);
 
-	mesh_push_triangle(mesh2, vArr2[0], vArr2[3], vArr2[1], point2, point2, point2, NULL);
-	mesh_push_triangle(mesh2, vArr2[4], vArr2[1], vArr2[3], point2, point2, point2, NULL);
-	mesh_push_triangle(mesh2, vArr2[1], vArr2[4], vArr2[2], point2, point2, point2, NULL);
-	mesh_push_triangle(mesh2, vArr2[5], vArr2[2], vArr2[4], point2, point2, point2, NULL);
+	mesh_push_triangle(mesh2, vArr2[0], vArr2[3], vArr2[1], point2, point2, point2, NULL, NULL);
+	mesh_push_triangle(mesh2, vArr2[4], vArr2[1], vArr2[3], point2, point2, point2, NULL, NULL);
+	mesh_push_triangle(mesh2, vArr2[1], vArr2[4], vArr2[2], point2, point2, point2, NULL, NULL);
+	mesh_push_triangle(mesh2, vArr2[5], vArr2[2], vArr2[4], point2, point2, point2, NULL, NULL);
 
-	mesh_push_triangle(mesh2, vArr2[3], vArr2[6], vArr2[4], point2, point2, point2, NULL);
-	mesh_push_triangle(mesh2, vArr2[7], vArr2[4], vArr2[6], point2, point2, point2, NULL);
-	mesh_push_triangle(mesh2, vArr2[4], vArr2[7], vArr2[5], point2, point2, point2, NULL);
-	mesh_push_triangle(mesh2, vArr2[8], vArr2[5], vArr2[7], point2, point2, point2, NULL);
+	mesh_push_triangle(mesh2, vArr2[3], vArr2[6], vArr2[4], point2, point2, point2, NULL, NULL);
+	mesh_push_triangle(mesh2, vArr2[7], vArr2[4], vArr2[6], point2, point2, point2, NULL, NULL);
+	mesh_push_triangle(mesh2, vArr2[4], vArr2[7], vArr2[5], point2, point2, point2, NULL, NULL);
+	mesh_push_triangle(mesh2, vArr2[8], vArr2[5], vArr2[7], point2, point2, point2, NULL, NULL);
 
 	material = newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
 							newFloatColor( 0.3f, 0.8f, 0.6f, 1.0f ),
@@ -172,9 +192,11 @@ int main()
 							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 							4.0f );
 	
+	mesh_setRenderMode( mesh1, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 	mesh_setMaterial( mesh1, material );
 	mesh_setTexture( mesh1, texture );
 
+	mesh_setRenderMode( mesh2, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 	mesh_setMaterial( mesh2, material2 );
 	mesh_setTexture( mesh2, texture );
 
@@ -203,7 +225,7 @@ int main()
 
 	camera_setTarget( camera, do3d->w_pos );
 	//scene_addLight(scene, light);
-	scene_addEntity(scene, do3d, NULL);
+	//scene_addEntity(scene, do3d, NULL);
 	//scene_addEntity(scene, do3d2, NULL);
 	//scene_addEntity(scene, lightSource, NULL);
 
@@ -213,13 +235,11 @@ int main()
 
 	viewport_updateBeforeRender( view );
 
-	viewport_project( view );
+	viewport_project( view, 0 );
 
 	viewport_render( view );
 
 	viewport_updateAfterRender( view );
-
-	//printf("%x", view->gfxBuffer[189206]);
 
 	return 0;
 }

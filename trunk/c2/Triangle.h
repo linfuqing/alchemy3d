@@ -4,13 +4,16 @@
 #include "Vertex.h"
 #include "Vector.h"
 #include "Texture.h"
+#include "Material.h"
 
 //R
 typedef struct Triangle
 {
-	int render_mode;
+	DWORD render_mode;
 
 	Texture * texture;
+
+	Material * material;
 
 	Vector3D * normal, * center;
 
@@ -32,7 +35,7 @@ Vector3D * triangle_normal( Vector3D * normal, Vertex * v0, Vertex * v1, Vertex 
 	return normal;
 }
 
-Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Texture * texture )
+Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Material * material, Texture * texture )
 {
 	Triangle * p;
 
@@ -51,6 +54,7 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	vertex_addContectedFaces( p, vc );
 
 	p->texture = texture;
+	p->material = material;
 
 	p->render_mode = RENDER_NONE;
 
@@ -67,6 +71,8 @@ INLINE void triangle_copy( Triangle * dest, Triangle * src )
 	vector3D_copy( dest->normal, src->normal );
 
 	dest->texture = src->texture;
+	dest->material = src->material;
+	dest->render_mode = src->render_mode;
 }
 
 INLINE Triangle * triangle_clone( Triangle * src )
@@ -88,6 +94,8 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	vertex_addContectedFaces( dest, dest->vertex[2] );
 
 	dest->texture = src->texture;
+	dest->material = src->material;
+	dest->render_mode = src->render_mode;
 
 	dest->normal = vector3D_clone( src->normal );
 	dest->center = vector3D_clone( src->center );
