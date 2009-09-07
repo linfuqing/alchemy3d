@@ -1,6 +1,6 @@
 #pragma once
 
-# include <time.h>
+//# include <time.h>
 
 # include "Mesh.h"
 
@@ -10,7 +10,7 @@ typedef struct
 {
 	char         name[FRAME_NAME_LENGTH];
 
-	clock_t      time;
+	int          time;
 
 	Vector3D   * vertices;
 
@@ -22,8 +22,8 @@ typedef struct
 	Frame        * frames;
 	Mesh         * parent;
 	int            isPlay;
-	clock_t        durationTime;
-	clock_t        startTime;
+	int            durationTime;
+	int            startTime;
 	unsigned int   length;
 }Animation;
 
@@ -33,7 +33,7 @@ typedef struct
 	unsigned int length;
 }Movie;
 
-Animation   * newAnimation( Mesh * parent, Frame * frames, unsigned int length, clock_t duration )
+Animation   * newAnimation( Mesh * parent, Frame * frames, unsigned int length, int duration )
 {
 	Animation * a;
 
@@ -89,6 +89,9 @@ void animation_updateToTime( Animation * animation, float timeAlpha )
 
 	frameAlpha        = frameAlpha > 1 ? 1 : ( frameAlpha < 0 ? 0 : frameAlpha );
 
+	//AS3_Trace( AS3_Number( timeAlpha ) );
+	//AS3_Trace( AS3_Number( frameAlpha ) );
+
 	for( i = 0; i < ( animation -> parent -> nVertices ); i ++ )
 	{
 		animation -> parent -> vertices[i].position -> x = animation -> frames[currentFrameIndex].vertices[i].x + frameAlpha * ( animation -> frames[currentFrameIndex + 1].vertices[i].x - animation -> frames[currentFrameIndex].vertices[i].x );
@@ -97,7 +100,7 @@ void animation_updateToTime( Animation * animation, float timeAlpha )
 	}
 }
 
-void animation_update( Animation * animation )
+void animation_update( Animation * animation, int time )
 {
 	if( animation -> isPlay )
 	{
@@ -107,18 +110,18 @@ void animation_update( Animation * animation )
 
 		//animation -> currentFrameIndex ++;
 
-		clock_t elapsed  = clock() - animation -> startTime;
+		int elapsed  = time - animation -> startTime;
 				
 		if( elapsed > animation -> durationTime )
 		{
-			animation -> startTime = clock();
+			animation -> startTime = time;
 
 			elapsed                = 0;
 		}
 
-		AS3_Trace( AS3_Number( ( float )( elapsed * 1.0 / ( animation -> durationTime ) ) ) );
-		AS3_Trace( AS3_Number( animation -> durationTime ) );
-		AS3_Trace( AS3_Int( clock() ) );
+		//AS3_Trace( AS3_Number( ( float )( elapsed * 1.0 / ( animation -> durationTime ) ) ) );
+		//AS3_Trace( AS3_Number( animation -> durationTime ) );
+		//AS3_Trace( AS3_Int( clock() ) );
 
 		animation_updateToTime( animation, ( float )( elapsed * 1.0 / ( animation -> durationTime ) ) );
 	}
