@@ -553,8 +553,10 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 		}
 	}
 }
+///修改:
+//void viewport_project( Viewport * viewport )
 
-void viewport_project( Viewport * viewport )
+void viewport_project( Viewport * viewport, int time )
 {
 	Scene * scene;
 	SceneNode * sceneNode;
@@ -611,7 +613,11 @@ void viewport_project( Viewport * viewport )
 		entity = sceneNode->entity;
 
 		//更新实体的局部和世界坐标
-		entity_updateTransform(entity);
+
+		/////////
+		///加参数time
+		/////////
+		entity_updateTransform(entity, time);
 
 		if ( NULL != entity->mesh )
 		{

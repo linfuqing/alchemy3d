@@ -48,7 +48,7 @@ MD2 * newMD2( Entity * entity )
 		exit( TRUE );
 	}
 
-	m -> fps    = 24;
+	m -> fps    = 10;
 
 	m -> skins  = NULL;
 	m -> entity = entity != NULL ? entity : newEntity();
@@ -72,7 +72,7 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 
 	float          sx, sy, sz, tx, ty, tz;
 
-	clock_t        duration = 1000 / ( m -> fps );
+	int            duration = 1000 / ( m -> fps );
 
 	Vector *       uvs;
 
@@ -207,7 +207,7 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 		}
 	}
 
-	animation = newAnimation( mesh, frames, m -> header.num_frames, m -> header.num_frames * duration );
+	animation = newAnimation( mesh, frames, m -> header.num_frames, ( m -> header.num_frames - 1 ) * duration );
 
 	animation_updateToFrame( animation, 0 );
 

@@ -216,14 +216,14 @@ void entity_updateAfterRender( Entity * entity )
 	}
 }
 
-INLINE void entity_updateTransform( Entity * entity )
+INLINE void entity_updateTransform( Entity * entity, int time )
 {
 	Quaternion qua;
 	Matrix3D quaMtr;
 
 	if( entity -> animation != NULL )
 	{
-		animation_update( entity -> animation );
+		animation_update( entity -> animation, time );
 	}
 
 	//µ¥Î»»¯

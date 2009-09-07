@@ -287,11 +287,13 @@ AS3_Val render( void* self, AS3_Val args )
 {
 	Viewport * viewport;
 
-	AS3_ArrayValue( args, "PtrType", &viewport );
+	int time;
+
+	AS3_ArrayValue( args, "PtrType, IntType", &viewport, &time );
 
 	viewport_updateBeforeRender( viewport );
 
-	viewport_project( viewport );
+	viewport_project( viewport, time );
 
 	viewport_render( viewport );
 
