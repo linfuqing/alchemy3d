@@ -32,20 +32,20 @@ package cn.alchemy3d.view
 			viewport = new Viewport3D(viewWidth, viewHeight, scene, camera);
 			addChild(viewport);
 			
-			_timer = new Timer(1000/_frameRate, 0);
-			_timer.addEventListener(TimerEvent.TIMER, onRenderTick);
+//			_timer = new Timer(1000/_frameRate, 0);
+//			_timer.addEventListener(TimerEvent.TIMER, onRenderTick);
 		}
 		
 		public function startRendering():void
 		{
-//			addEventListener(Event.ENTER_FRAME, onRenderTick);
-			_timer.start();
+			addEventListener(Event.ENTER_FRAME, onRenderTick);
+//			_timer.start();
 		}
 		
 		public function stopRendering():void
 		{
-//			removeEventListener(Event.ENTER_FRAME, onRenderTick);
-			_timer.stop();
+			removeEventListener(Event.ENTER_FRAME, onRenderTick);
+//			_timer.stop();
 		}
 		
 		protected function onRenderTick(e:Event = null):void

@@ -26,9 +26,9 @@ package cn.alchemy3d.view
 		public var camera:Camera3D;
 		public var scene:Scene3D;
 		
+		protected var video:Bitmap;
 		protected var videoBuffer:BitmapData;
 		protected var wh:int;
-		
 		
 		public function get nRenderList():int
 		{
@@ -86,7 +86,8 @@ package cn.alchemy3d.view
 			wh = int(width) * int(height);
 			
 			videoBuffer = new BitmapData(width, height, true, 0);
-			addChild(new Bitmap(videoBuffer, PixelSnapping.NEVER, false));
+			video = new Bitmap(videoBuffer, PixelSnapping.NEVER, false);
+			addChild(video);
 			
 			initialize();
 		}
