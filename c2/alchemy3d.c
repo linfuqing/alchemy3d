@@ -129,15 +129,39 @@ AS3_Val initializeMaterial( void* self, AS3_Val args )
 
 AS3_Val initializeTexture( void* self, AS3_Val args )
 {
+	char * name;
+	Texture * texture;
+
+	AS3_ArrayValue( args, "StrType", &name );
+
+	texture = newTexture( name );
+
+	return AS3_Ptr( texture );
+}
+
+AS3_Val fillTextureData( void* self, AS3_Val args )
+{
 	Texture * texture;
 	int width, height;
-	LPBYTE pRGBABuffer;
+	LPBYTE data;
 
-	AS3_ArrayValue( args, "IntType, IntType, IntType", &width, &height, &pRGBABuffer );
+	AS3_ArrayValue( args, "PtrType, IntType, IntType, PtrType", &texture, &width, &height, &data );
 
-	texture = newTexture( width, height, pRGBABuffer );
+	texture_setData( texture, width, height, data );
 
-	return AS3_Array( "PtrType", texture );
+	return 0;
+}
+
+AS3_Val onTextureReady( void* self, AS3_Val args )
+{
+	Entity * entity;
+	Texture * texture;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, StrType, IntType, IntType, PtrType", &entity, &texture );
+
+	mesh_correctUV( entity->mesh, texture);
+
+	return 0;
 }
 
 AS3_Val initializeLight( void* self, AS3_Val args )
@@ -165,14 +189,14 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 	Material * material = NULL;
 	float * meshBuffer = NULL;
 	char * name = NULL;
-	DWORD ** p_meshBuffer = NULL, *** pp_meshBuffer = NULL;
+	DWORD * p_meshBuffer = NULL, ** pp_meshBuffer = NULL;
 
 	int vNum, fNum, vLen, i, j;
 
 	AS3_ArrayValue( args, "PtrType, PtrType, StrType, PtrType, IntType, IntType", &material, &texture, &name, &meshBuffer, &vNum, &fNum );
 
-	p_meshBuffer = ( DWORD ** )meshBuffer;
-	pp_meshBuffer = ( DWORD *** )meshBuffer;
+	pp_meshBuffer = ( DWORD ** )meshBuffer;
+	p_meshBuffer = ( DWORD * )meshBuffer;
 
 	entity = newEntity();
 
@@ -193,30 +217,27 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 		for ( ; i < vNum; i ++, j += VERTEX_SIZE )
 		{
-			p_meshBuffer[j + 4] = ( DWORD * )mesh_push_vertex( mesh, meshBuffer[j + 0], meshBuffer[j + 1], meshBuffer[j + 2] );
+			pp_meshBuffer[j + 4] = ( DWORD * )mesh_push_vertex( mesh, meshBuffer[j + 0], meshBuffer[j + 1], meshBuffer[j + 2] );
 		}
 
 		for ( i = 0, j = vLen; i < fNum; i ++, j += FACE_SIZE )
 		{
 			mesh_push_triangle( mesh,
-								(Vertex * )( * p_meshBuffer[j] ),
-								(Vertex * )( * p_meshBuffer[j + 1] ),
-								(Vertex * )( * p_meshBuffer[j + 2] ),
+								(Vertex * )( * pp_meshBuffer[j] ),
+								(Vertex * )( * pp_meshBuffer[j + 1] ),
+								(Vertex * )( * pp_meshBuffer[j + 2] ),
 								newVector( meshBuffer[j + 3], meshBuffer[j + 4] ),
 								newVector( meshBuffer[j + 5], meshBuffer[j + 6] ),
 								newVector( meshBuffer[j + 7], meshBuffer[j + 8] ),
-								NULL );
+								( Material * )( p_meshBuffer[j + 10] ),
+								( Texture * )( p_meshBuffer[j + 11] ) );
 		}
-
-		if ( material ) mesh_setMaterial( mesh, material );
-
-		if ( texture ) mesh_setTexture( mesh, texture );
 
 		entity_setMesh( entity, mesh );
 	}
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->lightEnable, & entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->lightEnable, & entity->mesh->v_dirty, & entity->mesh->f_dirty );
 }
 
 AS3_Val addEntity( void* self, AS3_Val args )
@@ -239,6 +260,8 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 AS3_Val initialize3DS( void* self, AS3_Val args )
 {
+	A3DS * a3ds = NULL;
+
 	Entity * entity = NULL;
 
 	UCHAR * buffer = NULL;
@@ -247,7 +270,20 @@ AS3_Val initialize3DS( void* self, AS3_Val args )
 
 	AS3_ArrayValue( args, "PtrType, PtrType, IntType", &entity, & buffer, & length );
 
-	A3DS_LoadData( entity, & buffer, length );
+	a3ds = A3DS_Create( entity, & buffer, length );
+
+	return AS3_Array( "PtrType, IntType, IntType, PtrType, IntType, IntType, IntType", a3ds, a3ds->mNum, a3ds->tNum, a3ds->a3d_materialList->next, FPOS( A3DS_MaterialList, next ), FPOS( A3DS_MaterialList, texture ), FPOS( Texture, name ) );
+}
+
+AS3_Val loadComplete3DS( void* self, AS3_Val args )
+{
+	A3DS * a3ds = NULL;
+
+	AS3_ArrayValue( args, "PtrType", &a3ds );
+
+	A3DS_CorrectUV( a3ds );
+
+	A3DS_Dispose( a3ds );
 
 	return 0;
 }
@@ -256,15 +292,19 @@ AS3_Val initializeMD2( void* self, AS3_Val args )
 {
 	MD2 * md2;
 	Entity * entity;
+	Material * material;
+	texture * texture;
+	int render_mode;
 	UCHAR * buffer;
 
-	AS3_ArrayValue( args, "PtrType, PtrType", & entity, & buffer );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType", & entity, & buffer, & material, & texture, & render_mode );
 
 	md2 = newMD2( entity );
 
-	md2_read( & buffer, md2 );
+	md2_read( & buffer, md2, material, texture, render_mode );
 
-	return 0;
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
+		& entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
 }
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
@@ -318,10 +358,13 @@ int main()
 	AS3_Val initializeViewportMethod = AS3_Function( NULL, initializeViewport );
 	AS3_Val initializeMaterialMethod = AS3_Function( NULL, initializeMaterial );
 	AS3_Val initializeTextureMethod = AS3_Function( NULL, initializeTexture );
+	AS3_Val fillTextureDataMethod = AS3_Function( NULL, fillTextureData );
+	AS3_Val onTextureReadyMethod = AS3_Function( NULL, onTextureReady );
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
 	AS3_Val initialize3DSMethod = AS3_Function( NULL, initialize3DS );
+	AS3_Val loadComplete3DSMethod = AS3_Function( NULL, loadComplete3DS );
 	AS3_Val applyForTmpBufferMethod = AS3_Function( NULL, applyForTmpBuffer );
 	AS3_Val renderMethod = AS3_Function( NULL, render );
 	AS3_Val initializeMD2Method = AS3_Function( NULL, initializeMD2 );
@@ -329,8 +372,42 @@ int main()
 
 
 
-	AS3_Val result = AS3_Object( "initializeCamera:AS3ValType, attachCamera:AS3ValType, initializeScene:AS3ValType, attachScene:AS3ValType, initializeViewport:AS3ValType, initializeMaterial:AS3ValType, initializeTexture:AS3ValType, initializeLight:AS3ValType, initializeEntity:AS3ValType, addEntity:AS3ValType, initialize3DS:AS3ValType, applyForTmpBuffer:AS3ValType, render:AS3ValType, initializeMD2:AS3ValType, test:AS3ValType",
-		initializeCameraMethod, attachCameraMethod, initializeSceneMethod, attachSceneMethod, initializeViewportMethod, initializeMaterialMethod, initializeTextureMethod, initializeLightMethod, initializeEntityMethod, addEntityMethod, initialize3DSMethod, applyForTmpBufferMethod, renderMethod, initializeMD2Method, testMethod );
+	AS3_Val result = AS3_Object( "initializeCamera:AS3ValType,\
+								 attachCamera:AS3ValType,\
+								 initializeScene:AS3ValType,\
+								 attachScene:AS3ValType,\
+								 initializeViewport:AS3ValType,\
+								 initializeMaterial:AS3ValType,\
+								 initializeTexture:AS3ValType,\
+								 fillTextureData:AS3ValType,\
+								 onTextureReady:AS3ValType,\
+								 initializeLight:AS3ValType,\
+								 initializeEntity:AS3ValType,\
+								 addEntity:AS3ValType,\
+								 initialize3DS:AS3ValType,\
+								 loadComplete3DS:AS3ValType,\
+								 applyForTmpBuffer:AS3ValType,\
+								 render:AS3ValType,\
+								 initializeMD2:AS3ValType,\
+								 test:AS3ValType",
+								initializeCameraMethod,
+								attachCameraMethod,
+								initializeSceneMethod,
+								attachSceneMethod,
+								initializeViewportMethod,
+								initializeMaterialMethod,
+								initializeTextureMethod,
+								fillTextureDataMethod,
+								onTextureReadyMethod,
+								initializeLightMethod,
+								initializeEntityMethod,
+								addEntityMethod,
+								initialize3DSMethod,
+								loadComplete3DSMethod,
+								applyForTmpBufferMethod,
+								renderMethod,
+								initializeMD2Method,
+								testMethod );
 
 
 	AS3_Release( initializeCameraMethod );
@@ -340,10 +417,13 @@ int main()
 	AS3_Release( initializeViewportMethod );
 	AS3_Release( initializeMaterialMethod );
 	AS3_Release( initializeTextureMethod );
+	AS3_Release( fillTextureDataMethod );
+	AS3_Release( onTextureReadyMethod );
 	AS3_Release( initializeLightMethod );
 	AS3_Release( initializeEntityMethod );
 	AS3_Release( addEntityMethod );
 	AS3_Release( initialize3DSMethod );
+	AS3_Release( loadComplete3DSMethod );
 	AS3_Release( applyForTmpBufferMethod );
 	AS3_Release( renderMethod );
 	AS3_Release( initializeMD2Method );

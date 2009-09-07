@@ -25,8 +25,15 @@ typedef unsigned long		ULONG;
 #define USERADIANS			TRUE
 
 #define VERTEX_SIZE			5
-#define FACE_SIZE			9
+#define FACE_SIZE			12
 #define MAX_LIGHTS			10
+
+//获得成员在结构体中的偏移量
+#ifdef  _WIN64
+#define FPOS(s,m)   (size_t)( (ptrdiff_t)&(   ( (s *)0 )->m   ) )
+#else
+#define FPOS(s,m)   (size_t)&(   ( (s *) 0 )->m   )
+#endif
 
 #define X_AXIS (NULL == g_X_AXIS) ? newVector3D( 1.0f, 0, 0, 1.0f ) : g_X_AXIS
 #define Y_AXIS (NULL == g_Y_AXIS) ? newVector3D( 0, 1.0f, 0, 1.0f ) : g_Y_AXIS

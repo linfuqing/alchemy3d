@@ -13,12 +13,13 @@ typedef struct ContectedFaces
 	struct Triangle * face;
 
 	struct ContectedFaces * next;
+
 }ContectedFaces;
 
 //RW
 typedef struct Vertex
 {
-	int nContectedFaces, transformed;
+	int nContectedFaces, transformed, uvTransformed;
 
 	int fix_inv_z;
 
@@ -29,6 +30,7 @@ typedef struct Vertex
 	ARGBColor * color;
 
 	struct ContectedFaces * contectedFaces;
+
 }Vertex;
 
 Vertex * newVertex( float x, float y, float z )
@@ -40,18 +42,14 @@ Vertex * newVertex( float x, float y, float z )
 	v->position = newVector3D(x, y, z, 1.0f);
 	v->w_pos = newVector3D(x, y, z, 1.0f);
 	v->s_pos = newVector3D(x, y, z, 1.0f);
-
 	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
 	v->normalLength = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
-
 	v->uv = newVector( 0.0f, 0.0f );
-
 	v->color = newARGBColor( 255, 255, 255, 255 );
-
 	v->contectedFaces = NULL;
 	v->nContectedFaces = 0;
-
 	v->transformed = FALSE;
+	v->uvTransformed = FALSE;
 
 	return v;
 }

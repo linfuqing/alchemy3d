@@ -145,7 +145,8 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 			uvs + uvIndex[0],
 			uvs + uvIndex[1],
 			uvs + uvIndex[2],
-			mesh -> texture );
+			NULL,
+			NULL );
 
 		//AS3_Trace( AS3_Int( vertexIndex[0] ) );
 	}
@@ -160,9 +161,8 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 		newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 		4.0f );
 
+	mesh_setRenderMode( m->entity->mesh, RENDER_WIREFRAME_TRIANGLE_32 );
 	mesh_setMaterial( m->entity->mesh, material );
-
-	m->entity->mesh->render_mode = RENDER_WIREFRAME_TRIANGLE_32;
 	//ฝแส๘ฒโสิสนำร
 
 	for( i = 0; i < m -> header.num_frames; i ++ )

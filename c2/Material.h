@@ -15,6 +15,14 @@ typedef struct Material
 	float power;		//指定锐利的镜面高光；它的值是高光的锐利值
 }Material;
 
+typedef struct MaterialList_TYP
+{
+	Material * material;
+
+	struct MaterialList_TYP * next;
+
+}MaterialList;
+
 Material * newMaterial( FloatColor * ambient, FloatColor * diffuse, FloatColor * specular, FloatColor * emissive, float power )
 {
 	Material * m;
@@ -48,6 +56,35 @@ void material_dispose( Material * m )
 	m->specular	= NULL;
 	free( m );
 	m = NULL;
+}
+
+MaterialList * newMaterialList()
+{
+	MaterialList * materialList;
+
+	if( ( materialList = ( MaterialList * )malloc( sizeof(MaterialList) ) ) == NULL ) exit( TRUE );
+
+	materialList->next = NULL;
+
+	return materialList;
+}
+
+void materialList_addMaterial( MaterialList * head, Material * t )
+{
+	MaterialList	* tl, * ntl;
+
+	tl = head;
+
+	while ( tl->next )
+	{
+		tl = tl->next;
+	}
+
+	if( ( ntl = ( MaterialList * )malloc( sizeof(MaterialList) ) ) == NULL ) exit( TRUE );
+
+	ntl->material = t;
+	ntl->next = NULL;
+	tl->next = ntl;
 }
 
 #endif
