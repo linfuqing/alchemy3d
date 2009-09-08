@@ -68,8 +68,6 @@ package cn.alchemy3d.objects
 		
 		public function set material(material:Material):void
 		{
-			if (!checkInitialized()) return;
-			
 			for (var i:int = 0; i < faces.length; i ++)
 			{
 				Library.memory.position = meshBuffPointer + (vSize * vertices.length + 10 + i * fSize) * sizeOfInt;
@@ -91,8 +89,6 @@ package cn.alchemy3d.objects
 		
 		public function set texture(texture:Texture):void
 		{
-			if (!checkInitialized()) return;
-			
 			for (var i:int = 0; i < faces.length; i ++)
 			{
 				Library.memory.position = meshBuffPointer + (vSize * vertices.length + 11 + i * fSize) * sizeOfInt;
@@ -112,8 +108,6 @@ package cn.alchemy3d.objects
 		 */
 		public function set renderMode(mode:uint):void
 		{
-			if (!checkInitialized()) return;
-			
 			for (var i:int = 0; i < faces.length; i ++)
 			{
 				Library.memory.position = meshBuffPointer + (vSize * vertices.length + 9 + i * fSize) * sizeOfInt;
@@ -131,8 +125,6 @@ package cn.alchemy3d.objects
 		
 		public function set lightEnable(bool:Boolean):void
 		{
-			if (!checkInitialized()) return;
-			
 			_lightEnable = bool;
 			
 			Library.memory.position = lightEnablePtr;
@@ -145,8 +137,6 @@ package cn.alchemy3d.objects
 		
 		public function setVertices(index:int, v:Vector3D):void
 		{
-			if (!checkInitialized()) return;
-			
 			vertices[index].x = v.x;
 			vertices[index].y = v.y;
 			vertices[index].z = v.z;
@@ -161,8 +151,6 @@ package cn.alchemy3d.objects
 		
 		public function setVerticesX(index:int, value:Number):void
 		{
-			if (!checkInitialized()) return;
-			
 			vertices[index].x = value;
 			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize;
 			Library.memory.writeFloat(value);
@@ -173,8 +161,6 @@ package cn.alchemy3d.objects
 		
 		public function setVerticesY(index:int, value:Number):void
 		{
-			if (!checkInitialized()) return;
-			
 			vertices[index].y = value;
 			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt;
 			Library.memory.writeFloat(value);
@@ -185,8 +171,6 @@ package cn.alchemy3d.objects
 		
 		public function setVerticesZ(index:int, value:Number):void
 		{
-			if (!checkInitialized()) return;
-			
 			vertices[index].z = value;
 			//获得顶点缓冲区的起始指针
 			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt * 2;
@@ -339,8 +323,8 @@ package cn.alchemy3d.objects
 			for each(f in this.faces)
 			{
 				f.v0 = uniqueDic[f.v0];
-			    f.v1 = uniqueDic[f.v1];
-			    f.v2 = uniqueDic[f.v2];
+				f.v1 = uniqueDic[f.v1];
+				f.v2 = uniqueDic[f.v2];
 			}
 		}
 	}
