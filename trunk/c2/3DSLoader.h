@@ -760,6 +760,7 @@ Texture * A3DS_Texture_Chunk_Handler( UCHAR ** buffer, A3DS_MaterialList * head,
 			case CHUNK_OFFSETV:
 
 				memcpy( & a3ds_m->fOffsetV, ( * buffer ), sizeof( float ) );
+				a3ds_m->fOffsetV = -(a3ds_m->fOffsetV);
 				( * buffer ) += sizeof( float );
 				break;
 
@@ -778,6 +779,7 @@ Texture * A3DS_Texture_Chunk_Handler( UCHAR ** buffer, A3DS_MaterialList * head,
 			case CHUNK_ROTATEW:
 
 				memcpy( & a3ds_m->fRotationW, ( * buffer ), sizeof( float ) );
+				a3ds_m->fRotationW = -(a3ds_m->fRotationW);
 				( * buffer ) += sizeof( float );
 				break;
 
