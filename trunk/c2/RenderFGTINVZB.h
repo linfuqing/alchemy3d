@@ -3849,7 +3849,7 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 		return;
 
 	// extract constant color
-	color = RGB32BIT( face->vertex[0]->color->alpha, face->vertex[0]->color->red, face->vertex[0]->color->green, face->vertex[0]->color->blue );
+	color = RGB32BIT( face->vertex[v0]->color->alpha, face->vertex[v0]->color->red, face->vertex[v0]->color->green, face->vertex[v0]->color->blue );
 
 	yrestart = y1;
 

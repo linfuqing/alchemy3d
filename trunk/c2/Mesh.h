@@ -38,7 +38,7 @@ Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
 
 	m->nFaces			= 0;
 	m->nVertices		= 0;
-	m->v_dirty			= FALSE;
+	m->v_dirty			= TRUE;
 	m->f_dirty			= FALSE;
 
 #ifdef __AS3__

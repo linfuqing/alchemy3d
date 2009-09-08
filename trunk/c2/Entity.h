@@ -184,21 +184,16 @@ void entity_dispose( Entity * entity )
 	free( entity );
 }
 
-//为实体配置网格
 void entity_setMesh( Entity * entity, Mesh * m )
 {
 	if ( ! m->vertices || ! m->faces || m->nFaces == 0 || m->nVertices == 0 ) exit( TRUE );
-
-	computeFaceNormal( m );
-	computeVerticesNormal( m );
 
 	entity->mesh = m;
 }
 
 void entity_updateAfterRender( Entity * entity )
 {
-	if ( entity->mesh )
-		entity->mesh->v_dirty = entity->mesh->f_dirty = FALSE;
+	if ( entity->mesh ) entity->mesh->v_dirty = entity->mesh->f_dirty = FALSE;
 }
 
 INLINE void entity_updateTransform( Entity * entity, int time )
