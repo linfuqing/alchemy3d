@@ -58,7 +58,7 @@ int main()
 
 	LPDWORD bitmapData;
 
-	//MD2 * md2;
+	MD2 * md2;
 
 	A3DS * a3ds;
 	FILE *fp;
@@ -98,28 +98,28 @@ int main()
 
 	view = newViewport( 600, 400, scene, camera );
 
-	//do3d3 = newEntity();
-	//do3d3->name = "root";
+	do3d3 = newEntity();
+	do3d3->name = "root";
 
-	////scene_addEntity(scene, do3d3, NULL);
+	scene_addEntity(scene, do3d3, NULL);
 
-	////*******************************
+	//*******************************
 
-	//fp = fopen("D:\\3Dmodel\\3ds\\xiniu.3DS","rb");
+	fp = fopen("D:\\3Dmodel\\3ds\\tris.MD2","rb");
 
-	//length = GetFileSize(fp);
+	length = GetFileSize(fp);
 
-	//buffer = (UCHAR * )malloc(length * sizeof(UCHAR));
+	buffer = (UCHAR * )malloc(length * sizeof(UCHAR));
 
-	//fread(buffer,1,length,fp);
+	fread(buffer,1,length,fp);
 
-	//a3ds = A3DS_Create( do3d3, & buffer, length );
+	/*a3ds = A3DS_Create( do3d3, & buffer, length );
 
-	//A3DS_Dispose( a3ds );
+	A3DS_Dispose( a3ds );*/
 
-	/*md2 = newMD2( do3d3 );
+	md2 = newMD2( do3d3 );
 
-	md2_read( & buffer, md2, material, texture, 1 );*/
+	md2_read( & buffer, md2, material, texture, 1 );
 
 	//*******************************
 
@@ -233,7 +233,7 @@ int main()
 
 	camera_setTarget( camera, do3d->w_pos );
 	//scene_addLight(scene, light);
-	scene_addEntity(scene, do3d, NULL);
+	//scene_addEntity(scene, do3d, NULL);
 	//scene_addEntity(scene, do3d2, NULL);
 	//scene_addEntity(scene, lightSource, NULL);
 
