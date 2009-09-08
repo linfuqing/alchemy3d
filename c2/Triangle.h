@@ -22,13 +22,9 @@ typedef struct Triangle
 
 Vector3D * triangle_normal( Vector3D * normal, Vertex * v0, Vertex * v1, Vertex * v2 )
 {	
-	Vector3D * a, * b, * c, ca, bc;
-	
-	a = v0->position;
-	b = v1->position;
-	c = v2->position;
+	Vector3D ca, bc;
 
-	vector3D_crossProduct(normal, vector3D_subtract( &ca, c, a ), vector3D_subtract( &bc, b, c ) );
+	vector3D_crossProduct(normal, vector3D_subtract( &ca, v2->position, v0->position ), vector3D_subtract( &bc, v1->position, v2->position ) );
 
 	vector3D_normalize(normal);
 
