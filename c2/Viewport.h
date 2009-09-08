@@ -576,6 +576,7 @@ void viewport_project( Viewport * viewport, int time )
 
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
+	//if ( NULL != scene->lights ) if( ( vLightsToObject = ( Vector3D * )calloc( scene->nLights, sizeof( Vector3D ) ) ) == NULL ) exit( TRUE );
 	Vector3D vLightsToObject[MAX_LIGHTS];
 
 	scene = viewport->scene;
@@ -604,13 +605,11 @@ void viewport_project( Viewport * viewport, int time )
 
 		entity_updateTransform(entity, time);
 
-		if ( entity->mesh && entity->mesh->v_dirty )
-		{
-			mesh_updateMesh( entity->mesh );
-		}
-
 		if ( entity->mesh )
 		{
+			if ( entity->mesh->v_dirty )
+				mesh_updateMesh( entity->mesh );
+
 			code = 0;
 
 			matrix3D_append( entity->view, entity->world, camera->eye->world );
@@ -649,7 +648,6 @@ void viewport_project( Viewport * viewport, int time )
 				//把顶点变换到视空间
 				matrix3D_transformVector( vs->w_pos, entity->view, vs->position );
 			}
-			
 
 			//记录当前的渲染列表指针
 			curr_rl_ptr	= rl_ptr;

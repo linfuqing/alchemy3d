@@ -243,7 +243,7 @@ int main()
 
 	for ( i = 0; i < 20; i ++ )
 	{
-		do3d->mesh->v_dirty = TRUE;
+		//do3d->mesh->v_dirty = TRUE;
 
 		viewport_updateBeforeRender( view );
 
