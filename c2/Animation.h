@@ -69,10 +69,6 @@ void animation_updateToFrame( Animation * animation, unsigned int keyFrame )
 		animation -> parent -> vertices[i].position -> y = animation -> frames[keyFrame].vertices[i].y;
 		animation -> parent -> vertices[i].position -> z = animation -> frames[keyFrame].vertices[i].z;
 	}
-
-	animation->parent->v_dirty = TRUE;
-	//computeFaceNormal( animation -> parent );
-	//computeVerticesNormal( animation -> parent );
 }
 
 void animation_updateToTime( Animation * animation, float timeAlpha )
@@ -102,6 +98,8 @@ void animation_updateToTime( Animation * animation, float timeAlpha )
 		animation -> parent -> vertices[i].position -> y = animation -> frames[currentFrameIndex].vertices[i].y + frameAlpha * ( animation -> frames[currentFrameIndex + 1].vertices[i].y - animation -> frames[currentFrameIndex].vertices[i].y );
 		animation -> parent -> vertices[i].position -> z = animation -> frames[currentFrameIndex].vertices[i].z + frameAlpha * ( animation -> frames[currentFrameIndex + 1].vertices[i].z - animation -> frames[currentFrameIndex].vertices[i].z );
 	}
+
+	animation->parent->v_dirty = TRUE;
 }
 
 void animation_update( Animation * animation, int time )
