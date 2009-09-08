@@ -69,6 +69,9 @@ void animation_updateToFrame( Animation * animation, unsigned int keyFrame )
 		animation -> parent -> vertices[i].position -> y = animation -> frames[keyFrame].vertices[i].y;
 		animation -> parent -> vertices[i].position -> z = animation -> frames[keyFrame].vertices[i].z;
 	}
+
+	computeFaceNormal( animation -> parent );
+	computeVerticesNormal( animation -> parent );
 }
 
 void animation_updateToTime( Animation * animation, float timeAlpha )

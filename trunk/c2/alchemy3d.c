@@ -83,87 +83,6 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", view, view->videoBuffer, & view->camera, & view->scene, & view->nRenderList, & view->nCullList, & view->nClippList );
 }
 
-AS3_Val initializeMaterial( void* self, AS3_Val args )
-{
-	Material * material;
-
-	AS3_Val ambient, diffuse, specular, emissive;
-
-	double a_a, a_r, a_g, a_b, d_a, d_r, d_g, d_b, s_a, s_r, s_g, s_b, e_a, e_r, e_g, e_b, power;
-
-	AS3_ArrayValue( args, "AS3ValType, AS3ValType, AS3ValType, AS3ValType, DoubleType", &ambient, &diffuse, &specular, &emissive, &power );
-
-	a_r = AS3_NumberValue( AS3_GetS( ambient, "redMultiplier" ) );
-	a_g = AS3_NumberValue( AS3_GetS( ambient, "greenMultiplier" ) );
-	a_b = AS3_NumberValue( AS3_GetS( ambient, "blueMultiplier" ) );
-	a_a = AS3_NumberValue( AS3_GetS( ambient, "alphaMultiplier" ) );
-
-	d_r = AS3_NumberValue( AS3_GetS( diffuse, "redMultiplier" ) );
-	d_g = AS3_NumberValue( AS3_GetS( diffuse, "greenMultiplier" ) );
-	d_b = AS3_NumberValue( AS3_GetS( diffuse, "blueMultiplier" ) );
-	d_a = AS3_NumberValue( AS3_GetS( diffuse, "alphaMultiplier" ) );
-
-	s_r = AS3_NumberValue( AS3_GetS( specular, "redMultiplier" ) );
-	s_g = AS3_NumberValue( AS3_GetS( specular, "greenMultiplier" ) );
-	s_b = AS3_NumberValue( AS3_GetS( specular, "blueMultiplier" ) );
-	s_a = AS3_NumberValue( AS3_GetS( specular, "alphaMultiplier" ) );
-
-	e_r = AS3_NumberValue( AS3_GetS( emissive, "redMultiplier" ) );
-	e_g = AS3_NumberValue( AS3_GetS( emissive, "greenMultiplier" ) );
-	e_b = AS3_NumberValue( AS3_GetS( emissive, "blueMultiplier" ) );
-	e_a = AS3_NumberValue( AS3_GetS( emissive, "alphaMultiplier" ) );
-
-	material = newMaterial( newFloatColor( (float)a_r, (float)a_g, (float)a_b, (float)a_a ),
-							newFloatColor( (float)d_r, (float)d_g, (float)d_b, (float)d_a ),
-							newFloatColor( (float)s_r, (float)s_g, (float)s_b, (float)s_a ),
-							newFloatColor( (float)e_r, (float)e_g, (float)e_b, (float)e_a ),
-							power );
-
-	AS3_Release( ambient );
-	AS3_Release( diffuse );
-	AS3_Release( specular );
-	AS3_Release( emissive );
-
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", material, material->ambient, material->diffuse, material->specular, material->emissive, &material->power );
-}
-
-AS3_Val initializeTexture( void* self, AS3_Val args )
-{
-	char * name;
-	Texture * texture;
-
-	AS3_ArrayValue( args, "StrType", &name );
-
-	texture = newTexture( name );
-
-	return AS3_Ptr( texture );
-}
-
-AS3_Val fillTextureData( void* self, AS3_Val args )
-{
-	Texture * texture;
-	int width, height;
-	LPBYTE data;
-
-	AS3_ArrayValue( args, "PtrType, IntType, IntType, PtrType", &texture, &width, &height, &data );
-
-	texture_setData( texture, width, height, data );
-
-	return 0;
-}
-
-AS3_Val onTextureReady( void* self, AS3_Val args )
-{
-	Entity * entity;
-	Texture * texture;
-
-	AS3_ArrayValue( args, "PtrType, PtrType, StrType, IntType, IntType, PtrType", &entity, &texture );
-
-	mesh_correctUV( entity->mesh, texture);
-
-	return 0;
-}
-
 AS3_Val initializeLight( void* self, AS3_Val args )
 {
 	Scene * scene;
@@ -293,9 +212,9 @@ AS3_Val initializeMD2( void* self, AS3_Val args )
 	MD2 * md2;
 	Entity * entity;
 	Material * material;
-	texture * texture;
-	int render_mode;
+	Texture * texture;
 	UCHAR * buffer;
+	int render_mode;
 
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType", & entity, & buffer, & material, & texture, & render_mode );
 
@@ -303,8 +222,102 @@ AS3_Val initializeMD2( void* self, AS3_Val args )
 
 	md2_read( & buffer, md2, material, texture, render_mode );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
-		& entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
+	//return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
+	//	& entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+//
+//                                     Material
+//
+///////////////////////////////////////////////////////////////////////////////////
+
+AS3_Val initializeMaterial( void* self, AS3_Val args )
+{
+	Material * material;
+
+	AS3_Val ambient, diffuse, specular, emissive;
+
+	double a_a, a_r, a_g, a_b, d_a, d_r, d_g, d_b, s_a, s_r, s_g, s_b, e_a, e_r, e_g, e_b, power;
+
+	AS3_ArrayValue( args, "AS3ValType, AS3ValType, AS3ValType, AS3ValType, DoubleType", &ambient, &diffuse, &specular, &emissive, &power );
+
+	a_r = AS3_NumberValue( AS3_GetS( ambient, "redMultiplier" ) );
+	a_g = AS3_NumberValue( AS3_GetS( ambient, "greenMultiplier" ) );
+	a_b = AS3_NumberValue( AS3_GetS( ambient, "blueMultiplier" ) );
+	a_a = AS3_NumberValue( AS3_GetS( ambient, "alphaMultiplier" ) );
+
+	d_r = AS3_NumberValue( AS3_GetS( diffuse, "redMultiplier" ) );
+	d_g = AS3_NumberValue( AS3_GetS( diffuse, "greenMultiplier" ) );
+	d_b = AS3_NumberValue( AS3_GetS( diffuse, "blueMultiplier" ) );
+	d_a = AS3_NumberValue( AS3_GetS( diffuse, "alphaMultiplier" ) );
+
+	s_r = AS3_NumberValue( AS3_GetS( specular, "redMultiplier" ) );
+	s_g = AS3_NumberValue( AS3_GetS( specular, "greenMultiplier" ) );
+	s_b = AS3_NumberValue( AS3_GetS( specular, "blueMultiplier" ) );
+	s_a = AS3_NumberValue( AS3_GetS( specular, "alphaMultiplier" ) );
+
+	e_r = AS3_NumberValue( AS3_GetS( emissive, "redMultiplier" ) );
+	e_g = AS3_NumberValue( AS3_GetS( emissive, "greenMultiplier" ) );
+	e_b = AS3_NumberValue( AS3_GetS( emissive, "blueMultiplier" ) );
+	e_a = AS3_NumberValue( AS3_GetS( emissive, "alphaMultiplier" ) );
+
+	material = newMaterial( newFloatColor( (float)a_r, (float)a_g, (float)a_b, (float)a_a ),
+							newFloatColor( (float)d_r, (float)d_g, (float)d_b, (float)d_a ),
+							newFloatColor( (float)s_r, (float)s_g, (float)s_b, (float)s_a ),
+							newFloatColor( (float)e_r, (float)e_g, (float)e_b, (float)e_a ),
+							power );
+
+	AS3_Release( ambient );
+	AS3_Release( diffuse );
+	AS3_Release( specular );
+	AS3_Release( emissive );
+
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", material, material->ambient, material->diffuse, material->specular, material->emissive, &material->power );
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+//
+//                                     Texture
+//
+///////////////////////////////////////////////////////////////////////////////////
+
+AS3_Val initializeTexture( void* self, AS3_Val args )
+{
+	char * name;
+	Texture * texture;
+
+	AS3_ArrayValue( args, "StrType", &name );
+
+	texture = newTexture( name );
+
+	return AS3_Ptr( texture );
+}
+
+AS3_Val fillTextureData( void* self, AS3_Val args )
+{
+	Texture * texture;
+	int width, height;
+	LPBYTE data;
+
+	AS3_ArrayValue( args, "PtrType, IntType, IntType, PtrType", &texture, &width, &height, &data );
+
+	texture_setData( texture, width, height, data );
+
+	return 0;
+}
+
+AS3_Val onTextureReady( void* self, AS3_Val args )
+{
+	Entity * entity;
+	Texture * texture;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, StrType, IntType, IntType, PtrType", &entity, &texture );
+
+	mesh_correctUV( entity->mesh, texture);
+
+	return 0;
 }
 
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )

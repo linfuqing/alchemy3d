@@ -56,7 +56,7 @@ MD2 * newMD2( Entity * entity )
 	return m;
 }
 
-int md2_read( UCHAR ** buffer, MD2 * m )
+int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, int render_mode )
 {
 	UCHAR        * pointer, * vertexPointer;
 
@@ -85,7 +85,7 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 	Animation *    animation;
 
 	//测试使用
-	Material * material;
+	//Material * material;
 	//结束测试使用
 
 	memcpy( & ( m -> header ), * buffer, sizeof( MD2Header ) );
@@ -116,13 +116,14 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 		memcpy( & u, pointer                  , sizeof( short ) );
 		memcpy( & v, pointer + sizeof( short ), sizeof( short ) );
 
-		uvs[i].u = ( float )(u * .0 / ( m -> header.skinwidth ));
-		uvs[i].v = ( float )(v * .0 / ( m -> header.skinheight ));
+		uvs[i].u = ( float )(u * 1.0f / ( m -> header.skinwidth ) * (texture->width - 1));
+		uvs[i].v = ( float )(v * 1.0f / ( m -> header.skinheight ) * (texture->height - 1));
 
-		//AS3_Trace( AS3_Int( uvs[i].u ) );
+		//printf("%f  ", uvs[i].u);
+		//printf("%f\n", uvs[i].v);
 	}
 
-	mesh = m -> entity -> mesh ? m -> entity -> mesh : newMesh( m -> header.num_vertices, m -> header.num_tris,NULL );
+	mesh = m -> entity -> mesh ? m -> entity -> mesh : newMesh( m -> header.num_vertices, m -> header.num_tris, NULL );
 
 	for( i = 0; i < m -> header.num_vertices; i ++ )
 	{
@@ -138,31 +139,32 @@ int md2_read( UCHAR ** buffer, MD2 * m )
 		memcpy( uvIndex,     pointer + sizeof( short ) * 3, sizeof( short ) * 3 );
 
 		mesh_push_triangle( 
-			mesh, 
-			mesh -> vertices + vertexIndex[0],
-			mesh -> vertices + vertexIndex[1],
-			mesh -> vertices + vertexIndex[2],
-			uvs + uvIndex[0],
-			uvs + uvIndex[1],
-			uvs + uvIndex[2],
-			NULL,
-			NULL );
-
-		//AS3_Trace( AS3_Int( vertexIndex[0] ) );
+							mesh, 
+							mesh -> vertices + vertexIndex[0],
+							mesh -> vertices + vertexIndex[1],
+							mesh -> vertices + vertexIndex[2],
+							uvs + uvIndex[0],
+							uvs + uvIndex[1],
+							uvs + uvIndex[2],
+							material,
+							texture );
 	}
 
-	//m -> entity -> mesh = mesh;
-	entity_setMesh( m->entity, mesh );
+	//AS3_Trace( AS3_Ptr( texture ) );
+	//AS3_Trace( AS3_Ptr( texture->pRGBABuffer ) );
+
+	//entity_setMesh( m->entity, mesh );
+	m->entity->mesh = mesh;
 
 	//测试使用
-	material = newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
+	material = material != NULL ? material : newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
 		newFloatColor( 0.8f, 0.8f, 0.8f, 1.0f ),
 		newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 		newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 		4.0f );
 
-	mesh_setRenderMode( m->entity->mesh, RENDER_WIREFRAME_TRIANGLE_32 );
-	mesh_setMaterial( m->entity->mesh, material );
+	mesh_setRenderMode( m->entity->mesh, render_mode );
+
 	//结束测试使用
 
 	for( i = 0; i < m -> header.num_frames; i ++ )
