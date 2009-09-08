@@ -60,8 +60,7 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 
 	v->color = newARGBColor( 255, 255, 255, 255 );
 
-	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
-	v->normalLength = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
+	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 
 	v->contectedFaces = NULL;
 	v->nContectedFaces = 0;
@@ -84,6 +83,9 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	va->uv = uva;
 	vb->uv = uvb;
 	vc->uv = uvc;
+
+	p->center = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+	p->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 
 	p->texture = texture;
 	p->material = material;
@@ -114,63 +116,114 @@ void computeFaceNormal( Mesh * m )
 		v1 = face->vertex[1];
 		v2 = face->vertex[2];
 
-		face->center = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 		face->center->x = ( v0->position->x + v1->position->x + v2->position->x ) * 0.33333333f;
 		face->center->y = ( v0->position->y + v1->position->y + v2->position->y ) * 0.33333333f;
 		face->center->z = ( v0->position->z + v1->position->z + v2->position->z ) * 0.33333333f;
+		face->center->w = 1.0f;
 
-		face->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+		face->normal->x = 0.0f;
+		face->normal->y = 0.0f;
+		face->normal->z = 0.0f;
+		face->normal->w = 1.0f;
 
 		triangle_normal( face->normal, face->vertex[0], face->vertex[1], face->vertex[2] );
 	}
 }
 
+//void computeVerticesNormal( Mesh * m )
+//{
+//	ContectedFaces * cf;
+//	Vector3D * nv, posN;
+//	float d;
+//	int i = 0;
+//
+//	if ( ! m->vertices || m->nVertices == 0) exit( TRUE );
+//
+//	for( ; i < m->nVertices; i ++ )
+//	{
+//		//AABB
+//		aabb_add(m->aabb, m->vertices[i].position);
+//
+//		if ( m->vertices[i].nContectedFaces == 0 )
+//			continue;
+//
+//		nv = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+//
+//		//计算顶点法向量
+//		cf = m->vertices[i].contectedFaces;
+//
+//		while ( NULL != cf )
+//		{
+//			vector3D_add( nv, nv, cf->face->normal );
+//
+//			cf = cf->next;
+//		}
+//
+//		vector3D_normalize( nv );
+//
+//		vector3D_copy( m->vertices[i].normal, nv );
+//
+//		vector3D_copy( & posN, m->vertices[i].position );
+//
+//		d = 1.0f / m->vertices[i].nContectedFaces;
+//
+//		vector3D_scaleBy( & posN, d );
+//
+//		vector3D_normalize( & posN );
+//
+//		vector3D_add( nv, nv, & posN );
+//
+//		vector3D_normalize( nv );
+//
+//		m->vertices[i].normalLength = nv;
+//	}
+//}
+
 void computeVerticesNormal( Mesh * m )
 {
-	ContectedFaces * cf;
-	Vector3D * nv, posN;
-	float d;
 	int i = 0;
+	float len, oneOverMag;
+	ContectedFaces * cf;
+	Vertex * vert;
 
 	if ( ! m->vertices || m->nVertices == 0) exit( TRUE );
 
+	//为提高效率，这么不使用任何内联函数，以降低函数调用开销
 	for( ; i < m->nVertices; i ++ )
 	{
-		//AABB
-		aabb_add(m->aabb, m->vertices[i].position);
+		vert = & m->vertices[i];
 
-		if ( m->vertices[i].nContectedFaces == 0 )
-			continue;
+		//重新计算AABB
+		aabb_add(m->aabb, vert->position);
 
-		nv = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+		if ( vert->nContectedFaces == 0 ) continue;
 
-		//计算顶点法向量
+		vert->normal->x = 0.0f;
+		vert->normal->y = 0.0f;
+		vert->normal->z = 0.0f;
+		vert->normal->w = 1.0f;
+
+		//遍历关联面
 		cf = m->vertices[i].contectedFaces;
 
 		while ( NULL != cf )
 		{
-			vector3D_add( nv, nv, cf->face->normal );
+			vector3D_add_self( vert->normal, cf->face->normal );
 
 			cf = cf->next;
 		}
 
-		vector3D_normalize( nv );
+		len = sqrtf( vert->normal->x * vert->normal->x + vert->normal->y * vert->normal->y + vert->normal->z * vert->normal->z );
 
-		vector3D_copy( m->vertices[i].normal, nv );
+		oneOverMag = 1.0f / len;
 
-		vector3D_copy( & posN, m->vertices[i].position );
-
-		d = 1.0f / m->vertices[i].nContectedFaces;
-
-		vector3D_scaleBy( & posN, d );
-
-		vector3D_normalize( & posN );
-
-		vector3D_add( nv, nv, & posN );
-
-		vector3D_normalize( nv );
-
-		m->vertices[i].normalLength = nv;
+		if ( !len ) vert->normal->x = vert->normal->y = vert->normal->z = 0.0f;
+		else
+		{
+			vert->normal->x *= oneOverMag;
+			vert->normal->y *= oneOverMag;
+			vert->normal->z *= oneOverMag;
+		}
 	}
 }
 
@@ -224,6 +277,50 @@ void mesh_setTexture( Mesh * m, Texture * t )
 	{
 		mesh_correctUV( m, t );
 	}
+}
+
+void mesh_updateMesh( Mesh * mesh )
+{	
+#ifdef __AS3__
+	int j = 0, k = 0;
+	float * meshBuffer;
+	DWORD * p_meshBuffer;
+	Triangle * face;
+	Vertex * vs;
+
+	meshBuffer = mesh->meshBuffer;
+
+	if ( meshBuffer )
+	{
+
+		p_meshBuffer = ( DWORD * )(meshBuffer + mesh->nVertices * VERTEX_SIZE);
+
+		for( j = 0, k = 0; j < mesh->nFaces; j ++, k += FACE_SIZE)
+		{
+			face = & mesh->faces[j];
+
+			face->render_mode = ( DWORD )p_meshBuffer[k + 9];
+			face->material = ( Material * ) p_meshBuffer[k + 10];
+			face->texture = ( Texture * )p_meshBuffer[k + 11];
+		}
+	}
+
+	if ( meshBuffer )
+	{
+		for( j = 0, k = 0; j < mesh->nVertices; j ++, k += VERTEX_SIZE)
+		{
+			vs = & mesh->vertices[j];
+
+			//如果顶点局部坐标发生改变
+			vs->position->x = meshBuffer[k];
+			vs->position->y = meshBuffer[k + 1];
+			vs->position->z = meshBuffer[k + 2];
+		}
+	}
+#endif
+
+	computeFaceNormal( mesh );
+	computeVerticesNormal( mesh );
 }
 
 INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )

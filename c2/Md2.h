@@ -80,13 +80,7 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 
 	Frame  *       frames;
 
-	//Texture   *    texture;
-
 	Animation *    animation;
-
-	//测试使用
-	//Material * material;
-	//结束测试使用
 
 	memcpy( & ( m -> header ), * buffer, sizeof( MD2Header ) );
 
@@ -150,22 +144,8 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 							texture );
 	}
 
-	//AS3_Trace( AS3_Ptr( texture ) );
-	//AS3_Trace( AS3_Ptr( texture->pRGBABuffer ) );
-
-	//entity_setMesh( m->entity, mesh );
-	m->entity->mesh = mesh;
-
-	//测试使用
-	material = material != NULL ? material : newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
-		newFloatColor( 0.8f, 0.8f, 0.8f, 1.0f ),
-		newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-		newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-		4.0f );
-
+	entity_setMesh( m->entity, mesh );
 	mesh_setRenderMode( m->entity->mesh, render_mode );
-
-	//结束测试使用
 
 	for( i = 0; i < m -> header.num_frames; i ++ )
 	{

@@ -190,7 +190,6 @@ void entity_setMesh( Entity * entity, Mesh * m )
 	if ( ! m->vertices || ! m->faces || m->nFaces == 0 || m->nVertices == 0 ) exit( TRUE );
 
 	computeFaceNormal( m );
-
 	computeVerticesNormal( m );
 
 	entity->mesh = m;
@@ -199,19 +198,7 @@ void entity_setMesh( Entity * entity, Mesh * m )
 void entity_updateAfterRender( Entity * entity )
 {
 	if ( entity->mesh )
-	{
-		Mesh * m = entity->mesh;
-
-		int i = 0, l = m->nVertices;
-
-		m->v_dirty = FALSE;
-		m->f_dirty = FALSE;
-
-		for( ; i < l; i ++ )
-		{
-			m->vertices[i].transformed = FALSE;
-		}
-	}
+		entity->mesh->v_dirty = entity->mesh->f_dirty = FALSE;
 }
 
 INLINE void entity_updateTransform( Entity * entity, int time )

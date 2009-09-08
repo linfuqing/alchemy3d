@@ -329,8 +329,8 @@ INLINE void A3DS_TranslateTexcoord( Vertex * vert, float ou, float ov, float tu,
 
 	vert->uvTransformed = TRUE;
 
-	printf("%f  ", vert->uv->u);
-	printf("%f  ", vert->uv->v);
+	//printf("%f  ", vert->uv->u);
+	//printf("%f  ", vert->uv->v);
 }
 
 INLINE void A3DS_TranslateTexcoord2( Vertex * vert, float ou, float ov, float tu, float tv )
@@ -347,8 +347,8 @@ INLINE void A3DS_TranslateTexcoord2( Vertex * vert, float ou, float ov, float tu
 
 	vert->uvTransformed = TRUE;
 
-	printf("%f  ", vert->uv->u);
-	printf("%f  ", vert->uv->v);
+	//printf("%f  ", vert->uv->u);
+	//printf("%f  ", vert->uv->v);
 }
 
 //处理实体块

@@ -114,6 +114,27 @@ Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 	return viewport;
 }
 
+INLINE void extendRenderList( RenderList ** rl_ptr, int length )
+{
+	RenderList * newRL;
+
+	newRL = initializeRenderList( length );
+
+	newRL->pre = * rl_ptr;
+
+	(* rl_ptr)->next = newRL;
+}
+
+INLINE void insertFaceToList( RenderList ** rl_ptr, Triangle * face)
+{
+	//如果到达渲染列表尾部，则插入NUM_PER_RL_INIT个新的结点(注意保留表尾)
+	if ( NULL == (* rl_ptr)->next )
+		extendRenderList( rl_ptr, NUM_PER_RL_INIT );
+
+	( * rl_ptr )->polygon = face;
+	( * rl_ptr ) = ( * rl_ptr )->next;
+}
+
 //渲染前更新
 void viewport_updateBeforeRender( Viewport * viewport )
 {
@@ -184,27 +205,6 @@ void viewport_updateAfterRender( Viewport * viewport )
 	scene_updateAfterRender( viewport->scene );
 }
 
-INLINE void extendRenderList( RenderList ** rl_ptr, int length )
-{
-	RenderList * newRL;
-
-	newRL = initializeRenderList( length );
-
-	newRL->pre = * rl_ptr;
-
-	(* rl_ptr)->next = newRL;
-}
-
-INLINE void insertFaceToList( RenderList ** rl_ptr, Triangle * face)
-{
-	//如果到达渲染列表尾部，则插入NUM_PER_RL_INIT个新的结点(注意保留表尾)
-	if ( NULL == (* rl_ptr)->next )
-		extendRenderList( rl_ptr, NUM_PER_RL_INIT );
-
-	( * rl_ptr )->polygon = face;
-	( * rl_ptr ) = ( * rl_ptr )->next;
-}
-
 //基于AABB包围盒的视空间裁剪
 //viewport		视口
 //entity		当前要处理的实体
@@ -254,7 +254,7 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 			vector3D_normalize( & viewerToLocal );
 
 			//如果夹角大于90或小于-90时，即背向摄像机
-			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.0f )
+			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.0001f )
 			{
 				viewport->nCullList ++;
 
@@ -553,9 +553,6 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 		}
 	}
 }
-///修改:
-//void viewport_project( Viewport * viewport )
-
 void viewport_project( Viewport * viewport, int time )
 {
 	Scene * scene;
@@ -579,15 +576,7 @@ void viewport_project( Viewport * viewport, int time )
 
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
-	//if ( NULL != scene->lights ) if( ( vLightsToObject = ( Vector3D * )calloc( scene->nLights, sizeof( Vector3D ) ) ) == NULL ) exit( TRUE );
 	Vector3D vLightsToObject[MAX_LIGHTS];
-
-#ifdef __AS3__
-	int k = 0;
-	float * meshBuffer;
-	DWORD * p_meshBuffer;
-	Triangle * face;
-#endif
 
 	scene = viewport->scene;
 	camera = viewport->camera;
@@ -606,22 +595,21 @@ void viewport_project( Viewport * viewport, int time )
 		getPerspectiveFovLH( camera->projectionMatrix, camera, viewport->aspect );
 	}
 
-	//matrix3D_append4x4( & projection, camera->eye->world, camera->projectionMatrix );
-
 	//遍历实体
 	sceneNode = scene->nodes;
-	while( NULL != sceneNode )
+
+	while( sceneNode )
 	{
 		entity = sceneNode->entity;
 
-		//更新实体的局部和世界坐标
-
-		/////////
-		///加参数time
-		/////////
 		entity_updateTransform(entity, time);
 
-		if ( NULL != entity->mesh )
+		if ( entity->mesh && entity->mesh->v_dirty )
+		{
+			mesh_updateMesh( entity->mesh );
+		}
+
+		if ( entity->mesh )
 		{
 			code = 0;
 
@@ -654,46 +642,14 @@ void viewport_project( Viewport * viewport, int time )
 
 			//计算视点在实体的局部坐标
 			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
-
-			//遍历顶点
-#ifdef __AS3__
-			meshBuffer = entity->mesh->meshBuffer;
-
-			if ( TRUE == entity->mesh->f_dirty )
-			{
-				p_meshBuffer = ( DWORD * )(meshBuffer + entity->mesh->nVertices * VERTEX_SIZE);
-
-				for( j = 0, k = 0; j < entity->mesh->nFaces; j ++, k += FACE_SIZE)
-				{
-					face = & entity->mesh->faces[j];
-
-					face->render_mode = ( DWORD )p_meshBuffer[k + 9];
-					face->material = ( Material * ) p_meshBuffer[k + 10];
-					face->texture = ( Texture * )p_meshBuffer[k + 11];
-				}
-			}
-
-			for( j = 0, k = 0; j < entity->mesh->nVertices; j ++, k += VERTEX_SIZE)
-			{
-#else
+		
 			for ( j = 0; j < entity->mesh->nVertices; j ++)
 			{
-#endif
 				vs = & entity->mesh->vertices[j];
-
-#ifdef __AS3__
-				//如果顶点局部坐标发生改变
-				if ( TRUE == entity->mesh->v_dirty )
-				{
-					vs->position->x = meshBuffer[k];
-					vs->position->y = meshBuffer[k + 1];
-					vs->position->z = meshBuffer[k + 2];
-				}
-#endif
-
 				//把顶点变换到视空间
 				matrix3D_transformVector( vs->w_pos, entity->view, vs->position );
 			}
+			
 
 			//记录当前的渲染列表指针
 			curr_rl_ptr	= rl_ptr;
@@ -899,27 +855,27 @@ void viewport_project( Viewport * viewport, int time )
 								//累加至最后颜色:
 								floatColor_add_self( & lastColor, & fColor );
 							}
-							else
-							{
-								vector3D_normalize( & vLightsToObject[l] );
+							//else
+							//{
+							//	vector3D_normalize( & vLightsToObject[l] );
 
-								//光源和顶点的夹角
-								dot = vector3D_dotProduct( & vLightsToObject[l], vs->normalLength );
+							//	//光源和顶点的夹角
+							//	dot = vector3D_dotProduct( & vLightsToObject[l], vs->normalLength );
 
-								//加入环境反射部分
-								floatColor_append( & fColor, material->ambient, light->ambient );
+							//	//加入环境反射部分
+							//	floatColor_append( & fColor, material->ambient, light->ambient );
 
 
-								//如果夹角大于0，即夹角范围在(-90, 90)之间
-								if ( dot > 0.0f )
-								{
-									//漫反射部分的贡献
-									floatColor_add_self( & fColor, floatColor_scaleBy_self( floatColor_append( & outPutColor, material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
-								}
+							//	//如果夹角大于0，即夹角范围在(-90, 90)之间
+							//	if ( dot > 0.0f )
+							//	{
+							//		//漫反射部分的贡献
+							//		floatColor_add_self( & fColor, floatColor_scaleBy_self( floatColor_append( & outPutColor, material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
+							//	}
 
-								//累加至最后颜色:
-								floatColor_add_self( & lastColor, & fColor );
-							}
+							//	//累加至最后颜色:
+							//	floatColor_add_self( & lastColor, & fColor );
+							//}
 
 							lights = lights->next;
 
@@ -1058,6 +1014,10 @@ void viewport_render(Viewport * view)
 					break;
 			}
 		}
+
+		face->vertex[0]->transformed = FALSE;
+		face->vertex[1]->transformed = FALSE;
+		face->vertex[2]->transformed = FALSE;
 
 		rl = rl->next;
 	}
