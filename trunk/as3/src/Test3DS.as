@@ -41,13 +41,13 @@ package
 		protected function init(e:Event = null):void
 		{
 			a3ds = new A3DS();
-			a3ds.load("asset/3ds/Bandersha.3DS");
+			a3ds.load("asset/xiniu/xiniu.3DS");
 			scene.addEntity(a3ds);
 			
 			a3ds.rotationX = -90;
 			a3ds.rotationY = 25;
-			a3ds.scale = 1;
-			a3ds.y = -70;
+			a3ds.scale = 15;
+			a3ds.y = -40;
 			a3ds.z = 100;
 
 			startRendering();

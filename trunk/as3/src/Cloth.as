@@ -3,7 +3,6 @@ package
 	import br.com.stimuli.loading.BulkLoader;
 	import br.com.stimuli.loading.BulkProgressEvent;
 	
-	import cn.alchemy3d.cameras.Camera3D;
 	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
@@ -11,16 +10,15 @@ package
 	import cn.alchemy3d.objects.primitives.Plane;
 	import cn.alchemy3d.objects.primitives.Sphere;
 	import cn.alchemy3d.render.RenderMode;
-	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.texture.Texture;
 	import cn.alchemy3d.view.Basic;
-	import cn.alchemy3d.view.Viewport3D;
 	import cn.alchemy3d.view.stats.FPS;
 	
 	import flash.display.StageAlign;
 	import flash.display.StageQuality;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.MouseEvent;
 	import flash.geom.ColorTransform;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
@@ -75,7 +73,7 @@ package
 			t1 = new Texture(bl.getBitmapData("0"));
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(0.01, 0.01, 0, 1);
+			m.ambient = new ColorTransform(0.1, 0.1, 0, 1);
 			m.diffuse = new ColorTransform(.7, .7, 0, 1);
 			m.specular = new ColorTransform(1, 1, 0, 1);
 			m.power = 48;
@@ -88,7 +86,7 @@ package
 			
 			lightObj = new Sphere(lightM, null, 10, 3, 2)
 			scene.addEntity(lightObj);
-			lightObj.renderMode = RenderMode.RENDER_WIREFRAME_TRIANGLE_32;
+			lightObj.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			
 			p = new Plane(m, t1, 500, 400, 20, 10);
 			scene.addEntity(p);
@@ -105,7 +103,7 @@ package
 			light.bOnOff = LightType.LIGHT_ON;
 			light.source.y = 200;
 			light.source.x = 0;
-			light.source.z = 400;
+			light.source.z = 300;
 			light.ambient = new ColorTransform(0.4, 0.4, 0, 1);
 			light.diffuse = new ColorTransform(.7, .7, 0, 1);
 			light.specular = new ColorTransform(1, 1, 0, 1);
@@ -113,6 +111,8 @@ package
 			light.attenuation2 = .00001;
 			
 			showInfo();
+			
+//			stage.addEventListener(MouseEvent.CLICK, onRenderTick);
 			
 			startRendering();
 			

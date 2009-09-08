@@ -281,8 +281,6 @@ package
 					tf3.text = "32位模式 / 1/z深度缓冲 / Flat光照模型";
 					p.lightEnable = true;
 					p2.lightEnable = true;
-					p.texture = null;
-					p2.texture = null;
 					break;
 					
 				case RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32:
@@ -295,8 +293,6 @@ package
 					tf3.text = "32位模式 / 支持1/z深度缓冲 / 透视矫正纹理映射";
 					p.lightEnable = false;
 					p2.lightEnable = false;
-					p.texture = t1;
-					p2.texture = t2;
 					break;
 					
 				case RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
@@ -321,8 +317,6 @@ package
 					tf3.text = "32位Flat模式不带Z缓冲";
 					p.lightEnable = true;
 					p2.lightEnable = true;
-					p.texture = null;
-					p2.texture = null;
 					break;
 					
 				case RenderMode.RENDER_FLAT_TRIANGLEFP_32:
