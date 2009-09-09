@@ -40,7 +40,7 @@ typedef struct
 	Mesh        * mesh;
 }MD2;
 
-MD2 * newMD2()
+MD2 * newMD2( Mesh * mesh )
 {
 	MD2 * m;
 
@@ -52,7 +52,7 @@ MD2 * newMD2()
 	m -> fps    = 10;
 
 	m -> skins  = NULL;
-	m -> mesh   = NULL;
+	m -> mesh   = mesh;
 
 	return m;
 }
@@ -76,8 +76,6 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 	int            duration = 1000 / ( m -> fps );
 
 	Vector *       uvs;
-
-	Mesh   *       mesh;
 
 	Frame  *       frames;
 
@@ -121,11 +119,11 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		//printf("%f\n", uvs[i].v);
 	}
 
-	mesh = newMesh( m -> header.num_vertices, m -> header.num_tris, NULL );
+	m -> mesh = mesh_reBuild( m -> mesh, m -> header.num_vertices, m -> header.num_tris, NULL );
 
 	for( i = 0; i < m -> header.num_vertices; i ++ )
 	{
-		mesh_push_vertex( mesh, 0, 0, 0 );
+		mesh_push_vertex( m -> mesh, 0, 0, 0 );
 	}
 
 	for( i = 0; i < m -> header.num_tris; i ++ )
@@ -137,10 +135,10 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		memcpy( uvIndex,     pointer + sizeof( unsigned short ) * 3, sizeof( unsigned short ) * 3 );
 
 		mesh_push_triangle( 
-							mesh, 
-							mesh -> vertices + vertexIndex[0],
-							mesh -> vertices + vertexIndex[1],
-							mesh -> vertices + vertexIndex[2],
+							m -> mesh, 
+							m -> mesh -> vertices + vertexIndex[0],
+							m -> mesh -> vertices + vertexIndex[1],
+							m -> mesh -> vertices + vertexIndex[2],
 							uvs + uvIndex[0],
 							uvs + uvIndex[1],
 							uvs + uvIndex[2],
@@ -148,11 +146,9 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 							texture );
 	}
 
-	m -> mesh = mesh;
-
-	mesh_setRenderMode( m->mesh, render_mode );
-	computeFaceNormal( mesh );
-	computeVerticesNormal( mesh );
+	mesh_setRenderMode( m -> mesh, render_mode );
+	computeFaceNormal( m -> mesh );
+	computeVerticesNormal( m -> mesh );
 
 	for( i = 0; i < m -> header.num_frames; i ++ )
 	{
@@ -196,7 +192,7 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		}
 	}
 
-	animation = newAnimation( mesh, frames, m -> header.num_frames, ( m -> header.num_frames - 1 ) * duration );
+	animation = newAnimation( m -> mesh, frames, m -> header.num_frames, ( m -> header.num_frames - 1 ) * duration );
 
 	animation_updateToFrame( animation, 0 );
 

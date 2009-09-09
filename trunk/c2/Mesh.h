@@ -24,11 +24,9 @@ typedef struct Mesh
 
 }Mesh;
 
-Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
-{
-	Mesh * m;
 
-	if( ( m				= ( Mesh * )calloc( 1, sizeof( Mesh ) ) ) == NULL) exit( TRUE );
+void mesh_build( Mesh * m, int nVertices, int nFaces, float * meshBuffer  )
+{
 	if( ( m->faces		= ( Triangle * )calloc( nFaces, sizeof( Triangle ) ) ) == NULL ) exit( TRUE );
 	if( ( m->vertices	= ( Vertex * )calloc( nVertices, sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
 	
@@ -45,6 +43,15 @@ Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
 #ifdef __AS3__
 	m->meshBuffer = meshBuffer;
 #endif
+}
+
+Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
+{
+	Mesh * m;
+
+	if( ( m				= ( Mesh * )calloc( 1, sizeof( Mesh ) ) ) == NULL) exit( TRUE );
+
+	mesh_build( m, nVertices, nFaces, meshBuffer );
 
 	return m;
 }
@@ -366,7 +373,7 @@ INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )
 	return output;
 }
 
-void mesh_dispose( Mesh * mesh )
+void mesh_clear( Mesh * mesh )
 {
 	int i = 0;
 
@@ -385,6 +392,27 @@ void mesh_dispose( Mesh * mesh )
 
 	free( mesh->vertices );
 	free( mesh->faces );
+}
+
+Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces, float * meshBuffer )
+{
+	if( m == NULL )
+	{
+		m = newMesh(nVertices, nFaces, meshBuffer);
+	}
+	else
+	{
+		mesh_clear( m );
+		mesh_build( m, nVertices, nFaces, meshBuffer );
+	}
+
+	return m;
+}
+
+void mesh_dispose( Mesh * mesh )
+{
+	mesh_clear( mesh );
+
 	free( mesh );
 }
 

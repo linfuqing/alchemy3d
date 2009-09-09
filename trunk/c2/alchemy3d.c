@@ -115,32 +115,29 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, IntType, IntType", &material, &texture, &meshBuffer, &vNum, &fNum );
 
-	if ( vNum != 0 && fNum != 0 && meshBuffer!= 0 && material )
+	mesh = newMesh( vNum, fNum, meshBuffer );
+
+	vLen = vNum * VERTEX_SIZE;
+
+	i = 0;
+	j = 0;
+
+	for ( ; i < vNum; i ++, j += VERTEX_SIZE )
 	{
-		mesh = newMesh( vNum, fNum, meshBuffer );
+		pp_meshBuffer[j + 4] = ( DWORD * )mesh_push_vertex( mesh, meshBuffer[j + 0], meshBuffer[j + 1], meshBuffer[j + 2] );
+	}
 
-		vLen = vNum * VERTEX_SIZE;
-
-		i = 0;
-		j = 0;
-
-		for ( ; i < vNum; i ++, j += VERTEX_SIZE )
-		{
-			pp_meshBuffer[j + 4] = ( DWORD * )mesh_push_vertex( mesh, meshBuffer[j + 0], meshBuffer[j + 1], meshBuffer[j + 2] );
-		}
-
-		for ( i = 0, j = vLen; i < fNum; i ++, j += FACE_SIZE )
-		{
-			mesh_push_triangle( mesh,
-								(Vertex * )( * pp_meshBuffer[j] ),
-								(Vertex * )( * pp_meshBuffer[j + 1] ),
-								(Vertex * )( * pp_meshBuffer[j + 2] ),
-								newVector( meshBuffer[j + 3], meshBuffer[j + 4] ),
-								newVector( meshBuffer[j + 5], meshBuffer[j + 6] ),
-								newVector( meshBuffer[j + 7], meshBuffer[j + 8] ),
-								( Material * )( p_meshBuffer[j + 10] ),
-								( Texture * )( p_meshBuffer[j + 11] ) );
-		}
+	for ( i = 0, j = vLen; i < fNum; i ++, j += FACE_SIZE )
+	{
+		mesh_push_triangle( mesh,
+							(Vertex * )( * pp_meshBuffer[j] ),
+							(Vertex * )( * pp_meshBuffer[j + 1] ),
+							(Vertex * )( * pp_meshBuffer[j + 2] ),
+							newVector( meshBuffer[j + 3], meshBuffer[j + 4] ),
+							newVector( meshBuffer[j + 5], meshBuffer[j + 6] ),
+							newVector( meshBuffer[j + 7], meshBuffer[j + 8] ),
+							( Material * )( p_meshBuffer[j + 10] ),
+							( Texture * )( p_meshBuffer[j + 11] ) );
 	}
 
 	return AS3_Array( "PtrType, PtrType, PtrType", mesh, & mesh->v_dirty, & mesh->f_dirty );
@@ -157,13 +154,9 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 	entity = newEntity();
 
-	* entity->name = * name;
-	entity->parent = NULL;
+	entity->name = name;
 
-	free( name );
-	name = NULL;
-
-	entity_setMesh( entity, mesh );
+	entity->mesh = mesh;
 
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
 		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->lightEnable, & entity->mesh );
@@ -222,20 +215,21 @@ AS3_Val loadComplete3DS( void* self, AS3_Val args )
 AS3_Val initializeMD2( void* self, AS3_Val args )
 {
 	MD2 * md2;
+	Mesh * mesh;
 	Material * material;
 	Texture * texture;
 	UCHAR * buffer;
 	int render_mode;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType", & buffer, & material, & texture, & render_mode );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType", & mesh, & buffer, & material, & texture, & render_mode );
 
-	md2 = newMD2();
+	md2 = newMD2(mesh);
 
 	md2_read( & buffer, md2, material, texture, render_mode );
 
 	//return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
 	//	& entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
-	return AS3_Array( "PtrType, PtrType, PtrType", md2 -> mesh, & md2->mesh->v_dirty, & md2->mesh->f_dirty );
+	return 0;//AS3_Array( "PtrType, PtrType, PtrType", md2 -> mesh, & md2->mesh->v_dirty, & md2->mesh->f_dirty );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -372,6 +366,7 @@ int main()
 	AS3_Val initializeTextureMethod = AS3_Function( NULL, initializeTexture );
 	AS3_Val fillTextureDataMethod = AS3_Function( NULL, fillTextureData );
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
+	AS3_Val initializeMeshMethod = AS3_Function( NULL, initializeMesh );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
 	AS3_Val initialize3DSMethod = AS3_Function( NULL, initialize3DS );
@@ -392,6 +387,7 @@ int main()
 								 initializeTexture:AS3ValType,\
 								 fillTextureData:AS3ValType,\
 								 initializeLight:AS3ValType,\
+								 initializeMesh:AS3ValType,\
 								 initializeEntity:AS3ValType,\
 								 addEntity:AS3ValType,\
 								 initialize3DS:AS3ValType,\
@@ -409,6 +405,7 @@ int main()
 								initializeTextureMethod,
 								fillTextureDataMethod,
 								initializeLightMethod,
+								initializeMeshMethod,
 								initializeEntityMethod,
 								addEntityMethod,
 								initialize3DSMethod,
@@ -428,6 +425,7 @@ int main()
 	AS3_Release( initializeTextureMethod );
 	AS3_Release( fillTextureDataMethod );
 	AS3_Release( initializeLightMethod );
+	AS3_Release( initializeMeshMethod );
 	AS3_Release( initializeEntityMethod );
 	AS3_Release( addEntityMethod );
 	AS3_Release( initialize3DSMethod );
