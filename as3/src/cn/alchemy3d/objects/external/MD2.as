@@ -15,9 +15,13 @@ package cn.alchemy3d.objects.external
 	{
 		private var loader:URLLoader;
 		
-		public function MD2(material:Material = null, texture:Texture = null, name:String = "MD2_root")
+		public function MD2(material:Material = null, texture:Texture = null)
 		{
-			super(material, texture, name);
+			super(material, texture);
+		}
+		
+		override protected function initialize():void
+		{
 		}
 		
 		public function load(url:String):void
@@ -58,8 +62,9 @@ package cn.alchemy3d.objects.external
 			loader.data.clear();
 			loader.data = null;
 			
-			var mesh:Array = Library.alchemy3DLib.initializeMD2(pointer, fileBuffer, material ? material.pointer : 0, texture ? texture.pointer : 0, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
+			var md2:Array = Library.alchemy3DLib.initializeMD2(fileBuffer, material ? material.pointer : 0, texture ? texture.pointer : 0, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
 			
+			this.allotPtr(md2);
 //			this.renderModePointer = mesh[0];
 //			this.dirtyPointer      = mesh[1];
 //			this.materialPtr       = mesh[2];

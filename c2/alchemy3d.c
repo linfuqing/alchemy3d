@@ -100,30 +100,20 @@ AS3_Val initializeLight( void* self, AS3_Val args )
 		&light->range, &light->falloff, &light->theta, &light->phi, &light->attenuation0, &light->attenuation1, &light->attenuation2 );
 }
 
-AS3_Val initializeEntity( void* self, AS3_Val args )
+AS3_Val initializeMesh( void * self, AS3_Val args )
 {
-	Entity * entity = NULL, * parent = NULL;
 	Mesh * mesh = NULL;
 	Texture * texture = NULL;
 	Material * material = NULL;
 	float * meshBuffer = NULL;
-	char * name = NULL;
 	DWORD * p_meshBuffer = NULL, ** pp_meshBuffer = NULL;
 
 	int vNum, fNum, vLen, i, j;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, StrType, PtrType, IntType, IntType", &material, &texture, &name, &meshBuffer, &vNum, &fNum );
-
 	pp_meshBuffer = ( DWORD ** )meshBuffer;
 	p_meshBuffer = ( DWORD * )meshBuffer;
 
-	entity = newEntity();
-
-	* entity->name = * name;
-	entity->parent = parent;
-
-	free( name );
-	name = NULL;
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, IntType, IntType", &material, &texture, &meshBuffer, &vNum, &fNum );
 
 	if ( vNum != 0 && fNum != 0 && meshBuffer!= 0 && material )
 	{
@@ -151,12 +141,32 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 								( Material * )( p_meshBuffer[j + 10] ),
 								( Texture * )( p_meshBuffer[j + 11] ) );
 		}
-
-		entity_setMesh( entity, mesh );
 	}
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->lightEnable, & entity->mesh->v_dirty, & entity->mesh->f_dirty );
+	return AS3_Array( "PtrType, PtrType, PtrType", mesh, & mesh->v_dirty, & mesh->f_dirty );
+}
+
+AS3_Val initializeEntity( void* self, AS3_Val args )
+{
+	Entity * entity = NULL;
+	Mesh * mesh = NULL;
+	char * name = NULL;
+
+
+	AS3_ArrayValue( args, "StrType, PtrType",  &name, &mesh );
+
+	entity = newEntity();
+
+	* entity->name = * name;
+	entity->parent = NULL;
+
+	free( name );
+	name = NULL;
+
+	entity_setMesh( entity, mesh );
+
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->lightEnable, & entity->mesh );
 }
 
 AS3_Val addEntity( void* self, AS3_Val args )
@@ -212,21 +222,20 @@ AS3_Val loadComplete3DS( void* self, AS3_Val args )
 AS3_Val initializeMD2( void* self, AS3_Val args )
 {
 	MD2 * md2;
-	Entity * entity;
 	Material * material;
 	Texture * texture;
 	UCHAR * buffer;
 	int render_mode;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType", & entity, & buffer, & material, & texture, & render_mode );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType", & buffer, & material, & texture, & render_mode );
 
-	md2 = newMD2( entity );
+	md2 = newMD2();
 
 	md2_read( & buffer, md2, material, texture, render_mode );
 
 	//return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
 	//	& entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
-	return 0;
+	return AS3_Array( "PtrType, PtrType, PtrType", md2 -> mesh, & md2->mesh->v_dirty, & md2->mesh->f_dirty );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

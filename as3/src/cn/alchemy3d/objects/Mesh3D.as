@@ -1,7 +1,6 @@
 package cn.alchemy3d.objects
 {
 
-	import cn.alchemy3d.events.LoadEvent;
 	import cn.alchemy3d.geom.Triangle3D;
 	import cn.alchemy3d.geom.Vertex3D;
 	import cn.alchemy3d.lib.Library;
@@ -12,9 +11,11 @@ package cn.alchemy3d.objects
 	import flash.geom.Vector3D;
 	import flash.utils.Dictionary;
 	
-	public class Mesh3D extends Entity
+	public class Mesh3D
 	{
-		public function Mesh3D(material:Material = null, texture:Texture = null, name:String = "")
+		protected static const sizeOfInt:int = 4;
+		
+		public function Mesh3D(material:Material = null, texture:Texture = null)
 		{
 			this._material = material == null ? new Material() : material;
 			this._texture = texture;
@@ -24,12 +25,15 @@ package cn.alchemy3d.objects
 			vertices = new Vector.<Vertex3D>();
 			faces = new Vector.<Triangle3D>();
 			
-			super(name);
+			initialize();
 		}
 		
 		public var faces:Vector.<Triangle3D>;
 		public var vertices:Vector.<Vertex3D>;
 		
+		public var pointer:uint;
+		
+		public var lightEnablePtr:uint;
 		public var meshBuffPointer:uint;
 		public var verticesPointer:uint;
 		public var facesPointer:uint;
@@ -227,34 +231,28 @@ package cn.alchemy3d.objects
 			meshBuffPointer = Library.alchemy3DLib.applyForTmpBuffer((vertices.length * vSize + faces.length * fSize) * sizeOfInt);
 		}
 		
-		override protected function initialize():void
+		protected function initialize():void
 		{
 			fillVerticesToBuffer();
 			fillFacesToBuffer();
 			
-			super.initialize();
+			allotPtr(callAlchemy());
 		}
 		
-		override protected function callAlchemy():Array
+		protected function callAlchemy():Array
 		{
 			var tPtr:uint = texture == null ? 0 : texture.pointer;
 			var mPtr:uint = material == null ? 0 : material.pointer;
 			
-			return Library.alchemy3DLib.initializeEntity(mPtr, tPtr, name, meshBuffPointer, vertices.length, faces.length);
+			return Library.alchemy3DLib.initializeMesh(mPtr, tPtr, meshBuffPointer, vertices.length, faces.length);
 		}
 		
-		override protected function allotPtr(ps:Array):void
+		protected function allotPtr(ps:Array):void
 		{
-			super.allotPtr(ps);
-			
-			lightEnablePtr		= ps[5];
-			vDirtyPointer		= ps[6];
-			fDirtyPointer		= ps[7];
-		}
-		
-		override public function clone():Entity
-		{
-			return null;
+			pointer             = ps[0]
+			lightEnablePtr		= ps[1];
+			vDirtyPointer		= ps[2];
+			fDirtyPointer		= ps[3];
 		}
 		
 		public function flipFaces():void

@@ -1,7 +1,7 @@
 #ifndef __MD2_H
 #define __MD2_H
 
-#include "Entity.h"
+#include "Mesh.h"
 
 #define SKIN_NAME_LENGTH 64
 
@@ -37,10 +37,10 @@ typedef struct
 
 	MD2Skin     * skins;
 	MD2Header     header;
-	Entity      * entity;
+	Mesh        * mesh;
 }MD2;
 
-MD2 * newMD2( Entity * entity )
+MD2 * newMD2()
 {
 	MD2 * m;
 
@@ -52,7 +52,7 @@ MD2 * newMD2( Entity * entity )
 	m -> fps    = 10;
 
 	m -> skins  = NULL;
-	m -> entity = entity != NULL ? entity : newEntity();
+	m -> mesh   = NULL;
 
 	return m;
 }
@@ -121,7 +121,7 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		//printf("%f\n", uvs[i].v);
 	}
 
-	mesh = m -> entity -> mesh ? m -> entity -> mesh : newMesh( m -> header.num_vertices, m -> header.num_tris, NULL );
+	mesh = newMesh( m -> header.num_vertices, m -> header.num_tris, NULL );
 
 	for( i = 0; i < m -> header.num_vertices; i ++ )
 	{
@@ -148,8 +148,9 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 							texture );
 	}
 
-	entity_setMesh( m->entity, mesh );
-	mesh_setRenderMode( m->entity->mesh, render_mode );
+	m -> mesh = mesh;
+
+	mesh_setRenderMode( m->mesh, render_mode );
 	computeFaceNormal( mesh );
 	computeVerticesNormal( mesh );
 
@@ -198,8 +199,6 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 	animation = newAnimation( mesh, frames, m -> header.num_frames, ( m -> header.num_frames - 1 ) * duration );
 
 	animation_updateToFrame( animation, 0 );
-
-	m -> entity -> animation = animation;
 
 	//for ( j = 0; j < 8 ; j ++ )
 	//{

@@ -186,7 +186,7 @@ void entity_dispose( Entity * entity )
 
 void entity_setMesh( Entity * entity, Mesh * m )
 {
-	if ( ! m->vertices || ! m->faces || m->nFaces == 0 || m->nVertices == 0 ) exit( TRUE );
+	if ( ! m || ! m->vertices || ! m->faces || m->nFaces == 0 || m->nVertices == 0 ) return;
 
 	entity->mesh = m;
 }
