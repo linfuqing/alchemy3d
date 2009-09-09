@@ -110,8 +110,11 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		memcpy( & u, pointer                  , sizeof( short ) );
 		memcpy( & v, pointer + sizeof( short ), sizeof( short ) );
 
-		uvs[i].u = ( float )(u * 1.0f / ( m -> header.skinwidth ) * (texture->width - 1));
-		uvs[i].v = ( float )(v * 1.0f / ( m -> header.skinheight ) * (texture->height - 1));
+		//AS3_Trace( AS3_Int( u ) );
+		//AS3_Trace( AS3_Int( v ) );
+
+		uvs[i].u = u * 1.0f / m -> header.skinwidth  * ( texture->width );
+		uvs[i].v = v * 1.0f / m -> header.skinheight * ( texture->height );
 
 		//printf("%f  ", uvs[i].u);
 		//printf("%f\n", uvs[i].v);
@@ -126,11 +129,11 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 
 	for( i = 0; i < m -> header.num_tris; i ++ )
 	{
-		pointer = * buffer + m -> header.offset_tris + sizeof( short ) * i * 2 * 3;
+		pointer = * buffer + m -> header.offset_tris + sizeof( unsigned short ) * i * 2 * 3;
 
-		memcpy( vertexIndex, pointer                      , sizeof( short ) * 3 );
+		memcpy( vertexIndex, pointer                               , sizeof( unsigned short ) * 3 );
 
-		memcpy( uvIndex,     pointer + sizeof( short ) * 3, sizeof( short ) * 3 );
+		memcpy( uvIndex,     pointer + sizeof( unsigned short ) * 3, sizeof( unsigned short ) * 3 );
 
 		mesh_push_triangle( 
 							mesh, 
