@@ -18,7 +18,7 @@ typedef struct
 	unsigned int length;
 }Frame;
 
-typedef struct
+typedef struct Animation
 {
 	Frame        * frames;
 	Mesh         * parent;

@@ -196,6 +196,7 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 
 	animation_updateToFrame( animation, 0 );
 
+	m -> mesh -> animation = animation;
 	//for ( j = 0; j < 8 ; j ++ )
 	//{
 	//	printf("%f %f %f\n", mesh->vertices[j].position->x, mesh->vertices[j].position->y, mesh->vertices[j].position->z);

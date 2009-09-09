@@ -9,7 +9,7 @@
 #include "Mesh.h"
 #include "Math.h"
 #include "AABB.h"
-#include "Animation.h"
+//#include "Animation.h"
 
 typedef struct Entity
 {
@@ -37,7 +37,7 @@ typedef struct Entity
 	Mesh * mesh;
 
 	//动画
-	Animation * animation;
+	//Animation * animation;
 
 }Entity;
 
@@ -74,7 +74,7 @@ Entity * newEntity()
 	entity->parent			= NULL;
 	entity->mesh			= NULL;
 	entity->scene			= NULL;
-	entity->animation       = NULL;
+	//entity->animation       = NULL;
 
 	entity->visible = entity->transformDirty = TRUE;
 
@@ -196,15 +196,15 @@ void entity_updateAfterRender( Entity * entity )
 	if ( entity->mesh ) entity->mesh->v_dirty = entity->mesh->f_dirty = FALSE;
 }
 
-INLINE void entity_updateTransform( Entity * entity, int time )
+INLINE void entity_updateTransform( Entity * entity )
 {
 	Quaternion qua;
 	Matrix3D quaMtr;
 
-	if( entity -> animation != NULL )
+	/*if( entity -> animation != NULL )
 	{
 		animation_update( entity -> animation, time );
-	}
+	}*/
 
 	//单位化
 	matrix3D_identity( entity->transform );
