@@ -315,7 +315,7 @@ void A3DS_Face_Chunk_Handler( UCHAR ** buffer, A3DS_T_List * tList, DWORD dwLeng
 	}
 }
 
-INLINE void A3DS_TranslateTexcoord( Vertex * vert, float ou, float ov, float tu, float tv, float cosW, float sinW )
+INLINE void A3DS_TranslateTexcoord( Triangle * face, float ou, float ov, float tu, float tv, float cosW, float sinW )
 {
 	float u,v;
 
@@ -557,7 +557,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 
 									if ( nml->isRotateW )
 									{
-										A3DS_TranslateTexcoord( face->vertex[0],
+										A3DS_TranslateTexcoord( face,
 																nml->fOffsetU,
 																nml->fOffsetV,
 																nml->fTilingU,
@@ -991,36 +991,36 @@ A3DS * A3DS_Create( Entity * entity, UCHAR ** buffer, DWORD length )
 	return a3ds;
 }
 
-void A3DS_CorrectUV( A3DS * a3ds )
-{
-	int i = 0, w = 0, h = 0;
-
-	A3DS_Entity * node;
-
-	Triangle * face;
-
-	Vertex * v;
-
-	node = a3ds->children->next;
-
-	while ( node )
-	{
-		for ( i = 0; i < node->entity->mesh->nVertices; i ++ )
-		{
-			v = & node->entity->mesh->vertices[i];
-
-			face = v->contectedFaces->face;
-
-			w = face->texture->width - 1;
-			h = face->texture->height - 1;
-
-			v->uv->u *= w;
-			v->uv->v *= h;
-		}
-
-		node = node->next;
-	}
-}
+//void A3DS_CorrectUV( A3DS * a3ds )
+//{
+//	int i = 0, w = 0, h = 0;
+//
+//	A3DS_Entity * node;
+//
+//	Triangle * face;
+//
+//	Vertex * v;
+//
+//	node = a3ds->children->next;
+//
+//	while ( node )
+//	{
+//		for ( i = 0; i < node->entity->mesh->nVertices; i ++ )
+//		{
+//			v = & node->entity->mesh->vertices[i];
+//
+//			face = v->contectedFaces->face;
+//
+//			w = face->texture->width - 1;
+//			h = face->texture->height - 1;
+//
+//			v->uv->u *= w;
+//			v->uv->v *= h;
+//		}
+//
+//		node = node->next;
+//	}
+//}
 
 void A3DS_Dispose( A3DS * a3ds )
 {
