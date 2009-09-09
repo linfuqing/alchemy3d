@@ -10,7 +10,7 @@
 
 typedef struct Mesh
 {
-	int nFaces, nVertices, v_dirty, f_dirty;
+	int nFaces, nVertices, v_dirty, f_dirty, textureReady;
 
 	Triangle  * faces;
 
@@ -40,6 +40,7 @@ Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
 	m->nVertices		= 0;
 	m->v_dirty			= TRUE;
 	m->f_dirty			= FALSE;
+	m->textureReady		= FALSE;
 
 #ifdef __AS3__
 	m->meshBuffer = meshBuffer;
@@ -55,8 +56,6 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 	v->position = newVector3D(x, y, z, 1.0f);
 	v->w_pos = newVector3D(x, y, z, 1.0f);
 	v->s_pos = newVector3D(x, y, z, 1.0f);
-
-	v->uv = newVector( 0.0f, 0.0f );
 
 	v->color = newARGBColor( 255, 255, 255, 255 );
 
@@ -80,9 +79,9 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	p->vertex[1] = vb;
 	p->vertex[2] = vc;
 
-	va->uv = uva;
-	vb->uv = uvb;
-	vc->uv = uvc;
+	p->uv[0] = vector_clone( uva );
+	p->uv[1] = vector_clone( uvb );
+	p->uv[2] = vector_clone( uvc );
 
 	p->center = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 	p->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
@@ -130,55 +129,6 @@ void computeFaceNormal( Mesh * m )
 	}
 }
 
-//void computeVerticesNormal( Mesh * m )
-//{
-//	ContectedFaces * cf;
-//	Vector3D * nv, posN;
-//	float d;
-//	int i = 0;
-//
-//	if ( ! m->vertices || m->nVertices == 0) exit( TRUE );
-//
-//	for( ; i < m->nVertices; i ++ )
-//	{
-//		//AABB
-//		aabb_add(m->aabb, m->vertices[i].position);
-//
-//		if ( m->vertices[i].nContectedFaces == 0 )
-//			continue;
-//
-//		nv = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
-//
-//		//计算顶点法向量
-//		cf = m->vertices[i].contectedFaces;
-//
-//		while ( NULL != cf )
-//		{
-//			vector3D_add( nv, nv, cf->face->normal );
-//
-//			cf = cf->next;
-//		}
-//
-//		vector3D_normalize( nv );
-//
-//		vector3D_copy( m->vertices[i].normal, nv );
-//
-//		vector3D_copy( & posN, m->vertices[i].position );
-//
-//		d = 1.0f / m->vertices[i].nContectedFaces;
-//
-//		vector3D_scaleBy( & posN, d );
-//
-//		vector3D_normalize( & posN );
-//
-//		vector3D_add( nv, nv, & posN );
-//
-//		vector3D_normalize( nv );
-//
-//		m->vertices[i].normalLength = nv;
-//	}
-//}
-
 void computeVerticesNormal( Mesh * m )
 {
 	int i = 0;
@@ -194,7 +144,7 @@ void computeVerticesNormal( Mesh * m )
 		vert = & m->vertices[i];
 
 		//重新计算AABB
-		aabb_add(m->aabb, vert->position);
+		aabb_add( m->aabb, vert->position );
 
 		if ( vert->nContectedFaces == 0 ) continue;
 
@@ -247,20 +197,40 @@ void mesh_setMaterial( Mesh * m, Material * mat )
 	}
 }
 
-void mesh_correctUV( Mesh * m, Texture * t )
+void mesh_correctUV( Mesh * m )
 {
-	int i = 0;
+	int i = 0, j = 0;
 
-	for( i = 0; i < m->nVertices; i ++ )
+	Texture * t;
+
+	Triangle * face;
+
+	for( i = 0; i < m->nFaces; i ++ )
 	{
-		if ( ! m->vertices[i].uvTransformed )
-		{
-			//纹理坐范围在[width-1, height-1]
-			m->vertices[i].uv->u *= t->width - 1;
-			m->vertices[i].uv->v *= t->height - 1;
+		face =  & m->faces[i];
 
-			m->vertices[i].uvTransformed = TRUE;
+		t = face->texture;
+
+		if ( ! face->uvTransformed && t->pRGBABuffer && t->width != 0 && t->height != 0 )
+		{
+			face->uv[0]->u *= t->width - 1;
+			face->uv[0]->v *= t->height - 1;
+
+			face->uv[1]->u *= t->width - 1;
+			face->uv[1]->v *= t->height - 1;
+
+			face->uv[2]->u *= t->width - 1;
+			face->uv[2]->v *= t->height - 1;
+
+			face->uvTransformed = TRUE;
 		}
+
+		if ( face->uvTransformed ) j ++;
+	}
+
+	if ( i == j )
+	{
+		m->textureReady = TRUE;
 	}
 }
 
@@ -271,11 +241,6 @@ void mesh_setTexture( Mesh * m, Texture * t )
 	for( ; i < m->nFaces; i ++ )
 	{
 		m->faces[i].texture = t;
-	}
-
-	if ( t->pRGBABuffer )
-	{
-		mesh_correctUV( m, t );
 	}
 }
 

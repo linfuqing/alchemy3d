@@ -18,7 +18,7 @@
 #include "Texture.h"
 #include "Light.h"
 #include "Plane3D.h"
-#include "3DSLoader.h"
+//#include "3DSLoader.h"
 #include "MD2.h"
 
 long GetFileSize(FILE* f)
@@ -60,7 +60,7 @@ int main()
 
 	MD2 * md2;
 
-	A3DS * a3ds;
+	//A3DS * a3ds;
 	FILE *fp;
 	UCHAR * buffer;
 	long length=0;
@@ -100,12 +100,13 @@ int main()
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
+	entity_setZ(do3d3, 400.0f);
 
 	scene_addEntity(scene, do3d3, NULL);
 
 	//*******************************
 
-	fp = fopen("D:\\3Dmodel\\3ds\\tris.MD2","rb");
+	fp = fopen("D:\\3Dmodel\\3ds\\plane.MD2","rb");
 
 	length = GetFileSize(fp);
 

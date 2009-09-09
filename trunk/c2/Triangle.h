@@ -11,6 +11,8 @@ typedef struct Triangle
 {
 	DWORD render_mode;
 
+	int uvTransformed;
+
 	Texture * texture;
 
 	Material * material;
@@ -18,6 +20,8 @@ typedef struct Triangle
 	Vector3D * normal, * center;
 
 	Vertex * vertex[3];
+
+	Vector * uv[3];
 }Triangle;
 
 Vector3D * triangle_normal( Vector3D * normal, Vertex * v0, Vertex * v1, Vertex * v2 )
@@ -41,9 +45,9 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->vertex[1] = vb;
 	p->vertex[2] = vc;
 
-	va->uv = uva;
-	vb->uv = uvb;
-	vc->uv = uvc;
+	p->uv[0] = vector_clone( uva );
+	p->uv[1] = vector_clone( uvb );
+	p->uv[2] = vector_clone( uvc );
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );
@@ -53,6 +57,7 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->material = material;
 
 	p->render_mode = RENDER_NONE;
+	p->uvTransformed = FALSE;
 
 	return p;
 }
@@ -62,6 +67,10 @@ INLINE void triangle_copy( Triangle * dest, Triangle * src )
 	vertex_copy( dest->vertex[0], src->vertex[0] );
 	vertex_copy( dest->vertex[1], src->vertex[1] );
 	vertex_copy( dest->vertex[2], src->vertex[2] );
+
+	vector_copy( dest->uv[0], src->uv[0] );
+	vector_copy( dest->uv[1], src->uv[1] );
+	vector_copy( dest->uv[2], src->uv[2] );
 
 	vector3D_copy( dest->center, src->center );
 	vector3D_copy( dest->normal, src->normal );
@@ -81,9 +90,9 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	dest->vertex[1] = vertex_clone( src->vertex[1] );
 	dest->vertex[2] = vertex_clone( src->vertex[2] );
 
-	dest->vertex[0]->uv = vector_clone( src->vertex[0]->uv );
-	dest->vertex[1]->uv = vector_clone( src->vertex[1]->uv );
-	dest->vertex[2]->uv = vector_clone( src->vertex[2]->uv );
+	dest->uv[0] = vector_clone( src->uv[0] );
+	dest->uv[1] = vector_clone( src->uv[1] );
+	dest->uv[2] = vector_clone( src->uv[2] );
 
 	vertex_addContectedFaces( dest, dest->vertex[0] );
 	vertex_addContectedFaces( dest, dest->vertex[1] );
@@ -110,6 +119,9 @@ INLINE void triangle_dispose( Triangle * p)
 	p->vertex[0] = NULL;
 	p->vertex[1] = NULL;
 	p->vertex[2] = NULL;
+	p->uv[0] = NULL;
+	p->uv[1] = NULL;
+	p->uv[2] = NULL;
 }
 
 #endif

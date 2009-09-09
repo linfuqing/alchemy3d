@@ -19,13 +19,11 @@ typedef struct ContectedFaces
 //RW
 typedef struct Vertex
 {
-	int nContectedFaces, transformed, uvTransformed;
+	int nContectedFaces, transformed;
 
 	int fix_inv_z;
 
 	Vector3D * position, * w_pos, * s_pos, * normal;
-
-	Vector * uv;
 
 	ARGBColor * color;
 
@@ -43,12 +41,10 @@ Vertex * newVertex( float x, float y, float z )
 	v->w_pos = newVector3D(x, y, z, 1.0f);
 	v->s_pos = newVector3D(x, y, z, 1.0f);
 	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
-	v->uv = newVector( 0.0f, 0.0f );
 	v->color = newARGBColor( 255, 255, 255, 255 );
 	v->contectedFaces = NULL;
 	v->nContectedFaces = 0;
 	v->transformed = FALSE;
-	v->uvTransformed = FALSE;
 
 	return v;
 }
@@ -60,8 +56,6 @@ INLINE void vertex_copy( Vertex * dest, Vertex * src )
 	vector3D_copy( dest->s_pos, src->s_pos );
 
 	vector3D_copy( dest->normal, src->normal );
-
-	vector_copy( dest->uv, src->uv );
 
 	argbColor_copy( dest->color, src->color );
 
@@ -85,8 +79,6 @@ INLINE Vertex * vertex_clone( Vertex * src )
 	dest->s_pos	= vector3D_clone( src->s_pos );
 
 	dest->normal		= vector3D_clone( src->normal );
-
-	dest->uv			= vector_clone( src->uv );
 
 	dest->color			= argbColor_clone( src->color );
 
@@ -124,7 +116,6 @@ INLINE void vertex_dispose( Vertex * v )
 	vector3D_dispose( v->position );
 	vector3D_dispose( v->w_pos );
 	vector3D_dispose( v->s_pos );
-	vector_dispose( v->uv );
 	argbColor_dispose( v->color );
 
 	v->contectedFaces = NULL;
@@ -132,7 +123,6 @@ INLINE void vertex_dispose( Vertex * v )
 	v->position = NULL;
 	v->w_pos = NULL;
 	v->s_pos = NULL;
-	v->uv = NULL;
 	v->color = NULL;
 }
 

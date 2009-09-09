@@ -14,7 +14,7 @@
 #include "Viewport.h"
 #include "Triangle.h"
 #include "Mesh.h"
-#include "3DSLoader.h"
+//#include "3DSLoader.h"
 #include "Md2.h"
 
 AS3_Val initializeCamera( void* self, AS3_Val args )
@@ -179,7 +179,7 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 AS3_Val initialize3DS( void* self, AS3_Val args )
 {
-	A3DS * a3ds = NULL;
+	/*A3DS * a3ds = NULL;
 
 	Entity * entity = NULL;
 
@@ -191,18 +191,20 @@ AS3_Val initialize3DS( void* self, AS3_Val args )
 
 	a3ds = A3DS_Create( entity, & buffer, length );
 
-	return AS3_Array( "PtrType, IntType, IntType, PtrType, IntType, IntType, IntType", a3ds, a3ds->mNum, a3ds->tNum, a3ds->a3d_materialList->next, FPOS( A3DS_MaterialList, next ), FPOS( A3DS_MaterialList, texture ), FPOS( Texture, name ) );
+	return AS3_Array( "PtrType, IntType, IntType, PtrType, IntType, IntType, IntType", a3ds, a3ds->mNum, a3ds->tNum, a3ds->a3d_materialList->next, FPOS( A3DS_MaterialList, next ), FPOS( A3DS_MaterialList, texture ), FPOS( Texture, name ) );*/
+
+	return 0;
 }
 
 AS3_Val loadComplete3DS( void* self, AS3_Val args )
 {
-	A3DS * a3ds = NULL;
+	//A3DS * a3ds = NULL;
 
-	AS3_ArrayValue( args, "PtrType", &a3ds );
+	//AS3_ArrayValue( args, "PtrType", &a3ds );
 
-	A3DS_CorrectUV( a3ds );
+	//A3DS_CorrectUV( a3ds );
 
-	A3DS_Dispose( a3ds );
+	//A3DS_Dispose( a3ds );
 
 	return 0;
 }
@@ -308,18 +310,6 @@ AS3_Val fillTextureData( void* self, AS3_Val args )
 	return 0;
 }
 
-AS3_Val onTextureReady( void* self, AS3_Val args )
-{
-	Entity * entity;
-	Texture * texture;
-
-	AS3_ArrayValue( args, "PtrType, PtrType, StrType, IntType, IntType, PtrType", &entity, &texture );
-
-	mesh_correctUV( entity->mesh, texture);
-
-	return 0;
-}
-
 AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
 {
 	int len;
@@ -372,7 +362,6 @@ int main()
 	AS3_Val initializeMaterialMethod = AS3_Function( NULL, initializeMaterial );
 	AS3_Val initializeTextureMethod = AS3_Function( NULL, initializeTexture );
 	AS3_Val fillTextureDataMethod = AS3_Function( NULL, fillTextureData );
-	AS3_Val onTextureReadyMethod = AS3_Function( NULL, onTextureReady );
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
@@ -393,7 +382,6 @@ int main()
 								 initializeMaterial:AS3ValType,\
 								 initializeTexture:AS3ValType,\
 								 fillTextureData:AS3ValType,\
-								 onTextureReady:AS3ValType,\
 								 initializeLight:AS3ValType,\
 								 initializeEntity:AS3ValType,\
 								 addEntity:AS3ValType,\
@@ -411,7 +399,6 @@ int main()
 								initializeMaterialMethod,
 								initializeTextureMethod,
 								fillTextureDataMethod,
-								onTextureReadyMethod,
 								initializeLightMethod,
 								initializeEntityMethod,
 								addEntityMethod,
@@ -431,7 +418,6 @@ int main()
 	AS3_Release( initializeMaterialMethod );
 	AS3_Release( initializeTextureMethod );
 	AS3_Release( fillTextureDataMethod );
-	AS3_Release( onTextureReadyMethod );
 	AS3_Release( initializeLightMethod );
 	AS3_Release( initializeEntityMethod );
 	AS3_Release( addEntityMethod );
