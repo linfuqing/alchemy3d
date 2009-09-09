@@ -1,10 +1,11 @@
-#pragma once
+#ifndef __ANIMATION_H
+#define __ANIMATION_H
 
 //# include <time.h>
 
-# include "Mesh.h"
+#include "Mesh.h"
 
-# define FRAME_NAME_LENGTH 16
+#define FRAME_NAME_LENGTH 16
 
 typedef struct
 {
@@ -128,3 +129,5 @@ void animation_update( Animation * animation, int time )
 		animation_updateToTime( animation, ( float )( elapsed * 1.0 / ( animation -> durationTime ) ) );
 	}
 }
+
+#endif

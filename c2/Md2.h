@@ -1,8 +1,9 @@
-#pragma once
+#ifndef __MD2_H
+#define __MD2_H
 
-# include "Entity.h"
+#include "Entity.h"
 
-# define SKIN_NAME_LENGTH 64
+#define SKIN_NAME_LENGTH 64
 
 typedef struct
 {
@@ -110,8 +111,8 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		memcpy( & u, pointer                  , sizeof( short ) );
 		memcpy( & v, pointer + sizeof( short ), sizeof( short ) );
 
-		//AS3_Trace( AS3_Int( u ) );
-		//AS3_Trace( AS3_Int( v ) );
+		uvs[i].u = ( float )(u * 1.0f / ( m -> header.skinwidth ));
+		uvs[i].v = ( float )(v * 1.0f / ( m -> header.skinheight ));
 
 		uvs[i].u = u * 1.0f / m -> header.skinwidth  * ( texture->width );
 		uvs[i].v = v * 1.0f / m -> header.skinheight * ( texture->height );
@@ -149,6 +150,8 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 
 	entity_setMesh( m->entity, mesh );
 	mesh_setRenderMode( m->entity->mesh, render_mode );
+	computeFaceNormal( mesh );
+	computeVerticesNormal( mesh );
 
 	for( i = 0; i < m -> header.num_frames; i ++ )
 	{
@@ -198,5 +201,12 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 
 	m -> entity -> animation = animation;
 
+	//for ( j = 0; j < 8 ; j ++ )
+	//{
+	//	printf("%f %f %f\n", mesh->vertices[j].position->x, mesh->vertices[j].position->y, mesh->vertices[j].position->z);
+	//}
+
 	return TRUE;
 }
+
+#endif

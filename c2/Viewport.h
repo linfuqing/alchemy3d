@@ -373,17 +373,17 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 					//如果有，则对纹理坐标进行裁剪
 					if ( NULL != face->texture )
 					{
-						ui = ver1_0->uv->u + ( ver1_1->uv->u - ver1_0->uv->u ) * t1;
-						vi = ver1_0->uv->v + ( ver1_1->uv->v - ver1_0->uv->v ) * t1;
+						ui = face1->uv[v0]->u + ( face1->uv[v1]->u - face1->uv[v0]->u ) * t1;
+						vi = face1->uv[v0]->v + ( face1->uv[v1]->v - face1->uv[v0]->v ) * t1;
 
-						ver1_1->uv->u = ui;
-						ver1_1->uv->v = vi;
+						face1->uv[v1]->u = ui;
+						face1->uv[v1]->v = vi;
 
-						ui = ver1_0->uv->u + ( ver1_2->uv->u - ver1_0->uv->u ) * t2;
-						vi = ver1_0->uv->v + ( ver1_2->uv->v - ver1_0->uv->v ) * t2;
+						ui = face1->uv[v0]->u + ( face1->uv[v2]->u - face1->uv[v0]->u ) * t2;
+						vi = face1->uv[v0]->v + ( face1->uv[v2]->v - face1->uv[v0]->v ) * t2;
 
-						ver1_2->uv->u = ui;
-						ver1_2->uv->v = vi;
+						face1->uv[v2]->u = ui;
+						face1->uv[v2]->v = vi;
 					}
 				}
 				else if ( verts_out == 1 )
@@ -496,21 +496,21 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 					//如果有，则对纹理坐标进行裁剪
 					if ( NULL != face->texture )
 					{
-						u01i = ver1_0->uv->u + ( ver1_1->uv->u - ver1_0->uv->u ) * t1;
-						v01i = ver1_0->uv->v + ( ver1_1->uv->v - ver1_0->uv->v ) * t1;
+						u01i = face1->uv[v0]->u + ( face1->uv[v1]->u - face1->uv[v0]->u ) * t1;
+						v01i = face1->uv[v0]->v + ( face1->uv[v1]->v - face1->uv[v0]->v ) * t1;
 
-						u02i = ver1_0->uv->u + ( ver1_2->uv->u - ver1_0->uv->u ) * t2;
-						v02i = ver1_0->uv->v + ( ver1_2->uv->v - ver1_0->uv->v ) * t2;
+						u02i = face1->uv[v0]->u + ( face1->uv[v2]->u - face1->uv[v0]->u ) * t2;
+						v02i = face1->uv[v0]->v + ( face1->uv[v2]->v - face1->uv[v0]->v ) * t2;
 
 						//覆盖原来的纹理坐标
-						ver1_0->uv->u = u01i;
-						ver1_0->uv->v = v01i;
+						face1->uv[v0]->u = u01i;
+						face1->uv[v0]->v = v01i;
 
-						ver2_1->uv->u = u01i;
-						ver2_1->uv->v = v01i;
+						face2->uv[v1]->u = u01i;
+						face2->uv[v1]->v = v01i;
 
-						ver2_0->uv->u = u02i;
-						ver2_0->uv->v = v02i;
+						face2->uv[v0]->u = u02i;
+						face2->uv[v0]->v = v02i;
 					}
 
 					//计算顶点法线
@@ -568,15 +568,12 @@ void viewport_project( Viewport * viewport, int time )
 	Light * light;
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
 	FloatColor fColor, lastColor, outPutColor;
-	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
-
-	float invw;
+	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor, invw;
 
 	int l = 0, j = 0, code = 0;
 
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
-	//if ( NULL != scene->lights ) if( ( vLightsToObject = ( Vector3D * )calloc( scene->nLights, sizeof( Vector3D ) ) ) == NULL ) exit( TRUE );
 	Vector3D vLightsToObject[MAX_LIGHTS];
 
 	scene = viewport->scene;
@@ -607,8 +604,9 @@ void viewport_project( Viewport * viewport, int time )
 
 		if ( entity->mesh )
 		{
-			if ( entity->mesh->v_dirty )
-				mesh_updateMesh( entity->mesh );
+			if ( entity->mesh->v_dirty ) mesh_updateMesh( entity->mesh );
+			
+			if ( ! entity->mesh->textureReady ) mesh_correctUV( entity->mesh );
 
 			code = 0;
 
@@ -684,10 +682,6 @@ void viewport_project( Viewport * viewport, int time )
 			{
 				material = renderList->polygon->material;
 
-				////基于在效率和真实感之间取得一个平衡，不考虑全局环境光的贡献，直接使用材质的环境光反射系数作为最终颜色
-				//floatColor_zero( & mColor );
-				//floatColor_add_self( & mColor, material->ambient );
-
 				//遍历顶点
 				for ( j = 0; j < 3; j ++)
 				{
@@ -705,6 +699,7 @@ void viewport_project( Viewport * viewport, int time )
 
 					if ( NULL != material )
 					{
+						//基于在效率和真实感之间取得一个平衡，不考虑全局环境光的贡献，直接使用材质的环境光反射系数作为最终颜色
 						//复制材质颜色到最终颜色
 						floatColor_copy( & lastColor, material->ambient );
 
