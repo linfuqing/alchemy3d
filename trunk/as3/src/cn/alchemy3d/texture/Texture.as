@@ -104,8 +104,6 @@ package cn.alchemy3d.texture
 			bitmapdata = null;
 			
 			this._ready = true;
-			
-			dispatchEvent(new LoadEvent(LoadEvent.TEXTURE_READY));
 		}
 		
 		public function load(url:String):void

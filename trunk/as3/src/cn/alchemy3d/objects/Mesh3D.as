@@ -25,14 +25,6 @@ package cn.alchemy3d.objects
 			faces = new Vector.<Triangle3D>();
 			
 			super(name);
-			
-			if (texture)
-			{
-				if (texture.ready)
-					Library.alchemy3DLib.onTextureReady(this.pointer, texture.pointer);
-				else
-					texture.addEventListener(LoadEvent.TEXTURE_READY, onTextureReady);
-			}
 		}
 		
 		public var faces:Vector.<Triangle3D>;
@@ -258,13 +250,6 @@ package cn.alchemy3d.objects
 			lightEnablePtr		= ps[5];
 			vDirtyPointer		= ps[6];
 			fDirtyPointer		= ps[7];
-		}
-		
-		protected function onTextureReady(e:LoadEvent):void
-		{
-			texture.removeEventListener(LoadEvent.TEXTURE_READY, onTextureReady);
-			
-			Library.alchemy3DLib.onTextureReady(this.pointer, texture.pointer);
 		}
 		
 		override public function clone():Entity
