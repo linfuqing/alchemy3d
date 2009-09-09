@@ -197,7 +197,7 @@ void mesh_setMaterial( Mesh * m, Material * mat )
 	}
 }
 
-void mesh_correctUV( Mesh * m )
+void mesh_computeUV( Mesh * m )
 {
 	int i = 0, j = 0;
 
@@ -255,9 +255,8 @@ void mesh_updateMesh( Mesh * mesh )
 
 	meshBuffer = mesh->meshBuffer;
 
-	if ( meshBuffer )
+	if ( meshBuffer && mesh->f_dirty )
 	{
-
 		p_meshBuffer = ( DWORD * )(meshBuffer + mesh->nVertices * VERTEX_SIZE);
 
 		for( j = 0, k = 0; j < mesh->nFaces; j ++, k += FACE_SIZE)
@@ -270,7 +269,7 @@ void mesh_updateMesh( Mesh * mesh )
 		}
 	}
 
-	if ( meshBuffer )
+	if ( meshBuffer && mesh->v_dirty )
 	{
 		for( j = 0, k = 0; j < mesh->nVertices; j ++, k += VERTEX_SIZE)
 		{
@@ -284,8 +283,11 @@ void mesh_updateMesh( Mesh * mesh )
 	}
 #endif
 
-	computeFaceNormal( mesh );
-	computeVerticesNormal( mesh );
+	if ( mesh->v_dirty )
+	{
+		computeFaceNormal( mesh );
+		computeVerticesNormal( mesh );
+	}
 }
 
 INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )

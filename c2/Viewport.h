@@ -604,9 +604,9 @@ void viewport_project( Viewport * viewport, int time )
 
 		if ( entity->mesh )
 		{
-			if ( entity->mesh->v_dirty ) mesh_updateMesh( entity->mesh );
+			if ( entity->mesh->v_dirty || entity->mesh->f_dirty) mesh_updateMesh( entity->mesh );
 			
-			if ( ! entity->mesh->textureReady ) mesh_correctUV( entity->mesh );
+			if ( ! entity->mesh->textureReady ) mesh_computeUV( entity->mesh );
 
 			code = 0;
 
