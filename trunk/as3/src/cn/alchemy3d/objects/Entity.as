@@ -4,9 +4,7 @@ package cn.alchemy3d.objects
 	import __AS3__.vec.Vector;
 	
 	import cn.alchemy3d.lib.Library;
-	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.scene.Scene3D;
-	import cn.alchemy3d.texture.Texture;
 	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.events.EventDispatcher;
@@ -14,10 +12,12 @@ package cn.alchemy3d.objects
 	
 	public class Entity extends EventDispatcher
 	{
-		public function Entity(name:String = "")
+		public function Entity(name:String = "", mesh:Mesh3D = null)
 		{
 			this.name = name;
 			this.visible = true;
+			
+			this._mesh = mesh;
 			
 			this._direction = new Vector3D();
 			this._position = new Vector3D();
@@ -36,7 +36,7 @@ package cn.alchemy3d.objects
 		public var positionPtr:uint;
 		public var scalePtr:uint;
 		public var worldPositionPtr:uint;
-		public var lightEnablePtr:uint;
+		public var meshPtr:uint;
 		
 		public var name:String;
 		public var visible:Boolean;
@@ -46,6 +46,7 @@ package cn.alchemy3d.objects
 		private var _scale:Vector3D;
 		private var _worldPosition:Vector3D;
 		
+		private var _mesh:Mesh3D;
 		private var _parent:Entity;
 		private var _children:Vector.<Entity>;
 		private var _root:Entity;
@@ -76,6 +77,21 @@ package cn.alchemy3d.objects
 		public function get scene():Scene3D
 		{
 			return this._scene;
+		}
+		
+		public function get mesh():Mesh3D
+		{
+			return _mesh;
+		}
+		
+		public function set mesh(mesh:Mesh3D):void
+		{
+			if(!checkInitialized()) return;
+			
+			_mesh = mesh;
+			
+			Library.memory.position = meshPtr;
+			Library.memory.writeUnsignedInt(mesh.pointer);
 		}
 		
 		public function get direction():Vector3D
@@ -274,7 +290,7 @@ package cn.alchemy3d.objects
 		
 		protected function callAlchemy():Array
 		{
-			return Library.alchemy3DLib.initializeEntity(0, 0, name, 0, 0, 0);
+			return Library.alchemy3DLib.initializeEntity(name,_mesh ? _mesh.pointer : 0);
 		}
 		
 		protected function allotPtr(ps:Array):void
@@ -284,6 +300,7 @@ package cn.alchemy3d.objects
 			directionPtr		= ps[2];
 			scalePtr			= ps[3];
 			worldPositionPtr	= ps[4];
+			meshPtr             = ps[5];
 		}
 		
 		/**
