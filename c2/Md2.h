@@ -111,8 +111,8 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		memcpy( & u, pointer                  , sizeof( short ) );
 		memcpy( & v, pointer + sizeof( short ), sizeof( short ) );
 
-		uvs[i].u = ( float )(u * 1.0f / ( m -> header.skinwidth ));
-		uvs[i].v = ( float )(v * 1.0f / ( m -> header.skinheight ));
+		//uvs[i].u = ( float )(u * 1.0f / ( m -> header.skinwidth ));
+		//uvs[i].v = ( float )(v * 1.0f / ( m -> header.skinheight ));
 
 		uvs[i].u = u * 1.0f / m -> header.skinwidth;
 		uvs[i].v = v * 1.0f / m -> header.skinheight;
