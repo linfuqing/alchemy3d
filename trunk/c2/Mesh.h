@@ -8,6 +8,8 @@
 #include "Material.h"
 #include "Texture.h"
 
+struct Animation;
+
 typedef struct Mesh
 {
 	int nFaces, nVertices, v_dirty, f_dirty, textureReady;
@@ -18,6 +20,7 @@ typedef struct Mesh
 
 	AABB * aabb, * worldAABB, * CVVAABB;
 
+	struct Animation * animation;
 #ifdef __AS3__
 	float * meshBuffer;
 #endif
@@ -39,6 +42,8 @@ void mesh_build( Mesh * m, int nVertices, int nFaces, float * meshBuffer  )
 	m->v_dirty			= TRUE;
 	m->f_dirty			= FALSE;
 	m->textureReady		= FALSE;
+
+	m->animation        = NULL;
 
 #ifdef __AS3__
 	m->meshBuffer = meshBuffer;

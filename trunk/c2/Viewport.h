@@ -4,6 +4,7 @@
 #include <malloc.h>
 #include <float.h>
 
+#include "Animation.h"
 #include "Entity.h"
 #include "Scene.h"
 #include "Camera.h"
@@ -600,10 +601,15 @@ void viewport_project( Viewport * viewport, int time )
 	{
 		entity = sceneNode->entity;
 
-		entity_updateTransform(entity, time);
+		entity_updateTransform(entity);
 
 		if ( entity->mesh )
 		{
+			if( entity -> mesh -> animation )
+			{
+				animation_update( entity -> mesh -> animation, time );
+			}
+
 			if ( entity->mesh->v_dirty || entity->mesh->f_dirty) mesh_updateMesh( entity->mesh );
 			
 			if ( ! entity->mesh->textureReady ) mesh_computeUV( entity->mesh );
