@@ -18,7 +18,7 @@
 #include "Texture.h"
 #include "Light.h"
 #include "Plane3D.h"
-//#include "3DSLoader.h"
+#include "3DSLoader.h"
 #include "MD2.h"
 
 long GetFileSize(FILE* f)
@@ -58,9 +58,9 @@ int main()
 
 	LPDWORD bitmapData;
 
-	MD2 * md2;
+	//MD2 * md2;
 
-	//A3DS * a3ds;
+	A3DS * a3ds;
 	FILE *fp;
 	UCHAR * buffer;
 	long length=0;
@@ -114,13 +114,13 @@ int main()
 
 	fread(buffer,1,length,fp);
 
-	/*a3ds = A3DS_Create( do3d3, & buffer, length );
+	a3ds = A3DS_Create( do3d3, & buffer, length );
 
-	A3DS_Dispose( a3ds );*/
+	A3DS_Dispose( a3ds );
 
-	md2 = newMD2( do3d3 );
+	/*md2 = newMD2( do3d3 );
 
-	md2_read( & buffer, md2, material, texture, 1 );
+	md2_read( & buffer, md2, material, texture, 1 );*/
 
 	//*******************************
 
@@ -176,8 +176,8 @@ int main()
 
 	point = newVector(1.0f, 1.0f);
 
-	mesh_push_triangle(mesh1, vArr[0], vArr[2], vArr[1], newVector(0.0f, 0.0f), newVector(1.0f, 0.0f), newVector(0.0f, 1.0f), NULL, NULL);
-	mesh_push_triangle(mesh1, vArr[3], vArr[1], vArr[2], newVector(1.0f, 1.0f), newVector(0.0f, 1.0f), newVector(1.0f, 0.0f), NULL, NULL);
+	mesh_push_triangle(mesh1, vArr[0], vArr[2], vArr[1], newVector(0.0f, 0.0f), newVector(1.0f, 0.0f), newVector(0.0f, 1.0f), NULL, NULL, 0x01);
+	mesh_push_triangle(mesh1, vArr[3], vArr[1], vArr[2], newVector(1.0f, 1.0f), newVector(0.0f, 1.0f), newVector(1.0f, 0.0f), NULL, NULL, 0x01);
 
 	i = 0;
 	j = 0;
@@ -191,15 +191,15 @@ int main()
 
 	point2 = newVector(.5f, .5f);
 
-	mesh_push_triangle(mesh2, vArr2[0], vArr2[3], vArr2[1], point2, point2, point2, NULL, NULL);
-	mesh_push_triangle(mesh2, vArr2[4], vArr2[1], vArr2[3], point2, point2, point2, NULL, NULL);
-	mesh_push_triangle(mesh2, vArr2[1], vArr2[4], vArr2[2], point2, point2, point2, NULL, NULL);
-	mesh_push_triangle(mesh2, vArr2[5], vArr2[2], vArr2[4], point2, point2, point2, NULL, NULL);
+	mesh_push_triangle(mesh2, vArr2[0], vArr2[3], vArr2[1], point2, point2, point2, NULL, NULL, 0x01);
+	mesh_push_triangle(mesh2, vArr2[4], vArr2[1], vArr2[3], point2, point2, point2, NULL, NULL, 0x01);
+	mesh_push_triangle(mesh2, vArr2[1], vArr2[4], vArr2[2], point2, point2, point2, NULL, NULL, 0x01);
+	mesh_push_triangle(mesh2, vArr2[5], vArr2[2], vArr2[4], point2, point2, point2, NULL, NULL, 0x01);
 
-	mesh_push_triangle(mesh2, vArr2[3], vArr2[6], vArr2[4], point2, point2, point2, NULL, NULL);
-	mesh_push_triangle(mesh2, vArr2[7], vArr2[4], vArr2[6], point2, point2, point2, NULL, NULL);
-	mesh_push_triangle(mesh2, vArr2[4], vArr2[7], vArr2[5], point2, point2, point2, NULL, NULL);
-	mesh_push_triangle(mesh2, vArr2[8], vArr2[5], vArr2[7], point2, point2, point2, NULL, NULL);
+	mesh_push_triangle(mesh2, vArr2[3], vArr2[6], vArr2[4], point2, point2, point2, NULL, NULL, 0x01);
+	mesh_push_triangle(mesh2, vArr2[7], vArr2[4], vArr2[6], point2, point2, point2, NULL, NULL, 0x01);
+	mesh_push_triangle(mesh2, vArr2[4], vArr2[7], vArr2[5], point2, point2, point2, NULL, NULL, 0x01);
+	mesh_push_triangle(mesh2, vArr2[8], vArr2[5], vArr2[7], point2, point2, point2, NULL, NULL, 0x01);
 
 	mesh_setRenderMode( mesh1, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 	mesh_setMaterial( mesh1, material );

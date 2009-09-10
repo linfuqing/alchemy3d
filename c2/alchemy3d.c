@@ -14,7 +14,7 @@
 #include "Viewport.h"
 #include "Triangle.h"
 #include "Mesh.h"
-//#include "3DSLoader.h"
+#include "3DSLoader.h"
 #include "Md2.h"
 
 AS3_Val initializeCamera( void* self, AS3_Val args )
@@ -224,7 +224,7 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 AS3_Val initialize3DS( void* self, AS3_Val args )
 {
-	/*A3DS * a3ds = NULL;
+	A3DS * a3ds = NULL;
 
 	Entity * entity = NULL;
 
@@ -236,23 +236,22 @@ AS3_Val initialize3DS( void* self, AS3_Val args )
 
 	a3ds = A3DS_Create( entity, & buffer, length );
 
-	return AS3_Array( "PtrType, IntType, IntType, PtrType, IntType, IntType, IntType", a3ds, a3ds->mNum, a3ds->tNum, a3ds->a3d_materialList->next, FPOS( A3DS_MaterialList, next ), FPOS( A3DS_MaterialList, texture ), FPOS( Texture, name ) );*/
-
-	return 0;
+	return AS3_Array( "PtrType, IntType, IntType, PtrType, IntType, IntType, IntType", a3ds, a3ds->mNum, a3ds->tNum, a3ds->a3d_materialList->next, FPOS( A3DS_MaterialList, next ), FPOS( A3DS_MaterialList, texture ), FPOS( Texture, name ) );
 }
 
 AS3_Val loadComplete3DS( void* self, AS3_Val args )
 {
-	//A3DS * a3ds = NULL;
+	A3DS * a3ds = NULL;
 
-	//AS3_ArrayValue( args, "PtrType", &a3ds );
+	AS3_ArrayValue( args, "PtrType", &a3ds );
 
 	//A3DS_CorrectUV( a3ds );
 
-	//A3DS_Dispose( a3ds );
+	A3DS_Dispose( a3ds );
 
 	return 0;
 }
+
 
 AS3_Val initializeMD2( void* self, AS3_Val args )
 {
