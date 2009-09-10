@@ -182,7 +182,7 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 	free( rmp );
 
-	return AS3_Array( "PtrType, PtrType, PtrType", mesh, & mesh->v_dirty, & mesh->f_dirty );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->f_dirty );
 }
 
 AS3_Val initializeEntity( void* self, AS3_Val args )
@@ -200,8 +200,8 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 	entity->mesh = mesh;
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->lightEnable, & entity->mesh );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->mesh );
 }
 
 AS3_Val addEntity( void* self, AS3_Val args )
@@ -244,8 +244,6 @@ AS3_Val loadComplete3DS( void* self, AS3_Val args )
 	A3DS * a3ds = NULL;
 
 	AS3_ArrayValue( args, "PtrType", &a3ds );
-
-	//A3DS_CorrectUV( a3ds );
 
 	A3DS_Dispose( a3ds );
 

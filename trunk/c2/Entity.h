@@ -16,7 +16,7 @@ typedef struct Entity
 	char * name;
 
 	//是否可见，是否进行变换，子结点数
-	int visible, transformDirty, nChildren, lightEnable;
+	int visible, transformDirty, nChildren;
 
 	//子结点
 	struct SceneNode * children;
@@ -58,9 +58,9 @@ Entity * newEntity()
 	entity->position		= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->direction		= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->scale			= newVector3D(1.0f, 1.0f, 1.0f, 1.0f);
-	entity->w_pos	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
-	entity->s_pos	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
-	entity->CVVPosition	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
+	entity->w_pos			= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
+	entity->s_pos			= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
+	entity->CVVPosition		= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->viewerToLocal	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 
 	entity->transform		= newMatrix3D(NULL);
@@ -77,8 +77,6 @@ Entity * newEntity()
 	//entity->animation       = NULL;
 
 	entity->visible = entity->transformDirty = TRUE;
-
-	entity->lightEnable = FALSE;
 
 	entity->nChildren = 0;
 
