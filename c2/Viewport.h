@@ -668,7 +668,7 @@ void viewport_project( Viewport * viewport, int time )
 			lights = scene->lights;
 
 			//遍历光源
-			while ( NULL != lights && entity->lightEnable )
+			while ( NULL != lights && entity->mesh->lightEnable )
 			{
 				if ( TRUE == lights->light->bOnOff )
 				{
@@ -716,7 +716,7 @@ void viewport_project( Viewport * viewport, int time )
 
 						//来自于光源的贡献
 						//如果有光源
-						while ( NULL != lights && entity->lightEnable )
+						while ( NULL != lights && entity->mesh->lightEnable )
 						{
 							//如果光源是关闭的
 							if ( FALSE == lights->light->bOnOff )

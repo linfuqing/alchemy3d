@@ -12,7 +12,7 @@ struct Animation;
 
 typedef struct Mesh
 {
-	int nFaces, nVertices, v_dirty, f_dirty, textureReady;
+	int nFaces, nVertices, v_dirty, f_dirty, textureReady, lightEnable;
 
 	Triangle  * faces;
 
@@ -21,9 +21,6 @@ typedef struct Mesh
 	AABB * aabb, * worldAABB, * CVVAABB;
 
 	struct Animation * animation;
-#ifdef __AS3__
-	float * meshBuffer;
-#endif
 
 }Mesh;
 
@@ -40,12 +37,9 @@ void mesh_build( Mesh * m, int nVertices, int nFaces, float * meshBuffer  )
 	m->v_dirty			= TRUE;
 	m->f_dirty			= FALSE;
 	m->textureReady		= FALSE;
+	m->lightEnable		= FALSE;
 
 	m->animation        = NULL;
-
-#ifdef __AS3__
-	m->meshBuffer = meshBuffer;
-#endif
 }
 
 Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
@@ -264,42 +258,42 @@ void mesh_setTexture( Mesh * m, Texture * t )
 
 void mesh_updateMesh( Mesh * mesh )
 {	
-#ifdef __AS3__
-	int j = 0, k = 0;
-	float * meshBuffer;
-	DWORD * p_meshBuffer;
-	Triangle * face;
-	Vertex * vs;
-
-	meshBuffer = mesh->meshBuffer;
-
-	if ( meshBuffer && mesh->f_dirty )
-	{
-		p_meshBuffer = ( DWORD * )(meshBuffer + mesh->nVertices * VERTEX_SIZE);
-
-		for( j = 0, k = 0; j < mesh->nFaces; j ++, k += FACE_SIZE)
-		{
-			face = & mesh->faces[j];
-
-			face->render_mode = ( DWORD )p_meshBuffer[k + 9];
-			face->material = ( Material * ) p_meshBuffer[k + 10];
-			face->texture = ( Texture * )p_meshBuffer[k + 11];
-		}
-	}
-
-	if ( meshBuffer && mesh->v_dirty )
-	{
-		for( j = 0, k = 0; j < mesh->nVertices; j ++, k += VERTEX_SIZE)
-		{
-			vs = & mesh->vertices[j];
-
-			//如果顶点局部坐标发生改变
-			vs->position->x = meshBuffer[k];
-			vs->position->y = meshBuffer[k + 1];
-			vs->position->z = meshBuffer[k + 2];
-		}
-	}
-#endif
+//#ifdef __AS3__
+//	int j = 0, k = 0;
+//	float * meshBuffer;
+//	DWORD * p_meshBuffer;
+//	Triangle * face;
+//	Vertex * vs;
+//
+//	meshBuffer = mesh->meshBuffer;
+//
+//	if ( meshBuffer && mesh->f_dirty )
+//	{
+//		p_meshBuffer = ( DWORD * )(meshBuffer + mesh->nVertices * VERTEX_SIZE);
+//
+//		for( j = 0, k = 0; j < mesh->nFaces; j ++, k += FACE_SIZE)
+//		{
+//			face = & mesh->faces[j];
+//
+//			face->render_mode = ( DWORD )p_meshBuffer[k + 9];
+//			face->material = ( Material * ) p_meshBuffer[k + 10];
+//			face->texture = ( Texture * )p_meshBuffer[k + 11];
+//		}
+//	}
+//
+//	if ( meshBuffer && mesh->v_dirty )
+//	{
+//		for( j = 0, k = 0; j < mesh->nVertices; j ++, k += VERTEX_SIZE)
+//		{
+//			vs = & mesh->vertices[j];
+//
+//			//如果顶点局部坐标发生改变
+//			vs->position->x = meshBuffer[k];
+//			vs->position->y = meshBuffer[k + 1];
+//			vs->position->z = meshBuffer[k + 2];
+//		}
+//	}
+//#endif
 
 	if ( mesh->v_dirty )
 	{
