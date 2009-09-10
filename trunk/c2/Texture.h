@@ -3,10 +3,16 @@
 
 #include <malloc.h>
 
+#define TEXTURE_WRAP	0x01
+#define TEXTURE_MIRROR	0x02
+#define TEXTURE_CLAMP	0x04
+#define TEXTURE_BORDER	0x08
+
 typedef struct Texture
 {
 	char * name;
 
+	int address;
 	int width;
 	int height;
 	int wh;
@@ -30,6 +36,7 @@ Texture * newTexture( char * name )
 	if( ( texture = ( Texture * )malloc( sizeof( Texture ) ) ) == NULL ) exit( TRUE );
 
 	texture->name = name;
+	texture->address = TEXTURE_WRAP;
 	texture->width = 0;
 	texture->height = 0;
 	texture->wh = 0;
