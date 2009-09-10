@@ -37,8 +37,6 @@ void mesh_build( Mesh * m, int nVertices, int nFaces, float * meshBuffer  )
 	m->worldAABB		= newAABB();
 	m->CVVAABB			= newAABB();
 
-	m->nFaces			= 0;
-	m->nVertices		= 0;
 	m->v_dirty			= TRUE;
 	m->f_dirty			= FALSE;
 	m->textureReady		= FALSE;
@@ -54,9 +52,15 @@ Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
 {
 	Mesh * m;
 
-	if( ( m				= ( Mesh * )calloc( 1, sizeof( Mesh ) ) ) == NULL) exit( TRUE );
+	if( ( m	= ( Mesh * )calloc( 1, sizeof( Mesh ) ) ) == NULL) exit( TRUE );
 
-	mesh_build( m, nVertices, nFaces, meshBuffer );
+	m->nFaces			= 0;
+	m->nVertices		= 0;
+
+	if( nVertices && nFaces )
+	{
+		mesh_build( m, nVertices, nFaces, meshBuffer );
+	}
 
 	return m;
 }
@@ -83,7 +87,7 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 	return v;
 }
 
-Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Material * material, Texture * texture )
+Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Material * material, Texture * texture, int render_mode )
 {
 	Triangle * p = & m->faces[m->nFaces];
 
@@ -100,6 +104,8 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 
 	p->texture = texture;
 	p->material = material;
+
+	p->render_mode = render_mode;
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );
@@ -404,6 +410,10 @@ Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces, float * meshBuffer )
 	if( m == NULL )
 	{
 		m = newMesh(nVertices, nFaces, meshBuffer);
+	}
+	else if( ! ( m -> nVertices ) || ! ( m -> nFaces ) )
+	{
+		mesh_build( m, nVertices, nFaces, meshBuffer );
 	}
 	else
 	{

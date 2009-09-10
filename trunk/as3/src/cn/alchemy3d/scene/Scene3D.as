@@ -1,10 +1,10 @@
 package cn.alchemy3d.scene
 {
 
+	import cn.alchemy3d.geom.Mesh3D;
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.objects.Entity;
-	import cn.alchemy3d.objects.Mesh3D;
 	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.utils.Dictionary;
@@ -55,11 +55,11 @@ package cn.alchemy3d.scene
 			//返回该对象起始指针
 			Library.alchemy3DLib.addEntity(this.pointer, node.pointer, parentPtr);
 			
-			if (node is Mesh3D)
+			/*if (node is Mesh3D)
 			{
 				verticesNum += Mesh3D(node).nVertices;
 				facesNum += Mesh3D(node).nFaces;
-			}
+			}*/
 		}
 		
 		public function addLight(light:Light3D):void

@@ -603,7 +603,7 @@ void viewport_project( Viewport * viewport, int time )
 
 		entity_updateTransform(entity);
 
-		if ( entity->mesh )
+		if ( entity->mesh && entity -> mesh -> nFaces && entity -> mesh -> nVertices )
 		{
 			if( entity -> mesh -> animation )
 			{

@@ -11,7 +11,7 @@ package cn.alchemy3d.geom
 		
 		public var normal:Vector3D;
 		
-		public var pointer:uint;
+		private var _pointer:uint;
 		
 		public function Vertex3D(x:Number = 0, y:Number = 0, z:Number = 0, w:Number = 1)
 		{
@@ -21,6 +21,11 @@ package cn.alchemy3d.geom
 			this.w = w;
 			
 			this.normal = new Vector3D();
+		}
+		
+		internal function setPointer( pointer:uint ):void
+		{
+			_pointer = pointer;
 		}
 		
 		public function clone():Vertex3D

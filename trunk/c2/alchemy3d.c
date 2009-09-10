@@ -102,22 +102,31 @@ AS3_Val initializeLight( void* self, AS3_Val args )
 
 AS3_Val initializeMesh( void * self, AS3_Val args )
 {
-	Mesh * mesh = NULL;
-	Texture * texture = NULL;
-	Material * material = NULL;
-	float * meshBuffer = NULL;
-	DWORD * p_meshBuffer = NULL, ** pp_meshBuffer = NULL;
+	Mesh         * mesh;
 
-	int vNum, fNum, vLen, i, j;
+	Texture      * * tp;
+	Material     * * mp;
 
-	pp_meshBuffer = ( DWORD ** )meshBuffer;
-	p_meshBuffer = ( DWORD * )meshBuffer;
+	unsigned int   vl, fl, i, * fs, * fp;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, IntType, IntType", &material, &texture, &meshBuffer, &vNum, &fNum );
+	int          * rmp;
 
-	mesh = newMesh( vNum, fNum, meshBuffer );
+	float        * vp, * vs;
+	Vector       * uvp;
 
-	vLen = vNum * VERTEX_SIZE;
+	//float * meshBuffer = NULL;
+	//DWORD * p_meshBuffer = NULL, ** pp_meshBuffer = NULL;
+
+	//int vNum, fNum, vLen, i, j;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, IntType, IntType",& vs, & fs, & uvp, & mp, & tp, & rmp, & vl, & fl );
+
+	//pp_meshBuffer = ( DWORD ** )meshBuffer;
+	//p_meshBuffer = ( DWORD * )meshBuffer;
+
+	mesh = newMesh( vl, fl, NULL );
+
+	/*vLen = vNum * VERTEX_SIZE;
 
 	i = 0;
 	j = 0;
@@ -138,7 +147,40 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 							newVector( meshBuffer[j + 7], meshBuffer[j + 8] ),
 							( Material * )( p_meshBuffer[j + 10] ),
 							( Texture * )( p_meshBuffer[j + 11] ) );
+	}*/
+
+	vp = vs;
+
+	for( i = 0; i < vl; i ++ )
+	{
+		mesh_push_vertex( mesh, *vp ++, *vp ++, *vp ++ );
 	}
+
+	free( vs );
+
+	fp = fs;
+
+	for( i = 0; i < fl; i ++ )
+	{
+		mesh_push_triangle( 
+			mesh,
+			mesh -> vertices + ( * fp ++ ), 
+			mesh -> vertices + ( * fp ++ ), 
+			mesh -> vertices + ( * fp ++ ),
+			uvp ++,
+			uvp ++,
+			uvp ++,
+			mp[i],
+			tp[i],
+			rmp[i] );
+
+		AS3_Trace( AS3_Number( mp[i]->ambient->red ) );
+		AS3_Trace( AS3_Int( rmp[i] ) );
+	}
+
+	free( fs );
+
+	free( rmp );
 
 	return AS3_Array( "PtrType, PtrType, PtrType", mesh, & mesh->v_dirty, & mesh->f_dirty );
 }

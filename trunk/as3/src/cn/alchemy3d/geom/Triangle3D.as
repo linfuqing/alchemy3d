@@ -1,13 +1,25 @@
 package cn.alchemy3d.geom
 {
 
-	import cn.alchemy3d.objects.Entity;
+	import cn.alchemy3d.materials.Material;
+	import cn.alchemy3d.texture.Texture;
 	
 	import flash.geom.Point;
 	
 	public class Triangle3D extends AbstractRenderable
 	{
-		public function Triangle3D(v0:Vertex3D, v1:Vertex3D, v2:Vertex3D, uva:Point, uvb:Point, uvc:Point, instance:Entity = null, name:String = "")
+		internal var ID:uint;
+		
+		public function Triangle3D(
+		v0:Vertex3D, 
+		v1:Vertex3D, 
+		v2:Vertex3D, 
+		uva:Point, 
+		uvb:Point, 
+		uvc:Point, 
+		material:Material, 
+		texture:Texture = null, 
+		renderMode:int = 0x000000 )
 		{
 			super(instance, name);
 			
@@ -19,14 +31,20 @@ package cn.alchemy3d.geom
 			uv1 = uvb;
 			uv2 = uvc;
 			
-			uvtData = new Vector.<Number>(6, true);
+			
+			this.material = material;
+			this.texture  = texture;
+			
+			this.renderMode = renderMode;
+			
+			/*uvtData = new Vector.<Number>(6, true);
 			
 			uvtData[0] = uva.x;
 			uvtData[1] = uva.y;
 			uvtData[2] = uvb.x;
 			uvtData[3] = uvb.y;
 			uvtData[4] = uvc.x;
-			uvtData[5] = uvc.y;
+			uvtData[5] = uvc.y;*/
 		}
 		
 		public var v0:Vertex3D;
@@ -37,18 +55,22 @@ package cn.alchemy3d.geom
 		public var uv1:Point;
 		public var uv2:Point;
 		
-		public var uvtData:Vector.<Number>;
+		//public var uvtData:Vector.<Number>;
+		
+		public var material:Material;
+		public var texture:Texture;
+		public var renderMode:int;
 		
 //		public function clone():Triangle3D
 //		{
 //			return new Triangle3D(p0Index:int
 //		}
 		
-		public function destroy():void
+		/*public function destroy():void
 		{
 			uvtData.length = 0;
 			uvtData = null;
-		}
+		}*/
 		
 		public function toString():String
 		{
