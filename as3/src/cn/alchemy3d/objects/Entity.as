@@ -3,6 +3,7 @@ package cn.alchemy3d.objects
 
 	import __AS3__.vec.Vector;
 	
+	import cn.alchemy3d.geom.Mesh3D;
 	import cn.alchemy3d.lib.Library;
 	import cn.alchemy3d.scene.Scene3D;
 	import cn.alchemy3d.tools.Alchemy3DLog;

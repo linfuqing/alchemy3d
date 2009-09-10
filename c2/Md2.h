@@ -52,7 +52,7 @@ MD2 * newMD2( Mesh * mesh )
 	m -> fps    = 10;
 
 	m -> skins  = NULL;
-	m -> mesh   = mesh;
+	m -> mesh   = mesh ? mesh : newMesh( 0, 0, NULL );
 
 	return m;
 }
@@ -119,7 +119,7 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		//printf("%f\n", uvs[i].v);
 	}
 
-	m -> mesh = mesh_reBuild( m -> mesh, m -> header.num_vertices, m -> header.num_tris, NULL );
+	mesh_build( m -> mesh, m -> header.num_vertices, m -> header.num_tris, NULL );
 
 	for( i = 0; i < m -> header.num_vertices; i ++ )
 	{
@@ -143,10 +143,11 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 							uvs + uvIndex[1],
 							uvs + uvIndex[2],
 							material,
-							texture );
+							texture,
+							render_mode );
 	}
 
-	mesh_setRenderMode( m -> mesh, render_mode );
+	//mesh_setRenderMode( m -> mesh, render_mode );
 	computeFaceNormal( m -> mesh );
 	computeVerticesNormal( m -> mesh );
 

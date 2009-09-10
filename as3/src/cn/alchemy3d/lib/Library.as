@@ -14,6 +14,16 @@ package cn.alchemy3d.lib
 		
 		private static var _instance:Library;
 		
+		public static function get floatTypeSize():uint
+		{
+			return 4;
+		}
+		
+		public static function get intTypeSize():uint
+		{
+			return 4;
+		}
+		
 		public static function getInstance():Library
 		{
 			if(_instance == null)
