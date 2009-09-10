@@ -18,7 +18,7 @@
 #include "Texture.h"
 #include "Light.h"
 #include "Plane3D.h"
-#include "3DSLoader.h"
+//#include "3DSLoader.h"
 #include "MD2.h"
 
 long GetFileSize(FILE* f)
@@ -58,9 +58,9 @@ int main()
 
 	LPDWORD bitmapData;
 
-	//MD2 * md2;
+	MD2 * md2;
 
-	A3DS * a3ds;
+	//A3DS * a3ds;
 	FILE *fp;
 	UCHAR * buffer;
 	long length=0;
@@ -106,7 +106,7 @@ int main()
 
 	//*******************************
 
-	fp = fopen("D:\\3Dmodel\\3ds\\plane.3DS","rb");
+	fp = fopen("D:\\3Dmodel\\3ds\\plane.MD2","rb");
 
 	length = GetFileSize(fp);
 
@@ -114,13 +114,13 @@ int main()
 
 	fread(buffer,1,length,fp);
 
-	a3ds = A3DS_Create( do3d3, & buffer, length );
+	/*a3ds = A3DS_Create( do3d3, & buffer, length );
 
-	A3DS_Dispose( a3ds );
+	A3DS_Dispose( a3ds );*/
 
-	/*md2 = newMD2( do3d3 );
+	md2 = newMD2( do3d3 );
 
-	md2_read( & buffer, md2, material, texture, 1 );*/
+	md2_read( & buffer, md2, material, texture, 1 );
 
 	//*******************************
 

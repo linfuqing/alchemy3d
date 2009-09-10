@@ -20,18 +20,10 @@ package cn.alchemy3d.objects.external
 		
 		public function MD2(material:Material = null, texture:Texture = null)
 		{
-<<<<<<< .mine
 			this.material = material;
 			this.texture  = texture;
 			
 			super( "MD2",new Mesh3D() );
-=======
-			super(material, texture);
->>>>>>> .r243
-		}
-		
-		override protected function initialize():void
-		{
 		}
 		
 		public function load(url:String):void
@@ -54,17 +46,7 @@ package cn.alchemy3d.objects.external
 			loader.data.clear();
 			loader.data = null;
 			
-<<<<<<< .mine
 			Library.alchemy3DLib.initializeMD2(mesh.pointer, fileBuffer, material ? material.pointer : 0, texture ? texture.pointer : 0, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
-=======
-			var md2:Array = Library.alchemy3DLib.initializeMD2(fileBuffer, material ? material.pointer : 0, texture ? texture.pointer : 0, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
-			
-			this.allotPtr(md2);
-//			this.renderModePointer = mesh[0];
-//			this.dirtyPointer      = mesh[1];
-//			this.materialPtr       = mesh[2];
-//			this.texturePtr        = mesh[3];
->>>>>>> .r243
 		}
 	}
 }

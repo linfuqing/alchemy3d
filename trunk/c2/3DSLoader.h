@@ -206,7 +206,7 @@ DWORD A3DS_Main_Chunk_Handler( UCHAR ** buffer, WORD wID, DWORD dwLength )
 	end = ( * buffer ) + dwLength;
 	tmp = ( * buffer );
 
-	while( ( * buffer ) < end )
+	while( ( * buffer ) <= end )
 	{
 		//读取块ID
 		memcpy( & wIDRead, ( * buffer ), sizeof( wIDRead ) );
@@ -253,7 +253,7 @@ void A3DS_Face_Chunk_Handler( UCHAR ** buffer, A3DS_T_List * tList, DWORD dwLeng
 
 	end = ( * buffer ) + dwLength;
 
-	while( ( * buffer ) < end )
+	while( ( * buffer ) <= end )
 	{
 		//读取块ID
 		memcpy( & wID, ( * buffer ), sizeof( wID ) );
@@ -317,41 +317,38 @@ void A3DS_Face_Chunk_Handler( UCHAR ** buffer, A3DS_T_List * tList, DWORD dwLeng
 
 INLINE void A3DS_TranslateTexcoord( Triangle * face, float ou, float ov, float tu, float tv, float cosW, float sinW )
 {
-	float u0, u1, u2, v0, v1, v2;
+	float u,v;
 
-	u0 = face->uv[0]->u - ou - 0.5f;
-	v0 = face->uv[0]->v - ov - 0.5f;
-	u1 = face->uv[1]->u - ou - 0.5f;
-	v1 = face->uv[1]->v - ov - 0.5f;
-	u2 = face->uv[2]->u - ou - 0.5f;
-	v2 = face->uv[2]->v - ov - 0.5f;
+	if ( vert->uvTransformed ) return;
 
-	face->uv[0]->u = ( cosW * u0 - sinW * v0) * tu + 0.5f;
-	face->uv[0]->v = ( sinW * u0 + cosW * v0) * tv + 0.5f;
-	face->uv[1]->u = ( cosW * u1 - sinW * v1) * tu + 0.5f;
-	face->uv[1]->v = ( sinW * u1 + cosW * v1) * tv + 0.5f;
-	face->uv[2]->u = ( cosW * u2 - sinW * v2) * tu + 0.5f;
-	face->uv[2]->v = ( sinW * u2 + cosW * v2) * tv + 0.5f;
+	u = vert->uv->u - ou - 0.5f;
+	v = vert->uv->v - ov - 0.5f;
+
+	vert->uv->u = ( cosW * u - sinW * v) * tu + 0.5f;
+	vert->uv->v = ( sinW * u + cosW * v) * tv + 0.5f;
+
+	vert->uvTransformed = TRUE;
+
+	//printf("%f  ", vert->uv->u);
+	//printf("%f  ", vert->uv->v);
 }
 
-INLINE void A3DS_TranslateTexcoord2( Triangle * face, float ou, float ov, float tu, float tv )
+INLINE void A3DS_TranslateTexcoord2( Vertex * vert, float ou, float ov, float tu, float tv )
 {
-	float u0, u1, u2, v0, v1, v2;
+	float u,v;
 
-	u0 = face->uv[0]->u;
-	v0 = face->uv[0]->v;
-	u1 = face->uv[1]->u;
-	v1 = face->uv[1]->v;
-	u2 = face->uv[2]->u;
-	v2 = face->uv[2]->v;
+	if ( vert->uvTransformed ) return;
 
+	u = vert->uv->u;
+	v = vert->uv->v;
 	//先计算旋转后的纹理坐标
-	face->uv[0]->u = ( u0 - ou -0.5f ) * tu + 0.5f;
-	face->uv[0]->v = ( v0 - ov -0.5f ) * tv + 0.5f;
-	face->uv[1]->u = ( u1 - ou -0.5f ) * tu + 0.5f;
-	face->uv[1]->v = ( v1 - ov -0.5f ) * tv + 0.5f;
-	face->uv[2]->u = ( u2 - ou -0.5f ) * tu + 0.5f;
-	face->uv[2]->v = ( v2 - ov -0.5f ) * tv + 0.5f;
+	vert->uv->u = ( u - ou -0.5f ) * tu + 0.5f;
+	vert->uv->v = ( v - ov -0.5f ) * tv + 0.5f;
+
+	vert->uvTransformed = TRUE;
+
+	//printf("%f  ", vert->uv->u);
+	//printf("%f  ", vert->uv->v);
 }
 
 //处理实体块
@@ -397,7 +394,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 	memcpy( & dwBlockLength, ( * buffer ), sizeof( dwBlockLength ) );
 	( * buffer ) += sizeof( dwBlockLength );
 
-	end = ( * buffer ) + dwBlockLength - sizeof( wID ) - sizeof( dwBlockLength );
+	end = ( * buffer ) + dwBlockLength;
 
 	//=========================读取网格信息=========================
 
@@ -416,7 +413,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 		Vertex ** vertArr;
 		Vector ** vectArr;
 
-		while( ( * buffer ) < end )
+		while( ( * buffer ) <= end )
 		{
 			//读取块ID
 			memcpy( & wID, ( * buffer ), sizeof( wID ) );
@@ -496,16 +493,14 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 		//压入顶点
 		for ( i = 0, j = 0; i < vNum * 3; i += 3, j ++)
 		{
-			mesh_push_vertex(mesh, - vList[i], vList[i + 2], vList[i + 1]);
+			mesh_push_vertex(mesh, vList[i], vList[i + 1], vList[i + 2]);
 			vertArr[j] = & mesh->vertices[j];
 		}
 
 		//压入纹理坐标
-		for ( i = 0, j = 0; i < uvNum * 2; i += 2, j ++)
+		for ( i = 0, j = 0; i < vNum * 2; i += 2, j ++)
 		{
 			vectArr[j] = newVector( uvList[i], uvList[i + 1] );
-
-			printf("%f %f\n", uvList[i], uvList[i+1]);
 		}
 
 		//压入面
@@ -513,11 +508,11 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 		{
 			mesh_push_triangle(mesh,
 								vertArr[fList[i + 2]],
-								vertArr[fList[i + 1]],
-								vertArr[fList[i + 0]],
-								vectArr[fList[i + 2]],
-								vectArr[fList[i + 1]],
-								vectArr[fList[i + 0]],
+								vertArr[(int)( fList[i + 1] )],
+								vertArr[(int)( fList[i] )],
+								vectArr[(int)( fList[i + 2] )],
+								vectArr[(int)( fList[i + 1] )],
+								vectArr[(int)( fList[i] )],
 								NULL,
 								NULL );
 		}
@@ -569,10 +564,38 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 																nml->fTilingV,
 																nml->cosT,
 																nml->sinT );
+
+										A3DS_TranslateTexcoord( face->vertex[1],
+																nml->fOffsetU,
+																nml->fOffsetV,
+																nml->fTilingU,
+																nml->fTilingV,
+																nml->cosT,
+																nml->sinT );
+
+										A3DS_TranslateTexcoord( face->vertex[2],
+																nml->fOffsetU,
+																nml->fOffsetV,
+																nml->fTilingU,
+																nml->fTilingV,
+																nml->cosT,
+																nml->sinT );
 									}
 									else
 									{
-										A3DS_TranslateTexcoord2( face,
+										A3DS_TranslateTexcoord2( face->vertex[0],
+																nml->fOffsetU,
+																nml->fOffsetV,
+																nml->fTilingU,
+																nml->fTilingV );
+
+										A3DS_TranslateTexcoord2( face->vertex[1],
+																nml->fOffsetU,
+																nml->fOffsetV,
+																nml->fTilingU,
+																nml->fTilingV );
+
+										A3DS_TranslateTexcoord2( face->vertex[2],
 																nml->fOffsetU,
 																nml->fOffsetV,
 																nml->fTilingU,
@@ -674,7 +697,7 @@ Texture * A3DS_Texture_Chunk_Handler( UCHAR ** buffer, A3DS_MaterialList * head,
 
 	end = ( * buffer ) + dwLength;
 
-	while( ( * buffer ) < end )
+	while( ( * buffer ) <= end )
 	{
 		//读取块ID
 		memcpy( & wID, ( * buffer ), sizeof( wID ) );
@@ -799,7 +822,7 @@ void A3DS_Material_Chunk_Handler( UCHAR ** buffer, lpA3DS a3ds, DWORD dwLength )
 
 	end = ( * buffer ) + dwLength;
 
-	while( ( * buffer ) < end )
+	while( ( * buffer ) <= end )
 	{
 		//读取块ID
 		memcpy( & wID, ( * buffer ), sizeof( wID ) );
@@ -899,7 +922,8 @@ void A3DS_Material_Chunk_Handler( UCHAR ** buffer, lpA3DS a3ds, DWORD dwLength )
 
 	A3D_MaterialList_addMaterial( a3ds->a3d_materialList, a3ds_m );
 }
-
+//buffer	指向缓冲区起始位置的指针
+//length	缓冲区长度
 A3DS * A3DS_Create( Entity * entity, UCHAR ** buffer, DWORD length )
 {
 	WORD	wID = 0;
@@ -931,7 +955,7 @@ A3DS * A3DS_Create( Entity * entity, UCHAR ** buffer, DWORD length )
 
 	end = ( * buffer ) + dwBlockLength;
 
-	while( ( * buffer ) < end )
+	while( ( * buffer ) <= end )
 	{
 		//读取块ID
 		memcpy( & wID, ( * buffer ), sizeof( wID ) );
@@ -945,12 +969,11 @@ A3DS * A3DS_Create( Entity * entity, UCHAR ** buffer, DWORD length )
 		{
 			case CHUNK_MATERIAL:
 
-				A3DS_Material_Chunk_Handler( buffer, a3ds, dwBlockLength - sizeof(wID) - sizeof(dwBlockLength) );
+				A3DS_Material_Chunk_Handler( buffer, a3ds, dwBlockLength );
 				break;
 
 			case CHUNK_OBJMESH:
 
-				( * buffer ) += dwBlockLength - sizeof( wID ) - sizeof( dwBlockLength );
 				break;
 
 			case CHUNK_OBJBLOCK:
@@ -967,6 +990,37 @@ A3DS * A3DS_Create( Entity * entity, UCHAR ** buffer, DWORD length )
 
 	return a3ds;
 }
+
+//void A3DS_CorrectUV( A3DS * a3ds )
+//{
+//	int i = 0, w = 0, h = 0;
+//
+//	A3DS_Entity * node;
+//
+//	Triangle * face;
+//
+//	Vertex * v;
+//
+//	node = a3ds->children->next;
+//
+//	while ( node )
+//	{
+//		for ( i = 0; i < node->entity->mesh->nVertices; i ++ )
+//		{
+//			v = & node->entity->mesh->vertices[i];
+//
+//			face = v->contectedFaces->face;
+//
+//			w = face->texture->width - 1;
+//			h = face->texture->height - 1;
+//
+//			v->uv->u *= w;
+//			v->uv->v *= h;
+//		}
+//
+//		node = node->next;
+//	}
+//}
 
 void A3DS_Dispose( A3DS * a3ds )
 {
