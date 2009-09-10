@@ -504,6 +504,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 		for ( i = 0, j = 0; i < uvNum * 2; i += 2, j ++)
 		{
 			vectArr[j] = newVector( uvList[i], uvList[i + 1] );
+
 			printf("%f %f\n", uvList[i], uvList[i+1]);
 		}
 
