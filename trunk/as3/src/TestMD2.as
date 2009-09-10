@@ -8,9 +8,6 @@ package
 	import cn.alchemy3d.materials.Material;
 	import cn.alchemy3d.objects.Entity;
 	import cn.alchemy3d.objects.external.MD2;
-	import cn.alchemy3d.objects.primitives.Plane;
-	import cn.alchemy3d.objects.primitives.Sphere;
-	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.texture.Texture;
 	import cn.alchemy3d.view.Basic;
 	import cn.alchemy3d.view.stats.FPS;
@@ -30,15 +27,15 @@ package
 		
 		private var loader:URLLoader;
 		
-		protected var p:Plane;
+		//protected var p:Plane;
 		
 		protected var md2:MD2;
 		
 		protected var t1:Texture;
 		
-		protected var lightObj:Sphere;
-		protected var lightObj2:Sphere;;
-		protected var lightObj3:Sphere;
+		protected var lightObj:Entity;
+		protected var lightObj2:Entity;;
+		protected var lightObj3:Entity;
 		
 		protected var light:Light3D;
 		protected var light2:Light3D;
@@ -52,7 +49,7 @@ package
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
-			bl.add("asset/desert.jpg", {id:"0"});
+			bl.add("asset/md2/hobgoblin.jpg", {id:"0"});
 			bl.start();
 		}
 		
@@ -73,6 +70,8 @@ package
 		
 		protected function init(e:Event = null):void
 		{
+			bl.removeEventListener(BulkProgressEvent.COMPLETE, init);
+			
 			t1 = new Texture(bl.getBitmapData("0"));
 			
 			center = new Entity();
@@ -80,8 +79,8 @@ package
 			scene.addEntity(center);
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(1, 1, 1, 1);
-			m.diffuse = new ColorTransform(.6, .6, .6, 1);
+			m.ambient = new ColorTransform(.1, .1, .1, 1);
+			m.diffuse = new ColorTransform(.7, .7, .7, 1);
 			m.specular = new ColorTransform(1, 1, 1, 1);
 			m.power = 256;
 			
@@ -94,33 +93,27 @@ package
 			var lightM3:Material = new Material();
 			lightM3.ambient = new ColorTransform(0, 0, 1, 1);
 			
-			lightObj = new Sphere(lightM, null, 10, 3, 2)
-			lightObj.lightEnable = false;
+			lightObj = new Entity();
 			lightObj.y = -150;
 			lightObj.x = 50;
 			lightObj.z = 200;
-			lightObj.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
 			scene.addEntity(lightObj);
 			
-			lightObj2 = new Sphere(lightM2, null, 10, 3, 2, "lightO2");
-			lightObj2.lightEnable = false;
-			lightObj2.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
+			lightObj2 = new Entity();
 			lightObj2.y = 150;
 			lightObj2.x = -150;
 			lightObj2.z = 150;
 			scene.addEntity(lightObj2);
 			
-			lightObj3 = new Sphere(lightM3, null, 10, 3, 2, "lightO3");
-			lightObj3.lightEnable = false;
-			lightObj3.renderMode = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32;
+			lightObj3 = new Entity();
 			lightObj3.y = 0;
 			lightObj3.x = 70;
 			lightObj3.z = 200;
 			scene.addEntity(lightObj3);
 			
 			md2 = new MD2(m, t1);
-			md2.load("asset/tris.md2");
-//			md2.lightEnable = true;
+			md2.lightEnable = true;
+			md2.load("asset/md2/tris.md2");
 			scene.addEntity(md2);
 			
 			md2.rotationX = -90;
@@ -138,8 +131,8 @@ package
 			light.ambient = new ColorTransform(0, 0, 0, 1);
 			light.diffuse = new ColorTransform(1, 0, 0, 1);
 			light.specular = new ColorTransform(1, 0, 0, 1);
-			light.attenuation1 = .001;
-			light.attenuation2 = .000001;
+			light.attenuation1 = .0001;
+			light.attenuation2 = .0000001;
 			
 			light2 = new Light3D(lightObj2);
 			scene.addLight(light2);
@@ -149,8 +142,8 @@ package
 			light2.ambient = new ColorTransform(0, 0, 0, 1);
 			light2.diffuse = new ColorTransform(0, 1, 0, 1);
 			light2.specular = new ColorTransform(0, 1, 0, 1);
-			light2.attenuation1 = .001;
-			light2.attenuation2 = .000001;
+			light2.attenuation1 = .0001;
+			light2.attenuation2 = .0000001;
 			
 			light3 = new Light3D(lightObj3);
 			scene.addLight(light3);
@@ -160,8 +153,8 @@ package
 			light3.ambient = new ColorTransform(0, 0, 0, 1);
 			light3.diffuse = new ColorTransform(0, 0, 1, 1);
 			light3.specular = new ColorTransform(0, 0, 1, 1);
-			light3.attenuation1 = .001;
-			light3.attenuation2 = .000001;
+			light3.attenuation1 = .0001;
+			light3.attenuation2 = .0000001;
 
 			startRendering();
 			

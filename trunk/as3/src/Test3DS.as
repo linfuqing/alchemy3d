@@ -9,7 +9,7 @@ package
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 
-	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
+	[SWF(width="640",height="480",backgroundColor="#006699",frameRate="60")]
 	public class Test3DS extends Basic
 	{
 		private var loader:URLLoader;
@@ -41,14 +41,13 @@ package
 		protected function init(e:Event = null):void
 		{
 			a3ds = new A3DS();
-			a3ds.load("asset/xiniu/xiniu.3DS");
+			a3ds.load("asset/3ds/EarthII.3ds");
 			scene.addEntity(a3ds);
 			
-			a3ds.rotationX = -90;
-			a3ds.rotationY = 25;
-			a3ds.scale = 15;
-			a3ds.y = -40;
-			a3ds.z = 100;
+			a3ds.scale = 2.5;
+			a3ds.z = 300;
+			a3ds.x = 0;
+			a3ds.y = 0;
 
 			startRendering();
 			
@@ -60,6 +59,12 @@ package
 			a3ds.rotationY ++;
 			
 			super.onRenderTick(e);
+			
+			camera.target = a3ds.worldPosition;
+			var mx:Number = viewport.mouseX / 500;
+			var my:Number = - viewport.mouseY / 500;
+			
+			camera.hover(mx, my, 10);
 		}
 	}
 }
