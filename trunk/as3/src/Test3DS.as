@@ -4,12 +4,15 @@ package
 	import cn.alchemy3d.view.Basic;
 	import cn.alchemy3d.view.stats.FPS;
 	
+	import flash.display.StageAlign;
+	import flash.display.StageQuality;
+	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	import flash.net.URLLoader;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 
-	[SWF(width="640",height="480",backgroundColor="#006699",frameRate="60")]
+	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
 	public class Test3DS extends Basic
 	{
 		private var loader:URLLoader;
@@ -19,6 +22,11 @@ package
 		public function Test3DS()
 		{
 			super();
+			
+			stage.scaleMode = StageScaleMode.NO_SCALE;
+			stage.align = StageAlign.TOP_LEFT;
+			stage.quality = StageQuality.BEST;
+			stage.frameRate = 60;
 			
 			init();
 		}
@@ -41,10 +49,10 @@ package
 		protected function init(e:Event = null):void
 		{
 			a3ds = new A3DS();
-			a3ds.load("asset/3ds/EarthII.3ds");
+			a3ds.load("asset/3ds/206.3ds");
 			scene.addEntity(a3ds);
 			
-			a3ds.scale = 2.5;
+			a3ds.scale = 0.1;
 			a3ds.z = 300;
 			a3ds.x = 0;
 			a3ds.y = 0;

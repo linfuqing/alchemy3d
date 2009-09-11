@@ -51,7 +51,7 @@ package cn.alchemy3d.objects.external
 			loader.data.clear();
 			loader.data = null;
 			
-			Library.alchemy3DLib.initializeMD2(mesh.pointer, fileBuffer, material ? material.pointer : 0, texture ? texture.pointer : 0, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
+			Library.alchemy3DLib.initializeMD2(mesh.pointer, fileBuffer, material ? material.pointer : 0, texture ? texture.pointer : 0, RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32);
 		}
 	}
 }
