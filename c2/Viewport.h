@@ -605,7 +605,7 @@ void viewport_project( Viewport * viewport, int time )
 
 		if ( entity->mesh && entity -> mesh -> nFaces && entity -> mesh -> nVertices )
 		{
-			if( entity -> mesh -> animation )
+			if( entity -> mesh -> animation && entity -> mesh -> animation -> length > 1 )
 			{
 				animation_update( entity -> mesh -> animation, time );
 			}
