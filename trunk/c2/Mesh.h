@@ -34,10 +34,10 @@ void mesh_build( Mesh * m, int nVertices, int nFaces, float * meshBuffer  )
 	m->worldAABB		= newAABB();
 	m->CVVAABB			= newAABB();
 
-	m->v_dirty			= TRUE;
-	m->f_dirty			= FALSE;
-	m->textureReady		= FALSE;
-	m->lightEnable		= FALSE;
+	//m->v_dirty			= TRUE;
+	//m->f_dirty			= FALSE;
+	//m->textureReady		= FALSE;
+	//m->lightEnable		= FALSE;
 
 	m->animation        = NULL;
 }

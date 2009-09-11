@@ -174,8 +174,8 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 			tp[i],
 			rmp[i] );
 
-		AS3_Trace( AS3_Number( mp[i]->ambient->red ) );
-		AS3_Trace( AS3_Int( rmp[i] ) );
+		//AS3_Trace( AS3_Number( mp[i]->ambient->red ) );
+		//AS3_Trace( AS3_Int( rmp[i] ) );
 	}
 
 	free( fs );
