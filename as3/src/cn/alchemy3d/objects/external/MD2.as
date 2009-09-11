@@ -17,14 +17,10 @@ package cn.alchemy3d.objects.external
 		private var loader:URLLoader;
 		private var material:Material;
 		private var texture:Texture;
-		private var _lightEnable:Boolean = false;
-		private var _meshReady:Boolean = false;
 		
 		public function set lightEnable(bool:Boolean):void
 		{
-			if (_meshReady) this.mesh.lightEnable = bool;
-			
-			this._lightEnable = bool;
+			this.mesh.lightEnable = bool;
 		}
 		
 		public function MD2(material:Material = null, texture:Texture = null)
@@ -56,10 +52,6 @@ package cn.alchemy3d.objects.external
 			loader.data = null;
 			
 			Library.alchemy3DLib.initializeMD2(mesh.pointer, fileBuffer, material ? material.pointer : 0, texture ? texture.pointer : 0, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
-			
-			this.mesh.lightEnable = _lightEnable;
-			
-			_meshReady = true;
 		}
 	}
 }
