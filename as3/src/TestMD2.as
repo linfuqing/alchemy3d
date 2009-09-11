@@ -20,7 +20,7 @@ package
 	
 	import gs.TweenLite;
 
-	[SWF(width="800",height="600",backgroundColor="#000000",frameRate="60")]
+	[SWF(width="640",height="480",backgroundColor="#000000",frameRate="60")]
 	public class TestMD2 extends Basic
 	{
 		protected var bl:BulkLoader;
@@ -30,6 +30,7 @@ package
 		//protected var p:Plane;
 		
 		protected var md2:MD2;
+		protected var md22:MD2;
 		
 		protected var t1:Texture;
 		
@@ -45,7 +46,7 @@ package
 		
 		public function TestMD2()
 		{
-			super();
+			super(640, 480);
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
@@ -79,10 +80,10 @@ package
 			scene.addEntity(center);
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(.2, .2, .2, 1);
-			m.diffuse = new ColorTransform(.7, .7, .7, 1);
+			m.ambient = new ColorTransform(0, 0, 0, 1);
+			m.diffuse = new ColorTransform(.6, .6, .6, 1);
 			m.specular = new ColorTransform(1, 1, 1, 1);
-			m.power = 256;
+			m.power = 4;
 			
 			var lightM:Material = new Material();
 			lightM.ambient = new ColorTransform(1, 0, 0, 1);
@@ -113,15 +114,27 @@ package
 			
 			md2 = new MD2(m, t1);
 			md2.lightEnable = true;
-			md2.load("asset/md2/tris.md2");
+			md2.load("asset/md2/car.MD2");
 			scene.addEntity(md2);
 			
 			md2.rotationX = -90;
-			md2.rotationY = 90;
+			md2.rotationY = 45;
 			md2.y = -20;
-			md2.x = 50;
+			md2.x = 0;
 			md2.z = 200;
-			md2.scale = 5;
+			md2.scale = 0.1;
+			
+//			md22 = new MD2(m, t1);
+//			md22.lightEnable = true;
+//			md22.load("asset/md2/tris.MD2");
+//			scene.addEntity(md22);
+//			
+//			md22.rotationX = -90;
+//			md22.rotationY = 45;
+//			md22.y = -20;
+//			md22.x = 80;
+//			md22.z = 200;
+//			md22.scale = 3;
 			
 			light = new Light3D(lightObj);
 			scene.addLight(light);
@@ -167,19 +180,19 @@ package
 		
 		protected function moveLight1(dir:int = 1):void
 		{
-			var target:int = 300 * dir + 100;
+			var target:int = 200 * dir + 100;
 			TweenLite.to(lightObj, 3, { z:target, onComplete:moveLight1, onCompleteParams:[dir * -1]});
 		}
 		
 		protected function moveLight2(dir:int = 1):void
 		{
-			var target:int = 300 * dir;
+			var target:int = 200 * dir;
 			TweenLite.to(lightObj2, 3.5, { x:target, onComplete:moveLight2, onCompleteParams:[dir * -1]});
 		}
 		
 		protected function moveLight3(dir:int = 1):void
 		{
-			var target:int = 300 * dir;
+			var target:int = 200 * dir;
 			TweenLite.to(lightObj3, 4, { y:target, onComplete:moveLight3, onCompleteParams:[dir * -1]});
 		}
 		
