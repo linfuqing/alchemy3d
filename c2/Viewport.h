@@ -183,18 +183,6 @@ void viewport_updateBeforeRender( Viewport * viewport )
 		//重新构造渲染列表
 		viewport->renderList = initializeRenderList( viewport->scene->nFaces + 2 );
 	}
-	else
-	{
-		renderList = viewport->renderList->next;
-
-		//重置渲染列表
-		while ( NULL != renderList )
-		{
-			renderList->polygon = NULL;
-
-			renderList = renderList->next;
-		}
-	}
 
 	viewport->nRenderList = viewport->nClippList = viewport->nCullList = 0;
 }
@@ -228,10 +216,16 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 
 	Vertex * ver1_0, * ver1_1, * ver1_2, * ver2_0, * ver2_1, * ver2_2;
 
+	//for ( j = 0; j < entity->mesh->nVertices; j ++)
+	//{
+	//	tmpVert1 = & entity->mesh->vertices[j];
+	//	//把顶点变换到视空间
+	//	matrix3D_transformVector( tmpVert1->w_pos, entity->view, tmpVert1->position );
+	//}
+
 	//测试包围盒是否穿越近截面
 	if ( entity->mesh->CVVAABB->max->w > near && entity->mesh->CVVAABB->min->w < near ) crossNear = TRUE;
 
-	//不离屏则继续
 	//遍历面
 	for( j = 0; j < entity->mesh->nFaces; j ++)
 	{
@@ -255,12 +249,28 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 			vector3D_normalize( & viewerToLocal );
 
 			//如果夹角大于90或小于-90时，即背向摄像机
-			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.0001f )
+			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.0f )
 			{
 				viewport->nCullList ++;
 
 				continue;
 			}
+		}
+
+		if ( face->vertex[0]->transformed != 1 )
+		{
+			matrix3D_transformVector( face->vertex[0]->w_pos, entity->view, face->vertex[0]->position );
+			face->vertex[0]->transformed = 1;
+		}
+		if ( face->vertex[1]->transformed != 1 )
+		{
+			matrix3D_transformVector( face->vertex[1]->w_pos, entity->view, face->vertex[1]->position );
+			face->vertex[1]->transformed = 1;
+		}
+		if ( face->vertex[2]->transformed != 1 )
+		{
+			matrix3D_transformVector( face->vertex[2]->w_pos, entity->view, face->vertex[2]->position );
+			face->vertex[2]->transformed = 1;
 		}
 
 		//如果包围盒穿越近截面，则进一步检测面是否穿越近截面
@@ -610,9 +620,7 @@ void viewport_project( Viewport * viewport, int time )
 				animation_update( entity -> mesh -> animation, time );
 			}
 
-			if ( entity->mesh->v_dirty || entity->mesh->f_dirty) mesh_updateMesh( entity->mesh );
-			
-			if ( ! entity->mesh->textureReady ) mesh_computeUV( entity->mesh );
+			mesh_updateMesh( entity->mesh );
 
 			code = 0;
 
@@ -645,13 +653,6 @@ void viewport_project( Viewport * viewport, int time )
 
 			//计算视点在实体的局部坐标
 			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
-		
-			for ( j = 0; j < entity->mesh->nVertices; j ++)
-			{
-				vs = & entity->mesh->vertices[j];
-				//把顶点变换到视空间
-				matrix3D_transformVector( vs->w_pos, entity->view, vs->position );
-			}
 
 			//记录当前的渲染列表指针
 			curr_rl_ptr	= rl_ptr;
@@ -694,7 +695,7 @@ void viewport_project( Viewport * viewport, int time )
 					vs = renderList->polygon->vertex[j];
 
 					//如果顶点已经变换或计算，则直接进入下一个顶点
-					if ( TRUE == vs->transformed ) continue;
+					if ( vs->transformed == 2 ) continue;
 
 					//===================光照和顶点颜色值===================
 
@@ -731,150 +732,126 @@ void viewport_project( Viewport * viewport, int time )
 							light = lights->light;	
 
 							//如果启用高级光照算法
-							if ( light->mode == HIGH_MODE || light->mode == MID_MODE)
+							//其一, 计算衰减系数
+
+							//衰减系数.等于1.0则不衰减
+							fAttenuCoef = 1.0f;
+
+							//如果是点光源
+							if ( light->type == POINT_LIGHT )
 							{
-								//其一, 计算衰减系数
+								//常数衰减系数
+								fAttenuCoef = light->attenuation0;
 
-								//衰减系数.等于1.0则不衰减
-								fAttenuCoef = 1.0f;
+								//一次衰减系数与二次衰减系数
+								fc1 = light->attenuation1;
+								fc2 = light->attenuation2;
 
-								//如果是点光源
-								if ( light->type == POINT_LIGHT )
+								if ( ( fc1 > 0.0001f ) || ( fc2 > 0.0001f ) )
 								{
-									//常数衰减系数
-									fAttenuCoef = light->attenuation0;
+									//求顶点至光源的距离
+									vector3D_subtract( & vFDist, & vLightsToObject[l], vs->position );
+									fDist = vector3D_lengthSquared( & vFDist );
 
-									//一次衰减系数与二次衰减系数
-									fc1 = light->attenuation1;
-									fc2 = light->attenuation2;
-
-									if ( ( fc1 > 0.0001f ) || ( fc2 > 0.0001f ) )
-									{
-										//求顶点至光源的距离
-										vector3D_subtract( & vFDist, & vLightsToObject[l], vs->position );
-										fDist = vector3D_lengthSquared( & vFDist );
-
-										//加入一次和二次因子
-										fAttenuCoef += (fc1 * sqrtf( fDist ) + fc2 * fDist);
-									}
-
-									if ( fAttenuCoef < 0.0001f ) fAttenuCoef = 0.0001f;
-									fAttenuCoef = 1.0f / fAttenuCoef;
-
-									//衰减系数不得大于1.0
-									fAttenuCoef = MIN( 1.0f,  fAttenuCoef );
+									//加入一次和二次因子
+									fAttenuCoef += (fc1 * sqrtf( fDist ) + fc2 * fDist);
 								}
 
-								//计算聚光因子
+								if ( fAttenuCoef < 0.0001f ) fAttenuCoef = 0.0001f;
+								fAttenuCoef = 1.0f / fAttenuCoef;
 
-								//聚光因子, 一般点光源的聚光因子为 1.0f, (发散半角为180度)
-								fSpotFactor = 1.0f;
+								//衰减系数不得大于1.0
+								fAttenuCoef = MIN( 1.0f,  fAttenuCoef );
+							}
 
-								//聚光产生的条件:第一, 光源为聚光灯; 第二, 光的发散半角小于或等于90度
-								if ( ( light->type == SPOT_LIGHT ) && ( light->spotCutoff < 90.0001f ) )
-								{
-									//光源的真实位置已经为(xLight,  yLight,  zLight), 
-									//定向光源不产生聚光效果
+							//计算聚光因子
 
-									//向量: 聚光位置指向照射顶点
-									vector3D_subtract( & vLightToVertex, vs->position, & vLightsToObject[l] );
+							//聚光因子, 一般点光源的聚光因子为 1.0f, (发散半角为180度)
+							fSpotFactor = 1.0f;
 
-									//单位化
-									vector3D_normalize( & vLightToVertex );
+							//聚光产生的条件:第一, 光源为聚光灯; 第二, 光的发散半角小于或等于90度
+							if ( ( light->type == SPOT_LIGHT ) && ( light->spotCutoff < 90.0001f ) )
+							{
+								//光源的真实位置已经为(xLight,  yLight,  zLight), 
+								//定向光源不产生聚光效果
 
-									//聚光照射方向(已经是一个单位向量) 与 向量 vLightToVertex 夹角的余弦
-									dot = vector3D_dotProduct( & vLightToVertex, light->source->direction );
-
-									//如果顶点位于光锥之外, 则不会有聚光光线照射到物体上
-									if ( dot < light->spotCutoff )
-										fSpotFactor = 0.0f;
-									else
-									{
-										//利用聚光指数进行计算
-										fSpotFactor = powf( dot, light->spotExp );
-									}
-								}
-								// 计算来自光源的贡献(现在已经有足够的条件了)
-
-								//加入环境反射部分:
-								floatColor_append( & fColor, material->ambient, light->ambient );
-
-								//其次, 计算漫反射部分
-
-								//顶点指向光源的向量
-								vector3D_subtract( & vVertexToLight, & vLightsToObject[l], vs->position );
-
-								//如果光源为平行光源(定位光源)
-								if ( light->type == DIRECTIONAL_LIGHT )
-								{
-									//光源的位置就是照射方向, 因而顶点至光源的向量就是光源位置向量的相反向量
-									vVertexToLight.x = -vLightsToObject[l].x;
-									vVertexToLight.y = -vLightsToObject[l].y;
-									vVertexToLight.z = -vLightsToObject[l].z;
-								}
+								//向量: 聚光位置指向照射顶点
+								vector3D_subtract( & vLightToVertex, vs->position, & vLightsToObject[l] );
 
 								//单位化
-								vector3D_normalize( & vVertexToLight );
+								vector3D_normalize( & vLightToVertex );
 
-								//顶点法线向量与 vVertexToLight 向量的夹角的余弦
-								//顶点法线应是单位向量, 这在建模时已经或必须保证的
-								dot = vector3D_dotProduct( & vVertexToLight, vs->normal );
+								//聚光照射方向(已经是一个单位向量) 与 向量 vLightToVertex 夹角的余弦
+								dot = vector3D_dotProduct( & vLightToVertex, light->source->direction );
 
-								if ( dot > 0.0f )
+								//如果顶点位于光锥之外, 则不会有聚光光线照射到物体上
+								if ( dot < light->spotCutoff )
+									fSpotFactor = 0.0f;
+								else
 								{
-									//加入漫反射部分的贡献
-									floatColor_add_self( & fColor, floatColor_scaleBy_self( floatColor_append( & outPutColor, material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
+									//利用聚光指数进行计算
+									fSpotFactor = powf( dot, light->spotExp );
+								}
+							}
+							// 计算来自光源的贡献(现在已经有足够的条件了)
 
-									//计算高光部分
-									if ( light->mode == HIGH_MODE )
+							//加入环境反射部分:
+							floatColor_append( & fColor, material->ambient, light->ambient );
+
+							//其次, 计算漫反射部分
+
+							//顶点指向光源的向量
+							vector3D_subtract( & vVertexToLight, & vLightsToObject[l], vs->position );
+
+							//如果光源为平行光源(定位光源)
+							if ( light->type == DIRECTIONAL_LIGHT )
+							{
+								//光源的位置就是照射方向, 因而顶点至光源的向量就是光源位置向量的相反向量
+								vVertexToLight.x = -vLightsToObject[l].x;
+								vVertexToLight.y = -vLightsToObject[l].y;
+								vVertexToLight.z = -vLightsToObject[l].z;
+							}
+
+							//单位化
+							vector3D_normalize( & vVertexToLight );
+
+							//顶点法线向量与 vVertexToLight 向量的夹角的余弦
+							//顶点法线应是单位向量, 这在建模时已经或必须保证的
+							dot = vector3D_dotProduct( & vVertexToLight, vs->normal );
+
+							if ( dot > 0.0f )
+							{
+								//加入漫反射部分的贡献
+								floatColor_add_self( & fColor, floatColor_scaleBy_self( floatColor_append( & outPutColor, material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
+
+								//计算高光部分
+								if ( light->mode == HIGH_MODE )
+								{
+									vector3D_subtract( & vVertexToCamera, entity->viewerToLocal, vs->position );
+									vector3D_normalize( & vVertexToCamera );
+									vector3D_add_self( & vVertexToCamera, & vVertexToLight );
+									vector3D_normalize( & vVertexToCamera );
+
+									//光度因子基数:与顶点法线作点积
+									fShine = vector3D_dotProduct( & vVertexToCamera, vs->normal );
+
+									if ( fShine > 0.0f )
 									{
-										vector3D_subtract( & vVertexToCamera, entity->viewerToLocal, vs->position );
-										vector3D_normalize( & vVertexToCamera );
-										vector3D_add_self( & vVertexToCamera, & vVertexToLight );
-										vector3D_normalize( & vVertexToCamera );
+										fShineFactor = powf(fShine, material->power);
 
-										//光度因子基数:与顶点法线作点积
-										fShine = vector3D_dotProduct( & vVertexToCamera, vs->normal );
-
-										if ( fShine > 0.0f )
-										{
-											fShineFactor = powf(fShine, material->power);
-
-											//加入高光部分的贡献
-											floatColor_add_self( & fColor, floatColor_scaleBy_self( floatColor_append( & outPutColor, material->specular, light->specular ), fShineFactor, fShineFactor, fShineFactor, 1 ) );
-										}
+										//加入高光部分的贡献
+										floatColor_add_self( & fColor, floatColor_scaleBy_self( floatColor_append( & outPutColor, material->specular, light->specular ), fShineFactor, fShineFactor, fShineFactor, 1 ) );
 									}
 								}
-
-								//最后乘以衰减和聚光因子，第 j 个光对物体的第个顶点的照射:
-								fSpotFactor *= fAttenuCoef;
-
-								floatColor_scaleBy_self( & fColor, fSpotFactor, fSpotFactor, fSpotFactor, 1.0f );
-
-								//累加至最后颜色:
-								floatColor_add_self( & lastColor, & fColor );
 							}
-							//else
-							//{
-							//	vector3D_normalize( & vLightsToObject[l] );
 
-							//	//光源和顶点的夹角
-							//	dot = vector3D_dotProduct( & vLightsToObject[l], vs->normalLength );
+							//最后乘以衰减和聚光因子，第 j 个光对物体的第个顶点的照射:
+							fSpotFactor *= fAttenuCoef;
 
-							//	//加入环境反射部分
-							//	floatColor_append( & fColor, material->ambient, light->ambient );
+							floatColor_scaleBy_self( & fColor, fSpotFactor, fSpotFactor, fSpotFactor, 1.0f );
 
-
-							//	//如果夹角大于0，即夹角范围在(-90, 90)之间
-							//	if ( dot > 0.0f )
-							//	{
-							//		//漫反射部分的贡献
-							//		floatColor_add_self( & fColor, floatColor_scaleBy_self( floatColor_append( & outPutColor, material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
-							//	}
-
-							//	//累加至最后颜色:
-							//	floatColor_add_self( & lastColor, & fColor );
-							//}
+							//累加至最后颜色:
+							floatColor_add_self( & lastColor, & fColor );
 
 							lights = lights->next;
 
@@ -907,8 +884,7 @@ void viewport_project( Viewport * viewport, int time )
 					vs->color->green = (BYTE)(lastColor.green * 255.0f);
 					vs->color->blue = (BYTE)(lastColor.blue * 255.0f);
 					vs->color->alpha = (BYTE)(lastColor.alpha * 255.0f);
-
-					vs->transformed = TRUE;
+					vs->transformed = 2;
 				}
 
 				renderList = renderList->next;
@@ -1014,9 +990,7 @@ void viewport_render(Viewport * view)
 			}
 		}
 
-		face->vertex[0]->transformed = FALSE;
-		face->vertex[1]->transformed = FALSE;
-		face->vertex[2]->transformed = FALSE;
+		rl->polygon = NULL;
 
 		rl = rl->next;
 	}

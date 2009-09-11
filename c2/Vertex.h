@@ -65,7 +65,7 @@ INLINE void vertex_copy( Vertex * dest, Vertex * src )
 
 	dest->nContectedFaces = 0;
 
-	dest->transformed = FALSE;
+	dest->transformed = src->transformed;
 }
 
 INLINE Vertex * vertex_clone( Vertex * src )
@@ -88,7 +88,7 @@ INLINE Vertex * vertex_clone( Vertex * src )
 
 	dest->nContectedFaces = 0;
 
-	dest->transformed = FALSE;
+	dest->transformed = src->transformed;
 
 	return dest;
 }

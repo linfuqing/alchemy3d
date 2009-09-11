@@ -72,7 +72,7 @@ Mesh * newPlane(
 	}
 }
 
-buildPlane(Mesh * base, Material * material, int u, int v, float width, float height, float depth, int reverse):void
+buildPlane(Mesh * base, Material * material, Texture * texture, int u, int v, float width, float height, float depth, int reverse):void
 {
 	// Find w depth axis
 	int w = 0, count = 0;
