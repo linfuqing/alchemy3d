@@ -62,6 +62,8 @@ INLINE float vector3D_fast_lengthSquared( float fx, float fy, float fz )
 INLINE float vector3D_length( Vector3D * v )
 {
 	//return vector3D_fast_lengthSquared( v->x, v->y, v->z );
+
+	//printf("%f", vector3D_fast_lengthSquared( v->x, v->y, v->z ));
 	return sqrtf( vector3D_lengthSquared( v ) );
 }
 

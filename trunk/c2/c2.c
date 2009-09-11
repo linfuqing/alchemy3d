@@ -106,7 +106,7 @@ int main()
 
 	//*******************************
 
-	fp = fopen("D:\\3Dmodel\\3ds\\plane.MD2","rb");
+	fp = fopen("D:\\3Dmodel\\3ds\\plane.3ds","rb");
 
 	length = GetFileSize(fp);
 
@@ -211,10 +211,10 @@ int main()
 
 	do3d = newEntity();
 	do3d->name = "hello";
-	//entity_setRotationY(do3d, 10.0f);
+	entity_setRotationX(do3d, 90.0f);
 	//entity_setRotationZ(do3d, 134.0f);
 	//entity_setY(do3d, -20.0f);
-	entity_setZ(do3d, 300.0f);
+	entity_setZ(do3d, 0);
 	entity_setMesh( do3d, mesh1 );
 
 	//do3d2 = newEntity();

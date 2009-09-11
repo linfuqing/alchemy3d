@@ -160,36 +160,21 @@ A3DS_MaterialList * newA3D_MaterialList()
 
 void t_List_addFList( A3DS_T_List * head, A3DS_T_List * node )
 {
-	while ( head->next )
-	{
-		head = head->next;
-	}
-
-	node->next = NULL;
+	node->next = head->next;
 
 	head->next = node;
 }
 
 void A3DS_AddChild( A3DS_Entity * head, A3DS_Entity * node )
 {
-	while ( head->next )
-	{
-		head = head->next;
-	}
-	
-	node->next = NULL;
+	node->next = head->next;
 
 	head->next = node;
 }
 
 void A3D_MaterialList_addMaterial( A3DS_MaterialList * head, A3DS_MaterialList * node )
 {
-	while ( head->next )
-	{
-		head = head->next;
-	}
-
-	node->next = NULL;
+	node->next = head->next;
 
 	head->next = node;
 }
@@ -504,8 +489,6 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 		for ( i = 0, j = 0; i < uvNum * 2; i += 2, j ++)
 		{
 			vectArr[j] = newVector( uvList[i], uvList[i + 1] );
-
-			printf("%f %f\n", uvList[i], uvList[i+1]);
 		}
 
 		//Ñ¹ÈëÃæ
@@ -559,7 +542,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 
 									face->texture = nml->texture;
 									face->material = nml->material;
-									face->render_mode = RENDER_TEXTRUED_TRIANGLE_GSINVZB_32;
+									face->render_mode = RENDER_WIREFRAME_TRIANGLE_32;
 
 									if ( nml->isRotateW )
 									{
@@ -587,7 +570,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 								{
 									entity->mesh->faces[ntList->list[i]].texture = NULL;
 									entity->mesh->faces[ntList->list[i]].material = nml->material;
-									entity->mesh->faces[ntList->list[i]].render_mode = RENDER_FLAT_TRIANGLE_INVZB_32;
+									entity->mesh->faces[ntList->list[i]].render_mode = RENDER_WIREFRAME_TRIANGLE_32;
 								}
 							}
 						}
