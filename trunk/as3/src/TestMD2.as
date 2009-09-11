@@ -79,7 +79,7 @@ package
 			scene.addEntity(center);
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(.1, .1, .1, 1);
+			m.ambient = new ColorTransform(.2, .2, .2, 1);
 			m.diffuse = new ColorTransform(.7, .7, .7, 1);
 			m.specular = new ColorTransform(1, 1, 1, 1);
 			m.power = 256;
@@ -120,8 +120,8 @@ package
 			md2.rotationY = 90;
 			md2.y = -20;
 			md2.x = 50;
-			md2.z = 300;
-			md2.scale = 6;
+			md2.z = 200;
+			md2.scale = 5;
 			
 			light = new Light3D(lightObj);
 			scene.addLight(light);
