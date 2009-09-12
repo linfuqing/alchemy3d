@@ -1,8 +1,8 @@
 package
 {
-	import cn.alchemy3d.objects.external.A3DS;
-	import cn.alchemy3d.view.Basic;
-	import cn.alchemy3d.view.stats.FPS;
+	import cn.alchemy3d.external.A3DS;
+	import cn.alchemy3d.tools.Basic;
+	import cn.alchemy3d.tools.FPS;
 	
 	import flash.display.StageAlign;
 	import flash.display.StageQuality;
@@ -49,7 +49,7 @@ package
 		protected function init(e:Event = null):void
 		{
 			a3ds = new A3DS();
-			a3ds.load("asset/3ds/206.3ds");
+			a3ds.load("asset/scene.3ds");
 			scene.addEntity(a3ds);
 			
 			a3ds.scale = 0.1;
@@ -67,12 +67,13 @@ package
 			a3ds.rotationY ++;
 			
 			super.onRenderTick(e);
-			
-			camera.target = a3ds.worldPosition;
+			camera.z = 150;
+			camera.y = 50;
+			/*camera.target = a3ds.worldPosition;
 			var mx:Number = viewport.mouseX / 500;
 			var my:Number = - viewport.mouseY / 500;
 			
-			camera.hover(mx, my, 10);
+			camera.hover(mx, my, 10);*/
 		}
 	}
 }
