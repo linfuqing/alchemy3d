@@ -29,17 +29,6 @@ void mesh_build( Mesh * m, int nVertices, int nFaces, float * meshBuffer  )
 {
 	if( ( m->faces		= ( Triangle * )calloc( nFaces, sizeof( Triangle ) ) ) == NULL ) exit( TRUE );
 	if( ( m->vertices	= ( Vertex * )calloc( nVertices, sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
-	
-	m->aabb				= newAABB();
-	m->worldAABB		= newAABB();
-	m->CVVAABB			= newAABB();
-
-	m->v_dirty			= TRUE;
-	m->f_dirty			= FALSE;
-	//m->textureReady		= FALSE;
-	//m->lightEnable		= FALSE;
-
-	m->animation        = NULL;
 }
 
 Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
@@ -55,6 +44,17 @@ Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
 	{
 		mesh_build( m, nVertices, nFaces, meshBuffer );
 	}
+
+	m->aabb				= newAABB();
+	m->worldAABB		= newAABB();
+	m->CVVAABB			= newAABB();
+
+	m->v_dirty			= TRUE;
+	m->f_dirty			= FALSE;
+	m->textureReady		= FALSE;
+	m->lightEnable		= FALSE;
+
+	m->animation        = NULL;
 
 	return m;
 }
@@ -395,10 +395,6 @@ void mesh_clear( Mesh * mesh )
 {
 	int i = 0;
 
-	aabb_dispose( mesh->aabb );
-	aabb_dispose( mesh->worldAABB );
-	aabb_dispose( mesh->CVVAABB );
-
 	for ( ; i < mesh->nVertices; i ++ )
 	{
 		vertex_dispose( & mesh->vertices[i] );
@@ -433,6 +429,10 @@ Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces, float * meshBuffer )
 
 void mesh_dispose( Mesh * mesh )
 {
+	aabb_dispose( mesh->aabb );
+	aabb_dispose( mesh->worldAABB );
+	aabb_dispose( mesh->CVVAABB );
+
 	mesh_clear( mesh );
 
 	free( mesh );

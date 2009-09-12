@@ -107,11 +107,14 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 	Texture      * * tp;
 	Material     * * mp;
 
-	unsigned int   vl, fl, i, * fs, * fp;
+	unsigned int   vl, fl, i, * fs;
 
 	int          * rmp;
 
-	float        * vp, * vs;
+	float        * vs;
+
+	Vector3D     * * vp;
+
 	Vector       * uvp;
 
 	//float * meshBuffer = NULL;
@@ -149,30 +152,36 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 							( Texture * )( p_meshBuffer[j + 11] ) );
 	}*/
 
-	vp = vs;
+	//vp = vs;
 
 	for( i = 0; i < vl; i ++ )
 	{
-		mesh_push_vertex( mesh, *vp ++, *vp ++, *vp ++ );
+		//AS3_Trace( AS3_Number( vs[i * 3]     ) );
+		//AS3_Trace( AS3_Number( vs[i * 3 + 1] ) );
+		//AS3_Trace( AS3_Number( vs[i * 3 + 2] ) );
+
+		mesh_push_vertex( mesh, vs[i * 3], vs[i * 3 + 1], vs[i * 3 + 2] );
 	}
 
 	free( vs );
-
-	fp = fs;
 
 	for( i = 0; i < fl; i ++ )
 	{
 		mesh_push_triangle( 
 			mesh,
-			mesh -> vertices + ( * fp ++ ), 
-			mesh -> vertices + ( * fp ++ ), 
-			mesh -> vertices + ( * fp ++ ),
-			uvp ++,
-			uvp ++,
-			uvp ++,
+			mesh -> vertices + fs[i * 3], 
+			mesh -> vertices + fs[i * 3 + 1], 
+			mesh -> vertices + fs[i * 3 + 2],
+			uvp + i * 3    ,
+			uvp + i * 3 + 1,
+			uvp + i * 3 + 2,
 			mp[i],
 			tp[i],
 			rmp[i] );
+
+		//AS3_Trace( AS3_Number( fs[i * 3]     ) );
+		//AS3_Trace( AS3_Number( fs[i * 3 + 1] ) );
+		//AS3_Trace( AS3_Number( fs[i * 3 + 2] ) );
 
 		//AS3_Trace( AS3_Number( mp[i]->ambient->red ) );
 		//AS3_Trace( AS3_Int( rmp[i] ) );
@@ -182,7 +191,17 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 	free( rmp );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->f_dirty );
+	if( ( vp = ( Vector3D * *   )malloc( sizeof( Vector3D *   ) * mesh -> nVertices ) ) == NULL )
+	{
+		return AS3_Array( "PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->f_dirty );
+	}
+
+	for( i = 0; i < mesh -> nVertices; i ++ )
+	{
+		vp[i] = mesh -> vertices[i].position;
+	}
+
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->f_dirty, & vp );
 }
 
 AS3_Val initializeEntity( void* self, AS3_Val args )
@@ -259,12 +278,13 @@ AS3_Val initializeMD2( void* self, AS3_Val args )
 	Texture * texture;
 	UCHAR * buffer;
 	int render_mode;
+	unsigned int fps;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType", & mesh, & buffer, & material, & texture, & render_mode );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType, IntType", & mesh, & buffer, & material, & texture, & render_mode, & fps );
 
 	md2 = newMD2(mesh);
 
-	md2_read( & buffer, md2, material, texture, render_mode );
+	md2_read( & buffer, md2, material, texture, render_mode, fps );
 
 	//return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
 	//	& entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
@@ -368,6 +388,17 @@ AS3_Val applyForTmpBuffer( void* self, AS3_Val args )
 	return AS3_Ptr( tmpBuff );
 }
 
+AS3_Val freeTmpBuffer( void * self, AS3_Val args )
+{
+	void * pointer;
+
+	AS3_ArrayValue( args, "PtrType", & pointer );
+
+	free( pointer );
+
+	return 0;
+}
+
 AS3_Val render( void* self, AS3_Val args )
 {
 	Viewport * viewport;
@@ -411,6 +442,7 @@ int main()
 	AS3_Val initialize3DSMethod = AS3_Function( NULL, initialize3DS );
 	AS3_Val loadComplete3DSMethod = AS3_Function( NULL, loadComplete3DS );
 	AS3_Val applyForTmpBufferMethod = AS3_Function( NULL, applyForTmpBuffer );
+	AS3_Val freeTmpBufferMethod = AS3_Function( NULL, freeTmpBuffer );
 	AS3_Val renderMethod = AS3_Function( NULL, render );
 	AS3_Val initializeMD2Method = AS3_Function( NULL, initializeMD2 );
 	AS3_Val testMethod = AS3_Function( NULL, test );
@@ -432,6 +464,7 @@ int main()
 								 initialize3DS:AS3ValType,\
 								 loadComplete3DS:AS3ValType,\
 								 applyForTmpBuffer:AS3ValType,\
+								 freeTmpBuffer:AS3ValType,\
 								 render:AS3ValType,\
 								 initializeMD2:AS3ValType,\
 								 test:AS3ValType",
@@ -450,6 +483,7 @@ int main()
 								initialize3DSMethod,
 								loadComplete3DSMethod,
 								applyForTmpBufferMethod,
+								freeTmpBufferMethod,
 								renderMethod,
 								initializeMD2Method,
 								testMethod );
@@ -470,6 +504,7 @@ int main()
 	AS3_Release( initialize3DSMethod );
 	AS3_Release( loadComplete3DSMethod );
 	AS3_Release( applyForTmpBufferMethod );
+	AS3_Release( freeTmpBufferMethod );
 	AS3_Release( renderMethod );
 	AS3_Release( initializeMD2Method );
 	AS3_Release( testMethod );
