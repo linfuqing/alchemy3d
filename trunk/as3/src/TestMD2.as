@@ -3,14 +3,14 @@ package
 	import br.com.stimuli.loading.BulkLoader;
 	import br.com.stimuli.loading.BulkProgressEvent;
 	
+	import cn.alchemy3d.container.Entity;
+	import cn.alchemy3d.external.MD2;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
-	import cn.alchemy3d.materials.Material;
-	import cn.alchemy3d.objects.Entity;
-	import cn.alchemy3d.objects.external.MD2;
-	import cn.alchemy3d.texture.Texture;
-	import cn.alchemy3d.view.Basic;
-	import cn.alchemy3d.view.stats.FPS;
+	import cn.alchemy3d.render.Material;
+	import cn.alchemy3d.render.Texture;
+	import cn.alchemy3d.tools.Basic;
+	import cn.alchemy3d.tools.FPS;
 	
 	import flash.events.Event;
 	import flash.geom.ColorTransform;
@@ -50,7 +50,7 @@ package
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
-			bl.add("asset/md2/hobgoblin.jpg", {id:"0"});
+			bl.add("asset/desert.jpg", {id:"0"});
 			bl.start();
 		}
 		
@@ -114,7 +114,7 @@ package
 			
 			md2 = new MD2(m, t1);
 			md2.lightEnable = true;
-			md2.load("asset/md2/car.MD2");
+			md2.load("asset/tris.jpg");
 			scene.addEntity(md2);
 			
 			md2.rotationX = -90;
@@ -122,7 +122,7 @@ package
 			md2.y = -20;
 			md2.x = 0;
 			md2.z = 200;
-			md2.scale = 0.1;
+			md2.scale = 10;
 			
 //			md22 = new MD2(m, t1);
 //			md22.lightEnable = true;
