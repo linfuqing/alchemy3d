@@ -8,7 +8,7 @@ package cn.alchemy3d.base
 		
 		protected const NULL :uint = 0;
 		
-		protected const TRUE :uint = 0;
+		protected const TRUE :uint = 1;
 		protected const FALSE:uint = 0;
 		
 		protected var _pointer:uint;
