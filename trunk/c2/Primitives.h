@@ -1,3 +1,6 @@
+#ifndef __PRIMITIVES_H
+#define __PRIMITIVES_H
+
 # include "Mesh.h"
 
 Mesh * newPlane( 
@@ -6,21 +9,21 @@ Mesh * newPlane(
 				Texture  * texture, 
 				float width, 
 				float height, 
-				unsigned int segments_width, 
-				unsigned int segments_height )
+				DWORD segments_width, 
+				DWORD segments_height )
 {
-	float gridX    = segments_width + 1,     gridY    = segments_height + 1, 
-		  textureX = width * .5f,            textureY = height * .5f, 
+	DWORD gridX    = segments_width + 1,     gridY    = segments_height + 1;
+	float textureX = width * .5f,            textureY = height * .5f, 
 		  iW       = width / segments_width, iH       = height / segments_height,
 		  x,y;
 
 	Vector * uvA, * uvB, * uvC;
 
-	Vector3D * a, * b, * c;
+	Vertex * a, * b, * c;
 
 	unsigned int ix, iy, aIndex, cIndex, bIndex;
 	
-	mesh_reBuild( base, gridX, segments_width * segments_height, NULL );
+	base = mesh_reBuild( base, gridX, segments_width * segments_height, NULL );
 
 	// Vertices
 	for( ix = 0; ix < gridX; ix++ )
@@ -44,53 +47,49 @@ Mesh * newPlane(
 			cIndex = ix     * gridY + (iy+1);
 			bIndex = (ix+1) * gridY + iy;
 					
-			a = m -> vertices[aIndex];
-			c = m -> vertices[cIndex];
-			b = m -> vertices[bIndex];
+			a = & base -> vertices[aIndex];
+			c = & base -> vertices[cIndex];
+			b = & base -> vertices[bIndex];
 	
-			uvA =  newVector( ix     / segments_width, iy     / segments_height );
-			uvC =  newVector( ix     / segments_width, (iy+1) / segments_height );
-			uvB =  newVector( (ix+1) / segments_width, iy     / segments_height );
+			uvA =  newVector( (float)(ix     / segments_width), (float)(iy     / segments_height) );
+			uvC =  newVector( (float)(ix     / segments_width), (float)((iy+1) / segments_height) );
+			uvB =  newVector( (float)((ix+1) / segments_width), (float)(iy     / segments_height) );
 	
-			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture );
+			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_WIREFRAME_TRIANGLE_32 );
 	
 			// Triangle B
 			aIndex = (ix+1) * gridY + (iy+1);
 			cIndex = (ix+1) * gridY + iy;
 			bIndex = ix     * gridY + (iy+1);
 					
-			a = m -> vertices[aIndex];
-			c = m -> vertices[cIndex];
-			b = m -> vertices[bIndex];
+			a = & base -> vertices[aIndex];
+			c = & base -> vertices[cIndex];
+			b = & base -> vertices[bIndex];
 	
-			uvA =  newVector( (ix+1) / segments_width, (iy+1)  / segments_height );
-			uvC =  newVector( (ix+1) / segments_width, iy      / segments_height );
-			uvB =  newVector( ix      / segments_width, (iy+1) / segments_height );
+			uvA =  newVector( (float)((ix+1) / segments_width), (float)((iy+1)  / segments_height) );
+			uvC =  newVector( (float)((ix+1) / segments_width), (float)(iy      / segments_height) );
+			uvB =  newVector( (float)(ix      / segments_width), (float)((iy+1) / segments_height) );
 					
-			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture );
+			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_WIREFRAME_TRIANGLE_32 );
 		}
 	}
+
+	return base;
 }
 
-buildPlane(Mesh * base, Material * material, Texture * texture, int u, int v, float width, float height, float depth, int reverse):void
+void buildPlane(Mesh * base, Material * material, Texture * texture, int u, int v, float width, float height, float depth, int reverse)
 {
 	// Find w depth axis
 	int w = 0, count = 0;
 	int iu = 0, iv = 0, i = 0;
-	float gridU, gridV, gridU1, gridV1;
+	int gridU, gridV, gridU1, gridV1;
 	float textureU, textureV, incU, incV;
 
-	Vertex * vertex, * planeVerts;
+	Vertex ** planeVerts;
 	Vertex * a, * b, * c;
 	float vx, vy, vz;
 
-	Vector uvA;
-	Vector uvC;
-	Vector uvB;
-
-	int aIndex;
-	int cIndex;
-	int bIndex;
+	Vector * uvA, * uvB, * uvC;
 
 	if( (u == 0 && v == 1) || (u == 1 && v == 0) ) w = 2;
 	else if( (u == 0 && v == 2) || (u ==2 && v == 0) ) w = 1;
@@ -102,14 +101,14 @@ buildPlane(Mesh * base, Material * material, Texture * texture, int u, int v, fl
 	gridU1	= gridU + 1;
 	gridV1	= gridV + 1;
 
-	if( ( planeVerts = ( Vertex * )calloc( gridU1 * gridV1, sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
+	if( ( planeVerts = ( Vertex ** )calloc( gridU1 * gridV1, sizeof( Vertex * ) ) ) == NULL ) exit( TRUE );
 
 	textureU  = width * 0.5f;
 	textureV  = height * 0.5f;
 	incU      = width / gridU;
 	incV      = height / gridV;
 
-	mesh_reBuild( base, gridU1 * gridV1, gridU * gridV, NULL );
+	base = mesh_reBuild( base, gridU1 * gridV1, gridU * gridV, NULL );
 
 	// Vertices
 	for( iu = 0; iu < gridU1; iu++ )
@@ -143,11 +142,11 @@ buildPlane(Mesh * base, Material * material, Texture * texture, int u, int v, fl
 			c = planeVerts[ iu     * gridV1 + (iv+1) ];
 			b = planeVerts[ (iu+1) * gridV1 + iv     ];
 
-			uvA =  newVector( iu     / gridU, iv     / gridV );
-			uvC =  newVector( iu     / gridU, (iv+1) / gridV );
-			uvB =  newVector( (iu+1) / gridU, iv     / gridV );
+			uvA =  newVector( (float)(iu     / gridU), (float)(iv     / gridV) );
+			uvC =  newVector( (float)(iu     / gridU), (float)((iv+1) / gridV) );
+			uvB =  newVector( (float)((iu+1) / gridU), (float)(iv     / gridV) );
 
-			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture );
+			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_WIREFRAME_TRIANGLE_32 );
 
 			free( uvA );
 			free( uvC );
@@ -158,11 +157,11 @@ buildPlane(Mesh * base, Material * material, Texture * texture, int u, int v, fl
 			c = planeVerts[ (iu+1) * gridV1 + iv     ];
 			b = planeVerts[ iu     * gridV1 + (iv+1) ];
 
-			uvA =  newVector( (iu+1) / gridU, (iv+1) / gridV );
-			uvC =  newVector( (iu+1) / gridU, iv     / gridV );
-			uvB =  newVector( iu     / gridU, (iv+1) / gridV );
+			uvA =  newVector( (float)((iu+1) / gridU), (float)((iv+1) / gridV) );
+			uvC =  newVector( (float)((iu+1) / gridU), (float)(iv     / gridV) );
+			uvB =  newVector( (float)(iu     / gridU), (float)((iv+1) / gridV) );
 
-			mesh_push_triangle( base, c, a, b, uvC, uvA, uvB, material, texture );
+			mesh_push_triangle( base, c, a, b, uvC, uvA, uvB, material, texture, RENDER_WIREFRAME_TRIANGLE_32 );
 
 			free( uvA );
 			free( uvC );
@@ -186,5 +185,7 @@ Mesh * newCube(
 			   unsigned int insideFaces, 
 			   unsigned int excludeFaces )
 {
-	
+	return base;
 }
+
+#endif

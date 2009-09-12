@@ -20,6 +20,7 @@
 #include "Plane3D.h"
 #include "3DSLoader.h"
 #include "MD2.h"
+#include "Primitives.h"
 
 long GetFileSize(FILE* f)
 {
@@ -41,14 +42,14 @@ int main()
 	Camera * camera;
 	Viewport * view;
 	Scene * scene;
-	Entity * do3d, * do3d2, * do3d3;
+	Entity * do3d, * do3d2, * do3d3, * do3d4;
 	Vertex * vArr[4], * vArr2[9];
 	Vector * point, * point2;
 	Material * material, * material2;
 	//Entity * lightSource;
 	//Light * light;
 	Texture * texture;
-	Mesh * mesh1, * mesh2;
+	Mesh * mesh1, * mesh2, * mesh4;
 
 	float pos[16];
 	float pos2[18];
@@ -60,9 +61,9 @@ int main()
 
 	//MD2 * md2;
 
-	A3DS * a3ds;
-	FILE *fp;
-	UCHAR * buffer;
+	//A3DS * a3ds;
+	/*FILE *fp;
+	UCHAR * buffer;*/
 	long length=0;
 
 	material = newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
@@ -91,6 +92,9 @@ int main()
 	texture_setData( texture, 256, 256, (LPBYTE)bitmapData );
 
 	/////////////////////////////////////////////////////////////////////////////////////
+	mesh4 = newPlane( NULL, material, texture, 100, 100, 1, 1 );
+
+	/////////////////////////////////////////////////////////////////////////////////////
 	
 	scene = newScene();
 
@@ -101,12 +105,13 @@ int main()
 	do3d3 = newEntity();
 	do3d3->name = "root";
 	entity_setZ(do3d3, 400.0f);
+	do3d3->mesh = mesh4;
 
 	scene_addEntity(scene, do3d3, NULL);
 
 	//*******************************
 
-	fp = fopen("D:\\3Dmodel\\3ds\\plane.3ds","rb");
+	/*fp = fopen("D:\\3Dmodel\\3ds\\plane.3ds","rb");
 
 	length = GetFileSize(fp);
 
@@ -116,7 +121,7 @@ int main()
 
 	a3ds = A3DS_Create( do3d3, & buffer, length );
 
-	A3DS_Dispose( a3ds );
+	A3DS_Dispose( a3ds );*/
 
 	/*md2 = newMD2( do3d3 );
 
@@ -217,7 +222,7 @@ int main()
 	entity_setZ(do3d, 0);
 	entity_setMesh( do3d, mesh1 );
 
-	//do3d2 = newEntity();
+	do3d2 = newEntity();
 	////entity_setRotationX(do3d2, 90.0f);
 	//entity_setZ(do3d2, 540.0f);
 	//entity_setMesh( do3d2, mesh2 );
