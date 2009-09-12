@@ -76,7 +76,7 @@ package cn.alchemy3d.view
 			else
 			{
 				Library.memory.position = isUVNPtr;
-				Library.memory.writeInt(TRUE);
+				Library.memory.writeInt(FALSE);
 			}
 		}
 		
@@ -141,11 +141,8 @@ package cn.alchemy3d.view
 		
 		override protected function initialize():void
 		{
-			allotPtr(Library.alchemy3DLib.initializeCamera(eye.pointer, _fov, _near, _far));
-		}
-		
-		public function allotPtr(ps:Array):void
-		{
+			var ps:Array = Library.alchemy3DLib.initializeCamera(eye.pointer, _fov, _near, _far);
+
 			_pointer = ps[0];
 			targetPtr = ps[1];
 			fovPtr = ps[2];
