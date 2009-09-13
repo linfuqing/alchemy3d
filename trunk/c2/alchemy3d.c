@@ -16,6 +16,7 @@
 #include "Mesh.h"
 #include "3DSLoader.h"
 #include "Md2.h"
+#include "Primitives.h"
 
 AS3_Val initializeCamera( void* self, AS3_Val args )
 {
@@ -168,6 +169,20 @@ AS3_Val removeLight( void * self, AS3_Val args )
 	return 0;
 }
 
+AS3_Val initializePrimitives( void * self, AS3_Val args )
+{
+	Mesh     * base;
+	Material * material;
+	Texture  * texture;
+	float width, height; 
+	int segments_width, segments_height;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, DoubleType, DoubleType, IntType, IntType", & base, & material, & texture, & width, & height, & segments_width, & segments_height );
+
+	newPlane( base, material, texture, width, height, segments_width, segments_height );
+
+	return 0;
+}
 
 AS3_Val initializeMesh( void * self, AS3_Val args )
 {
@@ -196,7 +211,7 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 	//pp_meshBuffer = ( DWORD ** )meshBuffer;
 	//p_meshBuffer = ( DWORD * )meshBuffer;
 
-	mesh = newMesh( vl, fl, NULL );
+	mesh = newMesh( vl, fl );
 
 	/*vLen = vNum * VERTEX_SIZE;
 
@@ -567,6 +582,7 @@ int main()
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
 	AS3_Val addLightMethod = AS3_Function( NULL, addLight );
 	AS3_Val removeLightMethod = AS3_Function( NULL, removeLight );
+	AS3_Val initializePrimitivesMethod = AS3_Function( NULL, initializePrimitives );
 	AS3_Val initializeMeshMethod = AS3_Function( NULL, initializeMesh );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
@@ -592,6 +608,7 @@ int main()
 								 initializeLight:AS3ValType,\
 								 addLight:AS3ValType,\
 								 removeLight:AS3ValType,\
+								 initializePrimitives:AS3ValType,\
 								 initializeMesh:AS3ValType,\
 								 initializeEntity:AS3ValType,\
 								 addEntity:AS3ValType,\
@@ -614,6 +631,7 @@ int main()
 								initializeLightMethod,
 								addLightMethod,
 								removeLightMethod,
+								initializePrimitivesMethod,
 								initializeMeshMethod,
 								initializeEntityMethod,
 								addEntityMethod,
@@ -638,6 +656,7 @@ int main()
 	AS3_Release( initializeLightMethod );
 	AS3_Release( addLightMethod );
 	AS3_Release( removeLightMethod );
+	AS3_Release( initializePrimitivesMethod );
 	AS3_Release( initializeMeshMethod );
 	AS3_Release( initializeEntityMethod );
 	AS3_Release( addEntityMethod );

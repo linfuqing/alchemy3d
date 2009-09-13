@@ -25,13 +25,13 @@ typedef struct Mesh
 }Mesh;
 
 
-void mesh_build( Mesh * m, int nVertices, int nFaces, float * meshBuffer  )
+void mesh_build( Mesh * m, int nVertices, int nFaces  )
 {
 	if( ( m->faces		= ( Triangle * )calloc( nFaces, sizeof( Triangle ) ) ) == NULL ) exit( TRUE );
 	if( ( m->vertices	= ( Vertex * )calloc( nVertices, sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
 }
 
-Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
+Mesh * newMesh( int nVertices, int nFaces )
 {
 	Mesh * m;
 
@@ -42,7 +42,7 @@ Mesh * newMesh( int nVertices, int nFaces, float * meshBuffer )
 
 	if( nVertices && nFaces )
 	{
-		mesh_build( m, nVertices, nFaces, meshBuffer );
+		mesh_build( m, nVertices, nFaces );
 	}
 
 	m->aabb				= newAABB();
@@ -408,20 +408,20 @@ void mesh_clear( Mesh * mesh )
 	free( mesh->faces );
 }
 
-Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces, float * meshBuffer )
+Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )
 {
 	if( m == NULL )
 	{
-		m = newMesh( nVertices, nFaces, meshBuffer );
+		m = newMesh( nVertices, nFaces );
 	}
 	else if( ! ( m -> nVertices ) || ! ( m -> nFaces ) )
 	{
-		mesh_build( m, nVertices, nFaces, meshBuffer );
+		mesh_build( m, nVertices, nFaces );
 	}
 	else
 	{
 		mesh_clear( m );
-		mesh_build( m, nVertices, nFaces, meshBuffer );
+		mesh_build( m, nVertices, nFaces );
 	}
 
 	return m;

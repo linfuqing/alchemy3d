@@ -48,7 +48,7 @@ MD2 * newMD2( Mesh * mesh )
 	}
 
 	m -> skins  = NULL;
-	m -> mesh   = mesh ? mesh : newMesh( 0, 0, NULL );
+	m -> mesh   = mesh ? mesh : newMesh( 0, 0 );
 
 	return m;
 }
@@ -115,7 +115,7 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		//printf("%f\n", uvs[i].v);
 	}
 
-	m -> mesh = mesh_reBuild( m -> mesh, m -> header.num_vertices, m -> header.num_tris, NULL );
+	m -> mesh = mesh_reBuild( m -> mesh, m -> header.num_vertices, m -> header.num_tris );
 
 	for( i = 0; i < m -> header.num_vertices; i ++ )
 	{
