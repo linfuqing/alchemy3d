@@ -50,7 +50,7 @@ package
 		{
 			a3ds = new A3DS();
 			a3ds.load("asset/scene.3ds");
-			scene.addEntity(a3ds);
+			viewport.scene.addChild(a3ds);
 			
 			a3ds.scale = 0.1;
 			a3ds.z = 300;
