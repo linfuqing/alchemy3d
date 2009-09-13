@@ -21,9 +21,9 @@ Mesh * newPlane(
 
 	Vertex * a, * b, * c;
 
-	unsigned int ix, iy, aIndex, cIndex, bIndex;
+	DWORD ix, iy, aIndex, cIndex, bIndex;
 	
-	base = mesh_reBuild( base, gridX, segments_width * segments_height, NULL );
+	base = mesh_reBuild( base, gridX * gridY, segments_width * segments_height * 2, NULL );
 
 	// Vertices
 	for( ix = 0; ix < gridX; ix++ )
@@ -51,9 +51,9 @@ Mesh * newPlane(
 			c = & base -> vertices[cIndex];
 			b = & base -> vertices[bIndex];
 	
-			uvA =  newVector( (float)(ix     / segments_width), (float)(iy     / segments_height) );
-			uvC =  newVector( (float)(ix     / segments_width), (float)((iy+1) / segments_height) );
-			uvB =  newVector( (float)((ix+1) / segments_width), (float)(iy     / segments_height) );
+			uvA =  newVector( (float)(ix)     / (float)(segments_width), (float)(iy)     / (float)(segments_height) );
+			uvC =  newVector( (float)(ix)     / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
+			uvB =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy)     / (float)(segments_height) );
 	
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_WIREFRAME_TRIANGLE_32 );
 	
@@ -66,9 +66,9 @@ Mesh * newPlane(
 			c = & base -> vertices[cIndex];
 			b = & base -> vertices[bIndex];
 	
-			uvA =  newVector( (float)((ix+1) / segments_width), (float)((iy+1)  / segments_height) );
-			uvC =  newVector( (float)((ix+1) / segments_width), (float)(iy      / segments_height) );
-			uvB =  newVector( (float)(ix      / segments_width), (float)((iy+1) / segments_height) );
+			uvA =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy+1)  / (float)(segments_height) );
+			uvC =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy)      / (float)(segments_height) );
+			uvB =  newVector( (float)(ix)      / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
 					
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_WIREFRAME_TRIANGLE_32 );
 		}
