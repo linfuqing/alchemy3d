@@ -351,9 +351,11 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 	if( isChild )
 	{
-		ep     -> next = parent -> next;
+		ep     -> next           = parent -> next;
 
-		parent -> next = node;
+		parent -> next           = node;
+
+		node -> entity -> parent = parent -> entity;
 
 		( parent -> entity -> nChildren ) ++;
 	}
