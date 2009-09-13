@@ -6,12 +6,12 @@ package cn.alchemy3d.container
 	import __AS3__.vec.Vector;
 	
 	import cn.alchemy3d.base.Library;
-	import cn.alchemy3d.base.Pointer;
 	import cn.alchemy3d.geom.Mesh3D;
+	import cn.alchemy3d.lights.Light3D;
 	
 	import flash.geom.Vector3D;
 	
-	public class Entity extends Pointer
+	public class Entity extends SceneContainer
 	{
 		public function Entity(name:String = "", mesh:Mesh3D = null)
 		{
@@ -25,13 +25,18 @@ package cn.alchemy3d.container
 			this._scale = new Vector3D();
 			this._worldPosition = new Vector3D();
 			
-			this._children = new Vector.<Entity>();
-			this._root = this;
+			//this._children = new Vector.<Entity>();
+			//this._root = this;
+			
+			//children = new Vector.<Scene3D>();
+			//lights   = new Vector.<Light3D>();
 			
 			super();
 		}
 		
 		//public var pointer:uint;
+		
+		//private var lightsPtr:uint = NULL;
 		
 		private var directionPtr:uint;
 		private var positionPtr:uint;
@@ -49,9 +54,9 @@ package cn.alchemy3d.container
 		
 		private var _mesh:Mesh3D;
 		private var _parent:Entity;
-		private var _children:Vector.<Entity>;
-		private var _root:Entity;
-		private var _scene:Scene3D;
+		//private var _children:Vector.<Entity>;
+		//private var _root:Scene3D;
+		//private var _scene:Scene3D;
 		
 		//protected static const sizeOfInt:int = 4;
 		
@@ -65,20 +70,20 @@ package cn.alchemy3d.container
 			this._parent = parent;
 		}
 		
-		public function get children():Vector.<Entity>
+		/*public function get children():Vector.<Entity>
 		{
 			return this._children;
-		}
+		}*/
 		
-		public function get root():Entity
+		/*public function get root():Scene3D
 		{
 			return this._root;
-		}
+		}*/
 		
-		public function get scene():Scene3D
+		/*public function get scene():Scene3D
 		{
 			return this._scene;
-		}
+		}*/
 		
 		public function get mesh():Mesh3D
 		{
@@ -268,6 +273,7 @@ package cn.alchemy3d.container
 			scalePtr			= ps[3];
 			worldPositionPtr	= ps[4];
 			meshPtr             = ps[5];
+			_node               = ps[6];
 		}
 	}
 }

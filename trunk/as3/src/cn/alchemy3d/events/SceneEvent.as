@@ -1,6 +1,6 @@
 package cn.alchemy3d.events
 {
-	import cn.alchemy3d.container.Scene3D;
+	import cn.alchemy3d.container.Entity;
 	
 	import flash.events.Event;
 
@@ -8,12 +8,12 @@ package cn.alchemy3d.events
 	{
 		public static const ADDED_TO_SCENE:String = "added to scene";
 		
-		public function get node():Scene3D
+		public function get node():Entity
 		{
 			return scene;
 		}
 		
-		public function SceneEvent(type:String, scene:Scene3D, bubbles:Boolean=false, cancelable:Boolean=false)
+		public function SceneEvent(type:String, scene:Entity, bubbles:Boolean=false, cancelable:Boolean=false)
 		{
 			super(type, bubbles, cancelable);
 			
@@ -21,6 +21,6 @@ package cn.alchemy3d.events
 		}
 		
 		
-		private var scene:Scene3D;
+		private var scene:Entity;
 	}
 }

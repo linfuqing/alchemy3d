@@ -36,14 +36,14 @@ package cn.alchemy3d.external
 			this.mesh.lightEnable = bool;
 		}
 		
-		public function MD2(material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32)
+		public function MD2(material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_FLAT_TRIANGLE_32 )
 		{
 			_material = material;
 			_texture  = texture;
 			
 			this.renderMode = renderMode;
 			
-			super( "MD2",new Mesh3D() );
+			super( "MD2_scene",new Mesh3D() );
 		}
 		
 		public function load(url:String, fps:uint = 10):void

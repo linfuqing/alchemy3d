@@ -1,14 +1,12 @@
 package cn.alchemy3d.lights
 {
 	import cn.alchemy3d.base.Library;
-	import cn.alchemy3d.base.Pointer;
+	import cn.alchemy3d.base.Node;
 	import cn.alchemy3d.container.Entity;
-	import cn.alchemy3d.events.SceneEvent;
-	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.geom.ColorTransform;
 
-	public class Light3D extends Pointer
+	public class Light3D extends Node
 	{
 		//public var pointer:uint = 0;
 		
@@ -53,7 +51,7 @@ package cn.alchemy3d.lights
 		
 		public function set mode(mode:int):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._mode = mode;
 			
@@ -68,7 +66,7 @@ package cn.alchemy3d.lights
 		
 		public function set bOnOff(bOnOff:Boolean):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._bOnOff = bOnOff;
 			
@@ -86,7 +84,7 @@ package cn.alchemy3d.lights
 		
 		public function set type(type:int):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._type = type;
 			
@@ -101,7 +99,7 @@ package cn.alchemy3d.lights
 		
 		public function set ambient(c:ColorTransform):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			_ambient = c;
 			Library.memory.position = ambientPtr;
@@ -118,7 +116,7 @@ package cn.alchemy3d.lights
 		
 		public function set diffuse(c:ColorTransform):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			_diffuse = c;
 			Library.memory.position = diffusePtr;
@@ -135,7 +133,7 @@ package cn.alchemy3d.lights
 		
 		public function set specular(c:ColorTransform):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			_specular = c;
 			Library.memory.position = specularPtr;
@@ -152,7 +150,7 @@ package cn.alchemy3d.lights
 		
 		public function set range(value:Number):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._range = value;
 			Library.memory.position = rangePtr;
@@ -166,7 +164,7 @@ package cn.alchemy3d.lights
 		
 		public function set falloff(value:Number):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._falloff = value;
 			Library.memory.position = falloffPtr;
@@ -180,7 +178,7 @@ package cn.alchemy3d.lights
 		
 		public function set theta(value:Number):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._theta = value;
 			Library.memory.position = thetaPtr;
@@ -194,7 +192,7 @@ package cn.alchemy3d.lights
 		
 		public function set phi(value:Number):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._phi = value;
 			Library.memory.position = phiPtr;
@@ -208,7 +206,7 @@ package cn.alchemy3d.lights
 		
 		public function set attenuation0(value:Number):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._attenuation0 = value;
 			Library.memory.position = attenuation0Ptr;
@@ -222,7 +220,7 @@ package cn.alchemy3d.lights
 		
 		public function set attenuation1(value:Number):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._attenuation1 = value;
 			Library.memory.position = attenuation1Ptr;
@@ -236,7 +234,7 @@ package cn.alchemy3d.lights
 		
 		public function set attenuation2(value:Number):void
 		{
-			if (!checkInitialized()) return;
+			//if (!checkInitialized()) return;
 			
 			this._attenuation2 = value;
 			Library.memory.position = attenuation2Ptr;
@@ -259,14 +257,7 @@ package cn.alchemy3d.lights
 		
 		override protected function initialize():void
 		{
-			addEventListener( SceneEvent.ADDED_TO_SCENE, onAddedToScene );
-		}
-		
-		private function onAddedToScene( event:SceneEvent ):void
-		{
-			removeEventListener( SceneEvent.ADDED_TO_SCENE, onAddedToScene );
-			
-			var ps:Array = Library.alchemy3DLib.initializeLight( event.node.pointer, _source.pointer, _type );
+			var ps:Array = Library.alchemy3DLib.initializeLight( _source.pointer, _type );
 
 			_pointer = ps[0];
 			modePtr = ps[1];
@@ -282,9 +273,10 @@ package cn.alchemy3d.lights
 			attenuation0Ptr = ps[11];
 			attenuation1Ptr = ps[12];
 			attenuation2Ptr = ps[13];
+			_node           = ps[14];
 		}
 		
-		protected function checkInitialized():Boolean
+		/*protected function checkInitialized():Boolean
 		{
 			if (this.pointer == 0)
 			{
@@ -293,6 +285,6 @@ package cn.alchemy3d.lights
 			}
 			
 			return true;
-		}
+		}*/
 	}
 }
