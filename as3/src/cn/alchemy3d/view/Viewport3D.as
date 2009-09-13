@@ -109,8 +109,8 @@ package cn.alchemy3d.view
 			viewHeight = height;
 			wh = int(width) * int(height);
 			
-			videoBuffer = new BitmapData(width, height, true, 0);
-			video = new Bitmap(videoBuffer, PixelSnapping.NEVER, false);
+			videoBuffer = new BitmapData(width, height, false);
+			video = new Bitmap(videoBuffer);
 			//addChild(video);
 			
 			super();
