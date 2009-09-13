@@ -340,7 +340,7 @@ INLINE void A3DS_TranslateTexcoord2( Triangle * face, float ou, float ov, float 
 }
 
 //处理实体块
-void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
+void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds  )
 {
 	UINT		i = 0;
 	WORD		wID = 0;
@@ -607,7 +607,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 	
 	entity_addChild( a3ds->root, entity );
 
-	if ( root->scene ) scene_addEntity( root->scene, entity, root );
+	if ( a3ds->root->scene ) scene_addEntity( a3ds->root->scene, entity, a3ds->root );
 }
 
 //处理颜色块
@@ -939,7 +939,7 @@ A3DS * A3DS_Create( Entity * entity, UCHAR ** buffer, DWORD length )
 
 			case CHUNK_OBJBLOCK:
 
-				A3DS_Objblock_Chunk_Handler( buffer, a3ds, entity );
+				A3DS_Objblock_Chunk_Handler( buffer, a3ds );
 				break;
 
 			default:

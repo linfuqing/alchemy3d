@@ -70,6 +70,7 @@ AS3_Val attachScene( void* self, AS3_Val args )
 
 	//viewport->scene = scene;
 
+	entityList->entity->scene = scene;
 	scene -> nodes  = entityList;
 	scene -> lights = lights;
 	scene -> dirty  = TRUE;
@@ -335,7 +336,7 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 	unsigned int isChild;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, IntType", & parent, & node, & isChild );
+	AS3_ArrayValue( args, "PtrType, PtrType, IntType",  & parent, & node, & isChild );
 
 	ep = isChild ? node : parent;
 

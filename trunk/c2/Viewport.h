@@ -10,8 +10,6 @@
 #include "Camera.h"
 #include "Matrix3D.h"
 #include "Vector3D.h"
-#include "RenderFGTINVZB.h"
-#include "RenderWF.h"
 
 #define NUM_PER_RL_INIT 50
 
@@ -150,20 +148,15 @@ void viewport_updateBeforeRender( Viewport * viewport )
 	int m = 0;
 
 	//初始化缓冲区
-#ifdef __NOT_AS3__
 	
-	Mem_Set_QUAD( ( void * )zBuf, 0, wh );
-	memset( videoBuffer, 0, wh );
-
-#else
+	//Mem_Set_QUAD( ( void * )zBuf, 0, wh );
+	//Mem_Set_QUAD( ( void * )videoBuffer, 0, wh );
 
 	for ( ; m < wh; m ++ )
 	{
 		zBuf[m] = 0;
 		videoBuffer[m] = 0;
 	}
-
-#endif
 
 	//如果场景有改变
 	if ( TRUE == viewport->scene->dirty )
@@ -216,13 +209,6 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 
 	Vertex * ver1_0, * ver1_1, * ver1_2, * ver2_0, * ver2_1, * ver2_2;
 
-	//for ( j = 0; j < entity->mesh->nVertices; j ++)
-	//{
-	//	tmpVert1 = & entity->mesh->vertices[j];
-	//	//把顶点变换到视空间
-	//	matrix3D_transformVector( tmpVert1->w_pos, entity->view, tmpVert1->position );
-	//}
-
 	//测试包围盒是否穿越近截面
 	if ( entity->mesh->CVVAABB->max->w > near && entity->mesh->CVVAABB->min->w < near ) crossNear = TRUE;
 
@@ -249,7 +235,7 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 			vector3D_normalize( & viewerToLocal );
 
 			//如果夹角大于90或小于-90时，即背向摄像机
-			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.0f )
+			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.00001f )
 			{
 				viewport->nCullList ++;
 
@@ -564,6 +550,7 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 		}
 	}
 }
+
 void viewport_project( Viewport * viewport, int time )
 {
 	Scene * scene;
@@ -895,6 +882,9 @@ void viewport_project( Viewport * viewport, int time )
 	}
 }
 
+#include "RenderFGTINVZB.h"
+#include "RenderWF.h"
+
 void viewport_render(Viewport * view)
 {
 	Triangle * face;
@@ -932,7 +922,7 @@ void viewport_render(Viewport * view)
 					break;
 
 				case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
-					Draw_Textured_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Textured_Triangle_INVZB_32( face, view );
 					break;
 
 				case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
