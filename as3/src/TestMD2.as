@@ -5,6 +5,7 @@ package
 	
 	import cn.alchemy3d.container.Entity;
 	import cn.alchemy3d.external.MD2;
+	import cn.alchemy3d.external.Primitives;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
 	import cn.alchemy3d.render.Material;
@@ -77,10 +78,10 @@ package
 			
 			center = new Entity();
 			center.z = 300;
-			scene.addEntity(center);
+			viewport.scene.addChild(center);
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(0, 0, 0, 1);
+			m.ambient = new ColorTransform(.3, .3, .3, 1);
 			m.diffuse = new ColorTransform(.6, .6, .6, 1);
 			m.specular = new ColorTransform(1, 1, 1, 1);
 			m.power = 4;
@@ -98,24 +99,25 @@ package
 			lightObj.y = -150;
 			lightObj.x = 50;
 			lightObj.z = 200;
-			scene.addEntity(lightObj);
+			viewport.scene.addChild( lightObj );
 			
 			lightObj2 = new Entity();
 			lightObj2.y = 150;
 			lightObj2.x = -150;
 			lightObj2.z = 150;
-			scene.addEntity(lightObj2);
+			viewport.scene.addChild(lightObj2);
 			
 			lightObj3 = new Entity();
 			lightObj3.y = 0;
 			lightObj3.x = 70;
 			lightObj3.z = 200;
-			scene.addEntity(lightObj3);
+			viewport.scene.addChild(lightObj3);
 			
 			md2 = new MD2(m, t1);
 			md2.lightEnable = true;
 			md2.load("asset/tris.jpg");
-			scene.addEntity(md2);
+			//scene.addEntity(md2);
+			this.viewport.scene.addChild( md2 );
 			
 			md2.rotationX = -90;
 			md2.rotationY = 45;
@@ -123,6 +125,12 @@ package
 			md2.x = 0;
 			md2.z = 200;
 			md2.scale = 10;
+			
+			var p:Primitives = new Primitives(m,t1);
+			//p.lightEnable = true;
+			p.toPlane();
+			
+			this.viewport.scene.addChild( p );
 			
 //			md22 = new MD2(m, t1);
 //			md22.lightEnable = true;
@@ -137,7 +145,7 @@ package
 //			md22.scale = 3;
 			
 			light = new Light3D(lightObj);
-			scene.addLight(light);
+			viewport.scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
 			light.mode = LightType.HIGH_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
@@ -148,7 +156,7 @@ package
 			light.attenuation2 = .0000001;
 			
 			light2 = new Light3D(lightObj2);
-			scene.addLight(light2);
+			viewport.scene.addLight(light2);
 			light2.type = LightType.POINT_LIGHT;
 			light2.mode = LightType.HIGH_MODE;
 			light2.bOnOff = LightType.LIGHT_ON;
@@ -159,7 +167,7 @@ package
 			light2.attenuation2 = .0000001;
 			
 			light3 = new Light3D(lightObj3);
-			scene.addLight(light3);
+			viewport.scene.addLight(light3);
 			light3.type = LightType.POINT_LIGHT;
 			light3.mode = LightType.HIGH_MODE;
 			light3.bOnOff = LightType.LIGHT_ON;
