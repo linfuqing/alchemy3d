@@ -18,7 +18,8 @@ package cn.alchemy3d.render
 		//public var pointer:uint = 0;
 		
 		public var name:String;
-		public var doubleSidePtr:uint;
+		
+		private var doubleSidePtr:uint;
 		
 		private var _ready:Boolean;
 		private var _doubleSide:Boolean;

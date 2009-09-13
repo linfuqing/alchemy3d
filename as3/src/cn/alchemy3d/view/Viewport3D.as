@@ -1,33 +1,43 @@
 package cn.alchemy3d.view
 {
 	import cn.alchemy3d.base.Library;
+	import cn.alchemy3d.base.Pointer;
 	import cn.alchemy3d.container.Scene3D;
-	import cn.alchemy3d.tools.Alchemy3DLog;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.DisplayObjectContainer;
 	import flash.display.PixelSnapping;
 	import flash.display.Sprite;
 
-	public class Viewport3D extends Sprite
+	public class Viewport3D extends Pointer
 	{
-		public var pointer:uint;
-		public var videoBufferPointer:uint;
-		public var cameraPointer:uint;
-		public var scenePointer:uint;
-		public var nRenderListPointer:uint;
-		public var nCullListPointer:uint;
-		public var nClippListPointer:uint;
+		private var videoBufferPointer:uint;
+		private var cameraPointer:uint;
+		private var scenePointer:uint;
+		private var nRenderListPointer:uint;
+		private var nCullListPointer:uint;
+		private var nClippListPointer:uint;
 		
-		public var viewWidth:Number;
-		public var viewHeight:Number;
+		private var viewWidth:Number;
+		private var viewHeight:Number;
 		
-		public var camera:Camera3D;
-		public var scene:Scene3D;
+		private var _camera:Camera3D;
+		private var _scene:Scene3D;
 		
 		protected var video:Bitmap;
 		protected var videoBuffer:BitmapData;
 		protected var wh:int;
+		
+		public function get scene():Scene3D
+		{
+			return _scene;
+		}
+		
+		public function get camera():Camera3D
+		{
+			return _camera;
+		}
 		
 		public function get nRenderList():int
 		{
@@ -47,38 +57,53 @@ package cn.alchemy3d.view
 			return Library.memory.readInt();
 		}
 		
-		override public function get mouseX():Number
+		public function get mouseX():Number
 		{
-			return super.mouseX - viewWidth * .5;
+			return video.mouseX - viewWidth * .5;
 		}
 		
-		override public function get mouseY():Number
+		public function get mouseY():Number
 		{
-			return super.mouseY - viewHeight * .5;
+			return video.mouseY - viewHeight * .5;
 		}
 		
 		public function set backgroundColor(color:uint):void
 		{
-			with (this.graphics)
+			if( !video.parent )
 			{
-				beginFill(color, 1);
-				drawRect(0, 0, this.width, this.height);
-				endFill();
+				return;
+			}
+			
+			var parent:DisplayObjectContainer = video.parent;
+			
+			while( parent && parent.parent )
+			{
+				parent = parent.parent;
+			}
+			
+			if( parent is Sprite )
+			{
+				with ( ( parent as Sprite ).graphics )
+				{
+					beginFill( color, 1 );
+					drawRect( 0, 0, this.width, this.height );
+					endFill();
+				}
 			}
 		}
 		
-		public function Viewport3D(width:Number, height:Number, scene:Scene3D, camera:Camera3D)
+		public function Viewport3D(width:Number, height:Number, camera:Camera3D)
 		{
-			super();
+			//if (scene.pointer == 0)
+				//Alchemy3DLog.error("场景没有被添加到设备列表");
 			
-			if (scene.pointer == 0)
-				Alchemy3DLog.error("场景没有被添加到设备列表");
+			//if (camera.pointer == 0)
+				//Alchemy3DLog.error("摄像机没有被添加到设备列表");
 			
-			if (camera.pointer == 0)
-				Alchemy3DLog.error("摄像机没有被添加到设备列表");
+			//this.scene = scene;
+			_camera = camera;
 			
-			this.scene = scene;
-			this.camera = camera;
+			_scene = new Scene3D();
 			
 			viewWidth = width;
 			viewHeight = height;
@@ -86,19 +111,21 @@ package cn.alchemy3d.view
 			
 			videoBuffer = new BitmapData(width, height, true, 0);
 			video = new Bitmap(videoBuffer, PixelSnapping.NEVER, false);
-			addChild(video);
+			//addChild(video);
 			
-			initialize();
+			super();
 		}
 		
-		public function initialize():void
+		public function displayTo( root:DisplayObjectContainer ):void
 		{
-			allotPtr(Library.alchemy3DLib.initializeViewport(viewWidth, viewHeight, scene.pointer, camera.pointer));
+			root.addChild( video );
 		}
 		
-		public function allotPtr(ps:Array):void
+		override protected function initialize():void
 		{
-			pointer				= ps[0];
+			var ps:Array = Library.alchemy3DLib.initializeViewport( viewWidth, viewHeight, _camera.pointer, _scene.pointer );
+
+			_pointer			= ps[0];
 			videoBufferPointer	= ps[1];
 			cameraPointer		= ps[2];
 			scenePointer		= ps[3];
@@ -111,9 +138,9 @@ package cn.alchemy3d.view
 		{
 			Library.memory.position = videoBufferPointer;
 			
-			videoBuffer.lock();
+			//videoBuffer.lock();
 			videoBuffer.setPixels(videoBuffer.rect, Library.memory);
-			videoBuffer.unlock();
+			//videoBuffer.unlock();
 		}
 	}
 }
