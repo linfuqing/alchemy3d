@@ -23,7 +23,7 @@ Mesh * newPlane(
 
 	DWORD ix, iy, aIndex, cIndex, bIndex;
 	
-	base = mesh_reBuild( base, gridX * gridY, segments_width * segments_height * 2, NULL );
+	base = mesh_reBuild( base, gridX * gridY, segments_width * segments_height * 2 );
 
 	// Vertices
 	for( ix = 0; ix < gridX; ix++ )
@@ -108,7 +108,7 @@ void buildPlane(Mesh * base, Material * material, Texture * texture, int u, int 
 	incU      = width / gridU;
 	incV      = height / gridV;
 
-	base = mesh_reBuild( base, gridU1 * gridV1, gridU * gridV, NULL );
+	base = mesh_reBuild( base, gridU1 * gridV1, gridU * gridV );
 
 	// Vertices
 	for( iu = 0; iu < gridU1; iu++ )

@@ -476,7 +476,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds, Entity * root  )
 		}
 
 		//开始构造网格
-		mesh = newMesh( vNum, fNum, NULL );
+		mesh = newMesh( vNum, fNum );
 
 		//压入顶点
 		for ( i = 0, j = 0; i < vNum * 3; i += 3, j ++)
