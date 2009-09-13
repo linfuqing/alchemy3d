@@ -13,6 +13,7 @@ package cn.alchemy3d.external
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
 
 	public class A3DS extends Entity
 	{
@@ -149,8 +150,9 @@ package cn.alchemy3d.external
 		protected function fillData(pointer:uint, name:String, bitmapdata:BitmapData):void
 		{
 			var byte:ByteArray = bitmapdata.getPixels(bitmapdata.rect);//new ByteArray();
-			//byte = bitmapdata.getPixels(bitmapdata.rect);
-			//byte.position = 0;
+			
+			byte = bitmapdata.getPixels(bitmapdata.rect);
+			byte.position = 0;
 			
 			var i:int = 0, j:int = bitmapdata.width * bitmapdata.height;
 			var bitmapDataPtr:uint = Library.alchemy3DLib.applyForTmpBuffer(j * 4);
