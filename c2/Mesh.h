@@ -8,8 +8,6 @@
 #include "Material.h"
 #include "Texture.h"
 
-struct Animation;
-
 typedef struct Mesh
 {
 	int nFaces, nVertices, v_dirty, f_dirty, textureReady, lightEnable;
@@ -27,15 +25,15 @@ typedef struct Mesh
 
 void mesh_build( Mesh * m, int nVertices, int nFaces  )
 {
-	if( ( m->faces		= ( Triangle * )calloc( nFaces, sizeof( Triangle ) ) ) == NULL ) exit( TRUE );
-	if( ( m->vertices	= ( Vertex * )calloc( nVertices, sizeof( Vertex ) ) ) == NULL ) exit( TRUE );
+	if( ( m->faces		= ( Triangle * )malloc( sizeof( Triangle ) * nFaces ) ) == NULL ) exit( TRUE );
+	if( ( m->vertices	= ( Vertex * )malloc( sizeof( Vertex ) * nVertices ) ) == NULL ) exit( TRUE );
 }
 
 Mesh * newMesh( int nVertices, int nFaces )
 {
 	Mesh * m;
 
-	if( ( m	= ( Mesh * )calloc( 1, sizeof( Mesh ) ) ) == NULL) exit( TRUE );
+	if( ( m	= ( Mesh * )malloc( sizeof( Mesh ) ) ) == NULL) exit( TRUE );
 
 	m->nFaces			= 0;
 	m->nVertices		= 0;
@@ -75,6 +73,7 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 	v->nContectedFaces = 0;
 
 	v->transformed = FALSE;
+	v->fix_inv_z = 0;
 
 	m->nVertices ++;
 
@@ -100,6 +99,7 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	p->material = material;
 
 	p->render_mode = render_mode;
+	p->uvTransformed = FALSE;
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );
@@ -137,7 +137,7 @@ void computeFaceNormal( Mesh * m )
 		face->normal->z = 0.0f;
 		face->normal->w = 1.0f;
 
-		triangle_normal( face->normal, face->vertex[0], face->vertex[1], face->vertex[2] );
+		triangle_normal( face->normal, v0, v1, v2 );
 	}
 }
 

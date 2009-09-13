@@ -45,6 +45,7 @@ Vertex * newVertex( float x, float y, float z )
 	v->contectedFaces = NULL;
 	v->nContectedFaces = 0;
 	v->transformed = FALSE;
+	v->fix_inv_z = 0;
 
 	return v;
 }

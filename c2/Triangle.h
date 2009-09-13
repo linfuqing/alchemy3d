@@ -24,7 +24,7 @@ typedef struct Triangle
 	Vector * uv[3];
 }Triangle;
 
-Vector3D * triangle_normal( Vector3D * normal, Vertex * v0, Vertex * v1, Vertex * v2 )
+INLINE Vector3D * triangle_normal( Vector3D * normal, Vertex * v0, Vertex * v1, Vertex * v2 )
 {	
 	Vector3D ca, bc;
 

@@ -18,8 +18,18 @@
 #define RASTERIZER_MODE RASTERIZER_ACCURATE
 
 ///////////////////////////////////支持1/z深度缓冲////////////////////////////////////
-void Draw_Textured_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
+void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mem_pitch = viewport->width * sizeof( DWORD );
+	int zpitch = viewport->width * sizeof( DWORD );
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
