@@ -21,7 +21,7 @@
 typedef struct Light
 {
 	int mode;			//光照模式
-	int type;			//定义灯光类型，我们能够使用下面三种类型之一：D3DLIGHT_POINT, D3DLIGHT_SPOT, D3DLIGHT_DIRECTIONAL
+	int type;			//定义灯光类型，我们能够使用下面三种类型之一：POINT_LIGHT, SPOT_LIGHT, DIRECTIONAL_LIGHT
 	int bOnOff;			//灯光是否开启
 
 	FloatColor * ambient;	//此光源发出的环境光颜色

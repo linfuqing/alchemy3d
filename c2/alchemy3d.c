@@ -59,11 +59,19 @@ AS3_Val attachScene( void* self, AS3_Val args )
 {
 	Scene * scene;
 
-	Viewport * viewport;
+	//Viewport * viewport;
 
-	AS3_ArrayValue( args, "PtrType, PtrType", & scene, & viewport );
+	SceneNode * entityList;
 
-	viewport->scene = scene;
+	Lights * lights;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType", & scene, & entityList, & lights );
+
+	//viewport->scene = scene;
+
+	scene -> nodes  = entityList;
+	scene -> lights = lights;
+	scene -> dirty  = TRUE;
 
 	return 0;
 }
@@ -76,7 +84,8 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 
 	double width, height;
 
-	AS3_ArrayValue( args, "DoubleType, DoubleType, PtrType, PtrType", &width, &height, &scene, &camera );
+	AS3_ArrayValue( args, "DoubleType, DoubleType, PtrType, PtrType", &width, &height, &camera, &scene );
+
 
 	view = newViewport( (float)width, (float)height, scene, camera );
 
@@ -85,20 +94,80 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 
 AS3_Val initializeLight( void* self, AS3_Val args )
 {
-	Scene * scene;
+	//Scene * scene;
 	Entity * source;
 	int type;
 	Light * light;
+	Lights * node;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, IntType", &scene, &source, &type );
+	AS3_ArrayValue( args, "PtrType, IntType", &source, &type );
 
 	light = newPointLight( type, source );
-	scene_addLight( scene, light );
+	//scene_addLight( scene, light );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+	if( ( node = ( Lights * )malloc( sizeof( Lights ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	node -> light = light;
+	node -> next  = NULL;
+
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
 		light, &light->mode, &light->bOnOff, &light->type, light->ambient, light->diffuse, light->specular,
-		&light->range, &light->falloff, &light->theta, &light->phi, &light->attenuation0, &light->attenuation1, &light->attenuation2 );
+		&light->range, &light->falloff, &light->theta, &light->phi, &light->attenuation0, &light->attenuation1, &light->attenuation2, node );
 }
+
+AS3_Val addLight( void * self, AS3_Val args )
+{
+	//Scene * scene;
+	Lights * lights, * node, * lp;
+
+	AS3_ArrayValue( args, "PtrType, PtrType", & lights, & node );
+
+	lp = lights;
+
+	if( lp == NULL )
+	{
+		return 0;
+	}
+	//scene_addLight( scene, light );
+
+	while( lp -> next != NULL )
+	{
+		lp = lp -> next;
+	}
+
+	lp -> next = node;
+
+
+	return 0;
+}
+
+AS3_Val removeLight( void * self, AS3_Val args )
+{
+	Lights * lights, * node, * lp;
+
+	unsigned int single;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, IntType", & lights, & node, & single );
+
+	lp = lights;
+
+	while( lp != NULL && lp -> next == node )
+	{
+		lp = lp -> next;
+	}
+
+	if( lp -> next != NULL )
+	{
+		lp   -> next = single ? node -> next : NULL;
+		node -> next = single ? NULL : node -> next;
+	}
+
+	return 0;
+}
+
 
 AS3_Val initializeMesh( void * self, AS3_Val args )
 {
@@ -206,9 +275,10 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 AS3_Val initializeEntity( void* self, AS3_Val args )
 {
-	Entity * entity = NULL;
-	Mesh * mesh = NULL;
-	char * name = NULL;
+	Entity * entity;
+	SceneNode * node;
+	Mesh * mesh;
+	char * name;
 
 
 	AS3_ArrayValue( args, "StrType, PtrType",  &name, &mesh );
@@ -219,13 +289,21 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 	entity->mesh = mesh;
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->mesh );
+	if( ( node = ( SceneNode * )malloc( sizeof( SceneNode ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	node -> entity = entity;
+	node -> next   = NULL;
+
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->mesh, node );
 }
 
 AS3_Val addEntity( void* self, AS3_Val args )
 {
-	Scene * scene = NULL;
+	/*Scene * scene = NULL;
 
 	Entity * entity = NULL, * parent = NULL;
 
@@ -236,7 +314,58 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 	//加入场景列表
 	if ( parent ) scene_addEntity( scene, entity, parent );
-	else scene_addEntity( scene, entity, NULL );
+	else scene_addEntity( scene, entity, NULL );*/
+
+	SceneNode * parent, * node, * ep;
+
+	unsigned int isChild;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, IntType", & parent, & node, & isChild );
+
+	ep = isChild ? node : parent;
+
+	if( ep == NULL )
+	{
+		return 0;
+	}
+
+	while( ep -> next != NULL )
+	{
+		ep = ep -> next;
+	}
+
+	if( isChild )
+	{
+		ep     -> next = parent -> next;
+
+		parent -> next = node;
+
+		( parent -> entity -> nChildren ) ++;
+	}
+	else
+	{
+		ep -> next = node;
+	}
+
+	return 0;
+}
+
+AS3_Val removeEntity(  void* self, AS3_Val args )
+{
+	SceneNode * parent, * node, * ep;
+
+	AS3_ArrayValue( args, "PtrType, PtrType", & parent, & node );
+
+	while( ep != NULL && ep -> next != node )
+	{
+		ep = ep -> next;
+	}
+
+	if( ep != NULL )
+	{
+		ep -> next   = node -> next;
+		node -> next = NULL;
+	}
 
 	return 0;
 }
@@ -436,9 +565,12 @@ int main()
 	AS3_Val initializeTextureMethod = AS3_Function( NULL, initializeTexture );
 	AS3_Val fillTextureDataMethod = AS3_Function( NULL, fillTextureData );
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
+	AS3_Val addLightMethod = AS3_Function( NULL, addLight );
+	AS3_Val removeLightMethod = AS3_Function( NULL, removeLight );
 	AS3_Val initializeMeshMethod = AS3_Function( NULL, initializeMesh );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
+	AS3_Val removeEntityMethod = AS3_Function( NULL, removeEntity );
 	AS3_Val initialize3DSMethod = AS3_Function( NULL, initialize3DS );
 	AS3_Val loadComplete3DSMethod = AS3_Function( NULL, loadComplete3DS );
 	AS3_Val applyForTmpBufferMethod = AS3_Function( NULL, applyForTmpBuffer );
@@ -458,9 +590,12 @@ int main()
 								 initializeTexture:AS3ValType,\
 								 fillTextureData:AS3ValType,\
 								 initializeLight:AS3ValType,\
+								 addLight:AS3ValType,\
+								 removeLight:AS3ValType,\
 								 initializeMesh:AS3ValType,\
 								 initializeEntity:AS3ValType,\
 								 addEntity:AS3ValType,\
+								 removeEntity:AS3ValType,\
 								 initialize3DS:AS3ValType,\
 								 loadComplete3DS:AS3ValType,\
 								 applyForTmpBuffer:AS3ValType,\
@@ -477,9 +612,12 @@ int main()
 								initializeTextureMethod,
 								fillTextureDataMethod,
 								initializeLightMethod,
+								addLightMethod,
+								removeLightMethod,
 								initializeMeshMethod,
 								initializeEntityMethod,
 								addEntityMethod,
+								removeEntityMethod,
 								initialize3DSMethod,
 								loadComplete3DSMethod,
 								applyForTmpBufferMethod,
@@ -498,9 +636,12 @@ int main()
 	AS3_Release( initializeTextureMethod );
 	AS3_Release( fillTextureDataMethod );
 	AS3_Release( initializeLightMethod );
+	AS3_Release( addLightMethod );
+	AS3_Release( removeLightMethod );
 	AS3_Release( initializeMeshMethod );
 	AS3_Release( initializeEntityMethod );
 	AS3_Release( addEntityMethod );
+	AS3_Release( removeEntityMethod );
 	AS3_Release( initialize3DSMethod );
 	AS3_Release( loadComplete3DSMethod );
 	AS3_Release( applyForTmpBufferMethod );
