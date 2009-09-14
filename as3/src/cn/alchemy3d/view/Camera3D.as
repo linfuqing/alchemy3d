@@ -54,6 +54,36 @@ package cn.alchemy3d.view
 			eye.z = value;
 		}
 		
+		public function get rotationX():Number
+		{
+			return eye.rotationX;
+		}
+		
+		public function set rotationX(value:Number):void
+		{
+			eye.rotationX = value;
+		}
+		
+		public function get rotationY():Number
+		{
+			return eye.rotationY;
+		}
+		
+		public function set rotationY(value:Number):void
+		{
+			eye.rotationY = value;
+		}
+		
+		public function get rotationZ():Number
+		{
+			return eye.rotationZ;
+		}
+		
+		public function set rotationZ(value:Number):void
+		{
+			eye.rotationZ = value;
+		}
+		
 		public function get target():Vector3D
 		{
 			return _target;
