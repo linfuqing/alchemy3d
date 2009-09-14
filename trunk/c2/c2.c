@@ -56,10 +56,10 @@ int main()
 
 	//MD2 * md2;
 
-	//A3DS * a3ds;
-	/*FILE *fp;
-	UCHAR * buffer;*/
-	long length=0;
+	/*A3DS * a3ds;
+	FILE *fp;
+	UCHAR * buffer;
+	long length=0;*/
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -111,7 +111,7 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	/*fp = fopen("D:\\3Dmodel\\3ds\\plane.3ds","rb");
+	/*fp = fopen("D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\md2\\desert.jpg","rb");
 
 	length = GetFileSize(fp);
 
