@@ -6,7 +6,6 @@ package cn.alchemy3d.tools
 	import cn.alchemy3d.view.Viewport3D;
 	
 	import flash.events.Event;
-	import flash.utils.getTimer;
 
 	public class Basic extends Library
 	{
@@ -39,8 +38,6 @@ package cn.alchemy3d.tools
 		
 		protected function onRenderTick(e:Event = null):void
 		{
-			alchemy3DLib.render(viewport.pointer, getTimer());
-			
 			viewport.render();
 		}
 	}

@@ -7,12 +7,14 @@ package cn.alchemy3d.view
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.DisplayObjectContainer;
-	import flash.display.PixelSnapping;
 	import flash.display.Sprite;
+	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
 
 	public class Viewport3D extends Pointer
 	{
 		private var videoBufferPointer:uint;
+		private var zBufferPointer:uint;
 		private var cameraPointer:uint;
 		private var scenePointer:uint;
 		private var nRenderListPointer:uint;
@@ -92,6 +94,8 @@ package cn.alchemy3d.view
 			}
 		}
 		
+		private var clearBA:ByteArray;
+		
 		public function Viewport3D(width:Number, height:Number, camera:Camera3D)
 		{
 			//if (scene.pointer == 0)
@@ -110,8 +114,12 @@ package cn.alchemy3d.view
 			wh = int(width) * int(height);
 			
 			videoBuffer = new BitmapData(width, height, false);
-			video = new Bitmap(videoBuffer);
+			video = new Bitmap(videoBuffer, "never", false);
 			//addChild(video);
+			
+			clearBA = new ByteArray();
+			for (var i:int = 0; i < width * height * 4; i ++ )
+				clearBA.writeByte(0);
 			
 			super();
 		}
@@ -127,17 +135,27 @@ package cn.alchemy3d.view
 
 			_pointer			= ps[0];
 			videoBufferPointer	= ps[1];
-			cameraPointer		= ps[2];
-			scenePointer		= ps[3];
-			nRenderListPointer	= ps[4];
-			nCullListPointer	= ps[5];
-			nClippListPointer	= ps[6];
+			zBufferPointer		= ps[2]
+			cameraPointer		= ps[3];
+			scenePointer		= ps[4];
+			nRenderListPointer	= ps[5];
+			nCullListPointer	= ps[6];
+			nClippListPointer	= ps[7];
 		}
 		
 		public function render():void
 		{
+			//清空像素缓存
 			Library.memory.position = videoBufferPointer;
+			Library.memory.writeBytes(clearBA, 0, clearBA.length);
 			
+			//清空ZBuffer
+			Library.memory.position = zBufferPointer;
+			Library.memory.writeBytes(clearBA, 0, clearBA.length);
+			
+			Library.alchemy3DLib.render(pointer, getTimer());
+			
+			Library.memory.position = videoBufferPointer;
 			//videoBuffer.lock();
 			videoBuffer.setPixels(videoBuffer.rect, Library.memory);
 			//videoBuffer.unlock();
