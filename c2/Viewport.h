@@ -137,26 +137,22 @@ INLINE void insertFaceToList( RenderList ** rl_ptr, Triangle * face)
 //渲染前更新
 void viewport_updateBeforeRender( Viewport * viewport )
 {
+	RenderList * renderList;
+
+#ifdef __NOT_AS3__
+
 	LPDWORD zBuf = ( LPDWORD )viewport->zBuffer;
 
 	LPDWORD videoBuffer = ( LPDWORD )viewport->videoBuffer;
 
 	int wh = viewport->wh;
 
-	RenderList * renderList;
-
 	int m = 0;
-
-	//初始化缓冲区
 	
-	//Mem_Set_QUAD( ( void * )zBuf, 0, wh );
-	//Mem_Set_QUAD( ( void * )videoBuffer, 0, wh );
+	Mem_Set_QUAD( ( void * )zBuf, 0, wh );
+	Mem_Set_QUAD( ( void * )videoBuffer, 0, wh );
 
-	for ( ; m < wh; m ++ )
-	{
-		zBuf[m] = 0;
-		videoBuffer[m] = 0;
-	}
+#endif
 
 	//如果场景有改变
 	if ( TRUE == viewport->scene->dirty )
@@ -180,7 +176,7 @@ void viewport_updateBeforeRender( Viewport * viewport )
 	viewport->nRenderList = viewport->nClippList = viewport->nCullList = 0;
 }
 
-void viewport_updateAfterRender( Viewport * viewport )
+INLINE void viewport_updateAfterRender( Viewport * viewport )
 {
 	viewport->camera->fnfDirty = viewport->dirty = FALSE;
 

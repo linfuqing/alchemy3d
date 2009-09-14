@@ -189,12 +189,11 @@ INLINE float vector3D_normalize( Vector3D * v )
 {
 	float len, oneOverMag;
 
-	len = sqrtf( v->x * v->x + v->y * v->y + v->z * v->z );
-	//len = vector3D_fast_lengthSquared( v->x, v->y, v->z );
+	//len = sqrtf( v->x * v->x + v->y * v->y + v->z * v->z );
+	//oneOverMag = 1.0f / len;
 
-	//sqrtf( vector3D_lengthSquared( v ) );
-
-	oneOverMag = 1.0f / len;
+	len = v->x * v->x + v->y * v->y + v->z * v->z;
+	oneOverMag = invSqrt( len );
 
 	if( !len )
 	{

@@ -18,6 +18,8 @@
 #include "Md2.h"
 #include "Primitives.h"
 
+UCHAR * testBuff;
+
 AS3_Val initializeCamera( void* self, AS3_Val args )
 {
 	Camera * camera;
@@ -91,7 +93,7 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 
 	view = newViewport( (float)width, (float)height, scene, camera );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", view, view->videoBuffer, & view->camera, & view->scene, & view->nRenderList, & view->nCullList, & view->nClippList );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", view, view->videoBuffer, view->zBuffer, & view->camera, & view->scene, & view->nRenderList, & view->nCullList, & view->nClippList );
 }
 
 AS3_Val initializeLight( void* self, AS3_Val args )
@@ -568,7 +570,56 @@ AS3_Val render( void* self, AS3_Val args )
 //²âÊÔº¯Êý
 AS3_Val test( void* self, AS3_Val args )
 {
+	//double w, h;
+	//double color;
+
+	//AS3_ArrayValue( args, "DoubleType, DoubleType, DoubleType", &w, &h, &color );
+
+	//AS3_Val emptyParams = AS3_Array("DoubleType, DoubleType", w, h);
+	//AS3_Val bmpNS = AS3_String("flash.display");
+	//AS3_Val bmpClass = AS3_NSGetS(bmpNS, "BitmapData");
+	//AS3_Val bmp = AS3_New(bmpClass, emptyParams);
+	//
+	//AS3_Val rect = AS3_GetS(bmp, "rect");
+
+	////AS3_Val method = AS3_GetS(bmp, "fillRect");
+	////AS3_Val colorParams = AS3_Array("AS3ValType, IntType", rect, (DWORD)color);
+	////AS3_Call(method, bmp, colorParams);
+
+	//AS3_Val method = AS3_GetS(bmp, "getPixels");
+	//AS3_Val params = AS3_Array("AS3ValType", rect);
+	//AS3_Val ba = AS3_Call(method, bmp, params);
+
+	//AS3_ByteArray_readBytes( testBuff, ba, w * h * sizeof(int) );
+
 	return 0;
+}
+
+AS3_Val test2( void* self, AS3_Val args )
+{
+	char * fileName;
+
+	FILE * file;
+
+	long fileSize;
+
+	AS3_ArrayValue(args, "StrType", &fileName);
+
+	AS3_Trace(AS3_String(fileName));
+
+	//Open the file
+
+	file = fopen(fileName,"rb");
+
+	//Get file size
+
+	fseek (file, 0, SEEK_END);
+
+	fileSize = ftell(file);
+
+	rewind(file);
+
+	return AS3_Number(fileSize);
 }
 
 //Èë¿Ú
@@ -597,6 +648,7 @@ int main()
 	AS3_Val renderMethod = AS3_Function( NULL, render );
 	AS3_Val initializeMD2Method = AS3_Function( NULL, initializeMD2 );
 	AS3_Val testMethod = AS3_Function( NULL, test );
+	AS3_Val test2Method = AS3_Function( NULL, test2 );
 
 
 
@@ -622,7 +674,8 @@ int main()
 								 freeTmpBuffer:AS3ValType,\
 								 render:AS3ValType,\
 								 initializeMD2:AS3ValType,\
-								 test:AS3ValType",
+								 test:AS3ValType,\
+								 test2:AS3ValType",
 								initializeCameraMethod,
 								attachCameraMethod,
 								initializeSceneMethod,
@@ -645,7 +698,8 @@ int main()
 								freeTmpBufferMethod,
 								renderMethod,
 								initializeMD2Method,
-								testMethod );
+								testMethod,
+								test2Method );
 
 
 	AS3_Release( initializeCameraMethod );
@@ -671,6 +725,7 @@ int main()
 	AS3_Release( renderMethod );
 	AS3_Release( initializeMD2Method );
 	AS3_Release( testMethod );
+	AS3_Release( test2Method );
 
 
 	AS3_LibInit( result );

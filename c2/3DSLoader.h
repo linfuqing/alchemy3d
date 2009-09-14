@@ -542,7 +542,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds  )
 
 									face->texture = nml->texture;
 									face->material = nml->material;
-									face->render_mode = RENDER_TEXTRUED_TRIANGLE_INVZB_32;
+									face->render_mode = RENDER_GOURAUD_TRIANGLE_INVZB_32;
 
 									if ( nml->isRotateW )
 									{
@@ -570,7 +570,7 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds  )
 								{
 									entity->mesh->faces[ntList->list[i]].texture = NULL;
 									entity->mesh->faces[ntList->list[i]].material = nml->material;
-									entity->mesh->faces[ntList->list[i]].render_mode = RENDER_TEXTRUED_TRIANGLE_INVZB_32;
+									entity->mesh->faces[ntList->list[i]].render_mode = RENDER_GOURAUD_TRIANGLE_INVZB_32;
 								}
 							}
 						}
@@ -593,10 +593,12 @@ void A3DS_Objblock_Chunk_Handler( UCHAR ** buffer, A3DS * a3ds  )
 			{
 				entity->mesh->faces[i].material = material;
 				entity->mesh->faces[i].texture = NULL;
-				entity->mesh->faces[i].render_mode = RENDER_TEXTRUED_TRIANGLE_INVZB_32;
+				entity->mesh->faces[i].render_mode = RENDER_GOURAUD_TRIANGLE_INVZB_32;
 			}
 		}
 	}
+
+	entity->mesh->lightEnable = TRUE;
 
 	child = newA3DS_Entity();
 
