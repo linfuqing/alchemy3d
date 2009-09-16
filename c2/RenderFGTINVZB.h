@@ -23,8 +23,8 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 	BYTE * _dest_buffer = viewport->videoBuffer;
 	BYTE * _zbuffer = viewport->zBuffer;
 
-	int mem_pitch = viewport->width * sizeof( DWORD );
-	int zpitch = viewport->width * sizeof( DWORD );
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
 	int max_clip_x = viewport->width - 1;
 	int min_clip_y = 0;
@@ -40,7 +40,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 	int dx,dy,dyl,dyr,
 		du,dv,dz,
 		xi,yi,
-		ui,vi, uii, vii,
+		ui,vi,
 		xstart,
 		xend,
 		ystart,
@@ -69,7 +69,6 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 		x1,y1,tu1,tv1,tz1,
 		x2,y2,tu2,tv2,tz2;
 
-	int t_width, t_height;
 	int texture_shift2;
 
 	DWORD *screen_ptr = NULL,
@@ -81,12 +80,9 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 
 	textmap = (DWORD *)face->texture->pRGBABuffer;
 
-	t_width = face->texture->width;
-	t_height = face->texture->height;
+	texture_shift2 = logbase2ofx[face->texture->width];
 
-	texture_shift2 = logbase2ofx[t_width];
-
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -283,7 +279,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -332,13 +328,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP16_SHIFT;
-						vii = vi >> FIXP16_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -358,14 +348,14 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -395,13 +385,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP16_SHIFT;
-						vii = vi >> FIXP16_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -421,7 +405,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -585,7 +569,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -634,13 +618,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP16_SHIFT;
-						vii = vi >> FIXP16_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -660,7 +638,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -709,7 +687,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -739,13 +717,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP16_SHIFT;
-						vii = vi >> FIXP16_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -765,7 +737,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -815,8 +787,18 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 	}
 }
 
-void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
+void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
@@ -856,7 +838,6 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 		x1,y1,tu1,tv1,tz1,
 		x2,y2,tu2,tv2,tz2;
 
-	int t_width, t_height;
 	int texture_shift2, texture_size;
 
 	DWORD	*screen_ptr = NULL,
@@ -874,14 +855,11 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 
 	textmap = (DWORD *)face->texture->pRGBABuffer;
 
-	t_width = face->texture->width;
-	t_height = face->texture->height;
+	texture_shift2 = logbase2ofx[face->texture->width];
 
-	texture_shift2 = logbase2ofx[t_width];
+	texture_size = face->texture->width - 1;
 
-	texture_size = t_width - 1;
-
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -1077,7 +1055,7 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -1128,9 +1106,6 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 					{
 						uint = ui >> FIXP16_SHIFT;
 						vint = vi >> FIXP16_SHIFT;
-
-						if ( uint > t_width  || uint < 0 ) uint -= ( ( uint >> texture_shift2 ) << texture_shift2 );
-						if ( vint > t_height || vint < 0 ) vint -= ( ( vint >> texture_shift2 ) << texture_shift2 );
 
 						uint_pls_1 = uint+1;
 						if (uint_pls_1 > texture_size) uint_pls_1 = texture_size;
@@ -1205,14 +1180,14 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -1244,9 +1219,6 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 					{
 						uint = ui >> FIXP16_SHIFT;
 						vint = vi >> FIXP16_SHIFT;
-
-						if ( uint > t_width  || uint < 0 ) uint -= ( ( uint >> texture_shift2 ) << texture_shift2 );
-						if ( vint > t_height || vint < 0 ) vint -= ( ( vint >> texture_shift2 ) << texture_shift2 );
 
 						uint_pls_1 = uint+1;
 						if (uint_pls_1 > texture_size) uint_pls_1 = texture_size;
@@ -1322,7 +1294,7 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -1486,7 +1458,7 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -1538,9 +1510,6 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 						uint = ui >> FIXP16_SHIFT;
 						vint = vi >> FIXP16_SHIFT;
 
-						if ( uint > t_width  || uint < 0 ) uint -= ( ( uint >> texture_shift2 ) << texture_shift2 );
-						if ( vint > t_height || vint < 0 ) vint -= ( ( vint >> texture_shift2 ) << texture_shift2 );
-
 						uint_pls_1 = uint+1;
 						if (uint_pls_1 > texture_size) uint_pls_1 = texture_size;
 
@@ -1614,7 +1583,7 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -1663,7 +1632,7 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -1695,9 +1664,6 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 					{
 						uint = ui >> FIXP16_SHIFT;
 						vint = vi >> FIXP16_SHIFT;
-
-						if ( uint > t_width  || uint < 0 ) uint -= ( ( uint >> texture_shift2 ) << texture_shift2 );
-						if ( vint > t_height || vint < 0 ) vint -= ( ( vint >> texture_shift2 ) << texture_shift2 );
 
 						uint_pls_1 = uint+1;
 						if (uint_pls_1 > texture_size) uint_pls_1 = texture_size;
@@ -1772,7 +1738,7 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -1822,8 +1788,18 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer
 	}
 }
 
-void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
+void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewport )
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
@@ -1835,7 +1811,6 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
-		uii, vii,
 		xstart,
 		xend,
 		ystart,
@@ -1867,7 +1842,6 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 		x1,y1,tu1,tv1,tz1,
 		x2,y2,tu2,tv2,tz2;
 
-	int t_width, t_height;
 	int texture_shift2;
 
 	DWORD *screen_ptr = NULL,
@@ -1879,12 +1853,9 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 
 	textmap = (DWORD *)face->texture->pRGBABuffer;
 
-	t_width = face->texture->width;
-	t_height = face->texture->height;
+	texture_shift2 = logbase2ofx[face->texture->width];
 
-	texture_shift2 = logbase2ofx[t_width];
-
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -2082,7 +2053,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -2131,13 +2102,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP16_SHIFT;
-						vii = vi >> FIXP16_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[(ui >> (FIXP16_SHIFT)) + ((vi >> (FIXP16_SHIFT)) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -2167,14 +2132,14 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -2204,13 +2169,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP16_SHIFT;
-						vii = vi >> FIXP16_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[(ui >> (FIXP16_SHIFT)) + ((vi >> (FIXP16_SHIFT)) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -2240,7 +2199,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -2405,7 +2364,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -2454,13 +2413,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP16_SHIFT;
-						vii = vi >> FIXP16_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[(ui >> (FIXP16_SHIFT)) + ((vi >> (FIXP16_SHIFT)) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -2490,7 +2443,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -2540,7 +2493,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -2571,13 +2524,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP16_SHIFT;
-						vii = vi >> FIXP16_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[(ui >> (FIXP16_SHIFT)) + ((vi >> (FIXP16_SHIFT)) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -2607,7 +2554,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -2656,8 +2603,18 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 	}
 }
 
-void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
+void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewport )
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
@@ -2668,7 +2625,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 	int dx,dy,dyl,dyr,
 		du,dv,dw,dz, ds, dt,
 		xi,yi,
-		ui,vi,wi,si,ti, sii, tii,
+		ui,vi,wi,si,ti,
 		xstart,
 		xend,
 		ystart,
@@ -2713,7 +2670,6 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 		r_base1, g_base1, b_base1,
 		r_base2, g_base2, b_base2;
 
-	int t_width, t_height;
 	int texture_shift2;
 
 	DWORD r_textel, g_textel, b_textel;
@@ -2728,12 +2684,9 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 
 	textmap = (DWORD *)face->texture->pRGBABuffer;
 
-	t_width = face->texture->width;
-	t_height = face->texture->height;
+	texture_shift2 = logbase2ofx[face->texture->width];
 
-	texture_shift2 = logbase2ofx[t_width];
-
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -3005,7 +2958,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -3073,13 +3026,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				{
 					if (zi > z_ptr[xi])
 					{
-						sii = si >> FIXP16_SHIFT;
-						tii = ti >> FIXP16_SHIFT;
-
-						if ( sii > t_width  || sii < 0 ) sii -= ( ( sii >> texture_shift2 ) << texture_shift2 );
-						if ( tii > t_height || tii < 0 ) tii -= ( ( tii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[sii + (tii << texture_shift2)];
+						textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -3121,14 +3068,14 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				sr+=dsdyr;
 				tr+=dtdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -3173,13 +3120,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				{
 					if (zi > z_ptr[xi])
 					{
-						sii = si >> FIXP16_SHIFT;
-						tii = ti >> FIXP16_SHIFT;
-
-						if ( sii > t_width  || sii < 0 ) sii -= ( ( sii >> texture_shift2 ) << texture_shift2 );
-						if ( tii > t_height || tii < 0 ) tii -= ( ( tii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[sii + (tii << texture_shift2)];
+						textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -3221,7 +3162,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				sr+=dsdyr;
 				tr+=dtdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -3479,7 +3420,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -3547,13 +3488,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				{
 					if (zi > z_ptr[xi])
 					{
-						sii = si >> FIXP16_SHIFT;
-						tii = ti >> FIXP16_SHIFT;
-
-						if ( sii > t_width  || sii < 0 ) sii -= ( ( sii >> texture_shift2 ) << texture_shift2 );
-						if ( tii > t_height || tii < 0 ) tii -= ( ( tii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[sii + (tii << texture_shift2)];
+						textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -3595,7 +3530,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				sr+=dsdyr;
 				tr+=dtdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -3668,7 +3603,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -3713,13 +3648,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				{
 					if (zi > z_ptr[xi])
 					{
-						sii = si >> FIXP16_SHIFT;
-						tii = ti >> FIXP16_SHIFT;
-
-						if ( sii > t_width  || sii < 0 ) sii -= ( ( sii >> texture_shift2 ) << texture_shift2 );
-						if ( tii > t_height || tii < 0 ) tii -= ( ( tii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[sii + (tii << texture_shift2)];
+						textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -3760,7 +3689,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 				sr+=dsdyr;
 				tr+=dtdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -3833,8 +3762,18 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, BYTE *_dest_buffer, int
 	}
 }
 
-void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )// bytes per line of zbuffer
+void Draw_Flat_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )// bytes per line of zbuffer
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
@@ -3873,7 +3812,7 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 
 	DWORD color; // polygon color
 
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -4041,7 +3980,7 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -4098,14 +4037,14 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 				xr+=dxdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -4146,7 +4085,7 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 				xr+=dxdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -4267,7 +4206,7 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -4326,7 +4265,7 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 				xr+=dxdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -4363,7 +4302,7 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -4403,7 +4342,7 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 				xr+=dxdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -4442,8 +4381,18 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_p
 	}
 }
 
-void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )// bytes per line of zbuffer
+void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )// bytes per line of zbuffer
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
@@ -4498,7 +4447,7 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int me
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
 
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -4723,7 +4672,7 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int me
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -4801,14 +4750,14 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int me
 				wr+=dwdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -4866,7 +4815,7 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int me
 				wr+=dwdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -5053,7 +5002,7 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int me
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -5131,7 +5080,7 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int me
 				wr+=dwdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -5186,7 +5135,7 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int me
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -5242,7 +5191,7 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int me
 				wr+=dwdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -5300,8 +5249,18 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int me
 }
 
 ///////////////////////////////////支持透视矫正////////////////////////////////////
-void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
+void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
@@ -5313,7 +5272,6 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
-		uii, vii,
 		xstart,
 		xend,
 		ystart,
@@ -5342,7 +5300,6 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 		x1,y1,tu1,tv1,tz1,
 		x2,y2,tu2,tv2,tz2;
 
-	int t_width, t_height;
 	int texture_shift2;
 
 	DWORD *screen_ptr = NULL,
@@ -5354,12 +5311,9 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 
 	textmap = (DWORD *)face->texture->pRGBABuffer;
 
-	t_width = face->texture->width;
-	t_height = face->texture->height;
+	texture_shift2 = logbase2ofx[face->texture->width];
 
-	texture_shift2 = logbase2ofx[t_width];
-
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -5553,7 +5507,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -5602,13 +5556,8 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -5628,14 +5577,14 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -5666,13 +5615,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
 						//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
@@ -5693,7 +5636,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -5857,7 +5800,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -5907,13 +5850,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
 						//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
@@ -5934,7 +5871,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -5983,7 +5920,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -6013,13 +5950,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
 						//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
@@ -6040,7 +5971,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -6090,8 +6021,18 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, BYTE *_dest_b
 	}
 }
 
-void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
+void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
@@ -6103,7 +6044,6 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
-		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -6134,7 +6074,6 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 		x1,y1,tu1,tv1,tz1,
 		x2,y2,tu2,tv2,tz2;
 
-	int t_width, t_height;
 	int texture_shift2;
 
 	DWORD *screen_ptr = NULL,
@@ -6145,12 +6084,9 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 		*zbuffer = (DWORD *)_zbuffer;
 	textmap = (DWORD *)face->texture->pRGBABuffer;
 
-	t_width = face->texture->width;
-	t_height = face->texture->height;
+	texture_shift2 = logbase2ofx[face->texture->width];
 
-	texture_shift2 = logbase2ofx[t_width];
-
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -6344,7 +6280,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -6401,13 +6337,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP22_SHIFT;
-						vii = vi >> FIXP22_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[(ui >> FIXP22_SHIFT) + ((vi >> FIXP22_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -6427,14 +6357,14 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -6471,13 +6401,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP22_SHIFT;
-						vii = vi >> FIXP22_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[(ui >> FIXP22_SHIFT) + ((vi >> FIXP22_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -6497,7 +6421,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -6661,7 +6585,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -6718,13 +6642,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP22_SHIFT;
-						vii = vi >> FIXP22_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[(ui >> FIXP22_SHIFT) + ((vi >> FIXP22_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -6744,7 +6662,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -6793,7 +6711,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -6829,13 +6747,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP22_SHIFT;
-						vii = vi >> FIXP22_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+						screen_ptr[xi] = textmap[(ui >> FIXP22_SHIFT) + ((vi >> FIXP22_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -6855,7 +6767,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -6905,9 +6817,18 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, BYTE *_dest
 	}
 }
 
-
-void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
+void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewport )
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
@@ -6919,7 +6840,6 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
-		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -6948,7 +6868,6 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 		x1,y1,tu1,tv1,tz1,
 		x2,y2,tu2,tv2,tz2;
 
-	int t_width, t_height;
 	int texture_shift2;
 
 	DWORD *screen_ptr = NULL,
@@ -6964,12 +6883,9 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 
 	textmap = (DWORD *)face->texture->pRGBABuffer;
 
-	t_width = face->texture->width;
-	t_height = face->texture->height;
+	texture_shift2 = logbase2ofx[face->texture->width];
 
-	texture_shift2 = logbase2ofx[t_width];
-
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -7167,7 +7083,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -7216,13 +7132,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -7254,14 +7164,14 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -7292,13 +7202,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -7328,7 +7232,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -7492,7 +7396,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -7542,13 +7446,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -7578,7 +7476,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -7627,7 +7525,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -7657,13 +7555,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -7693,7 +7585,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -7744,9 +7636,18 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest
 }
 
 
-
-void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_dest_buffer, int mem_pitch, BYTE *_zbuffer, int zpitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
+void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewport )
 {
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp=0,
 		v0=0,
 		v1=1,
@@ -7758,7 +7659,6 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
-		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -7789,7 +7689,6 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 		x1,y1,tu1,tv1,tz1,
 		x2,y2,tu2,tv2,tz2;
 
-	int t_width, t_height;
 	int texture_shift2;
 
 	DWORD *screen_ptr = NULL,
@@ -7805,12 +7704,9 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 
 	textmap = (DWORD *)face->texture->pRGBABuffer;
 
-	t_width = face->texture->width;
-	t_height = face->texture->height;
+	texture_shift2 = logbase2ofx[face->texture->width];
 
-	texture_shift2 = logbase2ofx[t_width];
-
-	mem_pitch >>= 2;
+	mempitch >>= 2;
 
 	zpitch >>= 2;
 
@@ -8007,7 +7903,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -8063,13 +7959,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP22_SHIFT;
-						vii = vi >> FIXP22_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[ (ui >> FIXP22_SHIFT) + ( (vi >> FIXP22_SHIFT) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -8100,14 +7990,14 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -8144,13 +8034,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP22_SHIFT;
-						vii = vi >> FIXP22_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[ (ui >> FIXP22_SHIFT) + ( (vi >> FIXP22_SHIFT) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -8180,7 +8064,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 			}
@@ -8344,7 +8228,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 			(x1 < min_clip_x) || (x1 > max_clip_x) ||
 			(x2 < min_clip_x) || (x2 > max_clip_x))
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -8400,13 +8284,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP22_SHIFT;
-						vii = vi >> FIXP22_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[ (ui >> FIXP22_SHIFT) + ( (vi >> FIXP22_SHIFT) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -8436,7 +8314,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 
@@ -8485,7 +8363,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 		}
 		else
 		{
-			screen_ptr = dest_buffer + (ystart * mem_pitch);
+			screen_ptr = dest_buffer + (ystart * mempitch);
 
 			z_ptr = zbuffer + (ystart * zpitch);
 
@@ -8521,13 +8399,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = ui >> FIXP22_SHIFT;
-						vii = vi >> FIXP22_SHIFT;
-
-						if ( uii > t_width  || uii < 0 ) uii -= ( ( uii >> texture_shift2 ) << texture_shift2 );
-						if ( vii > t_height || vii < 0 ) vii -= ( ( vii >> texture_shift2 ) << texture_shift2 );
-
-						textel = textmap[uii + (vii << texture_shift2)];
+						textel = textmap[ (ui >> FIXP22_SHIFT) + ( (vi >> FIXP22_SHIFT) << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -8557,7 +8429,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, BYTE *_de
 				vr+=dvdyr;
 				zr+=dzdyr;
 
-				screen_ptr+=mem_pitch;
+				screen_ptr+=mempitch;
 
 				z_ptr+=zpitch;
 

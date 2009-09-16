@@ -1,7 +1,7 @@
 #ifndef __RENDERFWF_H
 #define __RENDERFWF_H
 
-int Draw_Line32(int x0, int y0, int x1, int y1, DWORD color, BYTE * vb_start, int lpitch)// video buffer and memory pitch
+int Draw_Line32(int x0, int y0, int x1, int y1, DWORD color, BYTE * vb_start, int lpitch)
 {
 	int dx,
 		dy,
@@ -351,8 +351,16 @@ int Draw_Clip_Line32(int x0,int y0, int x1, int y1, int color, BYTE * dest_buffe
 	return(1);
 }
 
-void Draw_Wireframe_Triangle_32( Triangle * face, BYTE * dest_buffer, int mempitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y )
+void Draw_Wireframe_Triangle_32( Triangle * face, struct Viewport * viewport )
 {
+	BYTE * dest_buffer = viewport->videoBuffer;
+
+	int mempitch = viewport->mempitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int x0, y0, x1, y1, x2, y2;
 	DWORD color;
 
@@ -559,8 +567,16 @@ void Draw_Bottom_Tri32(int x1, int y1, int x2, int y2, int x3, int y3, DWORD col
 	}
 }
 
-void Draw_Flat_Triangle_32(Triangle * face, BYTE * dest_buffer, int mempitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y)
+void Draw_Flat_Triangle_32(Triangle * face, struct Viewport * viewport )
 {
+	BYTE * dest_buffer = viewport->videoBuffer;
+
+	int mempitch = viewport->mempitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp_x,
 		temp_y,
 		new_x;
@@ -837,8 +853,16 @@ void Draw_Bottom_TriFP(int x1,int y1, int x2,int y2, int x3,int y3, DWORD color,
 	}
 }
 
-void Draw_Flat_TriangleFP_32(Triangle * face, BYTE * dest_buffer, int mempitch, int min_clip_x, int max_clip_x, int min_clip_y, int max_clip_y)
+void Draw_Flat_TriangleFP_32(Triangle * face, struct Viewport * viewport )
 {
+	BYTE * dest_buffer = viewport->videoBuffer;
+
+	int mempitch = viewport->mempitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width - 1;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height - 1;
+
 	int temp_x,
 		temp_y,
 		new_x;
