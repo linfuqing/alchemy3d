@@ -5,7 +5,7 @@
 #include <AS3.h>
 
 #include "Base.h"
-#include "Math.h"
+#include "Math3D.h"
 #include "Entity.h"
 #include "Material.h"
 #include "Texture.h"
@@ -14,7 +14,7 @@
 #include "Viewport.h"
 #include "Triangle.h"
 #include "Mesh.h"
-#include "3DSLoader.h"
+#include "3DS.h"
 #include "Md2.h"
 #include "Primitives.h"
 
@@ -177,12 +177,12 @@ AS3_Val initializePrimitives( void * self, AS3_Val args )
 	Mesh     * base;
 	Material * material;
 	Texture  * texture;
-	double width, height; 
+	float width, height; 
 	int segments_width, segments_height;
 
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, DoubleType, DoubleType, IntType, IntType", & base, & material, & texture, & width, & height, & segments_width, & segments_height );
 
-	newPlane( base, material, texture, ( float )width, ( float )height, segments_width, segments_height );
+	newPlane( base, material, texture, width, height, segments_width, segments_height );
 
 	return 0;
 }
@@ -392,17 +392,14 @@ AS3_Val removeEntity(  void* self, AS3_Val args )
 
 AS3_Val initialize3DS( void* self, AS3_Val args )
 {
-	A3DS * a3ds = NULL;
+	FILE * file;
+	void * dest;
 
-	Entity * entity = NULL;
+	AS3_ArrayValue(args, "AS3ValType, PtrType", &dest, &entity);
 
-	UCHAR * buffer = NULL;
+	file = funopen((void *)dest, readByteArray, writeByteArray, seekByteArray, closeByteArray);
 
-	UINT length = 0;
-
-	AS3_ArrayValue( args, "PtrType, PtrType, IntType", &entity, & buffer, & length );
-
-	a3ds = A3DS_Create( entity, & buffer, length );
+	a3ds = A3DS_Create( file, entity );
 
 	return AS3_Array( "PtrType, IntType, IntType, PtrType, IntType, IntType, IntType", a3ds, a3ds->mNum, a3ds->tNum, a3ds->a3d_materialList->next, FPOS( A3DS_MaterialList, next ), FPOS( A3DS_MaterialList, texture ), FPOS( Texture, name ) );
 }
@@ -570,56 +567,27 @@ AS3_Val render( void* self, AS3_Val args )
 //²âÊÔº¯Êý
 AS3_Val test( void* self, AS3_Val args )
 {
-	//double w, h;
-	//double color;
-
-	//AS3_ArrayValue( args, "DoubleType, DoubleType, DoubleType", &w, &h, &color );
-
-	//AS3_Val emptyParams = AS3_Array("DoubleType, DoubleType", w, h);
-	//AS3_Val bmpNS = AS3_String("flash.display");
-	//AS3_Val bmpClass = AS3_NSGetS(bmpNS, "BitmapData");
-	//AS3_Val bmp = AS3_New(bmpClass, emptyParams);
-	//
-	//AS3_Val rect = AS3_GetS(bmp, "rect");
-
-	////AS3_Val method = AS3_GetS(bmp, "fillRect");
-	////AS3_Val colorParams = AS3_Array("AS3ValType, IntType", rect, (DWORD)color);
-	////AS3_Call(method, bmp, colorParams);
-
-	//AS3_Val method = AS3_GetS(bmp, "getPixels");
-	//AS3_Val params = AS3_Array("AS3ValType", rect);
-	//AS3_Val ba = AS3_Call(method, bmp, params);
-
-	//AS3_ByteArray_readBytes( testBuff, ba, w * h * sizeof(int) );
-
 	return 0;
 }
 
+#include "AS3File.h"
+
 AS3_Val test2( void* self, AS3_Val args )
 {
-	char * fileName;
-
 	FILE * file;
-
 	long fileSize;
+	char * buffer;
+	void * dest;
 
-	AS3_ArrayValue(args, "StrType", &fileName);
+	AS3_ArrayValue(args, "AS3ValType", &dest);
 
-	AS3_Trace(AS3_String(fileName));
-
-	//Open the file
-
-	file = fopen(fileName,"rb");
-
-	//Get file size
+	file = funopen((void *)dest, readByteArray, writeByteArray, seekByteArray, closeByteArray);
 
 	fseek (file, 0, SEEK_END);
-
 	fileSize = ftell(file);
+	rewind (file);
 
-	rewind(file);
-
-	return AS3_Number(fileSize);
+	return AS3_Int(fileSize);
 }
 
 //Èë¿Ú

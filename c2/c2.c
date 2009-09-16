@@ -5,7 +5,7 @@
 #define __NOT_AS3__
 
 #include "Base.h"
-#include "Math.h"
+#include "Math3D.h"
 #include "Scene.h"
 #include "Entity.h"
 #include "Viewport.h"
@@ -18,7 +18,7 @@
 #include "Texture.h"
 #include "Light.h"
 #include "Plane3D.h"
-#include "3DSLoader.h"
+#include "3DS_2.h"
 #include "MD2.h"
 #include "Primitives.h"
 
@@ -47,7 +47,7 @@ int main()
 	//Entity * lightSource;
 	//Light * light;
 	Texture * texture;
-	Mesh * mesh4;
+	//Mesh * mesh4;
 
 	int i = 0;
 	int j = 0;
@@ -56,10 +56,8 @@ int main()
 
 	//MD2 * md2;
 
-	/*A3DS * a3ds;
+	A3DS * a3ds;
 	FILE *fp;
-	UCHAR * buffer;
-	long length=0;*/
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -90,7 +88,7 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	mesh4 = newPlane( NULL, material, texture, 100, 100, 1, 1 );
+	//mesh4 = newPlane( NULL, material, texture, 100, 100, 1, 1 );
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	
@@ -103,7 +101,7 @@ int main()
 	do3d3 = newEntity();
 	do3d3->name = "root";
 	entity_setZ(do3d3, 400.0f);
-	entity_setMesh( do3d3, mesh4 );
+	//entity_setMesh( do3d3, mesh4 );
 
 	scene_addEntity(scene, do3d3, NULL);
 
@@ -111,17 +109,11 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	/*fp = fopen("D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\md2\\desert.jpg","rb");
+	fopen_s( & fp, "D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\3ds\\scene.jpg","rb");
 
-	length = GetFileSize(fp);
+	a3ds = A3DS_Create( fp, do3d3 );
 
-	buffer = (UCHAR * )malloc(length * sizeof(UCHAR));
-
-	fread(buffer,1,length,fp);
-
-	a3ds = A3DS_Create( do3d3, & buffer, length );
-
-	A3DS_Dispose( a3ds );*/
+	//A3DS_Dispose( a3ds );
 
 	/*md2 = newMD2( do3d3 );
 
