@@ -5,14 +5,15 @@ package
 	
 	import cn.alchemy3d.container.Entity;
 	import cn.alchemy3d.external.MD2;
-	import cn.alchemy3d.external.Primitives;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
 	import cn.alchemy3d.render.Material;
 	import cn.alchemy3d.render.Texture;
+	import cn.alchemy3d.terrain.MeshTerrain;
 	import cn.alchemy3d.tools.Basic;
 	import cn.alchemy3d.tools.FPS;
 	
+	import flash.display.Bitmap;
 	import flash.events.Event;
 	import flash.geom.ColorTransform;
 	import flash.net.URLLoader;
@@ -53,6 +54,7 @@ package
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
 			bl.add("asset/desert.jpg", {id:"0"});
 			bl.start();
+			//init();
 		}
 		
 		private function showInfo():void
@@ -114,10 +116,10 @@ package
 			viewport.scene.addChild(lightObj3);
 			
 			md2 = new MD2(m, t1);
-			md2.lightEnable = true;
+			//md2.lightEnable = true;
 			md2.load("asset/tris.jpg");
 			//scene.addEntity(md2);
-			this.viewport.scene.addChild( md2 );
+			//this.viewport.scene.addChild( md2 );
 			
 			md2.rotationX = -90;
 			md2.rotationY = 45;
@@ -126,11 +128,17 @@ package
 			md2.z = 200;
 			md2.scale = 10;
 			
-			var p:Primitives = new Primitives(m,t1);
+			//var p:Primitives = new Primitives(m,t1);
+			//p.mesh.lightEnable = true;
 			//p.lightEnable = true;
-			p.toPlane();
+			//p.toPlane(500,500,1,2);
 			
-			this.viewport.scene.addChild( p );
+			//center.addChild( p );
+			var terrain:MeshTerrain = new MeshTerrain(null,null,t1);
+			//terrain.mesh.lightEnable = true;
+			terrain.buildOn();
+			
+			center.addChild( terrain );
 			
 //			md22 = new MD2(m, t1);
 //			md22.lightEnable = true;
@@ -143,7 +151,7 @@ package
 //			md22.x = 80;
 //			md22.z = 200;
 //			md22.scale = 3;
-			
+			trace( "f:" + 0xffffff );
 			light = new Light3D(lightObj);
 			viewport.scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
@@ -181,9 +189,9 @@ package
 			
 			showInfo();
 			
-			moveLight1(1);
-			moveLight2(1);
-			moveLight3(1);
+			//moveLight1(1);
+			//moveLight2(1);
+			//moveLight3(1);
 		}
 		
 		protected function moveLight1(dir:int = 1):void
@@ -207,6 +215,9 @@ package
 		override protected function onRenderTick(e:Event = null):void
 		{
 			super.onRenderTick(e);
+			
+			//center.z ++;
+			center.rotationY ++;
 			
 			camera.target = center.worldPosition;
 			var mx:Number = viewport.mouseX / 500;
