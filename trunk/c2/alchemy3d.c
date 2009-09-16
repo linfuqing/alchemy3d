@@ -17,6 +17,7 @@
 #include "3DS.h"
 #include "Md2.h"
 #include "Primitives.h"
+#include "Terrain.h"
 
 UCHAR * testBuff;
 

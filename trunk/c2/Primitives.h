@@ -55,11 +55,11 @@ Mesh * newPlane(
 			uvC =  newVector( (float)(ix)     / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
 			uvB =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy)     / (float)(segments_height) );
 	
-<<<<<<< .mine
+//<<<<<<< .mine
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32 );
-=======
+//=======
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
->>>>>>> .r277
+//>>>>>>> .r277
 	
 			// Triangle B
 			aIndex = (ix+1) * gridY + (iy+1);
@@ -74,11 +74,11 @@ Mesh * newPlane(
 			uvC =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy)      / (float)(segments_height) );
 			uvB =  newVector( (float)(ix)      / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
 					
-<<<<<<< .mine
+//<<<<<<< .mine
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32 );
-=======
+//=======
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
->>>>>>> .r277
+//>>>>>>> .r277
 		}
 	}
 
