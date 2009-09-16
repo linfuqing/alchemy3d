@@ -367,10 +367,14 @@ void A3DS_Material_Chunk_Handler( FILE * file, lpA3DS a3ds, DWORD dwLength )
 DWORD A3DS_Face_Chunk_Handler( FILE * file, A3DS_Entity * child, WORD ** pwFace, DWORD dwLength )
 {
 	int		iCount = dwLength;
+	WORD	wID1;
 	DWORD	dwReadCount =0;
-	//面列表拷贝
+	DWORD	dwBlockLength1;
+
 	WORD	wNum;
 	DWORD	dwBeginPos	= ftell( file );
+
+	//char	name[200];
 
 	fread( (char*)&wNum, sizeof(wNum), 1, file );
 	iCount -= sizeof(wNum);
@@ -391,6 +395,52 @@ DWORD A3DS_Face_Chunk_Handler( FILE * file, A3DS_Entity * child, WORD ** pwFace,
 		fseek( file, dwBeginPos, SEEK_SET );
 		free( pwFace );
 		return FALSE;
+	}
+
+	while( iCount>0 && !(feof( file )) )
+	{
+		fread( (char*)&wID1, sizeof(wID1), 1, file );
+		iCount -= sizeof(wID1);
+
+		fread( (char*)&dwBlockLength1, sizeof( dwBlockLength1), 1, file );
+		iCount -= sizeof(dwBlockLength1);
+
+		//仅处理面材质块
+		if( wID1 == CHUNK_FACEMAT )
+		{
+			////以NULL Terminated string表示使用的材质
+			//memset( name, 1,sizeof(char) * 200 );
+			//fread( name, 1, 1, file );
+			//iCount --;
+
+			//for( DWORD i=0; name[i]!=0; i++ )
+			//{
+			//	file.read( name+i+1, 1 );
+			//	iCount --;
+			//}
+			////纪录每个材质
+			//listName.push_back( string(name) );
+			//WORD	wFaceNum;
+			//file.read( (char*)&wFaceNum, sizeof(wFaceNum) );
+			//iCount -= sizeof(wFaceNum);
+			//WORD*	pTemp = new WORD[wFaceNum];
+			//DWORD*	pFaceList = new DWORD[wFaceNum];
+			//file.read( (char*)pTemp, sizeof(WORD)*wFaceNum );
+			//iCount -= sizeof(WORD)*wFaceNum;
+			//for( DWORD i=0; i<wFaceNum; i++ )
+			//	pFaceList[i] = pTemp[i];
+			//delete []pTemp;
+			////纪录关联到每个材质的面的索引
+			//listFaceIndex.push_back( pFaceList );
+			////和数目
+			//listFaceNum.push_back( wFaceNum );
+			//lpData->dwMaterialNum ++;
+		}
+		else
+		{
+			fseek( file, dwBlockLength1 - sizeof(wID1) - sizeof(dwBlockLength1), SEEK_CUR );
+			iCount -= dwBlockLength1 - sizeof(wID1) - sizeof(dwBlockLength1);
+		}
 	}
 
 	//TODO
@@ -461,14 +511,14 @@ void A3DS_Objblock_Chunk_Handler( FILE * file, A3DS * a3ds, DWORD dwLength  )
 	int		iCount, i = 0, j = 0;
 	WORD	wID;
 	DWORD	dwBlockLength;
-	DWORD	dwReadCount = 0;
+	//DWORD	dwReadCount = 0;
 	DWORD	dwNextChunk	= (DWORD)(ftell( file )) + dwLength;
 	
 	char name[200];
 
 	A3DS_Entity		* child = newA3DS_Entity();
-	Entity			* entity = newEntity();
-	A3DS_T_List		* tList = newT_List();
+	//Entity			* entity = newEntity();
+	//A3DS_T_List		* tList = newT_List();
 
 	iCount = dwLength;
 
