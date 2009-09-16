@@ -24,11 +24,27 @@ package cn.alchemy3d.render
 		private var _ready:Boolean;
 		private var _doubleSide:Boolean;
 		private var loader:Loader;
-		private var bitmapdata:BitmapData;
+		private var _bitmapdata:BitmapData;
 		
 		public function get ready():Boolean
 		{
 			return this._ready;
+		}
+		
+		/*public function get bitmapData():BitmapData
+		{
+			return _bitmapdata;
+		}*/
+		
+		public function set bitmapData( bitmapData:BitmapData ):void
+		{
+			//_bitmapdata.dispose();
+			
+			_bitmapdata = bitmapData;
+
+			checkBitmapSize(_bitmapdata.width, _bitmapdata.height);
+			
+			fillData();
 		}
 		
 		public function get doubleSide():Boolean
@@ -51,11 +67,11 @@ package cn.alchemy3d.render
 		{
 			this._ready = false;
 			this.name = name;
-			this.bitmapdata = bitmapdata;
+			_bitmapdata = bitmapdata;
 					
-			if (bitmapdata)
+			if (_bitmapdata)
 			{
-				checkBitmapSize(bitmapdata.width, bitmapdata.height);
+				checkBitmapSize(_bitmapdata.width, _bitmapdata.height);
 			}
 			
 			super();
@@ -69,7 +85,7 @@ package cn.alchemy3d.render
 			{
 				j = 2 << i;
 					
-				if (bitmapdata.width == j || bitmapdata.height == j)
+				if ( w == j || h == j )
 					break;
 			}
 				
@@ -80,26 +96,26 @@ package cn.alchemy3d.render
 		{
 			_pointer = Library.alchemy3DLib.initializeTexture(name);
 			
-			if (this.bitmapdata) fillData();
+			if ( _bitmapdata ) fillData();
 		}
 		
 		protected function fillData():void
 		{
 			var byte:ByteArray = new ByteArray();
-			byte = bitmapdata.getPixels(bitmapdata.rect);
+			byte = _bitmapdata.getPixels(_bitmapdata.rect);
 			byte.position = 0;
 			
-			var i:int = 0, j:int = bitmapdata.width * bitmapdata.height;
+			var i:int = 0, j:int = _bitmapdata.width * _bitmapdata.height;
 			var bitmapDataPtr:uint = Library.alchemy3DLib.applyForTmpBuffer(j * 4);
 			Library.memory.position = bitmapDataPtr;
 			
 			for (; i < j; i ++)
 				Library.memory.writeUnsignedInt(byte.readUnsignedInt());
 			
-			Library.alchemy3DLib.fillTextureData(_pointer, bitmapdata.width, bitmapdata.height, bitmapDataPtr);
+			Library.alchemy3DLib.fillTextureData(_pointer, _bitmapdata.width, _bitmapdata.height, bitmapDataPtr);
 			
-			bitmapdata.dispose();
-			bitmapdata = null;
+			_bitmapdata.dispose();
+			_bitmapdata = null;
 			
 			this._ready = true;
 		}
@@ -129,11 +145,7 @@ package cn.alchemy3d.render
 			loader.contentLoaderInfo.removeEventListener(ProgressEvent.PROGRESS, onProgress);
 			loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
 			
-			this.bitmapdata = Bitmap(loader.content).bitmapData;
-			
-			checkBitmapSize(bitmapdata.width, bitmapdata.height);
-			
-			fillData();
+			this.bitmapData = Bitmap(loader.content).bitmapData;
 			
 			dispatchEvent(e);
 		}
