@@ -27,7 +27,7 @@ typedef struct Viewport
 	int wh, dirty, nRenderList, nClippList, nCullList;
 
 	//视口宽高和宽高比
-	int width, height;
+	int width, height, mempitch, zpitch;
 
 	float aspect;
 
@@ -52,6 +52,8 @@ void viewport_resize( Viewport * viewport, int width, int height )
 	viewport->height = height;
 	viewport->aspect = (float)width / (float)height;
 	viewport->wh = wh;
+	viewport->mempitch = width * sizeof( DWORD );
+	viewport->zpitch = width * sizeof( DWORD );
 	viewport->dirty = TRUE;
 
 	if ( NULL != viewport->videoBuffer )	free( viewport->videoBuffer );
@@ -881,13 +883,13 @@ void viewport_project( Viewport * viewport, int time )
 #include "RenderFGTINVZB.h"
 #include "RenderWF.h"
 
-void viewport_render(Viewport * view)
+void viewport_render(Viewport * viewport)
 {
 	Triangle * face;
 
 	RenderList * rl;
 
-	rl = view->renderList->next;
+	rl = viewport->renderList->next;
 
 	while ( NULL != rl && NULL != rl->polygon )
 	{
@@ -898,55 +900,55 @@ void viewport_render(Viewport * view)
 			switch ( face->render_mode )
 			{
 				case RENDER_WIREFRAME_TRIANGLE_32:
-					Draw_Wireframe_Triangle_32( face, view->videoBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Wireframe_Triangle_32( face, viewport );
 					break;
 
 				case RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
-					Draw_Textured_Triangle_FSINVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Textured_Triangle_FSINVZB_32( face, viewport );
 					break;
 
 				case RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:
-					Draw_Textured_Triangle_GSINVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Textured_Triangle_GSINVZB_32( face, viewport );
 					break;
 
 				case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
-					Draw_Textured_Perspective_Triangle_FSINVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
 					break;
 
 				case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
-					Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
 					break;
 
 				case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
-					Draw_Textured_Triangle_INVZB_32( face, view );
+					Draw_Textured_Triangle_INVZB_32( face, viewport );
 					break;
 
 				case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
-					Draw_Textured_Bilerp_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Textured_Bilerp_Triangle_INVZB_32( face, viewport );
 					break;
 
 				case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
-					Draw_Textured_Perspective_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
 					break;
 
 				case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
-					Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
 					break;
 
 				case RENDER_FLAT_TRIANGLE_32 :
-					Draw_Flat_Triangle_32( face, view->videoBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Flat_Triangle_32( face, viewport );
 					break;
 
 				case RENDER_FLAT_TRIANGLEFP_32 :
-					Draw_Flat_TriangleFP_32( face, view->videoBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Flat_TriangleFP_32( face, viewport );
 					break;
 
 				case RENDER_FLAT_TRIANGLE_INVZB_32:
-					Draw_Flat_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Flat_Triangle_INVZB_32( face, viewport );
 					break;
 
 				case RENDER_GOURAUD_TRIANGLE_INVZB_32:
-					Draw_Gouraud_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Gouraud_Triangle_INVZB_32( face, viewport );
 					break;
 			}
 		}
@@ -955,23 +957,23 @@ void viewport_render(Viewport * view)
 			switch ( face->render_mode )
 			{
 				case RENDER_WIREFRAME_TRIANGLE_32:
-					Draw_Wireframe_Triangle_32( face, view->videoBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Wireframe_Triangle_32( face, viewport );
 					break;
 
 				case RENDER_FLAT_TRIANGLE_32 :
-					Draw_Flat_Triangle_32( face, view->videoBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Flat_Triangle_32( face, viewport );
 					break;
 
 				case RENDER_FLAT_TRIANGLEFP_32 :
-					Draw_Flat_TriangleFP_32( face, view->videoBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Flat_TriangleFP_32( face, viewport );
 					break;
 
 				case RENDER_FLAT_TRIANGLE_INVZB_32:
-					Draw_Flat_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Flat_Triangle_INVZB_32( face, viewport );
 					break;
 
 				case RENDER_GOURAUD_TRIANGLE_INVZB_32:
-					Draw_Gouraud_Triangle_INVZB_32( face, view->videoBuffer, view->width * sizeof( DWORD ), view->zBuffer, view->width * sizeof( DWORD ), 0, view->width - 1, 0, view->height - 1 );
+					Draw_Gouraud_Triangle_INVZB_32( face, viewport );
 					break;
 			}
 		}
