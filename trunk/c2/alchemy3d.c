@@ -177,12 +177,12 @@ AS3_Val initializePrimitives( void * self, AS3_Val args )
 	Mesh     * base;
 	Material * material;
 	Texture  * texture;
-	float width, height; 
+	double width, height; 
 	int segments_width, segments_height;
 
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, DoubleType, DoubleType, IntType, IntType", & base, & material, & texture, & width, & height, & segments_width, & segments_height );
 
-	newPlane( base, material, texture, width, height, segments_width, segments_height );
+	newPlane( base, material, texture, ( float )width, ( float )height, segments_width, segments_height );
 
 	return 0;
 }
