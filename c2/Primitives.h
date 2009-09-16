@@ -58,7 +58,7 @@ Mesh * newPlane(
 //<<<<<<< .mine
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32 );
 //=======
-			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
+			//mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 //>>>>>>> .r277
 	
 			// Triangle B
@@ -77,7 +77,7 @@ Mesh * newPlane(
 //<<<<<<< .mine
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32 );
 //=======
-			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
+			//mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 //>>>>>>> .r277
 		}
 	}

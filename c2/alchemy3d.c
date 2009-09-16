@@ -18,6 +18,7 @@
 #include "Md2.h"
 #include "Primitives.h"
 #include "AS3File.h"
+#include "Terrain.h"
 
 UCHAR * testBuff;
 
@@ -184,6 +185,21 @@ AS3_Val initializePrimitives( void * self, AS3_Val args )
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, DoubleType, DoubleType, IntType, IntType", & base, & material, & texture, & width, & height, & segments_width, & segments_height );
 
 	newPlane( base, material, texture, width, height, segments_width, segments_height );
+
+	return 0;
+}
+
+AS3_Val initializeTerrain( void * self, AS3_Val args )
+{
+	Mesh * base;
+	Material * material;
+	Texture * texture, * map;
+	double width, height, maxHeight;
+
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType", 
+		& base, & map, & material, & texture, & width, & height, & maxHeight );
+
+	newTerrain( base, map, ( float )width, ( float )height, ( float )maxHeight, 0, material, texture );
 
 	return 0;
 }
@@ -606,6 +622,7 @@ int main()
 	AS3_Val addLightMethod = AS3_Function( NULL, addLight );
 	AS3_Val removeLightMethod = AS3_Function( NULL, removeLight );
 	AS3_Val initializePrimitivesMethod = AS3_Function( NULL, initializePrimitives );
+	AS3_Val initializeTerrainMethod = AS3_Function( NULL, initializeTerrain );
 	AS3_Val initializeMeshMethod = AS3_Function( NULL, initializeMesh );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
@@ -633,6 +650,7 @@ int main()
 								 addLight:AS3ValType,\
 								 removeLight:AS3ValType,\
 								 initializePrimitives:AS3ValType,\
+								 initializeTerrain:AS3ValType,\
 								 initializeMesh:AS3ValType,\
 								 initializeEntity:AS3ValType,\
 								 addEntity:AS3ValType,\
@@ -657,6 +675,7 @@ int main()
 								addLightMethod,
 								removeLightMethod,
 								initializePrimitivesMethod,
+								initializeTerrainMethod,
 								initializeMeshMethod,
 								initializeEntityMethod,
 								addEntityMethod,
@@ -683,6 +702,7 @@ int main()
 	AS3_Release( addLightMethod );
 	AS3_Release( removeLightMethod );
 	AS3_Release( initializePrimitivesMethod );
+	AS3_Release( initializeTerrainMethod );
 	AS3_Release( initializeMeshMethod );
 	AS3_Release( initializeEntityMethod );
 	AS3_Release( addEntityMethod );
