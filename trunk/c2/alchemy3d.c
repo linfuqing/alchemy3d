@@ -14,10 +14,10 @@
 #include "Viewport.h"
 #include "Triangle.h"
 #include "Mesh.h"
-#include "3DS.h"
+#include "3DS_2.h"
 #include "Md2.h"
 #include "Primitives.h"
-#include "Terrain.h"
+#include "AS3File.h"
 
 UCHAR * testBuff;
 
@@ -184,22 +184,6 @@ AS3_Val initializePrimitives( void * self, AS3_Val args )
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, DoubleType, DoubleType, IntType, IntType", & base, & material, & texture, & width, & height, & segments_width, & segments_height );
 
 	newPlane( base, material, texture, width, height, segments_width, segments_height );
-
-	return 0;
-}
-
-
-AS3_Val initializeTerrain( void * self, AS3_Val args )
-{
-	Mesh * base;
-	Material * material;
-	Texture * texture, * map;
-	double width, height, maxHeight;
-
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType", 
-		& base, & map, & material, & texture, & width, & height, & maxHeight );
-
-	newTerrain( base, map, ( float )width, ( float )height, ( float )maxHeight, 0, material, texture );
 
 	return 0;
 }
@@ -411,6 +395,8 @@ AS3_Val initialize3DS( void* self, AS3_Val args )
 {
 	FILE * file;
 	void * dest;
+	Entity * entity;
+	A3DS * a3ds;
 
 	AS3_ArrayValue(args, "AS3ValType, PtrType", &dest, &entity);
 
@@ -423,11 +409,11 @@ AS3_Val initialize3DS( void* self, AS3_Val args )
 
 AS3_Val loadComplete3DS( void* self, AS3_Val args )
 {
-	A3DS * a3ds = NULL;
+	//A3DS * a3ds = NULL;
 
-	AS3_ArrayValue( args, "PtrType", &a3ds );
+	//AS3_ArrayValue( args, "PtrType", &a3ds );
 
-	A3DS_Dispose( a3ds );
+	//A3DS_Dispose( a3ds );
 
 	return 0;
 }
@@ -587,24 +573,22 @@ AS3_Val test( void* self, AS3_Val args )
 	return 0;
 }
 
-#include "AS3File.h"
-
 AS3_Val test2( void* self, AS3_Val args )
 {
-	FILE * file;
-	long fileSize;
-	char * buffer;
-	void * dest;
+	//FILE * file;
+	//long fileSize;
+	//char * buffer;
+	//void * dest;
 
-	AS3_ArrayValue(args, "AS3ValType", &dest);
+	//AS3_ArrayValue(args, "AS3ValType", &dest);
 
-	file = funopen((void *)dest, readByteArray, writeByteArray, seekByteArray, closeByteArray);
+	//file = funopen((void *)dest, readByteArray, writeByteArray, seekByteArray, closeByteArray);
 
-	fseek (file, 0, SEEK_END);
-	fileSize = ftell(file);
-	rewind (file);
+	//fseek (file, 0, SEEK_END);
+	//fileSize = ftell(file);
+	//rewind (file);
 
-	return AS3_Int(fileSize);
+	return 0;
 }
 
 //Èë¿Ú
@@ -622,7 +606,6 @@ int main()
 	AS3_Val addLightMethod = AS3_Function( NULL, addLight );
 	AS3_Val removeLightMethod = AS3_Function( NULL, removeLight );
 	AS3_Val initializePrimitivesMethod = AS3_Function( NULL, initializePrimitives );
-	AS3_Val initializeTerrainMethod = AS3_Function( NULL, initializeTerrain );
 	AS3_Val initializeMeshMethod = AS3_Function( NULL, initializeMesh );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
@@ -650,7 +633,6 @@ int main()
 								 addLight:AS3ValType,\
 								 removeLight:AS3ValType,\
 								 initializePrimitives:AS3ValType,\
-								 initializeTerrain:AS3ValType,\
 								 initializeMesh:AS3ValType,\
 								 initializeEntity:AS3ValType,\
 								 addEntity:AS3ValType,\
@@ -675,7 +657,6 @@ int main()
 								addLightMethod,
 								removeLightMethod,
 								initializePrimitivesMethod,
-								initializeTerrainMethod,
 								initializeMeshMethod,
 								initializeEntityMethod,
 								addEntityMethod,
@@ -702,7 +683,6 @@ int main()
 	AS3_Release( addLightMethod );
 	AS3_Release( removeLightMethod );
 	AS3_Release( initializePrimitivesMethod );
-	AS3_Release( initializeTerrainMethod );
 	AS3_Release( initializeMeshMethod );
 	AS3_Release( initializeEntityMethod );
 	AS3_Release( addEntityMethod );
