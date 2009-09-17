@@ -65,10 +65,10 @@ package cn.alchemy3d.external
 			Library.memory.position = fileBuffer;
 			Library.memory.writeBytes(loader.data, 0, length);
 			
+			var ps:Array = Library.alchemy3DLib.initialize3DS(loader.data, this.pointer);
+			
 			loader.data.clear();
 			loader.data = null;
-			
-			var ps:Array = Library.alchemy3DLib.initialize3DS(this.pointer, fileBuffer, length);
 			
 			a3dsPtr = ps[0];
 			var mNum:int = ps[1];		//材质数目
