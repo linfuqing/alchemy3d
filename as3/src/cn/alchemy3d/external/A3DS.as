@@ -2,6 +2,7 @@ package cn.alchemy3d.external
 {
 	import cn.alchemy3d.base.Library;
 	import cn.alchemy3d.container.Entity;
+	import cn.alchemy3d.render.RenderMode;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -13,7 +14,6 @@ package cn.alchemy3d.external
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
-	import flash.utils.getTimer;
 
 	public class A3DS extends Entity
 	{
@@ -26,8 +26,12 @@ package cn.alchemy3d.external
 		
 		protected var textures:Array = [];
 		
-		public function A3DS()
+		private var _renderMode:uint;
+		
+		public function A3DS(renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32)
 		{
+			_renderMode = renderMode;
+			
 			super("3DS_root");
 		}
 		
@@ -65,7 +69,7 @@ package cn.alchemy3d.external
 			Library.memory.position = fileBuffer;
 			Library.memory.writeBytes(loader.data, 0, length);
 			
-			var ps:Array = Library.alchemy3DLib.initialize3DS(loader.data, this.pointer);
+			var ps:Array = Library.alchemy3DLib.initialize3DS(loader.data, this.pointer, _renderMode);
 			
 			loader.data.clear();
 			loader.data = null;

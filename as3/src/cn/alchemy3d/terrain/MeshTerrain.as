@@ -4,12 +4,15 @@ package cn.alchemy3d.terrain
 	import cn.alchemy3d.container.Entity;
 	import cn.alchemy3d.geom.Mesh3D;
 	import cn.alchemy3d.render.Material;
+	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.render.Texture;
 	
 	import flash.display.BitmapData;
 
 	public class MeshTerrain extends Entity
 	{
+		private var _renderMode:uint;
+		
 		public function get material():Material
 		{
 			return _material;
@@ -20,15 +23,15 @@ package cn.alchemy3d.terrain
 			return _texture;
 		}
 		
-		public function MeshTerrain( map:Texture = null, material:Material = null, texture:Texture = null )
+		public function MeshTerrain( map:Texture = null, material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32 )
 		{
 			_map      = map      ? map      : new Texture();
 			
 			if( !_map.ready )
 			{
-				var bitmap:BitmapData = new BitmapData( 128, 128 );
+				var bitmap:BitmapData = new BitmapData( 64, 64 );
 				
-				bitmap.perlinNoise(128,128,4,Math.random()*1000,true,false,4,true);
+				bitmap.perlinNoise(64, 64, 8, Math.random() * 1000, true, false, 7, true);
 				
 				_map.bitmapData = bitmap;
 			}
@@ -36,24 +39,25 @@ package cn.alchemy3d.terrain
 			_material = material ? material : new Material();
 			_texture  = texture  ? texture  : new Texture();
 			
-			super("Primitives", new Mesh3D() );
+			_renderMode = renderMode;
+			
+			super("Terrain", new Mesh3D() );
 		}
 				
 		public function buildOn( 
-		width:Number  = 100000, 
-		height:Number = 100000, 
-		maxHeight:int = 10000 ):void
+								width:Number  = 100000, 
+								height:Number = 100000, 
+								maxHeight:int = 10000 ):void
 		{
 			Library.alchemy3DLib.initializeTerrain( 
-			mesh.pointer, 
-			_map.pointer,
-			_material.pointer, 
-			_texture.pointer, 
-			width, 
-			height,
-			maxHeight );
-			
-			//this.rotationX = 90;
+													mesh.pointer, 
+													_map.pointer,
+													_material.pointer, 
+													_texture.pointer, 
+													width, 
+													height,
+													maxHeight,
+													_renderMode );
 		}
 		
 		private var _map:Texture;
