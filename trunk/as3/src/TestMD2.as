@@ -8,17 +8,19 @@ package
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
 	import cn.alchemy3d.render.Material;
+	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.render.Texture;
 	import cn.alchemy3d.terrain.MeshTerrain;
 	import cn.alchemy3d.tools.Basic;
 	import cn.alchemy3d.tools.FPS;
 	
-	import flash.display.Bitmap;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.geom.ColorTransform;
 	import flash.net.URLLoader;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
+	import flash.ui.Keyboard;
 	
 	import gs.TweenLite;
 
@@ -34,6 +36,7 @@ package
 		protected var md2:MD2;
 		protected var md22:MD2;
 		
+		protected var t0:Texture;
 		protected var t1:Texture;
 		
 		protected var lightObj:Entity;
@@ -48,11 +51,12 @@ package
 		
 		public function TestMD2()
 		{
-			super(640, 480);
+			super(640, 480, 90, 50, 3800);
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
-			bl.add("asset/desert.jpg", {id:"0"});
+			bl.add("asset/162-7-005.png", {id:"0"});
+			bl.add("asset/md2/hobgoblin.jpg", {id:"1"});
 			bl.start();
 			//init();
 		}
@@ -76,82 +80,66 @@ package
 		{
 			bl.removeEventListener(BulkProgressEvent.COMPLETE, init);
 			
-			t1 = new Texture(bl.getBitmapData("0"));
+			t0 = new Texture(bl.getBitmapData("0"));
+			t1 = new Texture(bl.getBitmapData("1"));
 			
 			center = new Entity();
 			center.z = 300;
 			viewport.scene.addChild(center);
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(.3, .3, .3, 1);
-			m.diffuse = new ColorTransform(.6, .6, .6, 1);
-			m.specular = new ColorTransform(1, 1, 1, 1);
-			m.power = 4;
+			m.ambient = new ColorTransform(0, 0, 0, 1);
+			m.diffuse = new ColorTransform(.4, .4, .4, 1);
+			m.specular = new ColorTransform(0, 0, 0, 1);
 			
-			var lightM:Material = new Material();
-			lightM.ambient = new ColorTransform(1, 0, 0, 1);
-			
-			var lightM2:Material = new Material();
-			lightM2.ambient = new ColorTransform(0, 1, 0, 1);
-			
-			var lightM3:Material = new Material();
-			lightM3.ambient = new ColorTransform(0, 0, 1, 1);
+			var m2:Material = new Material();
+			m2.ambient = new ColorTransform(0, 0, 0, 1);
+			m2.diffuse = new ColorTransform(0, 0.7, 0, 1);
+			m2.specular = new ColorTransform(0, 0, 0, 1);
 			
 			lightObj = new Entity();
-			lightObj.y = -150;
-			lightObj.x = 50;
-			lightObj.z = 200;
+			lightObj.y = 1000;
+			lightObj.x = -1000;
+			lightObj.z = -1000;
 			viewport.scene.addChild( lightObj );
 			
 			lightObj2 = new Entity();
-			lightObj2.y = 150;
-			lightObj2.x = -150;
-			lightObj2.z = 150;
+			lightObj2.y = 1000;
+			lightObj2.x = 700;
+			lightObj2.z = 0;
 			viewport.scene.addChild(lightObj2);
 			
 			lightObj3 = new Entity();
-			lightObj3.y = 0;
-			lightObj3.x = 70;
-			lightObj3.z = 200;
+			lightObj3.y = 1000;
+			lightObj3.x = 500;
+			lightObj3.z = 1000;
 			viewport.scene.addChild(lightObj3);
 			
-			md2 = new MD2(m, t1);
-			//md2.lightEnable = true;
-			md2.load("asset/tris.jpg");
-			//scene.addEntity(md2);
-			//this.viewport.scene.addChild( md2 );
+			md2 = new MD2(m, t1, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
+			md2.lightEnable = true;
+			md2.load("asset/tris.md2");
+			this.viewport.scene.addChild( md2 );
 			
 			md2.rotationX = -90;
 			md2.rotationY = 45;
-			md2.y = -20;
+			md2.y = -100;
 			md2.x = 0;
-			md2.z = 200;
-			md2.scale = 10;
+			md2.z = 400;
+			md2.scale = 3;
 			
-			//var p:Primitives = new Primitives(m,t1);
-			//p.mesh.lightEnable = true;
-			//p.lightEnable = true;
-			//p.toPlane(500,500,1,2);
+//			var p:Primitives = new Primitives(m, t0, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32);
+//			p.mesh.lightEnable = true;
+//			p.toPlane(500,500,2,2);
+//			p.z = 300;
+//			this.viewport.scene.addChild( p );
 			
-			//center.addChild( p );
-			var terrain:MeshTerrain = new MeshTerrain(null,null,t1);
-			//terrain.mesh.lightEnable = true;
-			terrain.buildOn();
+			var terrain:MeshTerrain = new MeshTerrain(null, m2, null, RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32);
+			terrain.mesh.lightEnable = true;
+			terrain.buildOn(10000, 10000, 2000);
+			terrain.z = 0;
 			
-			center.addChild( terrain );
-			
-//			md22 = new MD2(m, t1);
-//			md22.lightEnable = true;
-//			md22.load("asset/md2/tris.MD2");
-//			scene.addEntity(md22);
-//			
-//			md22.rotationX = -90;
-//			md22.rotationY = 45;
-//			md22.y = -20;
-//			md22.x = 80;
-//			md22.z = 200;
-//			md22.scale = 3;
-			trace( "f:" + 0xffffff );
+			viewport.scene.addChild(terrain);
+
 			light = new Light3D(lightObj);
 			viewport.scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
@@ -160,8 +148,8 @@ package
 			light.ambient = new ColorTransform(0, 0, 0, 1);
 			light.diffuse = new ColorTransform(1, 0, 0, 1);
 			light.specular = new ColorTransform(1, 0, 0, 1);
-			light.attenuation1 = .0001;
-			light.attenuation2 = .0000001;
+			light.attenuation1 = 0.0001;
+			light.attenuation2 = 0;
 			
 			light2 = new Light3D(lightObj2);
 			viewport.scene.addLight(light2);
@@ -171,8 +159,8 @@ package
 			light2.ambient = new ColorTransform(0, 0, 0, 1);
 			light2.diffuse = new ColorTransform(0, 1, 0, 1);
 			light2.specular = new ColorTransform(0, 1, 0, 1);
-			light2.attenuation1 = .0001;
-			light2.attenuation2 = .0000001;
+			light2.attenuation1 = 0.0001;
+			light2.attenuation2 = 0;
 			
 			light3 = new Light3D(lightObj3);
 			viewport.scene.addLight(light3);
@@ -182,16 +170,27 @@ package
 			light3.ambient = new ColorTransform(0, 0, 0, 1);
 			light3.diffuse = new ColorTransform(0, 0, 1, 1);
 			light3.specular = new ColorTransform(0, 0, 1, 1);
-			light3.attenuation1 = .0001;
-			light3.attenuation2 = .0000001;
+			light3.attenuation1 = 0.0001;
+			light3.attenuation2 = 0;
 
 			startRendering();
 			
 			showInfo();
 			
-			//moveLight1(1);
-			//moveLight2(1);
-			//moveLight3(1);
+//			moveLight1(1);
+//			moveLight2(1);
+//			moveLight3(1);
+			
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+		}
+		
+		protected function onKeyDown(e:KeyboardEvent):void
+		{
+			if ( e.keyCode == Keyboard.UP )
+				camera.z += 50;
+				
+			if ( e.keyCode == Keyboard.DOWN )
+				camera.z -= 50;
 		}
 		
 		protected function moveLight1(dir:int = 1):void
@@ -217,11 +216,11 @@ package
 			super.onRenderTick(e);
 			
 			//center.z ++;
-			center.rotationY ++;
+//			center.rotationY ++;
 			
 			camera.target = center.worldPosition;
-			var mx:Number = viewport.mouseX / 500;
-			var my:Number = - viewport.mouseY / 500;
+			var mx:Number = viewport.mouseX / 300;
+			var my:Number = - viewport.mouseY / 300;
 			
 			camera.hover(mx, my, 10);
 		}
