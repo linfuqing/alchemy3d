@@ -31,8 +31,8 @@ package cn.alchemy3d.terrain
 			{
 				var bitmap:BitmapData = new BitmapData( 64, 64 );
 				
-				bitmap.perlinNoise(64, 64, 8, Math.random() * 1000, true, false, 7, true);
-				
+				bitmap.perlinNoise(64, 64, 8, Math.random() * 1000, true, true, 7, true);
+				//bitmap.fillRect(bitmap.rect,0);
 				_map.bitmapData = bitmap;
 			}
 			
@@ -50,7 +50,7 @@ package cn.alchemy3d.terrain
 								maxHeight:int = 10000 ):void
 		{
 			Library.alchemy3DLib.initializeTerrain( 
-													mesh.pointer, 
+													_pointer, 
 													_map.pointer,
 													_material.pointer, 
 													_texture.pointer, 

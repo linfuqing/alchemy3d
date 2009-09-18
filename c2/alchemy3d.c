@@ -66,7 +66,7 @@ AS3_Val attachScene( void* self, AS3_Val args )
 
 	//Viewport * viewport;
 
-	SceneNode * entityList;
+	SceneNode * entityList, * ep;
 
 	Lights * lights;
 
@@ -74,7 +74,15 @@ AS3_Val attachScene( void* self, AS3_Val args )
 
 	//viewport->scene = scene;
 
-	entityList->entity->scene = scene;
+	//ÐÞ¸Ä
+	ep = entityList;
+
+	while( ep != NULL )
+	{
+		ep->entity->scene = scene;
+		ep = ep->next;
+	}
+
 	scene -> nodes  = entityList;
 	scene -> lights = lights;
 	scene -> dirty  = TRUE;
@@ -192,7 +200,7 @@ AS3_Val initializePrimitives( void * self, AS3_Val args )
 
 AS3_Val initializeTerrain( void * self, AS3_Val args )
 {
-	Mesh * base;
+	Entity * base;
 	Material * material;
 	Texture * texture, * map;
 	double width, height, maxHeight;

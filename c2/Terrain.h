@@ -1,9 +1,9 @@
 #ifndef __TERRAIN_H
 #define __TERRAIN_H
 
-# include "Mesh.h"
+# include "Entity.h"
 
-Mesh * newTerrain( Mesh * mesh, Texture * map, float width, float height, float maxHeight, int color, Material * material, Texture * texture, DWORD render_mode )
+Entity * newTerrain( Entity * entity, Texture * map, float width, float height, float maxHeight, int color, Material * material, Texture * texture, DWORD render_mode )
 {
 	/*int i, j, index, _width = map -> width - 1, _height = map -> height - 1, wh = _width * _height;
 
@@ -74,24 +74,32 @@ Mesh * newTerrain( Mesh * mesh, Texture * map, float width, float height, float 
 
 	//float xOffset = width / ( map -> width - 1 ), yOffset = height / ( map -> height - 1 );
 
-	mesh = newPlane( mesh, material, texture, width, height, map -> width - 1, map -> height - 1, render_mode );
+	entity -> mesh = newPlane( entity -> mesh, material, texture, width, height, map -> width - 1, map -> height - 1, render_mode );
 
 	wh = map -> height * map -> width;
 
 	for( i = 0; i < wh; i ++ )
 	{
-		mesh -> vertices[i].position -> z = ( buffer[i] & 0x0000FF ) / 255.0f * maxHeight;
+		entity -> mesh -> vertices[i].position -> z = ( buffer[i] & 0x0000FF ) / 255.0f * maxHeight;
 
 		//AS3_Trace( AS3_Number( mesh -> vertices[k].position -> z ) );
 
 		//matrix3D_transformVector_self( & rotation, mesh -> vertices[k].position );
 
-		SWAP( mesh->vertices[i].position->y, mesh->vertices[i].position->z, tmp );
+		SWAP( entity -> mesh->vertices[i].position->y, entity -> mesh->vertices[i].position->z, tmp );
 
-		mesh->vertices[i].position->z = - mesh->vertices[i].position->z;
+		entity -> mesh->vertices[i].position->z = - entity -> mesh->vertices[i].position->z;
 	}
 
-	return mesh;
+	entity -> type          = ENTITY_TYPE_MESH_TERRAIN;
+
+	entity -> width         = width;
+	entity -> height        = height;
+
+	entity -> widthSegment  = map -> width - 1;
+	entity -> heightSegment = map -> height - 1;
+
+	return entity;
 }
 
 #endif

@@ -43,7 +43,7 @@ int main()
 	Camera * camera;
 	Viewport * view;
 	Scene * scene;
-	Entity * do3d3;
+	Entity * do3d3, * e;
 	Material * material, * material2;
 	//Entity * lightSource;
 	//Light * light;
@@ -110,20 +110,26 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	fopen_s( & fp, "D:\\3Dmodel\\3ds\\scene.jpg","rb");
+	//fopen_s( & fp, "D:\\3Dmodel\\3ds\\scene.jpg","rb");
 
-	a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
+	//a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 
-	A3DS_Dispose( a3ds );
+	//A3DS_Dispose( a3ds );
 
-	for ( i = 0; i < do3d3->children->entity->mesh->nFaces; i ++ )
-	{
-		do3d3->children->entity->mesh->faces[i].texture = texture;
-	}
+	//for ( i = 0; i < do3d3->children->entity->mesh->nFaces; i ++ )
+	//{
+		//do3d3->children->entity->mesh->faces[i].texture = texture;
+	//}
 
 	/*md2 = newMD2( do3d3 );
 
 	md2_read( & buffer, md2, material, texture, 1 );*/
+
+	e = newEntity();
+
+	scene_addEntity(scene,e,NULL);
+
+	e = newTerrain( e, texture, 4000, 4000, 700, 0, material, texture, RENDER_WIREFRAME_TRIANGLE_32 );
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -141,6 +147,8 @@ int main()
 
 	for ( i = 0; i < 20; i ++ )
 	{
+		do3d3 -> position -> x += 50;
+
 		viewport_updateBeforeRender( view );
 
 		viewport_project( view, 0 );

@@ -613,7 +613,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Ren
 void viewport_project( Viewport * viewport, int time )
 {
 	Scene * scene;
-	SceneNode * sceneNode;
+	SceneNode * sceneNode, * ep;
 	Camera * camera;
 	Entity * entity;
 	RenderList * curr_rl_ptr, * rl_ptr, * cl_ptr, * renderList;
@@ -625,9 +625,9 @@ void viewport_project( Viewport * viewport, int time )
 	Light * light;
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
 	FloatColor fColor, lastColor, outPutColor;
-	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
+	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor, textureX, textureY, iW, iH, tx, tz;
 
-	int l = 0, j = 0, code = 0;
+	int l = 0, j = 0, code = 0, gridX, gridZ, ix, iz, _x, _z;
 
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
@@ -656,6 +656,50 @@ void viewport_project( Viewport * viewport, int time )
 	while( sceneNode )
 	{
 		entity = sceneNode->entity;
+
+		if( entity -> type == ENTITY_TYPE_MESH_TERRAIN )
+		{
+			textureX = entity -> width  * .5f;
+			textureY = entity -> height * .5f;
+
+			iW = entity ->  widthSegment / entity -> width;
+			iH = entity -> heightSegment / entity -> height;
+
+			gridX = entity ->  widthSegment + 1;
+			gridZ = entity -> heightSegment + 1;
+
+			ep = scene -> nodes;
+
+			while( ep != NULL )
+			{
+				if( ep -> entity -> position -> x < - textureX 
+				||  ep -> entity -> position -> x >   textureX
+				||	ep -> entity -> position -> z < - textureY 
+				||  ep -> entity -> position -> z >   textureY
+				||  ep -> entity -> type == ENTITY_TYPE_MESH_TERRAIN )
+				{
+					ep = ep -> next;
+					continue;
+				}
+
+				tx = ( ep -> entity -> position -> x + textureX ) * iW;
+				tz = ( ep -> entity -> position -> z + textureY ) * iH;
+
+				ix = ( int )tx;
+				iz = ( int )tz;
+				
+				_x = ix + 1;
+				_z = iz + 1;
+
+				ep -> entity -> position -> y = - ( entity -> mesh -> vertices[ix * gridZ + iz].position -> y
+									  + entity -> mesh -> vertices[ix * gridZ + _z].position -> y
+									  + entity -> mesh -> vertices[_x * gridZ + iz].position -> y
+									  + entity -> mesh -> vertices[_x * gridZ + _z].position -> y
+								       ) * .25f;
+
+				ep = ep -> next;
+			}
+		}
 
 		entity_updateTransform(entity);
 

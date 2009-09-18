@@ -11,8 +11,24 @@
 #include "AABB.h"
 //#include "Animation.h"
 
+#define ENTITY_TYPE_MESH_TERRAIN 1
+
 typedef struct Entity
 {
+	int    type;
+
+	//如果不是地形,那么将存在高度
+	union
+	{
+		float halfHeight;
+
+		struct
+		{
+			float width, height;
+			int widthSegment, heightSegment;
+		};
+	};
+
 	char * name;
 
 	//是否可见，是否进行变换，子结点数
@@ -68,6 +84,9 @@ Entity * newEntity()
 	entity->worldInvert		= newMatrix3D(NULL);
 	entity->view			= newMatrix3D(NULL);
 	entity->projection		= newMatrix3D(NULL);
+
+	entity->type            = 0;
+	entity->halfHeight      = 0;
 
 	entity->name			= NULL;
 	entity->children		= NULL;
@@ -203,6 +222,7 @@ INLINE void entity_updateTransform( Entity * entity )
 	{
 		animation_update( entity -> animation, time );
 	}*/
+
 
 	//单位化
 	matrix3D_identity( entity->transform );
