@@ -64,7 +64,7 @@ Mesh * newTerrain( Mesh * mesh, Texture * map, float width, float height, float 
 			RENDER_WIREFRAME_TRIANGLE_32 );
 	}*/
 
-	int k = 0, * buffer = ( int * )map -> pRGBABuffer, wh;
+	int i, * buffer = ( int * )map -> pRGBABuffer, wh;
 
 	float tmp;
 
@@ -78,17 +78,17 @@ Mesh * newTerrain( Mesh * mesh, Texture * map, float width, float height, float 
 
 	wh = map -> height * map -> width;
 
-	for( k = 0; k < wh; k ++ )
+	for( i = 0; i < wh; i ++ )
 	{
-		mesh -> vertices[k].position -> z = ( buffer[k] & 0x0000FF ) / 255.0f * maxHeight;
+		mesh -> vertices[i].position -> z = ( buffer[i] & 0x0000FF ) / 255.0f * maxHeight;
 
 		//AS3_Trace( AS3_Number( mesh -> vertices[k].position -> z ) );
 
 		//matrix3D_transformVector_self( & rotation, mesh -> vertices[k].position );
 
-		SWAP( mesh->vertices[k].position->y, mesh->vertices[k].position->z, tmp );
+		SWAP( mesh->vertices[i].position->y, mesh->vertices[i].position->z, tmp );
 
-		mesh->vertices[k].position->z = - mesh->vertices[k].position->z;
+		mesh->vertices[i].position->z = - mesh->vertices[i].position->z;
 	}
 
 	return mesh;
