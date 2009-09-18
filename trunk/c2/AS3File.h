@@ -1,5 +1,5 @@
-#ifndef __FILE_H
-#define __FILE_H
+#ifndef __AS3FILE_H
+#define __AS3FILE_H
 
 /* Does a FILE * read against a ByteArray */
 static int readByteArray(void *cookie, char *dst, int size)

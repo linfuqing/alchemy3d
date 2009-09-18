@@ -1,5 +1,5 @@
-#ifndef __MATH_H
-#define __MATH_H
+#ifndef __MATH3D_H
+#define __MATH3D_H
 
 #ifdef INFINITY
 #undef INFINITY

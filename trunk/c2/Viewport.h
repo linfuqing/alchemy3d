@@ -191,34 +191,101 @@ INLINE void viewport_updateAfterRender( Viewport * viewport )
 //near			近截面
 //rl_ptr		当前渲染列表的指针
 //cl_ptr		当前裁剪列表的指针
-void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderList ** rl_ptr, RenderList ** cl_ptr )
+void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, RenderList ** rl_ptr, RenderList ** cl_ptr )
 {
-	int j, zCode0, zCode1, zCode2, verts_out, crossNear = FALSE;
-
+	int j, zCode0, zCode1, zCode2, verts_out;
 	Vector3D viewerToLocal;
-
 	Triangle * face, * face1, * face2;
-
 	int v0, v1, v2;
-
-	Vertex * tmpVert1, * tmpVert2;
-
 	float t1, t2,  xi, yi, ui, vi, x01i, x02i, y01i, y02i, u01i, u02i, v01i, v02i, dx, dy, dz;
+	Vertex * tmpVert1, * tmpVert2, * ver1_0, * ver1_1, * ver1_2, * ver2_0, * ver2_1, * ver2_2;
+	float near = camera->near, far = camera->far;
+	int crossNear	= FALSE,
+		crossLeft	= FALSE,
+		crossRight	= FALSE,
+		crossFar	= FALSE,
+		crossTop	= FALSE,
+		crossBottom	= FALSE;
 
-	Vertex * ver1_0, * ver1_1, * ver1_2, * ver2_0, * ver2_1, * ver2_2;
+	for( j = 0; j < entity->mesh->nVertices; j ++)
+	{
+		tmpVert1 = & entity->mesh->vertices[j];
 
-	//测试包围盒是否穿越近截面
-	if ( entity->mesh->CVVAABB->max->w > near && entity->mesh->CVVAABB->min->w < near ) crossNear = TRUE;
+		tmpVert1->w_pos->x = entity->projection->m11 * tmpVert1->position->x + entity->projection->m21 * tmpVert1->position->y + entity->projection->m31 * tmpVert1->position->z + entity->projection->m41;
+		tmpVert1->w_pos->y = entity->projection->m12 * tmpVert1->position->x + entity->projection->m22 * tmpVert1->position->y + entity->projection->m32 * tmpVert1->position->z + entity->projection->m42;
+		tmpVert1->w_pos->w = entity->projection->m14 * tmpVert1->position->x + entity->projection->m24 * tmpVert1->position->y + entity->projection->m34 * tmpVert1->position->z + entity->projection->m44;
+
+		tmpVert1->s_pos->x = tmpVert1->w_pos->x / tmpVert1->w_pos->w;
+		tmpVert1->s_pos->y = tmpVert1->w_pos->y / tmpVert1->w_pos->w;
+	}
+
+	//测试包围盒
+	if ( entity->mesh->CVVAABB->max->w > near	&& entity->mesh->CVVAABB->min->w < near )	crossNear	= TRUE;
+	if ( entity->mesh->CVVAABB->max->w > far	&& entity->mesh->CVVAABB->min->w < far )	crossFar	= TRUE;
+	if ( entity->mesh->CVVAABB->max->x > -1		&& entity->mesh->CVVAABB->min->w < -1 )		crossLeft	= TRUE;
+	if ( entity->mesh->CVVAABB->max->x > 1		&& entity->mesh->CVVAABB->min->x < 1 )		crossRight	= TRUE;
+	if ( entity->mesh->CVVAABB->max->y > -1		&& entity->mesh->CVVAABB->min->y < -1 )		crossTop	= TRUE;
+	if ( entity->mesh->CVVAABB->max->y > 1		&& entity->mesh->CVVAABB->min->y < 1 )		crossBottom	= TRUE;
 
 	//遍历面
 	for( j = 0; j < entity->mesh->nFaces; j ++)
 	{
+		face = & entity->mesh->faces[j];
+
+		if ( crossLeft &&
+			face->vertex[0]->s_pos->x < -1 &&
+			face->vertex[1]->s_pos->x < -1 &&
+			face->vertex[2]->s_pos->x < -1 )
+		{
+			viewport->nCullList ++;
+
+			continue;
+		}
+
+		if ( crossRight &&
+			face->vertex[0]->s_pos->x > 1 &&
+			face->vertex[1]->s_pos->x > 1 &&
+			face->vertex[2]->s_pos->x > 1 )
+		{
+			viewport->nCullList ++;
+
+			continue;
+		}
+
+		if ( crossTop &&
+			face->vertex[0]->s_pos->y < -1 &&
+			face->vertex[1]->s_pos->y < -1 &&
+			face->vertex[2]->s_pos->y < -1 )
+		{
+			viewport->nCullList ++;
+
+			continue;
+		}
+
+		if ( crossBottom &&
+			face->vertex[0]->s_pos->y > 1 &&
+			face->vertex[1]->s_pos->y > 1 &&
+			face->vertex[2]->s_pos->y > 1 )
+		{
+			viewport->nCullList ++;
+
+			continue;
+		}
+
+		if ( crossFar &&
+			face->vertex[0]->w_pos->w > far &&
+			face->vertex[1]->w_pos->w > far &&
+			face->vertex[2]->w_pos->w > far )
+		{
+			viewport->nCullList ++;
+
+			continue;
+		}
+
 		zCode0 = zCode1 = zCode2 = 0;
 
 		//越界标记置0
 		verts_out = FALSE;
-
-		face = & entity->mesh->faces[j];
 
 		face1 = face2 = NULL;
 
@@ -241,40 +308,24 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 			}
 		}
 
-		if ( face->vertex[0]->transformed != 1 )
-		{
-			matrix3D_transformVector( face->vertex[0]->w_pos, entity->view, face->vertex[0]->position );
-			face->vertex[0]->transformed = 1;
-		}
-		if ( face->vertex[1]->transformed != 1 )
-		{
-			matrix3D_transformVector( face->vertex[1]->w_pos, entity->view, face->vertex[1]->position );
-			face->vertex[1]->transformed = 1;
-		}
-		if ( face->vertex[2]->transformed != 1 )
-		{
-			matrix3D_transformVector( face->vertex[2]->w_pos, entity->view, face->vertex[2]->position );
-			face->vertex[2]->transformed = 1;
-		}
-
 		//如果包围盒穿越近截面，则进一步检测面是否穿越近截面
 		if ( TRUE == crossNear )
 		{
-			if ( face->vertex[0]->w_pos->z <= near )
+			if ( face->vertex[0]->w_pos->w <= near )
 			{
 				verts_out ++;
 
 				zCode0 = 0x01;
 			}
 
-			if ( face->vertex[1]->w_pos->z <= near )
+			if ( face->vertex[1]->w_pos->w <= near )
 			{
 				verts_out ++;
 
 				zCode1 = 0x02;
 			}
 
-			if ( face->vertex[2]->w_pos->z <= near )
+			if ( face->vertex[2]->w_pos->w <= near )
 			{
 				verts_out ++;
 
@@ -335,9 +386,9 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 					//=======================对v0->v1边进行裁剪=======================
 					dx = ver1_1->w_pos->x - ver1_0->w_pos->x;
 					dy = ver1_1->w_pos->y - ver1_0->w_pos->y;
-					dz = ver1_1->w_pos->z - ver1_0->w_pos->z;
+					dz = ver1_1->w_pos->w - ver1_0->w_pos->w;
 
-					t1 = ( ( near - ver1_0->w_pos->z ) / dz );
+					t1 = ( ( near - ver1_0->w_pos->w ) / dz );
 
 					//计算交点x、y坐标
 					xi = ver1_0->w_pos->x + dx * t1;
@@ -346,14 +397,16 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 					//用交点覆盖原来的顶点
 					ver1_1->w_pos->x = xi;
 					ver1_1->w_pos->y = yi;
-					ver1_1->w_pos->z = near;
+					ver1_1->w_pos->w = near;
+					ver1_1->s_pos->x = xi / near;
+					ver1_1->s_pos->y = yi / near;
 
 					//=======================对v0->v2边进行裁剪=======================
 					dx = ver1_2->w_pos->x - ver1_0->w_pos->x;
 					dy = ver1_2->w_pos->y - ver1_0->w_pos->y;
-					dz = ver1_2->w_pos->z - ver1_0->w_pos->z;
+					dz = ver1_2->w_pos->w - ver1_0->w_pos->w;
 
-					t2 = ( ( near - ver1_0->w_pos->z ) / dz );
+					t2 = ( ( near - ver1_0->w_pos->w ) / dz );
 
 					//计算交点x、y坐标
 					xi = ver1_0->w_pos->x + dx * t2;
@@ -362,7 +415,9 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 					//用交点覆盖原来的顶点
 					ver1_2->w_pos->x = xi;
 					ver1_2->w_pos->y = yi;
-					ver1_2->w_pos->z = near;
+					ver1_2->w_pos->w = near;
+					ver1_2->s_pos->x = xi / near;
+					ver1_2->s_pos->y = yi / near;
 
 					//检查多边形是否带纹理
 					//如果有，则对纹理坐标进行裁剪
@@ -453,9 +508,9 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 					//=======================对v0->v1边进行裁剪=======================
 					dx = ver1_1->w_pos->x - ver1_0->w_pos->x;
 					dy = ver1_1->w_pos->y - ver1_0->w_pos->y;
-					dz = ver1_1->w_pos->z - ver1_0->w_pos->z;
+					dz = ver1_1->w_pos->w - ver1_0->w_pos->w;
 
-					t1 = ( ( near - ver1_0->w_pos->z ) / dz );
+					t1 = ( ( near - ver1_0->w_pos->w ) / dz );
 
 					x01i = ver1_0->w_pos->x + dx * t1;
 					y01i = ver1_0->w_pos->y + dy * t1;
@@ -463,9 +518,9 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 					//=======================对v0->v2边进行裁剪=======================
 					dx = ver1_2->w_pos->x - ver1_0->w_pos->x;
 					dy = ver1_2->w_pos->y - ver1_0->w_pos->y;
-					dz = ver1_2->w_pos->z - ver1_0->w_pos->z;
+					dz = ver1_2->w_pos->w - ver1_0->w_pos->w;
 
-					t2 = ( ( near - ver1_0->w_pos->z ) / dz );
+					t2 = ( ( near - ver1_0->w_pos->w ) / dz );
 
 					x02i = ver1_0->w_pos->x + dx * t2;
 					y02i = ver1_0->w_pos->y + dy * t2;
@@ -476,16 +531,22 @@ void frustumClipping( Viewport * viewport, Entity * entity, float near, RenderLi
 					//用交点1覆盖原来三角形的顶点0
 					ver1_0->w_pos->x = x01i;
 					ver1_0->w_pos->y = y01i;
-					ver1_0->w_pos->z = near;
+					ver1_0->w_pos->w = near;
+					ver1_0->s_pos->x = x01i / near;
+					ver1_0->s_pos->y = y01i / near;
 
 					//用交点1覆盖新三角形的顶点1，交点2覆盖顶点0
 					ver2_1->w_pos->x = x01i;
 					ver2_1->w_pos->y = y01i;
-					ver2_1->w_pos->z = near;
+					ver2_1->w_pos->w = near;
+					ver2_1->s_pos->x = x01i / near;
+					ver2_1->s_pos->y = y01i / near;
 
 					ver2_0->w_pos->x = x02i;
 					ver2_0->w_pos->y = y02i;
-					ver2_0->w_pos->z = near;
+					ver2_0->w_pos->w = near;
+					ver2_0->s_pos->x = x02i / near;
+					ver2_0->s_pos->y = y02i / near;
 
 					//检查多边形是否带纹理
 					//如果有，则对纹理坐标进行裁剪
@@ -564,7 +625,7 @@ void viewport_project( Viewport * viewport, int time )
 	Light * light;
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
 	FloatColor fColor, lastColor, outPutColor;
-	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor, invw;
+	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
 
 	int l = 0, j = 0, code = 0;
 
@@ -643,7 +704,7 @@ void viewport_project( Viewport * viewport, int time )
 			curr_rl_ptr	= rl_ptr;
 
 			//多边形裁剪
-			frustumClipping( viewport, entity, camera->near, & rl_ptr, & cl_ptr );
+			frustumClipping( viewport, camera, entity, & rl_ptr, & cl_ptr );
 
 			//========================光照计算======================
 
@@ -850,25 +911,27 @@ void viewport_project( Viewport * viewport, int time )
 						lastColor.alpha = material->diffuse->alpha;
 					}
 
-					matrix3D_transformVector( vs->s_pos, camera->projectionMatrix, vs->w_pos );
+					//matrix3D_transformVector( vs->s_pos, camera->projectionMatrix, vs->w_pos );
 
-					invw = 1.0f / vs->s_pos->w;
+					//invw = 1.0f / vs->w_pos->w;
 
-					vs->s_pos->x *= invw;
-					vs->s_pos->y *= invw;
+					//vs->s_pos->x = vs->w_pos->x * invw;
+					//vs->s_pos->y = vs->w_pos->y * invw;
 
 					vs->s_pos->x += 0.5f;
 					vs->s_pos->y += 0.5f;
 
 					vs->s_pos->x *= viewport->width;
 					vs->s_pos->y *= viewport->height;
+					vs->s_pos->w = vs->w_pos->w;
 
-					vs->fix_inv_z = (1 << FIXP28_SHIFT) / (int)(vs->s_pos->w + 0.5f );
+					vs->fix_inv_z = (1 << FIXP28_SHIFT) / (int)(vs->w_pos->w + 0.5f );
 
 					vs->color->red = (BYTE)(lastColor.red * 255.0f);
 					vs->color->green = (BYTE)(lastColor.green * 255.0f);
 					vs->color->blue = (BYTE)(lastColor.blue * 255.0f);
 					vs->color->alpha = (BYTE)(lastColor.alpha * 255.0f);
+
 					vs->transformed = 2;
 				}
 

@@ -1,6 +1,9 @@
+#ifndef __TERRAIN_H
+#define __TERRAIN_H
+
 # include "Mesh.h"
 
-Mesh * newTerrain( Mesh * mesh, Texture * map, float width, float height, float maxHeight, int color, Material * material, Texture * texture )
+Mesh * newTerrain( Mesh * mesh, Texture * map, float width, float height, float maxHeight, int color, Material * material, Texture * texture, DWORD render_mode )
 {
 	/*int i, j, index, _width = map -> width - 1, _height = map -> height - 1, wh = _width * _height;
 
@@ -61,29 +64,34 @@ Mesh * newTerrain( Mesh * mesh, Texture * map, float width, float height, float 
 			RENDER_WIREFRAME_TRIANGLE_32 );
 	}*/
 
-	int i, j, k = 0, * buffer = ( int * )map -> pRGBABuffer;
+	int k = 0, * buffer = ( int * )map -> pRGBABuffer, wh;
 
-	Matrix3D rotation;
-	
-	rotationMatrix3D( & rotation, 90, 1 );
+	float tmp;
+
+	//Matrix3D rotation;
+	//
+	//rotationMatrix3D( & rotation, 90, 1 );
 
 	//float xOffset = width / ( map -> width - 1 ), yOffset = height / ( map -> height - 1 );
 
-	mesh = newPlane( mesh, material, texture, width, height, map -> width - 1, map -> height - 1 );
+	mesh = newPlane( mesh, material, texture, width, height, map -> width - 1, map -> height - 1, render_mode );
 
-	for( i = 0; i < map -> height; i ++ )
+	wh = map -> height * map -> width;
+
+	for( k = 0; k < wh; k ++ )
 	{
-		for( j = 0; j < map -> width; j ++ )
-		{
-			mesh -> vertices[k].position -> z = ( buffer[k] & 0x0000FF ) / 255.0f * maxHeight;
+		mesh -> vertices[k].position -> z = ( buffer[k] & 0x0000FF ) / 255.0f * maxHeight;
 
-			//AS3_Trace( AS3_Number( mesh -> vertices[k].position -> z ) );
+		//AS3_Trace( AS3_Number( mesh -> vertices[k].position -> z ) );
 
-			matrix3D_transformVector_self( & rotation, mesh -> vertices[k].position );
+		//matrix3D_transformVector_self( & rotation, mesh -> vertices[k].position );
 
-			k ++;
-		}
+		SWAP( mesh->vertices[k].position->y, mesh->vertices[k].position->z, tmp );
+
+		mesh->vertices[k].position->z = - mesh->vertices[k].position->z;
 	}
 
 	return mesh;
 }
+
+#endif

@@ -14,7 +14,7 @@
 #include "Viewport.h"
 #include "Triangle.h"
 #include "Mesh.h"
-#include "3DS_2.h"
+#include "3DS.h"
 #include "Md2.h"
 #include "Primitives.h"
 #include "AS3File.h"
@@ -179,12 +179,13 @@ AS3_Val initializePrimitives( void * self, AS3_Val args )
 	Mesh     * base;
 	Material * material;
 	Texture  * texture;
-	float width, height; 
-	int segments_width, segments_height;
+	double width, height; 
+	DWORD segments_width, segments_height;
+	DWORD render_mode;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, DoubleType, DoubleType, IntType, IntType", & base, & material, & texture, & width, & height, & segments_width, & segments_height );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, DoubleType, DoubleType, IntType, IntType, IntType", & base, & material, & texture, & width, & height, & segments_width, & segments_height, & render_mode );
 
-	newPlane( base, material, texture, width, height, segments_width, segments_height );
+	newPlane( base, material, texture, (float)width, (float)height, segments_width, segments_height, render_mode );
 
 	return 0;
 }
@@ -195,11 +196,12 @@ AS3_Val initializeTerrain( void * self, AS3_Val args )
 	Material * material;
 	Texture * texture, * map;
 	double width, height, maxHeight;
+	DWORD render_mode;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType", 
-		& base, & map, & material, & texture, & width, & height, & maxHeight );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType, IntType", 
+		& base, & map, & material, & texture, & width, & height, & maxHeight, & render_mode );
 
-	newTerrain( base, map, ( float )width, ( float )height, ( float )maxHeight, 0, material, texture );
+	newTerrain( base, map, ( float )width, ( float )height, ( float )maxHeight, 0, material, texture, render_mode );
 
 	return 0;
 }
@@ -413,23 +415,24 @@ AS3_Val initialize3DS( void* self, AS3_Val args )
 	void * dest;
 	Entity * entity;
 	A3DS * a3ds;
+	DWORD render_mode;
 
-	AS3_ArrayValue(args, "AS3ValType, PtrType", &dest, &entity);
+	AS3_ArrayValue(args, "AS3ValType, PtrType, IntType", &dest, &entity, &render_mode);
 
 	file = funopen((void *)dest, readByteArray, writeByteArray, seekByteArray, closeByteArray);
 
-	a3ds = A3DS_Create( file, entity );
+	a3ds = A3DS_Create( file, entity, render_mode );
 
 	return AS3_Array( "PtrType, IntType, IntType, PtrType, IntType, IntType, IntType", a3ds, a3ds->mNum, a3ds->tNum, a3ds->a3d_materialList->next, FPOS( A3DS_MaterialList, next ), FPOS( A3DS_MaterialList, texture ), FPOS( Texture, name ) );
 }
 
 AS3_Val loadComplete3DS( void* self, AS3_Val args )
 {
-	//A3DS * a3ds = NULL;
+	A3DS * a3ds = NULL;
 
-	//AS3_ArrayValue( args, "PtrType", &a3ds );
+	AS3_ArrayValue( args, "PtrType", &a3ds );
 
-	//A3DS_Dispose( a3ds );
+	A3DS_Dispose( a3ds );
 
 	return 0;
 }
