@@ -18,9 +18,10 @@
 #include "Texture.h"
 #include "Light.h"
 #include "Plane3D.h"
-#include "3DS_2.h"
+#include "3DS.h"
 #include "MD2.h"
 #include "Primitives.h"
+#include "Terrain.h"
 
 long GetFileSize(FILE* f)
 {
@@ -109,11 +110,16 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	fopen_s( & fp, "D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\3ds\\scene.jpg","rb");
+	fopen_s( & fp, "D:\\3Dmodel\\3ds\\scene.jpg","rb");
 
-	a3ds = A3DS_Create( fp, do3d3 );
+	a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 
-	//A3DS_Dispose( a3ds );
+	A3DS_Dispose( a3ds );
+
+	for ( i = 0; i < do3d3->children->entity->mesh->nFaces; i ++ )
+	{
+		do3d3->children->entity->mesh->faces[i].texture = texture;
+	}
 
 	/*md2 = newMD2( do3d3 );
 
