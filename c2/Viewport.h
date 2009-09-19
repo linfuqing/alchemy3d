@@ -625,9 +625,9 @@ void viewport_project( Viewport * viewport, int time )
 	Light * light;
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
 	FloatColor fColor, lastColor, outPutColor;
-	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor, textureX, textureY, iW, iH, tx, tz;
+	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
 
-	int l = 0, j = 0, code = 0, gridX, gridZ, ix, iz, _x, _z;
+	int l = 0, j = 0, code = 0;
 
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
@@ -659,14 +659,19 @@ void viewport_project( Viewport * viewport, int time )
 
 		if( entity -> type == ENTITY_TYPE_MESH_TERRAIN )
 		{
-			textureX = entity -> width  * .5f;
-			textureY = entity -> height * .5f;
+			float textureX = entity -> width  * .5f,
+				  textureY = entity -> height * .5f,
 
-			iW = entity ->  widthSegment / entity -> width;
-			iH = entity -> heightSegment / entity -> height;
+				  iW = entity ->  widthSegment / entity -> width,
+				  iH = entity -> heightSegment / entity -> height,
 
-			gridX = entity ->  widthSegment + 1;
-			gridZ = entity -> heightSegment + 1;
+				   tx, tz,
+				   
+				   height, b, c;
+
+			int gridX = entity ->  widthSegment + 1,
+				gridZ = entity -> heightSegment + 1,
+				ix, iz, _x, _z, aIndex, bIndex, cIndex;
 
 			ep = scene -> nodes;
 
@@ -691,11 +696,30 @@ void viewport_project( Viewport * viewport, int time )
 				_x = ix + 1;
 				_z = iz + 1;
 
-				ep -> entity -> position -> y = - ( entity -> mesh -> vertices[ix * gridZ + iz].position -> y
-									  + entity -> mesh -> vertices[ix * gridZ + _z].position -> y
-									  + entity -> mesh -> vertices[_x * gridZ + iz].position -> y
-									  + entity -> mesh -> vertices[_x * gridZ + _z].position -> y
-								       ) * .25f;
+				if( ( tx -= ix ) + ( tz -= iz ) > 1 )
+				{
+					aIndex = ix * gridZ + iz;
+					cIndex = ix * gridZ + _z;
+					bIndex = _x * gridZ + iz;
+				}
+				else
+				{
+					aIndex = _x * gridZ + _z;
+					cIndex = _x * gridZ + iz;
+					bIndex = ix * gridZ + _z;
+				}
+
+				b = entity -> mesh -> vertices[bIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
+				c = entity -> mesh -> vertices[cIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
+
+				height = invSqrt( 2 ) * tx * ( c - b ) + b * tx + b * tz + entity -> mesh -> vertices[aIndex].position -> y;
+
+				ep -> entity -> position -> y = - height;
+
+				/*ep -> entity -> position -> y = - ( entity -> mesh -> vertices[aIndex].position -> y
+									  + entity -> mesh -> vertices[bIndex].position -> y
+									  + entity -> mesh -> vertices[cIndex].position -> y
+								       ) * .333333333333333333333333f;*/
 
 				ep = ep -> next;
 			}
