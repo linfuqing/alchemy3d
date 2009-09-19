@@ -209,7 +209,7 @@ AS3_Val initializeTerrain( void * self, AS3_Val args )
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType, IntType", 
 		& base, & map, & material, & texture, & width, & height, & maxHeight, & render_mode );
 
-	newTerrain( base, map, ( float )width, ( float )height, ( float )maxHeight, 0, material, texture, render_mode );
+	newTerrain( base, map, ( float )width, ( float )height, ( float )maxHeight, material, texture, render_mode );
 
 	return 0;
 }
@@ -391,7 +391,9 @@ AS3_Val addEntity( void* self, AS3_Val args )
 	}
 	else
 	{
-		ep -> next = node;
+		ep   -> next             = node;
+
+		node -> entity -> parent = NULL;
 	}
 
 	return 0;

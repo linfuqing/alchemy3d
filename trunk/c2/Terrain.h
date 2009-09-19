@@ -3,7 +3,7 @@
 
 # include "Entity.h"
 
-Entity * newTerrain( Entity * entity, Texture * map, float width, float height, float maxHeight, int color, Material * material, Texture * texture, DWORD render_mode )
+Entity * newTerrain( Entity * entity, Texture * map, float width, float height, float maxHeight, Material * material, Texture * texture, DWORD render_mode )
 {
 	/*int i, j, index, _width = map -> width - 1, _height = map -> height - 1, wh = _width * _height;
 
@@ -80,7 +80,7 @@ Entity * newTerrain( Entity * entity, Texture * map, float width, float height, 
 
 	for( i = 0; i < wh; i ++ )
 	{
-		entity -> mesh -> vertices[i].position -> z = ( buffer[i] & 0x0000FF ) / 255.0f * maxHeight;
+		entity -> mesh -> vertices[i].position -> z = ( buffer[i] & 0x0000FF ) / 255.0f * maxHeight - maxHeight / 2;
 
 		//AS3_Trace( AS3_Number( mesh -> vertices[k].position -> z ) );
 
@@ -88,7 +88,7 @@ Entity * newTerrain( Entity * entity, Texture * map, float width, float height, 
 
 		SWAP( entity -> mesh->vertices[i].position->y, entity -> mesh->vertices[i].position->z, tmp );
 
-		entity -> mesh->vertices[i].position->z = - entity -> mesh->vertices[i].position->z;
+		//entity -> mesh->vertices[i].position->z = - entity -> mesh->vertices[i].position->z;
 	}
 
 	entity -> type          = ENTITY_TYPE_MESH_TERRAIN;
