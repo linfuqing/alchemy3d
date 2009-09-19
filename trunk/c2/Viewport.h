@@ -667,21 +667,24 @@ void viewport_project( Viewport * viewport, int time )
 
 				   tx, tz,
 				   
-				   height, b, c;
+				   height;
 
-			int gridX = entity ->  widthSegment + 1,
+			int //gridX = entity ->  widthSegment + 1,
 				gridZ = entity -> heightSegment + 1,
 				ix, iz, _x, _z, aIndex, bIndex, cIndex;
+
+			Vector3D normal;
 
 			ep = scene -> nodes;
 
 			while( ep != NULL )
 			{
-				if( ep -> entity -> position -> x < - textureX 
+				if( ep -> entity -> type == ENTITY_TYPE_MESH_TERRAIN
+				||  ep -> entity -> parent != entity -> parent
+				||	ep -> entity -> position -> x < - textureX 
 				||  ep -> entity -> position -> x >   textureX
 				||	ep -> entity -> position -> z < - textureY 
-				||  ep -> entity -> position -> z >   textureY
-				||  ep -> entity -> type == ENTITY_TYPE_MESH_TERRAIN )
+				||  ep -> entity -> position -> z >   textureY )
 				{
 					ep = ep -> next;
 					continue;
@@ -709,17 +712,38 @@ void viewport_project( Viewport * viewport, int time )
 					bIndex = ix * gridZ + _z;
 				}
 
-				b = entity -> mesh -> vertices[bIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
+				/*b = entity -> mesh -> vertices[bIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
 				c = entity -> mesh -> vertices[cIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
 
-				height = invSqrt( 2 ) * tx * ( c - b ) + b * tx + b * tz + entity -> mesh -> vertices[aIndex].position -> y;
+				//////
+				///跟踪算法1
+				///
+				///三角形插值
+				///根据网格地形三角形投影始终为直角等腰三角形
+				///故点投影高度为:根号2(c-b)+bx+by
+				//////
+				height = invSqrt( 2 ) * tx * ( c - b ) + b * tx + b * tz + entity -> mesh -> vertices[aIndex].position -> y;*/
 
-				ep -> entity -> position -> y = - height;
+				//////
+				///跟踪算法2:
+				///
+				///平面算法
+				//////
+				triangle_normal( & normal, entity -> mesh -> vertices + aIndex, entity -> mesh -> vertices + bIndex, entity -> mesh -> vertices + cIndex );
 
+				height = - ( ep -> entity -> position -> x * normal.x + ep -> entity -> position -> z * normal.z - vector3D_dotProduct( & normal, entity -> mesh -> vertices[aIndex].position ) ) / normal.y;
+
+				/////
+				///跟踪算法3
+				///
+				///平均值
+				/////
 				/*ep -> entity -> position -> y = - ( entity -> mesh -> vertices[aIndex].position -> y
 									  + entity -> mesh -> vertices[bIndex].position -> y
 									  + entity -> mesh -> vertices[cIndex].position -> y
 								       ) * .333333333333333333333333f;*/
+
+				ep -> entity -> position -> y = ep -> entity -> halfHeight - height;
 
 				ep = ep -> next;
 			}
