@@ -9,11 +9,11 @@ Mesh * newPlane(
 				Texture  * texture, 
 				float width, 
 				float height, 
-				DWORD segments_width, 
-				DWORD segments_height,
+				int segments_width, 
+				int segments_height,
 				DWORD render_mode )
 {
-	DWORD gridX    = segments_width + 1,     gridY    = segments_height + 1;
+	int gridX    = segments_width + 1,     gridY    = segments_height + 1;
 	float textureX = width * .5f,            textureY = height * .5f, 
 		  iW       = width / segments_width, iH       = height / segments_height,
 		  x,y;
@@ -22,7 +22,7 @@ Mesh * newPlane(
 
 	Vertex * a, * b, * c;
 
-	DWORD ix, iy, aIndex, cIndex, bIndex;
+	int ix, iy, aIndex, cIndex, bIndex;
 	
 	base = mesh_reBuild( base, gridX * gridY, segments_width * segments_height * 2 );
 
@@ -51,10 +51,10 @@ Mesh * newPlane(
 			a = & base -> vertices[aIndex];
 			c = & base -> vertices[cIndex];
 			b = & base -> vertices[bIndex];
-	
-			uvA =  newVector( (float)(ix)   / (float)(segments_width), (float)(iy)   / (float)(segments_height) );
-			uvC =  newVector( (float)(ix)   / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
-			uvB =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy)   / (float)(segments_height) );
+
+			uvA =  newVector( (float)(ix)   / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
+			uvC =  newVector( (float)(ix)   / (float)(segments_width), (float)(iy)   / (float)(segments_height) );
+			uvB =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
 	
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, render_mode );
 	
@@ -67,9 +67,9 @@ Mesh * newPlane(
 			c = & base -> vertices[cIndex];
 			b = & base -> vertices[bIndex];
 	
-			uvA =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
-			uvC =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy)   / (float)(segments_height) );
-			uvB =  newVector( (float)(ix)   / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
+			uvA =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy)   / (float)(segments_height) );
+			uvC =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
+			uvB =  newVector( (float)(ix)   / (float)(segments_width), (float)(iy)   / (float)(segments_height) );
 					
 			mesh_push_triangle( base, a, b, c, uvA, uvB, uvC, material, texture, render_mode );
 		}
