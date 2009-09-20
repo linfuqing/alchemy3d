@@ -743,7 +743,7 @@ void viewport_project( Viewport * viewport, int time )
 									  + entity -> mesh -> vertices[cIndex].position -> y
 								       ) * .333333333333333333333333f;*/
 
-				ep -> entity -> position -> y = ep -> entity -> halfHeight - height;
+				ep -> entity -> position -> y = ep -> entity -> halfHeight + height;
 
 				ep = ep -> next;
 			}

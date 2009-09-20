@@ -88,7 +88,7 @@ Entity * newTerrain( Entity * entity, Texture * map, float width, float height, 
 
 		SWAP( entity -> mesh->vertices[i].position->y, entity -> mesh->vertices[i].position->z, tmp );
 
-		entity -> mesh->vertices[i].position->y = - entity -> mesh->vertices[i].position->y;
+		//entity -> mesh->vertices[i].position->y = - entity -> mesh->vertices[i].position->y;
 	}
 
 	entity -> type          = ENTITY_TYPE_MESH_TERRAIN;
