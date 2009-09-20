@@ -227,7 +227,7 @@ INLINE void entity_updateTransform( Entity * entity )
 	//单位化
 	matrix3D_identity( entity->transform );
 	//缩放
-	matrix3D_appendScale( entity->transform, entity->scale->x, - entity->scale->y, entity->scale->z );
+	matrix3D_appendScale( entity->transform, entity->scale->x, entity->scale->y, entity->scale->z );
 	//旋转
 	matrix3D_append_self( entity->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( entity->direction->y ), DEG2RAD( entity->direction->x ), DEG2RAD( entity->direction->z ) ) ) );
 	//位移
