@@ -729,6 +729,8 @@ void A3DS_Objblock_Chunk_Handler( FILE * file, A3DS * a3ds, DWORD dwLength  )
 
 				nml = a3ds->a3d_materialList->next;
 
+				if ( nml->texture ) mesh->textureState = TEX_NOT_READY;
+
 				while ( nml )
 				{
 					if ( strcmp( nml->name, tList->name ) == 0 )

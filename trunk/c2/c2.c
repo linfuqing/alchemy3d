@@ -43,12 +43,12 @@ int main()
 	Camera * camera;
 	Viewport * view;
 	Scene * scene;
-	Entity * do3d3, * e;
+	Entity * do3d3;
 	Material * material, * material2;
 	//Entity * lightSource;
 	//Light * light;
 	Texture * texture;
-	//Mesh * mesh4;
+	Mesh * mesh4;
 
 	int i = 0;
 	int j = 0;
@@ -89,7 +89,7 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	//mesh4 = newPlane( NULL, material, texture, 100, 100, 1, 1 );
+	mesh4 = newPlane( NULL, material, texture, 300, 300, 1, 1, RENDER_WIREFRAME_TRIANGLE_32 );
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	
@@ -101,8 +101,9 @@ int main()
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
+	//entity_setY(do3d3, 100.0f);
 	entity_setZ(do3d3, 400.0f);
-	//entity_setMesh( do3d3, mesh4 );
+	entity_setMesh( do3d3, mesh4 );
 
 	scene_addEntity(scene, do3d3, NULL);
 
@@ -110,26 +111,20 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	//fopen_s( & fp, "D:\\3Dmodel\\3ds\\scene.jpg","rb");
+	/*fopen_s( & fp, "D:\\3Dmodel\\3ds\\scene.jpg","rb");
 
-	//a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
+	a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 
-	//A3DS_Dispose( a3ds );
+	A3DS_Dispose( a3ds );
 
-	//for ( i = 0; i < do3d3->children->entity->mesh->nFaces; i ++ )
-	//{
-		//do3d3->children->entity->mesh->faces[i].texture = texture;
-	//}
+	for ( i = 0; i < do3d3->children->entity->mesh->nFaces; i ++ )
+	{
+		do3d3->children->entity->mesh->faces[i].texture = texture;
+	}*/
 
 	/*md2 = newMD2( do3d3 );
 
 	md2_read( & buffer, md2, material, texture, 1 );*/
-
-	e = newEntity();
-
-	scene_addEntity(scene,e,NULL);
-
-	e = newTerrain( e, texture, 4000, 4000, 700, 0, material, texture, RENDER_WIREFRAME_TRIANGLE_32 );
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -147,8 +142,6 @@ int main()
 
 	for ( i = 0; i < 20; i ++ )
 	{
-		do3d3 -> position -> x += 50;
-
 		viewport_updateBeforeRender( view );
 
 		viewport_project( view, 0 );

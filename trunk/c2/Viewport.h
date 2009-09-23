@@ -295,12 +295,12 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Ren
 		//线框模式将不进行背面剔除
 		if ( face->render_mode != RENDER_WIREFRAME_TRIANGLE_32 )
 		{
-			vector3D_subtract( & viewerToLocal, entity->viewerToLocal, face->center );
+			vector3D_subtract( & viewerToLocal, face->vertex[0]->position, entity->viewerToLocal );
 
 			vector3D_normalize( & viewerToLocal );
 
 			//如果夹角大于90或小于-90时，即背向摄像机
-			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.00001f )
+			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.0f )
 			{
 				viewport->nCullList ++;
 
@@ -657,98 +657,6 @@ void viewport_project( Viewport * viewport, int time )
 	{
 		entity = sceneNode->entity;
 
-		if( entity -> type == ENTITY_TYPE_MESH_TERRAIN )
-		{
-			float textureX = entity -> width  * .5f,
-				  textureY = entity -> height * .5f,
-
-				  iW = entity ->  widthSegment / entity -> width,
-				  iH = entity -> heightSegment / entity -> height,
-
-				   tx, tz,
-				   
-				   height;
-
-			int //gridX = entity ->  widthSegment + 1,
-				gridZ = entity -> heightSegment + 1,
-				ix, iz, _x, _z, aIndex, bIndex, cIndex;
-
-			Vector3D normal;
-
-			ep = scene -> nodes;
-
-			while( ep != NULL )
-			{
-				if( ep -> entity -> type == ENTITY_TYPE_MESH_TERRAIN
-				||  ep -> entity -> parent != entity -> parent
-				||	ep -> entity -> position -> x < - textureX 
-				||  ep -> entity -> position -> x >   textureX
-				||	ep -> entity -> position -> z < - textureY 
-				||  ep -> entity -> position -> z >   textureY )
-				{
-					ep = ep -> next;
-					continue;
-				}
-
-				tx = ( ep -> entity -> position -> x + textureX ) * iW;
-				tz = ( ep -> entity -> position -> z + textureY ) * iH;
-
-				ix = ( int )tx;
-				iz = ( int )tz;
-				
-				_x = ix + 1;
-				_z = iz + 1;
-
-				if( ( tx -= ix ) + ( tz -= iz ) > 1 )
-				{
-					aIndex = ix * gridZ + iz;
-					cIndex = ix * gridZ + _z;
-					bIndex = _x * gridZ + iz;
-				}
-				else
-				{
-					aIndex = _x * gridZ + _z;
-					cIndex = _x * gridZ + iz;
-					bIndex = ix * gridZ + _z;
-				}
-
-				/*b = entity -> mesh -> vertices[bIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
-				c = entity -> mesh -> vertices[cIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
-
-				//////
-				///跟踪算法1
-				///
-				///三角形插值
-				///根据网格地形三角形投影始终为直角等腰三角形
-				///故点投影高度为:根号2(c-b)+bx+by
-				//////
-				height = invSqrt( 2 ) * tx * ( c - b ) + b * tx + b * tz + entity -> mesh -> vertices[aIndex].position -> y;*/
-
-				//////
-				///跟踪算法2:
-				///
-				///平面算法
-				//////
-				triangle_normal( & normal, entity -> mesh -> vertices + aIndex, entity -> mesh -> vertices + bIndex, entity -> mesh -> vertices + cIndex );
-
-				height = - ( ep -> entity -> position -> x * normal.x + ep -> entity -> position -> z * normal.z - vector3D_dotProduct( & normal, entity -> mesh -> vertices[aIndex].position ) ) / normal.y;
-
-				/////
-				///跟踪算法3
-				///
-				///平均值
-				/////
-				/*ep -> entity -> position -> y = - ( entity -> mesh -> vertices[aIndex].position -> y
-									  + entity -> mesh -> vertices[bIndex].position -> y
-									  + entity -> mesh -> vertices[cIndex].position -> y
-								       ) * .333333333333333333333333f;*/
-
-				ep -> entity -> position -> y = ep -> entity -> halfHeight + height;
-
-				ep = ep -> next;
-			}
-		}
-
 		entity_updateTransform(entity);
 
 		if ( entity->mesh && entity -> mesh -> nFaces && entity -> mesh -> nVertices )
@@ -760,15 +668,111 @@ void viewport_project( Viewport * viewport, int time )
 
 			mesh_updateMesh( entity->mesh );
 
-			code = 0;
-
 			matrix3D_append( entity->view, entity->world, camera->eye->world );
+
+			mesh_transformNewAABB( entity->mesh->worldAABB, entity->world, entity->mesh->aabb );
 
 			//连接透视投影矩阵
 			matrix3D_append4x4( entity->projection, entity->view, camera->projectionMatrix );
 
 			//构造基于CVV的AABB
 			mesh_transformNewAABB( entity->mesh->CVVAABB, entity->projection, entity->mesh->aabb );
+			
+			if( entity->mesh->type == ENTITY_TYPE_MESH_TERRAIN )
+			{
+				float w = entity->mesh->aabb->max->x - entity->mesh->aabb->min->x;
+				float h = entity->mesh->aabb->max->z - entity->mesh->aabb->min->z;
+				float textureX = w  * .5f,
+					  textureY = h * .5f,
+
+					  iW = entity->mesh->widthSegment / w,
+					  iH = entity->mesh->heightSegment / h,
+
+					  tx, tz,
+					   
+					  height;
+
+				int //gridX = entity ->  widthSegment + 1,
+					gridZ = entity->mesh->heightSegment + 1,
+					ix, iz, _x, _z, aIndex, bIndex, cIndex;
+
+				Vector3D normal;
+
+				ep = scene -> nodes;
+
+				while( ep != NULL )
+				{
+					if( ep -> entity->mesh->type == ENTITY_TYPE_MESH_TERRAIN
+					||  ep -> entity -> parent != entity -> parent
+					||	ep -> entity -> position -> x < - textureX 
+					||  ep -> entity -> position -> x >   textureX
+					||	ep -> entity -> position -> z < - textureY 
+					||  ep -> entity -> position -> z >   textureY )
+					{
+						ep = ep -> next;
+						continue;
+					}
+
+					tx = ( ep -> entity -> position -> x + textureX ) * iW;
+					tz = ( ep -> entity -> position -> z + textureY ) * iH;
+
+					ix = ( int )tx;
+					iz = ( int )tz;
+					
+					_x = ix + 1;
+					_z = iz + 1;
+
+					if( ( tx -= ix ) + ( tz -= iz ) > 1 )
+					{
+						aIndex = ix * gridZ + iz;
+						cIndex = ix * gridZ + _z;
+						bIndex = _x * gridZ + iz;
+					}
+					else
+					{
+						aIndex = _x * gridZ + _z;
+						cIndex = _x * gridZ + iz;
+						bIndex = ix * gridZ + _z;
+					}
+
+					/*b = entity -> mesh -> vertices[bIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
+					c = entity -> mesh -> vertices[cIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
+
+					//////
+					///跟踪算法1
+					///
+					///三角形插值
+					///根据网格地形三角形投影始终为直角等腰三角形
+					///故点投影高度为:根号2(c-b)+bx+by
+					//////
+					height = invSqrt( 2 ) * tx * ( c - b ) + b * tx + b * tz + entity -> mesh -> vertices[aIndex].position -> y;*/
+
+					//////
+					///跟踪算法2:
+					///
+					///平面算法
+					//////
+					triangle_normal( & normal, entity -> mesh -> vertices + cIndex, entity -> mesh -> vertices + bIndex, entity -> mesh -> vertices + aIndex );
+
+					height = - ( ep -> entity -> position -> x * normal.x + ep -> entity -> position -> z * normal.z - vector3D_dotProduct( & normal, entity -> mesh -> vertices[aIndex].position ) ) / normal.y;
+
+					/////
+					///跟踪算法3
+					///
+					///平均值
+					/////
+					/*ep -> entity -> position -> y = - ( entity -> mesh -> vertices[aIndex].position -> y
+										  + entity -> mesh -> vertices[bIndex].position -> y
+										  + entity -> mesh -> vertices[cIndex].position -> y
+										   ) * .333333333333333333333333f;*/
+
+					ep -> entity -> position -> y = ep->entity->mesh->halfHeight + height;
+
+					ep = ep -> next;
+				}
+			}
+
+			code = 0;
 
 			//基于包围盒的视锥体剔除
 			if ( entity->mesh->CVVAABB->max->x < -1 )				code |= 0x01;
@@ -888,7 +892,7 @@ void viewport_project( Viewport * viewport, int time )
 								if ( ( fc1 > 0.0001f ) || ( fc2 > 0.0001f ) )
 								{
 									//求顶点至光源的距离
-									vector3D_subtract( & vFDist, & vLightsToObject[l], vs->position );
+									vector3D_subtract( & vFDist, vs->position, & vLightsToObject[l] );
 									fDist = vector3D_lengthSquared( & vFDist );
 
 									//加入一次和二次因子
@@ -939,7 +943,7 @@ void viewport_project( Viewport * viewport, int time )
 							//其次, 计算漫反射部分
 
 							//顶点指向光源的向量
-							vector3D_subtract( & vVertexToLight, & vLightsToObject[l], vs->position );
+							vector3D_subtract( & vVertexToLight, vs->position, & vLightsToObject[l] );
 
 							//如果光源为平行光源(定位光源)
 							if ( light->type == DIRECTIONAL_LIGHT )
@@ -965,7 +969,7 @@ void viewport_project( Viewport * viewport, int time )
 								//计算高光部分
 								if ( light->mode == HIGH_MODE )
 								{
-									vector3D_subtract( & vVertexToCamera, entity->viewerToLocal, vs->position );
+									vector3D_subtract( & vVertexToCamera, vs->position, entity->viewerToLocal );
 									vector3D_normalize( & vVertexToCamera );
 									vector3D_add_self( & vVertexToCamera, & vVertexToLight );
 									vector3D_normalize( & vVertexToCamera );
@@ -1132,6 +1136,8 @@ void viewport_render(Viewport * viewport)
 					break;
 			}
 		}
+
+		face->vertex[0]->transformed = face->vertex[1]->transformed =face->vertex[2]->transformed = FALSE;
 
 		rl->polygon = NULL;
 
