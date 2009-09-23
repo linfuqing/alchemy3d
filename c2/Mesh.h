@@ -131,6 +131,7 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	return p;
 }
 
+//效率可改进函数,将IF提出循环
 void mesh_updateFaces( Mesh * m )
 {
 	int i = 0, j = 0;
