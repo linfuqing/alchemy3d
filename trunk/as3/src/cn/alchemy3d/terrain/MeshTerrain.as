@@ -29,9 +29,9 @@ package cn.alchemy3d.terrain
 			
 			if( !_map.ready )
 			{
-				var bitmap:BitmapData = new BitmapData( 64, 64 );
+				var bitmap:BitmapData = new BitmapData( 32, 64 );
 				
-				bitmap.perlinNoise(64, 64, 8, Math.random() * 1000, true, true, 7, true);
+				bitmap.perlinNoise(64, 64, 8, Math.random() * 1000, true, false, 7, true);
 				//bitmap.fillRect(bitmap.rect,0);
 				_map.bitmapData = bitmap;
 			}
@@ -45,9 +45,10 @@ package cn.alchemy3d.terrain
 		}
 				
 		public function buildOn( 
-								width:Number  = 100000, 
-								height:Number = 100000, 
-								maxHeight:int = 10000 ):void
+								width:Number  = 1000, 
+								height:Number = 1000, 
+								maxHeight:int = 500,
+								addressMode:int = TerrainAddressMode.MIRROR ):void
 		{
 			Library.alchemy3DLib.initializeTerrain( 
 													_pointer, 
@@ -57,6 +58,7 @@ package cn.alchemy3d.terrain
 													width, 
 													height,
 													maxHeight,
+													addressMode,
 													_renderMode );
 		}
 		
