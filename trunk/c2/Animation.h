@@ -113,37 +113,46 @@ void animation_updateToTime( Animation * animation, float timeAlpha )
 	animation->parent->v_dirty = TRUE;
 }
 
+//可优化函数,将动作指令存储到内存中
 int animation_updateToName( Animation * animation, char name[FRAME_NAME_LENGTH] )
 {
 	int i, min = OFF, max = OFF, match;
 	char * ch = NULL;
 
-	for( i = 0; i < animation -> length; i ++ )
+	if( !strcmp( name, "all" ) )
 	{
-		if( ( ch = strstr( animation -> frames[i].name, name ) ) == animation -> frames[i].name )
+		min = 0;
+		max = animation -> durationTime;
+	}
+	else
+	{
+		for( i = 0; i < animation -> length; i ++ )
 		{
-			ch += strlen( name );
-
-			match = TRUE;
-			
-			while( * ch != '\0' )
+			if( ( ch = strstr( animation -> frames[i].name, name ) ) == animation -> frames[i].name )
 			{
-				if( !isdigit( ( int )( * ch ++ ) ) )
+				ch += strlen( name );
+
+				match = TRUE;
+			
+				while( * ch != '\0' )
 				{
-					match = FALSE;
-					break;
+					if( !isdigit( ( int )( * ch ++ ) ) )
+					{
+						match = FALSE;
+						break;
+					}
+				}
+
+				if( match )
+				{
+					min = min == OFF ? i : min;
+					max = i;
 				}
 			}
-
-			if( match )
+			else if( min != OFF )
 			{
-				min = min == OFF ? i : min;
-				max = i;
+				break;
 			}
-		}
-		else if( min != OFF )
-		{
-			break;
 		}
 	}
 
