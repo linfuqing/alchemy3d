@@ -36,7 +36,7 @@ package cn.alchemy3d.external
 			this.mesh.lightEnable = bool;
 		}
 		
-		public function MD2(material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_FLAT_TRIANGLE_32 )
+		public function MD2(material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 )
 		{
 			_material = material;
 			_texture  = texture;
@@ -56,6 +56,43 @@ package cn.alchemy3d.external
 			loader.load(new URLRequest(url));
 		}
 		
+		public function play( loop:Boolean = true, animation:String = null ):void
+		{
+			if( !this.isPlayPointer )
+			{
+				return;
+			}
+			
+			Library.memory.position = this.loopPointer;
+			
+			Library.memory.writeInt( loop ? TRUE : FALSE );
+			
+			Library.memory.position = this.isPlayPointer;
+			
+			Library.memory.writeInt( TRUE );
+			
+			if( animation )
+			{
+				Library.memory.position = this.currentFrameNamePointer;
+				Library.memory.writeUTFBytes( animation );
+				
+				Library.memory.position = this.dirtyPointer;
+				Library.memory.writeInt( TRUE );
+			}
+		}
+		
+		public function stop():void
+		{
+			if( !this.isPlayPointer )
+			{
+				return;
+			}
+			
+			Library.memory.position = this.isPlayPointer;
+			
+			Library.memory.writeInt( FALSE );
+		}
+		
 		private function onLoadComplete(e:Event):void
 		{
 			var length:uint = loader.data.length;
@@ -68,7 +105,20 @@ package cn.alchemy3d.external
 			loader.data.clear();
 			loader.data = null;
 			
-			Library.alchemy3DLib.initializeMD2(mesh.pointer, fileBuffer, _material ? _material.pointer : NULL, _texture ? _texture.pointer : NULL, renderMode, fps );
+			var ps:Array = Library.alchemy3DLib.initializeMD2(mesh.pointer, fileBuffer, _material ? _material.pointer : NULL, _texture ? _texture.pointer : NULL, renderMode, fps );
+			
+			this.isPlayPointer           = ps[0];
+			this.loopPointer             = ps[1];
+			this.dirtyPointer            = ps[2];
+			this.currentFrameNamePointer = ps[3];
+			
+			//stop();
+			play(true,"wstnd");
 		}
+		
+		private var isPlayPointer:uint = NULL;
+		private var loopPointer:uint = NULL;
+		private var dirtyPointer:uint = NULL;
+		private var currentFrameNamePointer:uint = NULL;
 	}
 }
