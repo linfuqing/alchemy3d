@@ -64,26 +64,31 @@ void viewport_resize( Viewport * viewport, int width, int height )
 	if( ( viewport->zBuffer			= ( LPBYTE )calloc( wh * sizeof( DWORD ), sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
 }
 
+//“—”≈ªØ
 RenderList * initializeRenderList( int number )
 {
 	int i = 0;
 
 	RenderList * renderList, * lastRenderList;
 
-	lastRenderList = NULL;
+	if( ( renderList = ( RenderList * )malloc( sizeof( RenderList ) * number ) ) == NULL ) exit( TRUE );
 
-	for ( ; i < number; i ++ )
+	lastRenderList = renderList;
+
+	for ( ; i < number - 1; i ++ )
 	{
-		if( ( renderList = ( RenderList * )malloc( sizeof( RenderList ) ) ) == NULL ) exit( TRUE );
+		lastRenderList->polygon = NULL;
 
-		renderList->polygon = NULL;
+		lastRenderList->next = lastRenderList + 1;
 
-		renderList->next = lastRenderList;
+		lastRenderList->pre = renderList;
 
-		if ( lastRenderList ) lastRenderList->pre = renderList;
-
-		lastRenderList = renderList;
+		lastRenderList ++;
 	}
+
+	lastRenderList->polygon = NULL;
+
+	lastRenderList -> next = NULL;
 
 	return renderList;
 }
