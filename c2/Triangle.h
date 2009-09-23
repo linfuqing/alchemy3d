@@ -17,7 +17,7 @@ typedef struct Triangle
 
 	Material * material;
 
-	Vector3D * normal, * center;
+	Vector3D * normal;
 
 	Vertex * vertex[3];
 
@@ -26,9 +26,9 @@ typedef struct Triangle
 
 INLINE Vector3D * triangle_normal( Vector3D * normal, Vertex * v0, Vertex * v1, Vertex * v2 )
 {	
-	Vector3D ca, bc;
+	Vector3D u, v;
 
-	vector3D_crossProduct(normal, vector3D_subtract( &ca, v2->position, v0->position ), vector3D_subtract( &bc, v1->position, v2->position ) );
+	vector3D_crossProduct(normal, vector3D_subtract( &u, v1->position, v0->position ), vector3D_subtract( &v, v2->position, v0->position ) );
 
 	vector3D_normalize(normal);
 
@@ -72,7 +72,6 @@ INLINE void triangle_copy( Triangle * dest, Triangle * src )
 	vector_copy( dest->uv[1], src->uv[1] );
 	vector_copy( dest->uv[2], src->uv[2] );
 
-	vector3D_copy( dest->center, src->center );
 	vector3D_copy( dest->normal, src->normal );
 
 	dest->texture = src->texture;
@@ -103,18 +102,15 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	dest->render_mode = src->render_mode;
 
 	dest->normal = vector3D_clone( src->normal );
-	dest->center = vector3D_clone( src->center );
 
 	return dest;
 }
 
 INLINE void triangle_dispose( Triangle * p)
 {
-	free( p->center );
 	free( p->normal );
 	
 	p->texture = NULL;
-	p->center = NULL;
 	p->normal = NULL;
 	p->vertex[0] = NULL;
 	p->vertex[1] = NULL;

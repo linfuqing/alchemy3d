@@ -144,8 +144,8 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 	}
 
 	//mesh_setRenderMode( m -> mesh, render_mode );
-	computeFaceNormal( m -> mesh );
-	computeVerticesNormal( m -> mesh );
+	mesh_updateFaces( m -> mesh );
+	mesh_updateVertices( m -> mesh );
 
 	for( i = 0; i < m -> header.num_frames; i ++ )
 	{
