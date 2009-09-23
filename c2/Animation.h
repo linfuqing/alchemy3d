@@ -2,6 +2,7 @@
 #define __ANIMATION_H
 
 //# include <time.h>
+# include <ctype.h>
 
 #include "Mesh.h"
 
@@ -22,6 +23,11 @@ typedef struct Animation
 {
 	Frame        * frames;
 	Mesh         * parent;
+	char           currentFrameName[FRAME_NAME_LENGTH];
+	int            dirty;
+	int            maxTime;
+	int            minTime;
+	int            loop;
 	int            isPlay;
 	int            durationTime;
 	int            startTime;
@@ -43,12 +49,16 @@ Animation   * newAnimation( Mesh * parent, Frame * frames, unsigned int length, 
 		exit( TRUE );
 	}
 
-	a -> parent            = parent;
-	a -> frames            = frames;
-	a -> length            = length;
-	a -> isPlay            = TRUE;
-	a -> startTime         = 0;
-	a -> durationTime      = duration;
+	a -> parent              = parent;
+	a -> frames              = frames;
+	a -> dirty               = FALSE;
+	a -> maxTime             = duration;
+	a -> minTime             = 0;
+	a -> length              = length;
+	a -> loop                = TRUE;
+	a -> isPlay              = TRUE;
+	a -> startTime           = 0;
+	a -> durationTime        = duration;
 	//a -> currentFrameIndex = 0;
 
 	return a;
@@ -103,8 +113,60 @@ void animation_updateToTime( Animation * animation, float timeAlpha )
 	animation->parent->v_dirty = TRUE;
 }
 
+int animation_updateToName( Animation * animation, char name[FRAME_NAME_LENGTH] )
+{
+	int i, min = OFF, max = OFF, match;
+	char * ch = NULL;
+
+	for( i = 0; i < animation -> length; i ++ )
+	{
+		if( ( ch = strstr( animation -> frames[i].name, name ) ) == animation -> frames[i].name )
+		{
+			ch += strlen( name );
+
+			match = TRUE;
+			
+			while( * ch != '\0' )
+			{
+				if( !isdigit( ( int )( * ch ++ ) ) )
+				{
+					match = FALSE;
+					break;
+				}
+			}
+
+			if( match )
+			{
+				min = min == OFF ? i : min;
+				max = i;
+			}
+		}
+		else if( min != OFF )
+		{
+			break;
+		}
+	}
+
+	if( min != OFF )
+	{
+		animation -> minTime = animation -> frames[min].time;
+		animation -> maxTime = animation -> frames[max].time;
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 void animation_update( Animation * animation, int time )
 {
+	if( animation -> dirty )
+	{
+		animation -> dirty = FALSE;
+
+		animation_updateToName( animation, animation -> currentFrameName );
+	}
+
 	if( animation -> isPlay )
 	{
 		//animation -> currentFrameIndex = ( animation -> currentFrameIndex ) > ( animation -> length ) ? 0 : ( animation -> currentFrameIndex );
@@ -113,20 +175,22 @@ void animation_update( Animation * animation, int time )
 
 		//animation -> currentFrameIndex ++;
 
-		int elapsed  = time - animation -> startTime;
-				
-		if( elapsed > animation -> durationTime )
+		int elapsed  = time - animation -> startTime + animation -> minTime;
+
+		if( elapsed > animation -> maxTime )
 		{
 			animation -> startTime = time;
 
-			elapsed                = 0;
+			elapsed                = animation -> minTime;
+
+			animation -> isPlay    = animation -> loop ? TRUE : FALSE;
 		}
 
 		//AS3_Trace( AS3_Number( ( float )( elapsed * 1.0 / ( animation -> durationTime ) ) ) );
 		//AS3_Trace( AS3_Number( animation -> durationTime ) );
 		//AS3_Trace( AS3_Int( clock() ) );
 
-		animation_updateToTime( animation, ( float )( elapsed * 1.0 / ( animation -> durationTime ) ) );
+		animation_updateToTime( animation, elapsed * 1.0f / animation -> durationTime );
 	}
 }
 

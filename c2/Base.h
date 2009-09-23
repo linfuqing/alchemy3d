@@ -22,6 +22,8 @@ typedef unsigned long		ULONG;
 #define TRUE				1
 #define FALSE				0
 
+#define OFF                 - 1
+
 #define USERADIANS			TRUE
 
 #define VERTEX_SIZE			5
