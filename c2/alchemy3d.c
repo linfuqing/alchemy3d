@@ -200,7 +200,7 @@ AS3_Val initializePrimitives( void * self, AS3_Val args )
 
 AS3_Val initializeTerrain( void * self, AS3_Val args )
 {
-	Entity * base;
+	Entity * entity;
 	Material * material;
 	Texture * texture, * map;
 	int addressMode;
@@ -208,9 +208,9 @@ AS3_Val initializeTerrain( void * self, AS3_Val args )
 	DWORD render_mode;
 
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType, IntType, IntType", 
-		& base, & map, & material, & texture, & width, & height, & maxHeight, & addressMode, & render_mode );
+		& entity, & map, & material, & texture, & width, & height, & maxHeight, & addressMode, & render_mode );
 
-	newTerrain( base, map, ( float )width, ( float )height, ( float )maxHeight, addressMode, material, texture, render_mode );
+	newTerrain( entity->mesh, map, ( float )width, ( float )height, ( float )maxHeight, addressMode, material, texture, render_mode );
 
 	return 0;
 }
