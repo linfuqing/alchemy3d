@@ -95,6 +95,8 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 	v->transformed = FALSE;
 	v->fix_inv_z = 0;
 
+	aabb_add_3D( m->aabb, v->position );
+
 	m->nVertices ++;
 
 	return v;
@@ -200,13 +202,15 @@ void mesh_updateVertices( Mesh * m )
 
 	if ( ! m->vertices || m->nVertices == 0) exit( TRUE );
 
+	aabb_empty( m->aabb );
+
 	//为提高效率，这么不使用任何内联函数，以降低函数调用开销
 	for( ; i < m->nVertices; i ++ )
 	{
 		vert = & m->vertices[i];
 
 		//重新计算AABB
-		aabb_add( m->aabb, vert->position );
+		aabb_add_3D( m->aabb, vert->position );
 
 		if ( vert->nContectedFaces == 0 ) continue;
 
@@ -278,7 +282,7 @@ void mesh_updateMesh( Mesh * mesh )
 	mesh_updateVertices( mesh );
 }
 
-INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )
+INLINE AABB * mesh_transformNewAABB( AABB * output, AABB * aabb, Matrix3D * m )
 {
 	float invw;
 
@@ -293,14 +297,14 @@ INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )
 
 	Vector3D * min = aabb->min, * max = aabb->max;
 
-	T_L_F_V.x = min->x;	T_L_F_V.y = min->y;	T_L_F_V.z = min->z;	T_L_F_V.w = 1;
-	T_R_F_V.x = max->x;	T_R_F_V.y = min->y;	T_R_F_V.z = min->z;	T_R_F_V.w = 1;
-	T_L_B_V.x = min->x;	T_L_B_V.y = min->y;	T_L_B_V.z = max->z;	T_L_B_V.w = 1;
-	T_R_B_V.x = max->x;	T_R_B_V.y = min->y;	T_R_B_V.z = max->z;	T_R_B_V.w = 1;
-	B_L_F_V.x = min->x;	B_L_F_V.y = max->y;	B_L_F_V.z = min->z;	B_L_F_V.w = 1;
-	B_R_F_V.x = max->x;	B_R_F_V.y = max->y;	B_R_F_V.z = min->z;	B_R_F_V.w = 1;
-	B_L_B_V.x = min->x;	B_L_B_V.y = max->y;	B_L_B_V.z = max->z;	B_L_B_V.w = 1;
-	B_R_B_V.x = max->x;	B_R_B_V.y = max->y;	B_R_B_V.z = max->z;	B_R_B_V.w = 1;
+	T_L_F_V.x = min->x;	T_L_F_V.y = min->y;	T_L_F_V.z = min->z;	T_L_F_V.w = 1.0f;
+	T_R_F_V.x = max->x;	T_R_F_V.y = min->y;	T_R_F_V.z = min->z;	T_R_F_V.w = 1.0f;
+	T_L_B_V.x = min->x;	T_L_B_V.y = min->y;	T_L_B_V.z = max->z;	T_L_B_V.w = 1.0f;
+	T_R_B_V.x = max->x;	T_R_B_V.y = min->y;	T_R_B_V.z = max->z;	T_R_B_V.w = 1.0f;
+	B_L_F_V.x = min->x;	B_L_F_V.y = max->y;	B_L_F_V.z = min->z;	B_L_F_V.w = 1.0f;
+	B_R_F_V.x = max->x;	B_R_F_V.y = max->y;	B_R_F_V.z = min->z;	B_R_F_V.w = 1.0f;
+	B_L_B_V.x = min->x;	B_L_B_V.y = max->y;	B_L_B_V.z = max->z;	B_L_B_V.w = 1.0f;
+	B_R_B_V.x = max->x;	B_R_B_V.y = max->y;	B_R_B_V.z = max->z;	B_R_B_V.w = 1.0f;
 
 	matrix3D_transformVector_self( m, & T_L_F_V );
 	invw = 1.0f / T_L_F_V.w;
@@ -342,6 +346,7 @@ INLINE AABB * mesh_transformNewAABB( AABB * output, Matrix3D * m, AABB * aabb )
 	B_R_B_V.x *= invw;
 	B_R_B_V.y *= invw;
 
+	aabb_empty( output );
 	aabb_add_4D( output, & T_L_F_V );
 	aabb_add_4D( output, & T_R_F_V );
 	aabb_add_4D( output, & T_L_B_V );

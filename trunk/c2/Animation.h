@@ -116,7 +116,8 @@ void animation_updateToTime( Animation * animation, float timeAlpha )
 //可优化函数,将动作指令存储到内存中
 int animation_updateToName( Animation * animation, char name[FRAME_NAME_LENGTH] )
 {
-	int i, min = OFF, max = OFF, match;
+	DWORD i;
+	int min = OFF, max = OFF, match;
 	char * ch = NULL;
 
 	if( !strcmp( name, "all" ) )

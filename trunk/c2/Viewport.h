@@ -81,7 +81,7 @@ RenderList * initializeRenderList( int number )
 
 		lastRenderList->next = lastRenderList + 1;
 
-		lastRenderList->pre = renderList;
+		lastRenderList->pre = lastRenderList - 1;
 
 		lastRenderList ++;
 	}
@@ -89,6 +89,8 @@ RenderList * initializeRenderList( int number )
 	lastRenderList->polygon = NULL;
 
 	lastRenderList -> next = NULL;
+
+	lastRenderList->pre = lastRenderList - 1;
 
 	return renderList;
 }
@@ -144,7 +146,6 @@ INLINE void insertFaceToList( RenderList ** rl_ptr, Triangle * face)
 //渲染前更新
 void viewport_updateBeforeRender( Viewport * viewport )
 {
-	RenderList * renderList;
 
 #ifdef __NOT_AS3__
 
@@ -164,17 +165,7 @@ void viewport_updateBeforeRender( Viewport * viewport )
 	//如果场景有改变
 	if ( TRUE == viewport->scene->dirty )
 	{
-		RenderList * lastRenderList = viewport->renderList;
-
-		//释放渲染列表
-		while ( NULL != lastRenderList )
-		{
-			renderList = lastRenderList;
-
-			lastRenderList = lastRenderList->next;
-
-			free( renderList );
-		}
+		free( viewport->renderList );
 
 		//重新构造渲染列表
 		viewport->renderList = initializeRenderList( viewport->scene->nFaces + 2 );
@@ -675,13 +666,16 @@ void viewport_project( Viewport * viewport, int time )
 
 			matrix3D_append( entity->view, entity->world, camera->eye->world );
 
-			mesh_transformNewAABB( entity->mesh->worldAABB, entity->world, entity->mesh->aabb );
+			aabb_setToTransformedBox( entity->mesh->worldAABB, entity->mesh->aabb, entity->world );
 
 			//连接透视投影矩阵
 			matrix3D_append4x4( entity->projection, entity->view, camera->projectionMatrix );
 
 			//构造基于CVV的AABB
-			mesh_transformNewAABB( entity->mesh->CVVAABB, entity->projection, entity->mesh->aabb );
+			//优化中
+			mesh_transformNewAABB( entity->mesh->CVVAABB, entity->mesh->aabb, entity->projection );
+
+			//aabb_setToTransformedBox_4D( entity->mesh->CVVAABB, entity->mesh->aabb, entity->projection );
 			
 			if( entity->mesh->type == ENTITY_TYPE_MESH_TERRAIN )
 			{
@@ -778,6 +772,16 @@ void viewport_project( Viewport * viewport, int time )
 			}
 
 			code = 0;
+
+			/*AS3_Trace(AS3_String("x"));
+			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->min->x));
+			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->max->x));
+			AS3_Trace(AS3_String("y"));
+			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->min->y));
+			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->max->y));
+			AS3_Trace(AS3_String("w"));
+			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->min->w));
+			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->max->w));*/
 
 			//基于包围盒的视锥体剔除
 			if ( entity->mesh->CVVAABB->max->x < -1 )				code |= 0x01;
