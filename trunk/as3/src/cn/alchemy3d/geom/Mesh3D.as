@@ -39,7 +39,7 @@ package cn.alchemy3d.geom
 		//private var verticesPointer:uint;
 		//private var facesPointer:uint;
 		private var vDirtyPointer:uint;
-		private var fDirtyPointer:uint;
+		private var octreeDepthPointer:uint;
 		
 		//private var _material:Material;
 		//private var _texture:Texture;
@@ -197,6 +197,12 @@ package cn.alchemy3d.geom
 			Library.memory.writeUnsignedInt(1);
 		}*/
 		
+		public function set octreeDepth(value:uint):void
+		{
+			Library.memory.position = octreeDepthPointer;
+			Library.memory.writeInt(value);
+		}
+		
 		public function get lightEnable():Boolean
 		{
 			return _lightEnable;
@@ -333,7 +339,7 @@ package cn.alchemy3d.geom
 			_pointer            = ps[0];
 			lightEnablePtr		= ps[1];
 			vDirtyPointer		= ps[2];
-			fDirtyPointer		= ps[3];
+			octreeDepthPointer	= ps[3];
 
 			if( ps[4] && vertices )
 			{

@@ -157,7 +157,8 @@ package cn.alchemy3d.container
 		
 		public function get x():Number
 		{
-			return _position.x;
+			Library.memory.position = positionPtr;
+			return Library.memory.readFloat();
 		}
 		
 		public function set x(value:Number):void
@@ -169,7 +170,8 @@ package cn.alchemy3d.container
 		
 		public function get y():Number
 		{
-			return _position.y;
+			Library.memory.position = positionPtr + Library.intTypeSize;
+			return Library.memory.readFloat();
 		}
 		
 		public function set y(value:Number):void
@@ -181,7 +183,8 @@ package cn.alchemy3d.container
 		
 		public function get z():Number
 		{
-			return _position.z;
+			Library.memory.position = positionPtr + Library.intTypeSize * 2;
+			return Library.memory.readFloat();
 		}
 		
 		public function set z(value:Number):void
