@@ -29,9 +29,8 @@ package cn.alchemy3d.terrain
 			
 			if( !_map.ready )
 			{
-				var bitmap:BitmapData = new BitmapData( 32, 64 );
-				
-				bitmap.perlinNoise(64, 64, 8, Math.random() * 1000, true, false, 7, true);
+				var bitmap:BitmapData = new BitmapData( 256, 256 );
+				bitmap.perlinNoise(256, 256, 16, Math.random() * 1000, true, true, 7, true);
 				//bitmap.fillRect(bitmap.rect,0);
 				_map.bitmapData = bitmap;
 			}
