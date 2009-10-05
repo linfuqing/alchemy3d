@@ -578,7 +578,7 @@ Mesh * A3DS_BuildMeshes( int vNum, int fNum, int uvNum, float * pfVertex, float 
 	for ( i = 0, j = 0, k = 0; i < vNum * 3; i += 3, j ++, k += 2)
 	{
 		mesh_push_vertex(mesh, - pfVertex[i], pfVertex[i + 2], pfVertex[i + 1]);
-		vertArr[j] = & mesh->vertices[j];		
+		vertArr[j] = mesh->vertices[j];		
 		vectArr[j] = newVector( pfVector[k], pfVector[k + 1] );
 	}
 
@@ -739,7 +739,7 @@ void A3DS_Objblock_Chunk_Handler( FILE * file, A3DS * a3ds, DWORD dwLength  )
 						{
 							for ( i = 0; i < tList->wNum; i ++ )
 							{
-								face = & entity->mesh->faces[tList->list[i]];
+								face = entity->mesh->faces[tList->list[i]];
 
 								face->texture = nml->texture;
 								face->material = nml->material;
@@ -769,9 +769,9 @@ void A3DS_Objblock_Chunk_Handler( FILE * file, A3DS * a3ds, DWORD dwLength  )
 						{
 							for ( i = 0; i < tList->wNum; i ++ )
 							{
-								entity->mesh->faces[tList->list[i]].texture = NULL;
-								entity->mesh->faces[tList->list[i]].material = nml->material;
-								entity->mesh->faces[tList->list[i]].render_mode = a3ds->render_mode;
+								entity->mesh->faces[tList->list[i]]->texture = NULL;
+								entity->mesh->faces[tList->list[i]]->material = nml->material;
+								entity->mesh->faces[tList->list[i]]->render_mode = a3ds->render_mode;
 							}
 						}
 					}
@@ -789,9 +789,9 @@ void A3DS_Objblock_Chunk_Handler( FILE * file, A3DS * a3ds, DWORD dwLength  )
 
 			for ( i = 0; i < entity->mesh->nFaces; i ++ )
 			{
-				entity->mesh->faces[i].material = material;
-				entity->mesh->faces[i].texture = NULL;
-				entity->mesh->faces[i].render_mode = a3ds->render_mode;
+				entity->mesh->faces[i]->material = material;
+				entity->mesh->faces[i]->texture = NULL;
+				entity->mesh->faces[i]->render_mode = a3ds->render_mode;
 			}
 		}
 	}

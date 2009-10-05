@@ -8,15 +8,18 @@
 #include "Material.h"
 #include "Texture.h"
 
-#define NO_TEXTURE		0
-#define TEX_NOT_READY	1
-#define TEX_READY		2
+#define NO_TEXTURE			0
+#define TEX_NOT_READY		1
+#define TEX_READY			2
+
+#define OCTREE_NOT_READY	0
+#define OCTREE_READY		1
 
 typedef struct Mesh
 {
-	int nFaces, nVertices, v_dirty, f_dirty, textureState, lightEnable;
+	int nFaces, nVertices, v_dirty, textureState, lightEnable, octreeState;
 
-	int type;
+	int type, octree_depth;
 
 	//如果不是地形,那么将存在高度
 	union
@@ -29,21 +32,39 @@ typedef struct Mesh
 		};
 	};
 
-	Triangle  * faces;
+	Triangle ** faces;
 
-	Vertex * vertices;
+	Vertex ** vertices;
 
-	AABB * aabb, * worldAABB, * CVVAABB;
+	struct Octree * octree;
 
 	struct Animation * animation;
 
 }Mesh;
 
+#include "Octree.h"
 
-void mesh_build( Mesh * m, int nVertices, int nFaces  )
+void mesh_build( Mesh * m, int nVertices, int nFaces )
 {
-	if( ( m->faces		= ( Triangle * )malloc( sizeof( Triangle ) * nFaces ) ) == NULL ) exit( TRUE );
-	if( ( m->vertices	= ( Vertex * )malloc( sizeof( Vertex ) * nVertices ) ) == NULL ) exit( TRUE );
+	int i = 0;
+	Triangle * faces;
+	Vertex * vertices;
+	
+	if( ( faces		= ( Triangle * )malloc( sizeof( Triangle ) * nFaces ) ) == NULL ) exit( TRUE );
+	if( ( vertices	= ( Vertex * )malloc( sizeof( Vertex ) * nVertices ) ) == NULL ) exit( TRUE );
+
+	if( ( m->faces		= ( Triangle ** )malloc( sizeof( Triangle * ) * nFaces ) ) == NULL ) exit( TRUE );
+	if( ( m->vertices	= ( Vertex ** )malloc( sizeof( Vertex * ) * nVertices ) ) == NULL ) exit( TRUE );
+
+	for ( ; i < nFaces; i ++ )
+	{
+		m->faces[i] = & faces[i];
+	}
+
+	for ( i = 0; i < nVertices; i ++ )
+	{
+		m->vertices[i] = & vertices[i];
+	}
 }
 
 Mesh * newMesh( int nVertices, int nFaces )
@@ -60,18 +81,16 @@ Mesh * newMesh( int nVertices, int nFaces )
 		mesh_build( m, nVertices, nFaces );
 	}
 
-	m->aabb				= newAABB();
-	m->worldAABB		= newAABB();
-	m->CVVAABB			= newAABB();
-
-	m->v_dirty			= TRUE;
-	m->f_dirty			= FALSE;
+	m->octree			= newOctree();
+	m->octreeState		= OCTREE_NOT_READY;
+	m->v_dirty			= FALSE;
 	m->textureState		= NO_TEXTURE;
 	m->lightEnable		= FALSE;
 
 	m->animation        = NULL;
 
 	m->type				= 0;
+	m->octree_depth		= 0;
 	m->halfHeight		= 0;
 
 	return m;
@@ -79,7 +98,7 @@ Mesh * newMesh( int nVertices, int nFaces )
 
 Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 {
-	Vertex * v = & m->vertices[m->nVertices];
+	Vertex * v = m->vertices[m->nVertices];
 
 	v->position = newVector3D(x, y, z, 1.0f);
 	v->w_pos = newVector3D(x, y, z, 1.0f);
@@ -95,8 +114,9 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 	v->transformed = FALSE;
 	v->fix_inv_z = 0;
 
-	aabb_add_3D( m->aabb, v->position );
+	//aabb_add_3D( (( OctreeData * )( m->octree->data ))->aabb, v->position );
 
+	m->v_dirty = TRUE;
 	m->nVertices ++;
 
 	return v;
@@ -104,7 +124,7 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 
 Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vector * uvb, Vector * uvc, Material * material, Texture * texture, int render_mode )
 {
-	Triangle * p = & m->faces[m->nFaces];
+	Triangle * p = m->faces[m->nFaces];
 
 	p->vertex[0] = va;
 	p->vertex[1] = vb;
@@ -130,6 +150,9 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 
 	m->nFaces ++;
 
+	m->octree->data->nFaces = m->nFaces;
+	m->octree->data->faces	= m->faces;
+
 	return p;
 }
 
@@ -147,7 +170,7 @@ void mesh_updateFaces( Mesh * m )
 
 	for( ; i < m->nFaces; i ++ )
 	{
-		face = & m->faces[i];
+		face = m->faces[i];
 
 		if ( m->v_dirty )
 		{
@@ -202,15 +225,15 @@ void mesh_updateVertices( Mesh * m )
 
 	if ( ! m->vertices || m->nVertices == 0) exit( TRUE );
 
-	aabb_empty( m->aabb );
+	aabb_empty( m->octree->data->aabb );
 
 	//为提高效率，这么不使用任何内联函数，以降低函数调用开销
 	for( ; i < m->nVertices; i ++ )
 	{
-		vert = & m->vertices[i];
+		vert = m->vertices[i];
 
 		//重新计算AABB
-		aabb_add_3D( m->aabb, vert->position );
+		aabb_add_3D( m->octree->data->aabb, vert->position );
 
 		if ( vert->nContectedFaces == 0 ) continue;
 
@@ -220,7 +243,7 @@ void mesh_updateVertices( Mesh * m )
 		vert->normal->w = 1.0f;
 
 		//遍历关联面
-		cf = m->vertices[i].contectedFaces;
+		cf = m->vertices[i]->contectedFaces;
 
 		while ( NULL != cf )
 		{
@@ -249,7 +272,7 @@ void mesh_setRenderMode(  Mesh * m, DWORD renderMode )
 
 	for( ; i < m->nFaces; i ++ )
 	{
-		m->faces[i].render_mode = renderMode;
+		m->faces[i]->render_mode = renderMode;
 	}
 }
 
@@ -259,7 +282,7 @@ void mesh_setMaterial( Mesh * m, Material * mat )
 
 	for( ; i < m->nFaces; i ++ )
 	{
-		m->faces[i].material = mat;
+		m->faces[i]->material = mat;
 	}
 }
 
@@ -269,7 +292,7 @@ void mesh_setTexture( Mesh * m, Texture * t )
 
 	for( ; i < m->nFaces; i ++ )
 	{
-		m->faces[i].texture = t;
+		m->faces[i]->texture = t;
 	}
 
 	m->textureState = TEX_NOT_READY;
@@ -280,6 +303,13 @@ void mesh_updateMesh( Mesh * mesh )
 	//重新计算法向量
 	mesh_updateFaces( mesh );
 	mesh_updateVertices( mesh );
+
+	if ( mesh->octreeState == OCTREE_NOT_READY )
+	{
+		buildOctree( mesh->octree, mesh->octree_depth );
+
+		mesh->octreeState = OCTREE_READY;
+	}
 }
 
 INLINE AABB * mesh_transformNewAABB( AABB * output, AABB * aabb, Matrix3D * m )
@@ -365,11 +395,11 @@ void mesh_clear( Mesh * mesh )
 
 	for ( ; i < mesh->nVertices; i ++ )
 	{
-		vertex_dispose( & mesh->vertices[i] );
+		vertex_dispose( mesh->vertices[i] );
 	}
 	for ( i = 0; i < mesh->nFaces; i ++ )
 	{
-		triangle_dispose( & mesh->faces[i] );
+		triangle_dispose( mesh->faces[i] );
 	}
 
 	free( mesh->vertices );
@@ -397,14 +427,15 @@ Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )
 
 INLINE int mesh_intersectMesh( Mesh * m1, Mesh * m2 )
 {
-	return intersectAABBs( m1->worldAABB, m2->worldAABB, NULL );
+	return aabb_intersectAABBs( m1->octree->data->worldAABB, m2->octree->data->worldAABB, NULL );
 }
 
 void mesh_dispose( Mesh * mesh )
 {
-	aabb_dispose( mesh->aabb );
-	aabb_dispose( mesh->worldAABB );
-	aabb_dispose( mesh->CVVAABB );
+	//替换为树的销毁函数
+	//aabb_dispose( mesh->aabb );
+	//aabb_dispose( mesh->worldAABB );
+	//aabb_dispose( mesh->CVVAABB );
 
 	mesh_clear( mesh );
 

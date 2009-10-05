@@ -11,7 +11,7 @@
 #include "Matrix3D.h"
 #include "Vector3D.h"
 
-#define NUM_PER_RL_INIT 50
+#define NUM_PER_RL_INIT 200
 
 typedef struct RenderList
 {
@@ -181,13 +181,80 @@ INLINE void viewport_updateAfterRender( Viewport * viewport )
 	scene_updateAfterRender( viewport->scene );
 }
 
+INLINE void transformVertices( Matrix3D * projection, Triangle * face )
+{
+	Vertex * vert;
+
+	if ( face->vertex[0]->transformed == 0 )
+	{
+		face->vertex[0]->transformed = 1;
+
+		vert = face->vertex[0];
+
+		vert->w_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
+		vert->w_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
+		vert->w_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
+
+		vert->s_pos->x = vert->w_pos->x / vert->w_pos->w;
+		vert->s_pos->y = vert->w_pos->y / vert->w_pos->w;
+	}
+
+	if ( face->vertex[1]->transformed == 0 )
+	{
+		face->vertex[1]->transformed = 1;
+
+		vert = face->vertex[1];
+
+		vert->w_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
+		vert->w_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
+		vert->w_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
+
+		vert->s_pos->x = vert->w_pos->x / vert->w_pos->w;
+		vert->s_pos->y = vert->w_pos->y / vert->w_pos->w;
+	}
+
+	if ( face->vertex[2]->transformed == 0 )
+	{
+		face->vertex[2]->transformed = 1;
+
+		vert = face->vertex[2];
+
+		vert->w_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
+		vert->w_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
+		vert->w_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
+
+		vert->s_pos->x = vert->w_pos->x / vert->w_pos->w;
+		vert->s_pos->y = vert->w_pos->y / vert->w_pos->w;
+	}
+}
+
+//把整个结点加入渲染列表
+void addToRenderList( Viewport * viewport, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr )
+{
+	int j = 0;
+
+	Triangle * face;
+
+	for ( ; j < octreeData->nFaces; j ++)
+	{
+		face = octreeData->faces[j];
+
+		transformVertices( entity->projection, face );
+
+		insertFaceToList( rl_ptr, face );
+
+		viewport->nRenderList ++;
+	}
+}
+
 //基于AABB包围盒的视空间裁剪
 //viewport		视口
+//camera		摄像机
 //entity		当前要处理的实体
-//near			近截面
+//octreeData	八叉树
 //rl_ptr		当前渲染列表的指针
 //cl_ptr		当前裁剪列表的指针
-void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, RenderList ** rl_ptr, RenderList ** cl_ptr )
+void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr )
 {
 	int j, zCode0, zCode1, zCode2, verts_out;
 	Vector3D viewerToLocal;
@@ -196,87 +263,11 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Ren
 	float t1, t2,  xi, yi, ui, vi, x01i, x02i, y01i, y02i, u01i, u02i, v01i, v02i, dx, dy, dz;
 	Vertex * tmpVert1, * tmpVert2, * ver1_0, * ver1_1, * ver1_2, * ver2_0, * ver2_1, * ver2_2;
 	float near = camera->near, far = camera->far;
-	int crossNear	= FALSE,
-		crossLeft	= FALSE,
-		crossRight	= FALSE,
-		crossFar	= FALSE,
-		crossTop	= FALSE,
-		crossBottom	= FALSE;
-
-	for( j = 0; j < entity->mesh->nVertices; j ++)
-	{
-		tmpVert1 = & entity->mesh->vertices[j];
-
-		tmpVert1->w_pos->x = entity->projection->m11 * tmpVert1->position->x + entity->projection->m21 * tmpVert1->position->y + entity->projection->m31 * tmpVert1->position->z + entity->projection->m41;
-		tmpVert1->w_pos->y = entity->projection->m12 * tmpVert1->position->x + entity->projection->m22 * tmpVert1->position->y + entity->projection->m32 * tmpVert1->position->z + entity->projection->m42;
-		tmpVert1->w_pos->w = entity->projection->m14 * tmpVert1->position->x + entity->projection->m24 * tmpVert1->position->y + entity->projection->m34 * tmpVert1->position->z + entity->projection->m44;
-
-		tmpVert1->s_pos->x = tmpVert1->w_pos->x / tmpVert1->w_pos->w;
-		tmpVert1->s_pos->y = tmpVert1->w_pos->y / tmpVert1->w_pos->w;
-	}
-
-	//测试包围盒
-	if ( entity->mesh->CVVAABB->max->w > near	&& entity->mesh->CVVAABB->min->w < near )	crossNear	= TRUE;
-	if ( entity->mesh->CVVAABB->max->w > far	&& entity->mesh->CVVAABB->min->w < far )	crossFar	= TRUE;
-	if ( entity->mesh->CVVAABB->max->x > -1		&& entity->mesh->CVVAABB->min->w < -1 )		crossLeft	= TRUE;
-	if ( entity->mesh->CVVAABB->max->x > 1		&& entity->mesh->CVVAABB->min->x < 1 )		crossRight	= TRUE;
-	if ( entity->mesh->CVVAABB->max->y > -1		&& entity->mesh->CVVAABB->min->y < -1 )		crossTop	= TRUE;
-	if ( entity->mesh->CVVAABB->max->y > 1		&& entity->mesh->CVVAABB->min->y < 1 )		crossBottom	= TRUE;
 
 	//遍历面
-	for( j = 0; j < entity->mesh->nFaces; j ++)
+	for ( j = 0; j < octreeData->nFaces; j ++)
 	{
-		face = & entity->mesh->faces[j];
-
-		if ( crossLeft &&
-			face->vertex[0]->s_pos->x < -1 &&
-			face->vertex[1]->s_pos->x < -1 &&
-			face->vertex[2]->s_pos->x < -1 )
-		{
-			viewport->nCullList ++;
-
-			continue;
-		}
-
-		if ( crossRight &&
-			face->vertex[0]->s_pos->x > 1 &&
-			face->vertex[1]->s_pos->x > 1 &&
-			face->vertex[2]->s_pos->x > 1 )
-		{
-			viewport->nCullList ++;
-
-			continue;
-		}
-
-		if ( crossTop &&
-			face->vertex[0]->s_pos->y < -1 &&
-			face->vertex[1]->s_pos->y < -1 &&
-			face->vertex[2]->s_pos->y < -1 )
-		{
-			viewport->nCullList ++;
-
-			continue;
-		}
-
-		if ( crossBottom &&
-			face->vertex[0]->s_pos->y > 1 &&
-			face->vertex[1]->s_pos->y > 1 &&
-			face->vertex[2]->s_pos->y > 1 )
-		{
-			viewport->nCullList ++;
-
-			continue;
-		}
-
-		if ( crossFar &&
-			face->vertex[0]->w_pos->w > far &&
-			face->vertex[1]->w_pos->w > far &&
-			face->vertex[2]->w_pos->w > far )
-		{
-			viewport->nCullList ++;
-
-			continue;
-		}
+		face = octreeData->faces[j];
 
 		zCode0 = zCode1 = zCode2 = 0;
 
@@ -304,8 +295,75 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Ren
 			}
 		}
 
+		transformVertices( entity->projection, face );
+
+		if (face->vertex[0]->s_pos->x < -1 &&
+			face->vertex[1]->s_pos->x < -1 &&
+			face->vertex[2]->s_pos->x < -1 )
+		{
+			viewport->nCullList ++;
+
+			face->vertex[0]->transformed = FALSE;
+			face->vertex[1]->transformed = FALSE;
+			face->vertex[2]->transformed = FALSE;
+
+			continue;
+		}
+
+		if (face->vertex[0]->s_pos->x > 1 &&
+			face->vertex[1]->s_pos->x > 1 &&
+			face->vertex[2]->s_pos->x > 1 )
+		{
+			viewport->nCullList ++;
+
+			face->vertex[0]->transformed = FALSE;
+			face->vertex[1]->transformed = FALSE;
+			face->vertex[2]->transformed = FALSE;
+
+			continue;
+		}
+
+		if (face->vertex[0]->s_pos->y < -1 &&
+			face->vertex[1]->s_pos->y < -1 &&
+			face->vertex[2]->s_pos->y < -1 )
+		{
+			viewport->nCullList ++;
+
+			face->vertex[0]->transformed = FALSE;
+			face->vertex[1]->transformed = FALSE;
+			face->vertex[2]->transformed = FALSE;
+
+			continue;
+		}
+
+		if (face->vertex[0]->s_pos->y > 1 &&
+			face->vertex[1]->s_pos->y > 1 &&
+			face->vertex[2]->s_pos->y > 1 )
+		{
+			viewport->nCullList ++;
+
+			face->vertex[0]->transformed = FALSE;
+			face->vertex[1]->transformed = FALSE;
+			face->vertex[2]->transformed = FALSE;
+
+			continue;
+		}
+
+		if (face->vertex[0]->w_pos->w > far &&
+			face->vertex[1]->w_pos->w > far &&
+			face->vertex[2]->w_pos->w > far )
+		{
+			viewport->nCullList ++;
+
+			face->vertex[0]->transformed = FALSE;
+			face->vertex[1]->transformed = FALSE;
+			face->vertex[2]->transformed = FALSE;
+
+			continue;
+		}
+
 		//如果包围盒穿越近截面，则进一步检测面是否穿越近截面
-		if ( TRUE == crossNear )
+		if ( octreeData->CVVAABB->max->z > near	&& octreeData->CVVAABB->min->z < near )
 		{
 			if ( face->vertex[0]->w_pos->w <= near )
 			{
@@ -575,6 +633,10 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Ren
 
 					continue;
 				}
+				
+				face->vertex[0]->transformed = FALSE;
+				face->vertex[1]->transformed = FALSE;
+				face->vertex[2]->transformed = FALSE;
 			}
 		}
 
@@ -606,6 +668,101 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Ren
 	}
 }
 
+void transform_octree( Octree * octree, Matrix3D * world, Matrix3D * view )
+{
+	aabb_setToTransformedBox( octree->data->worldAABB, octree->data->aabb, world );
+	aabb_setToTransformedBox( octree->data->CVVAABB, octree->data->aabb, view );
+	//mesh_transformNewAABB( octree->data->CVVAABB, octree->data->aabb, projection );
+
+	if ( octree->tlb ) transform_octree( octree->tlb, world, view );
+	if ( octree->tlf ) transform_octree( octree->tlf, world, view );
+	if ( octree->trb ) transform_octree( octree->trb, world, view );
+	if ( octree->trf ) transform_octree( octree->trf, world, view );
+	if ( octree->blb ) transform_octree( octree->blb, world, view );
+	if ( octree->blf ) transform_octree( octree->blf, world, view );
+	if ( octree->brb ) transform_octree( octree->brb, world, view );
+	if ( octree->brf ) transform_octree( octree->brf, world, view );
+}
+
+int octree_culling( Viewport * viewport, Camera * camera, Entity * entity, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr )
+{
+	int code = 0, noChild = 0;
+
+	AABB * aabb = octree->data->CVVAABB;
+
+	float t = ( aabb->max->z - camera->near ) / ( camera->far - camera->near );
+	float x = ( camera->f_left - camera->n_left ) * t + camera->n_left;
+	float y = ( camera->f_top - camera->n_top ) * t + camera->n_top;
+
+	if ( aabb->max->x <= x )				code |= 0x01;
+	if ( aabb->min->x >= -x )				code |= 0x02;
+	if ( aabb->max->y <= -y )				code |= 0x04;
+	if ( aabb->min->y >= y )				code |= 0x08;
+	if ( aabb->max->z <= camera->near )		code |= 0x10;
+	if ( aabb->min->z >= camera->far )		code |= 0x20;
+
+	//输出码为非零侧包围盒离屏
+	if ( code > 0 )
+	{
+		viewport->nCullList += octree->data->nFaces;
+
+		return 0;
+	}
+	else
+	{
+		code = 0;
+
+		if ( aabb->max->x <= -x )				code |= 0x01;
+		if ( aabb->min->x >= x )				code |= 0x02;
+		if ( aabb->max->y <= y )				code |= 0x04;
+		if ( aabb->min->y >= -y )				code |= 0x08;
+		if ( aabb->max->z <= camera->far )		code |= 0x10;
+		if ( aabb->min->z >= camera->near )		code |= 0x20;
+
+		//如果包围盒完全在视锥体内
+		//直接把所有多边形添加到渲染列表
+		if ( code == 0x3f )
+		{
+			addToRenderList( viewport, entity, octree->data, rl_ptr );
+
+			return 2;
+		}
+		//否则包围盒将穿越任一边界
+		//交给裁剪函数处理
+		else
+		{
+			//如果有子结点则继续递归
+			if ( octree->tlb )	code = octree_culling( viewport, camera, entity, octree->tlb, rl_ptr, cl_ptr );
+			else				noChild |= 0x01;
+
+			if ( octree->tlf )	code = octree_culling( viewport, camera, entity, octree->tlf, rl_ptr, cl_ptr );
+			else				noChild |= 0x02;
+
+			if ( octree->trb )	code = octree_culling( viewport, camera, entity, octree->trb, rl_ptr, cl_ptr );
+			else				noChild |= 0x04;
+
+			if ( octree->trf )	code = octree_culling( viewport, camera, entity, octree->trf, rl_ptr, cl_ptr );
+			else				noChild |= 0x08;
+
+			if ( octree->blb )	code = octree_culling( viewport, camera, entity, octree->blb, rl_ptr, cl_ptr );
+			else				noChild |= 0x10;
+
+			if ( octree->blf )	code = octree_culling( viewport, camera, entity, octree->blf, rl_ptr, cl_ptr );
+			else				noChild |= 0x20;
+
+			if ( octree->brb )	code = octree_culling( viewport, camera, entity, octree->brb, rl_ptr, cl_ptr );
+			else				noChild |= 0x40;
+
+			if ( octree->brf )	code = octree_culling( viewport, camera, entity, octree->brf, rl_ptr, cl_ptr );
+			else				noChild |= 0x80;
+
+			if ( noChild == 0xff ) frustumClipping( viewport, camera, entity, octree->data, rl_ptr, cl_ptr );
+		}
+	}
+
+	return 1;
+}
+
 void viewport_project( Viewport * viewport, int time )
 {
 	Scene * scene;
@@ -623,7 +780,7 @@ void viewport_project( Viewport * viewport, int time )
 	FloatColor fColor, lastColor, outPutColor;
 	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
 
-	int l = 0, j = 0, code = 0;
+	int l = 0, j = 0;
 
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
@@ -666,21 +823,20 @@ void viewport_project( Viewport * viewport, int time )
 
 			matrix3D_append( entity->view, entity->world, camera->eye->world );
 
-			aabb_setToTransformedBox( entity->mesh->worldAABB, entity->mesh->aabb, entity->world );
-
 			//连接透视投影矩阵
 			matrix3D_append4x4( entity->projection, entity->view, camera->projectionMatrix );
 
-			//构造基于CVV的AABB
-			//优化中
-			mesh_transformNewAABB( entity->mesh->CVVAABB, entity->mesh->aabb, entity->projection );
+			//计算视点在实体的局部坐标
+			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
 
-			//aabb_setToTransformedBox_4D( entity->mesh->CVVAABB, entity->mesh->aabb, entity->projection );
+			//变换八叉树
+			//优化中
+			transform_octree( entity->mesh->octree, entity->world, entity->view );
 			
 			if( entity->mesh->type == ENTITY_TYPE_MESH_TERRAIN )
 			{
-				float w = entity->mesh->aabb->max->x - entity->mesh->aabb->min->x;
-				float h = entity->mesh->aabb->max->z - entity->mesh->aabb->min->z;
+				float w = entity->mesh->octree->data->aabb->max->x - entity->mesh->octree->data->aabb->min->x;
+				float h = entity->mesh->octree->data->aabb->max->z - entity->mesh->octree->data->aabb->min->z;
 				float textureX = w  * .5f,
 					  textureY = h * .5f,
 
@@ -751,9 +907,9 @@ void viewport_project( Viewport * viewport, int time )
 					///
 					///平面算法
 					//////
-					triangle_normal( & normal, entity -> mesh -> vertices + cIndex, entity -> mesh -> vertices + bIndex, entity -> mesh -> vertices + aIndex );
+					triangle_normal( & normal, (* entity -> mesh -> vertices) + cIndex, (* entity -> mesh -> vertices) + bIndex, (* entity -> mesh -> vertices) + aIndex );
 
-					height = - ( ep -> entity -> position -> x * normal.x + ep -> entity -> position -> z * normal.z - vector3D_dotProduct( & normal, entity -> mesh -> vertices[aIndex].position ) ) / normal.y;
+					height = - ( ep -> entity -> position -> x * normal.x + ep -> entity -> position -> z * normal.z - vector3D_dotProduct( & normal, entity -> mesh -> vertices[aIndex]->position ) ) / normal.y;
 
 					/////
 					///跟踪算法3
@@ -771,45 +927,15 @@ void viewport_project( Viewport * viewport, int time )
 				}
 			}
 
-			code = 0;
+			//记录当前的渲染列表指针
+			curr_rl_ptr	= rl_ptr;
 
-			/*AS3_Trace(AS3_String("x"));
-			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->min->x));
-			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->max->x));
-			AS3_Trace(AS3_String("y"));
-			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->min->y));
-			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->max->y));
-			AS3_Trace(AS3_String("w"));
-			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->min->w));
-			AS3_Trace(AS3_Number(entity->mesh->CVVAABB->max->w));*/
-
-			//基于包围盒的视锥体剔除
-			if ( entity->mesh->CVVAABB->max->x < -1 )				code |= 0x01;
-			if ( entity->mesh->CVVAABB->min->x > 1 )				code |= 0x02;
-			if ( entity->mesh->CVVAABB->max->y < -1 )				code |= 0x04;
-			if ( entity->mesh->CVVAABB->min->y > 1 )				code |= 0x08;
-			if ( entity->mesh->CVVAABB->max->w <= camera->near )	code |= 0x10;
-			if ( entity->mesh->CVVAABB->min->w >= camera->far )		code |= 0x20;
-
-			//输出码为非零侧实体离屏
-			if ( code > 0 )
+			if ( ! octree_culling( viewport, camera, entity, entity->mesh->octree, & rl_ptr, & cl_ptr ) )
 			{
-				//累计离屏多边形
-				viewport->nCullList += entity->mesh->nFaces;
-
 				sceneNode = sceneNode->next;
 
 				continue;
 			}
-
-			//计算视点在实体的局部坐标
-			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
-
-			//记录当前的渲染列表指针
-			curr_rl_ptr	= rl_ptr;
-
-			//多边形裁剪
-			frustumClipping( viewport, camera, entity, & rl_ptr, & cl_ptr );
 
 			//========================光照计算======================
 
@@ -1016,21 +1142,11 @@ void viewport_project( Viewport * viewport, int time )
 						lastColor.alpha = material->diffuse->alpha;
 					}
 
-					//matrix3D_transformVector( vs->s_pos, camera->projectionMatrix, vs->w_pos );
-
-					//invw = 1.0f / vs->w_pos->w;
-
-					//vs->s_pos->x = vs->w_pos->x * invw;
-					//vs->s_pos->y = vs->w_pos->y * invw;
-
-					vs->s_pos->x += 0.5f;
-					vs->s_pos->y += 0.5f;
-
-					vs->s_pos->x *= viewport->width;
-					vs->s_pos->y *= viewport->height;
+					vs->s_pos->x = ( vs->s_pos->x + 1.0f ) * viewport->width * 0.5f;
+					vs->s_pos->y = ( vs->s_pos->y + 1.0f ) * viewport->height * 0.5f;
 					vs->s_pos->w = vs->w_pos->w;
 
-					vs->fix_inv_z = (1 << FIXP28_SHIFT) / (int)(vs->w_pos->w + 0.5f );
+					vs->fix_inv_z = ( 1 << FIXP28_SHIFT ) / (int)( vs->w_pos->w + 0.5f );
 
 					vs->color->red = (BYTE)(lastColor.red * 255.0f);
 					vs->color->green = (BYTE)(lastColor.green * 255.0f);
@@ -1146,7 +1262,9 @@ void viewport_render(Viewport * viewport)
 			}
 		}
 
-		face->vertex[0]->transformed = face->vertex[1]->transformed =face->vertex[2]->transformed = FALSE;
+		face->vertex[0]->transformed = FALSE;
+		face->vertex[1]->transformed = FALSE;
+		face->vertex[2]->transformed = FALSE;
 
 		rl->polygon = NULL;
 

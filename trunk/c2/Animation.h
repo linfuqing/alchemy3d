@@ -76,9 +76,9 @@ void animation_updateToFrame( Animation * animation, unsigned int keyFrame )
 
 	for( i = 0; i < ( animation -> parent -> nVertices ); i ++ )
 	{
-		animation -> parent -> vertices[i].position -> x = animation -> frames[keyFrame].vertices[i].x;
-		animation -> parent -> vertices[i].position -> y = animation -> frames[keyFrame].vertices[i].y;
-		animation -> parent -> vertices[i].position -> z = animation -> frames[keyFrame].vertices[i].z;
+		animation -> parent -> vertices[i]->position -> x = animation -> frames[keyFrame].vertices[i].x;
+		animation -> parent -> vertices[i]->position -> y = animation -> frames[keyFrame].vertices[i].y;
+		animation -> parent -> vertices[i]->position -> z = animation -> frames[keyFrame].vertices[i].z;
 	}
 }
 
@@ -105,9 +105,9 @@ void animation_updateToTime( Animation * animation, float timeAlpha )
 
 	for( i = 0; i < ( animation -> parent -> nVertices ); i ++ )
 	{
-		animation -> parent -> vertices[i].position -> x = animation -> frames[currentFrameIndex].vertices[i].x + frameAlpha * ( animation -> frames[currentFrameIndex + 1].vertices[i].x - animation -> frames[currentFrameIndex].vertices[i].x );
-		animation -> parent -> vertices[i].position -> y = animation -> frames[currentFrameIndex].vertices[i].y + frameAlpha * ( animation -> frames[currentFrameIndex + 1].vertices[i].y - animation -> frames[currentFrameIndex].vertices[i].y );
-		animation -> parent -> vertices[i].position -> z = animation -> frames[currentFrameIndex].vertices[i].z + frameAlpha * ( animation -> frames[currentFrameIndex + 1].vertices[i].z - animation -> frames[currentFrameIndex].vertices[i].z );
+		animation -> parent -> vertices[i]->position -> x = animation -> frames[currentFrameIndex].vertices[i].x + frameAlpha * ( animation -> frames[currentFrameIndex + 1].vertices[i].x - animation -> frames[currentFrameIndex].vertices[i].x );
+		animation -> parent -> vertices[i]->position -> y = animation -> frames[currentFrameIndex].vertices[i].y + frameAlpha * ( animation -> frames[currentFrameIndex + 1].vertices[i].y - animation -> frames[currentFrameIndex].vertices[i].y );
+		animation -> parent -> vertices[i]->position -> z = animation -> frames[currentFrameIndex].vertices[i].z + frameAlpha * ( animation -> frames[currentFrameIndex + 1].vertices[i].z - animation -> frames[currentFrameIndex].vertices[i].z );
 	}
 
 	animation->parent->v_dirty = TRUE;

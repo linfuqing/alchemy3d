@@ -132,9 +132,9 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 
 		mesh_push_triangle( 
 							m -> mesh, 
-							m -> mesh -> vertices + vertexIndex[0],
-							m -> mesh -> vertices + vertexIndex[1],
-							m -> mesh -> vertices + vertexIndex[2],
+							(* m -> mesh -> vertices) + vertexIndex[0],
+							(* m -> mesh -> vertices) + vertexIndex[1],
+							(* m -> mesh -> vertices) + vertexIndex[2],
 							uvs + uvIndex[0],
 							uvs + uvIndex[1],
 							uvs + uvIndex[2],
