@@ -57,8 +57,8 @@ int main()
 
 	//MD2 * md2;
 
-	A3DS * a3ds;
-	FILE *fp;
+	//A3DS * a3ds;
+	//FILE *fp;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -74,40 +74,45 @@ int main()
 							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 							4.0f );
 
-	if( ( bitmapData = ( LPDWORD )calloc( 256*256, sizeof( DWORD ) ) ) == NULL )
+	if( ( bitmapData = ( LPDWORD )calloc( 2 * 2, sizeof( DWORD ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
-	for ( i = 0; i < 256 * 256; i ++ )
+	for ( i = 0; i < 2 * 2; i ++ )
 	{
 		bitmapData[i] = 0xffffffff;
 	}
 
 	texture = newTexture( "default_tex" );
-	texture_setData( texture, 256, 256, (LPBYTE)bitmapData );
+	texture_setData( texture, 2, 2, (LPBYTE)bitmapData );
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	mesh4 = newPlane( NULL, material, texture, 300, 300, 1, 1, RENDER_WIREFRAME_TRIANGLE_32 );
+	//mesh4 = newTerrain( NULL, texture, 4000, 4000, 2000, 2, material, NULL, RENDER_WIREFRAME_TRIANGLE_32 );
+	mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_WIREFRAME_TRIANGLE_32 );
+	mesh4->octree_depth = 0;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	
 	scene = newScene();
 
-	camera = newCamera( 90.0f, 100.0f, 5000.0f, newEntity() );
+	camera = newCamera( 90.0f, 10.0f, 10000.0f, newEntity() );
+	entity_setZ(camera->eye, -10.0f);
+	//entity_setX(camera->eye, 2000.0f);
 
-	view = newViewport( 600, 400, scene, camera );
+	view = newViewport( 640, 480, scene, camera );
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
-	//entity_setY(do3d3, 100.0f);
-	entity_setZ(do3d3, 400.0f);
+	entity_setRotationX( do3d3, 90.0f);
+	entity_setZ(do3d3, 500.0f);
+	//entity_setY(do3d3, -1000.0f);
 	entity_setMesh( do3d3, mesh4 );
 
 	scene_addEntity(scene, do3d3, NULL);
 
-	camera_setTarget( camera, do3d3->w_pos );
+	//camera_setTarget( camera, do3d3->w_pos );
 
 	/////////////////////////////////////////////////////////////////////////////////////
 

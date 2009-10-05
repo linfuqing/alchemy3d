@@ -892,7 +892,7 @@ float aabb_intersectPlane(AABB * aabb, Vector3D * n, float planeD, Vector3D * di
 // Check if two AABBs intersect, and return true if so. Optionally return
 // the AABB of their intersection if an intersection is detected
 
-int intersectAABBs(AABB * box1, AABB * box2, AABB * boxIntersect)
+INLINE int aabb_intersectAABBs(AABB * box1, AABB * box2, AABB * boxIntersect)
 {
 	// Check for no overlap
 

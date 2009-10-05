@@ -284,9 +284,9 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 	{
 		mesh_push_triangle( 
 			mesh,
-			mesh -> vertices + fs[i * 3], 
-			mesh -> vertices + fs[i * 3 + 1], 
-			mesh -> vertices + fs[i * 3 + 2],
+			(* mesh -> vertices) + fs[i * 3], 
+			(* mesh -> vertices) + fs[i * 3 + 1], 
+			(* mesh -> vertices) + fs[i * 3 + 2],
 			uvp + i * 3    ,
 			uvp + i * 3 + 1,
 			uvp + i * 3 + 2,
@@ -308,15 +308,15 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 	if( ( vp = ( Vector3D * *   )malloc( sizeof( Vector3D *   ) * mesh -> nVertices ) ) == NULL )
 	{
-		return AS3_Array( "PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->f_dirty );
+		return AS3_Array( "PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->octree_depth );
 	}
 
 	for( i = 0; i < mesh -> nVertices; i ++ )
 	{
-		vp[i] = mesh -> vertices[i].position;
+		vp[i] = mesh -> vertices[i]->position;
 	}
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->f_dirty, & vp );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->octree_depth, & vp );
 }
 
 AS3_Val initializeEntity( void* self, AS3_Val args )

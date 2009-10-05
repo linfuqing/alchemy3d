@@ -193,7 +193,7 @@ void entity_setMesh( Entity * entity, Mesh * m )
 
 void entity_updateAfterRender( Entity * entity )
 {
-	if ( entity->mesh ) entity->mesh->v_dirty = entity->mesh->f_dirty = FALSE;
+	if ( entity->mesh ) entity->mesh->v_dirty = FALSE;
 }
 
 INLINE void entity_updateTransform( Entity * entity )

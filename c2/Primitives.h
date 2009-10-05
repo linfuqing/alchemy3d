@@ -48,9 +48,9 @@ Mesh * newPlane(
 			cIndex = ix     * gridY + (iy+1);
 			bIndex = (ix+1) * gridY + iy;
 					
-			a = & base -> vertices[aIndex];
-			c = & base -> vertices[cIndex];
-			b = & base -> vertices[bIndex];
+			a = base -> vertices[aIndex];
+			c = base -> vertices[cIndex];
+			b = base -> vertices[bIndex];
 
 			uvA =  newVector( (float)(ix)   / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );
 			uvC =  newVector( (float)(ix)   / (float)(segments_width), (float)(iy)   / (float)(segments_height) );
@@ -63,9 +63,9 @@ Mesh * newPlane(
 			cIndex = (ix+1) * gridY + iy;
 			bIndex = ix     * gridY + (iy+1);
 					
-			a = & base -> vertices[aIndex];
-			c = & base -> vertices[cIndex];
-			b = & base -> vertices[bIndex];
+			a = base -> vertices[aIndex];
+			c = base -> vertices[cIndex];
+			b = base -> vertices[bIndex];
 	
 			uvA =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy)   / (float)(segments_height) );
 			uvC =  newVector( (float)(ix+1) / (float)(segments_width), (float)(iy+1) / (float)(segments_height) );

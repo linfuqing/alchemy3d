@@ -14,7 +14,7 @@ typedef struct Camera
 
 	Matrix3D * projectionMatrix;
 
-	float fov, near, far, top, bottom, left, right;
+	float fov, near, far, n_top, n_bottom, n_left, n_right, f_top, f_bottom, f_right, f_left, fn;
 
 	int fnfDirty, isUVN;
 }Camera;
@@ -103,12 +103,17 @@ INLINE Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float botto
 //根据远近截面、宽高比和视角获得投影矩阵
 INLINE Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float aspect )
 {
-	camera->top = camera->near * tanf( DEG2RAD( camera->fov * 0.5 ) );
-	camera->bottom = -camera->top;
-	camera->right = camera->top * aspect;
-	camera->left = -camera->right;
+	camera->n_top = camera->near * tanf( DEG2RAD( camera->fov * 0.5f ) );
+	camera->n_bottom = -camera->n_top;
+	camera->n_right = camera->n_top * aspect;
+	camera->n_left = -camera->n_right;
 
-	return getProjectionMatrix(output, camera->top, camera->bottom, camera->left, camera->right, camera->near, camera->far);
+	camera->f_top = camera->far * tanf( DEG2RAD( camera->fov * 0.5f ) );
+	camera->f_bottom = -camera->f_top;
+	camera->f_right = camera->f_top * aspect;
+	camera->f_left = -camera->f_right;
+
+	return getProjectionMatrix(output, camera->n_top, camera->n_bottom, camera->n_left, camera->n_right, camera->near, camera->far);
 }
 
 //更新摄像机矩阵
