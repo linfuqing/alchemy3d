@@ -120,7 +120,7 @@ INLINE void triangle_dispose( Triangle * p)
 	p->uv[2] = NULL;
 }
 
-INLINE void triangle_transform( Matrix3D * projection, Triangle * face )
+INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangle * face )
 {
 	Vertex * vert;
 
@@ -130,12 +130,14 @@ INLINE void triangle_transform( Matrix3D * projection, Triangle * face )
 
 		vert = face->vertex[0];
 
-		vert->w_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
-		vert->w_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
-		vert->w_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
+		matrix3D_transformVector( vert->w_pos, world, vert->position );
 
-		vert->s_pos->x = vert->w_pos->x / vert->w_pos->w;
-		vert->s_pos->y = vert->w_pos->y / vert->w_pos->w;
+		vert->v_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
+		vert->v_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
+		vert->v_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
+
+		vert->s_pos->x = vert->v_pos->x / vert->v_pos->w;
+		vert->s_pos->y = vert->v_pos->y / vert->v_pos->w;
 	}
 
 	if ( face->vertex[1]->transformed == 0 )
@@ -144,12 +146,14 @@ INLINE void triangle_transform( Matrix3D * projection, Triangle * face )
 
 		vert = face->vertex[1];
 
-		vert->w_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
-		vert->w_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
-		vert->w_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
+		matrix3D_transformVector( vert->w_pos, world, vert->position );
 
-		vert->s_pos->x = vert->w_pos->x / vert->w_pos->w;
-		vert->s_pos->y = vert->w_pos->y / vert->w_pos->w;
+		vert->v_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
+		vert->v_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
+		vert->v_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
+
+		vert->s_pos->x = vert->v_pos->x / vert->v_pos->w;
+		vert->s_pos->y = vert->v_pos->y / vert->v_pos->w;
 	}
 
 	if ( face->vertex[2]->transformed == 0 )
@@ -158,12 +162,14 @@ INLINE void triangle_transform( Matrix3D * projection, Triangle * face )
 
 		vert = face->vertex[2];
 
-		vert->w_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
-		vert->w_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
-		vert->w_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
+		matrix3D_transformVector( vert->w_pos, world, vert->position );
 
-		vert->s_pos->x = vert->w_pos->x / vert->w_pos->w;
-		vert->s_pos->y = vert->w_pos->y / vert->w_pos->w;
+		vert->v_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
+		vert->v_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
+		vert->v_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
+
+		vert->s_pos->x = vert->v_pos->x / vert->v_pos->w;
+		vert->s_pos->y = vert->v_pos->y / vert->v_pos->w;
 	}
 }
 

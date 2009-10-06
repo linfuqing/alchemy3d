@@ -193,11 +193,13 @@ void addToRenderList( Viewport * viewport, Entity * entity, OctreeData * octreeD
 	{
 		face = octreeData->faces[j];
 
-		triangle_transform( entity->projection, face );
+		triangle_transform( entity->world, entity->projection, face );
 
 		insertFaceToList( rl_ptr, face );
 
 		viewport->nRenderList ++;
+
+		entity->mesh->nFacesInRL ++;
 	}
 }
 
@@ -247,7 +249,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			}
 		}
 
-		triangle_transform( entity->projection, face );
+		triangle_transform( entity->world, entity->projection, face );
 
 		if (face->vertex[0]->s_pos->x < -1 &&
 			face->vertex[1]->s_pos->x < -1 &&
@@ -301,9 +303,9 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			continue;
 		}
 
-		if (face->vertex[0]->w_pos->w > far &&
-			face->vertex[1]->w_pos->w > far &&
-			face->vertex[2]->w_pos->w > far )
+		if (face->vertex[0]->v_pos->w > far &&
+			face->vertex[1]->v_pos->w > far &&
+			face->vertex[2]->v_pos->w > far )
 		{
 			viewport->nCullList ++;
 
@@ -314,21 +316,21 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			continue;
 		}
 
-		if ( face->vertex[0]->w_pos->w < near )
+		if ( face->vertex[0]->v_pos->w < near )
 		{
 			verts_out ++;
 
 			zCode0 = 0x01;
 		}
 
-		if ( face->vertex[1]->w_pos->w < near )
+		if ( face->vertex[1]->v_pos->w < near )
 		{
 			verts_out ++;
 
 			zCode1 = 0x02;
 		}
 
-		if ( face->vertex[2]->w_pos->w < near )
+		if ( face->vertex[2]->v_pos->w < near )
 		{
 			verts_out ++;
 
@@ -394,38 +396,38 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			//对各边裁剪
 
 			//=======================对v0->v1边进行裁剪=======================
-			dx = ver1_1->w_pos->x - ver1_0->w_pos->x;
-			dy = ver1_1->w_pos->y - ver1_0->w_pos->y;
-			dz = ver1_1->w_pos->w - ver1_0->w_pos->w;
+			dx = ver1_1->v_pos->x - ver1_0->v_pos->x;
+			dy = ver1_1->v_pos->y - ver1_0->v_pos->y;
+			dz = ver1_1->v_pos->w - ver1_0->v_pos->w;
 
-			t1 = ( ( near - ver1_0->w_pos->w ) / dz );
+			t1 = ( ( near - ver1_0->v_pos->w ) / dz );
 
 			//计算交点x、y坐标
-			xi = ver1_0->w_pos->x + dx * t1;
-			yi = ver1_0->w_pos->y + dy * t1;
+			xi = ver1_0->v_pos->x + dx * t1;
+			yi = ver1_0->v_pos->y + dy * t1;
 
 			//用交点覆盖原来的顶点
-			ver1_1->w_pos->x = xi;
-			ver1_1->w_pos->y = yi;
-			ver1_1->w_pos->w = near;
+			ver1_1->v_pos->x = xi;
+			ver1_1->v_pos->y = yi;
+			ver1_1->v_pos->w = near;
 			ver1_1->s_pos->x = xi / near;
 			ver1_1->s_pos->y = yi / near;
 
 			//=======================对v0->v2边进行裁剪=======================
-			dx = ver1_2->w_pos->x - ver1_0->w_pos->x;
-			dy = ver1_2->w_pos->y - ver1_0->w_pos->y;
-			dz = ver1_2->w_pos->w - ver1_0->w_pos->w;
+			dx = ver1_2->v_pos->x - ver1_0->v_pos->x;
+			dy = ver1_2->v_pos->y - ver1_0->v_pos->y;
+			dz = ver1_2->v_pos->w - ver1_0->v_pos->w;
 
-			t2 = ( ( near - ver1_0->w_pos->w ) / dz );
+			t2 = ( ( near - ver1_0->v_pos->w ) / dz );
 
 			//计算交点x、y坐标
-			xi = ver1_0->w_pos->x + dx * t2;
-			yi = ver1_0->w_pos->y + dy * t2;
+			xi = ver1_0->v_pos->x + dx * t2;
+			yi = ver1_0->v_pos->y + dy * t2;
 
 			//用交点覆盖原来的顶点
-			ver1_2->w_pos->x = xi;
-			ver1_2->w_pos->y = yi;
-			ver1_2->w_pos->w = near;
+			ver1_2->v_pos->x = xi;
+			ver1_2->v_pos->y = yi;
+			ver1_2->v_pos->w = near;
 			ver1_2->s_pos->x = xi / near;
 			ver1_2->s_pos->y = yi / near;
 
@@ -516,45 +518,45 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			//对各边裁剪
 
 			//=======================对v0->v1边进行裁剪=======================
-			dx = ver1_1->w_pos->x - ver1_0->w_pos->x;
-			dy = ver1_1->w_pos->y - ver1_0->w_pos->y;
-			dz = ver1_1->w_pos->w - ver1_0->w_pos->w;
+			dx = ver1_1->v_pos->x - ver1_0->v_pos->x;
+			dy = ver1_1->v_pos->y - ver1_0->v_pos->y;
+			dz = ver1_1->v_pos->w - ver1_0->v_pos->w;
 
-			t1 = ( ( near - ver1_0->w_pos->w ) / dz );
+			t1 = ( ( near - ver1_0->v_pos->w ) / dz );
 
-			x01i = ver1_0->w_pos->x + dx * t1;
-			y01i = ver1_0->w_pos->y + dy * t1;
+			x01i = ver1_0->v_pos->x + dx * t1;
+			y01i = ver1_0->v_pos->y + dy * t1;
 
 			//=======================对v0->v2边进行裁剪=======================
-			dx = ver1_2->w_pos->x - ver1_0->w_pos->x;
-			dy = ver1_2->w_pos->y - ver1_0->w_pos->y;
-			dz = ver1_2->w_pos->w - ver1_0->w_pos->w;
+			dx = ver1_2->v_pos->x - ver1_0->v_pos->x;
+			dy = ver1_2->v_pos->y - ver1_0->v_pos->y;
+			dz = ver1_2->v_pos->w - ver1_0->v_pos->w;
 
-			t2 = ( ( near - ver1_0->w_pos->w ) / dz );
+			t2 = ( ( near - ver1_0->v_pos->w ) / dz );
 
-			x02i = ver1_0->w_pos->x + dx * t2;
-			y02i = ver1_0->w_pos->y + dy * t2;
+			x02i = ver1_0->v_pos->x + dx * t2;
+			y02i = ver1_0->v_pos->y + dy * t2;
 
 			//计算出交点后需要用交点1覆盖原来的三角形顶点
 			//分割后的第一个三角形
 
 			//用交点1覆盖原来三角形的顶点0
-			ver1_0->w_pos->x = x01i;
-			ver1_0->w_pos->y = y01i;
-			ver1_0->w_pos->w = near;
+			ver1_0->v_pos->x = x01i;
+			ver1_0->v_pos->y = y01i;
+			ver1_0->v_pos->w = near;
 			ver1_0->s_pos->x = x01i / near;
 			ver1_0->s_pos->y = y01i / near;
 
 			//用交点1覆盖新三角形的顶点1，交点2覆盖顶点0
-			ver2_1->w_pos->x = x01i;
-			ver2_1->w_pos->y = y01i;
-			ver2_1->w_pos->w = near;
+			ver2_1->v_pos->x = x01i;
+			ver2_1->v_pos->y = y01i;
+			ver2_1->v_pos->w = near;
 			ver2_1->s_pos->x = x01i / near;
 			ver2_1->s_pos->y = y01i / near;
 
-			ver2_0->w_pos->x = x02i;
-			ver2_0->w_pos->y = y02i;
-			ver2_0->w_pos->w = near;
+			ver2_0->v_pos->x = x02i;
+			ver2_0->v_pos->y = y02i;
+			ver2_0->v_pos->w = near;
 			ver2_0->s_pos->x = x02i / near;
 			ver2_0->s_pos->y = y02i / near;
 
@@ -591,6 +593,8 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			insertFaceToList( rl_ptr, face );
 
 			viewport->nRenderList ++;
+
+			entity->mesh->nFacesInRL ++;
 		}
 		//否则插入新面
 		else
@@ -600,6 +604,8 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 				insertFaceToList( rl_ptr, face1 );
 
 				viewport->nRenderList ++;
+
+				entity->mesh->nFacesInRL ++;
 			}
 
 			if ( NULL != face2 )
@@ -607,6 +613,8 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 				insertFaceToList( rl_ptr, face2 );
 
 				viewport->nRenderList ++;
+
+				entity->mesh->nFacesInRL ++;
 			}
 		}
 	}
@@ -707,13 +715,12 @@ int octree_culling( Viewport * viewport, Camera * camera, Entity * entity, Octre
 	return 1;
 }
 
-void viewport_project( Viewport * viewport, int time )
+void viewpor_lightting( Viewport * viewport )
 {
-	Scene * scene;
-	SceneNode * sceneNode;
-	Camera * camera;
 	Entity * entity;
-	RenderList * curr_rl_ptr, * rl_ptr, * cl_ptr, * renderList;
+	RenderList * renderList;
+	SceneNode * sceneNode;
+	Mesh * mesh;
 
 	//光照变量
 	Vertex * vs;
@@ -723,81 +730,29 @@ void viewport_project( Viewport * viewport, int time )
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
 	FloatColor fColor, lastColor, outPutColor;
 	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
-
-	int l = 0, j = 0;
-
+	int l = 0, j = 0, i = 0;
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
 	Vector3D vLightsToObject[MAX_LIGHTS];
 
-	scene = viewport->scene;
-	camera = viewport->camera;
-
-	//把渲染列表的指针指向表头的下一个结点
-	rl_ptr = viewport->renderList->next;
-	cl_ptr = viewport->clippedList->next;
-
-	//更新摄像机矩阵
-	camera_updateTransform( camera );
-
-	//如果摄像机或视口的属性改变
-	//则重新计算投影矩阵
-	if ( TRUE == camera->fnfDirty || TRUE == viewport->dirty )
-	{
-		getPerspectiveFovLH( camera->projectionMatrix, camera, viewport->aspect );
-	}
-
 	//遍历实体
-	sceneNode = scene->nodes;
+	sceneNode = viewport->scene->nodes;
 
 	while( sceneNode )
 	{
 		entity = sceneNode->entity;
+		mesh = entity->mesh;
 
-		entity_updateTransform(entity);
-
-		if ( entity->mesh && entity -> mesh -> nFaces && entity -> mesh -> nVertices )
+		if ( mesh && mesh->nFaces && mesh->nVertices )
 		{
-			if( entity -> mesh -> animation && entity -> mesh -> animation -> length > 1 )
-			{
-				animation_update( entity -> mesh -> animation, time );
-			}
-
-			mesh_updateMesh( entity->mesh );
-
-			matrix3D_append( entity->view, entity->world, camera->eye->world );
-
-			//连接透视投影矩阵
-			matrix3D_append4x4( entity->projection, entity->view, camera->projectionMatrix );
-
-			//计算视点在实体的局部坐标
-			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
-
-			//八叉
-			transform_octree( entity->mesh->octree, entity->world, entity->view );
-			
-			terrain_trace( entity, scene -> nodes, 0 );
-
-			//记录当前的渲染列表指针
-			curr_rl_ptr	= rl_ptr;
-
-			if ( ! octree_culling( viewport, camera, entity, entity->mesh->octree, & rl_ptr, & cl_ptr ) )
-			{
-				sceneNode = sceneNode->next;
-
-				continue;
-			}
-
-			//========================光照计算======================
-
 			//光源索引为零
 			l = 0;
 
 			//更新光源位置
-			lights = scene->lights;
+			lights = viewport->scene->lights;
 
 			//遍历光源
-			while ( NULL != lights && entity->mesh->lightEnable )
+			while ( NULL != lights && mesh->lightEnable )
 			{
 				if ( TRUE == lights->light->bOnOff )
 				{
@@ -811,9 +766,10 @@ void viewport_project( Viewport * viewport, int time )
 			}
 
 			//遍历渲染列表
-			renderList = curr_rl_ptr;
+			renderList = mesh->s_rl;
 
-			while ( NULL != renderList && NULL != renderList->polygon )
+			//while ( NULL != renderList && NULL != renderList->polygon )
+			for ( i = 0; i < mesh->nFacesInRL; i ++ )
 			{
 				material = renderList->polygon->material;
 
@@ -841,11 +797,11 @@ void viewport_project( Viewport * viewport, int time )
 						//临时颜色清零
 						floatColor_zero( & fColor );
 
-						lights = scene->lights;
+						lights = viewport->scene->lights;
 
 						//来自于光源的贡献
 						//如果有光源
-						while ( NULL != lights && entity->mesh->lightEnable )
+						while ( NULL != lights && mesh->lightEnable )
 						{
 							//如果光源是关闭的
 							if ( FALSE == lights->light->bOnOff )
@@ -878,8 +834,7 @@ void viewport_project( Viewport * viewport, int time )
 								if ( ( fc1 > 0.0001f ) || ( fc2 > 0.0001f ) )
 								{
 									//求顶点至光源的距离
-									vector3D_subtract( & vFDist, vs->position, & vLightsToObject[l] );
-									fDist = vector3D_lengthSquared( & vFDist );
+									fDist = vector3D_lengthSquared( vector3D_subtract( & vFDist, vs->position, & vLightsToObject[l] ) );
 
 									//加入一次和二次因子
 									fAttenuCoef += (fc1 * sqrtf( fDist ) + fc2 * fDist);
@@ -995,9 +950,9 @@ void viewport_project( Viewport * viewport, int time )
 
 					vs->s_pos->x = ( vs->s_pos->x + 1.0f ) * viewport->width * 0.5f;
 					vs->s_pos->y = ( vs->s_pos->y + 1.0f ) * viewport->height * 0.5f;
-					vs->s_pos->w = vs->w_pos->w;
+					vs->s_pos->w = vs->v_pos->w;
 
-					vs->fix_inv_z = ( 1 << FIXP28_SHIFT ) / (int)( vs->w_pos->w + 0.5f );
+					vs->fix_inv_z = ( 1 << FIXP28_SHIFT ) / (int)( vs->v_pos->w + 0.5f );
 
 					vs->color->red = (BYTE)(lastColor.red * 255.0f);
 					vs->color->green = (BYTE)(lastColor.green * 255.0f);
@@ -1009,10 +964,84 @@ void viewport_project( Viewport * viewport, int time )
 
 				renderList = renderList->next;
 			}
+		}
+
+		sceneNode = sceneNode->next;
+	}
+}
+
+void viewport_project( Viewport * viewport, int time )
+{
+	Scene * scene;
+	SceneNode * sceneNode;
+	Camera * camera;
+	Entity * entity;
+	RenderList * rl_ptr, * cl_ptr;
+
+	scene = viewport->scene;
+	camera = viewport->camera;
+
+	//把渲染列表的指针指向表头的下一个结点
+	rl_ptr = viewport->renderList->next;
+	cl_ptr = viewport->clippedList->next;
+
+	//更新摄像机矩阵
+	camera_updateTransform( camera );
+
+	//如果摄像机或视口的属性改变
+	//则重新计算投影矩阵
+	if ( TRUE == camera->fnfDirty || TRUE == viewport->dirty )
+	{
+		getPerspectiveFovLH( camera->projectionMatrix, camera, viewport->aspect );
+	}
+
+	//遍历实体
+	sceneNode = scene->nodes;
+
+	while( sceneNode )
+	{
+		entity = sceneNode->entity;
+
+		entity_updateTransform(entity);
+
+		if ( entity->mesh && entity -> mesh -> nFaces && entity -> mesh -> nVertices )
+		{
+			if( entity -> mesh -> animation && entity -> mesh -> animation -> length > 1 )
+			{
+				animation_update( entity -> mesh -> animation, time );
+			}
+
+			mesh_updateMesh( entity->mesh );
+
+			matrix3D_append( entity->view, entity->world, camera->eye->world );
+
+			//连接透视投影矩阵
+			matrix3D_append4x4( entity->projection, entity->view, camera->projectionMatrix );
+
+			//计算视点在实体的局部坐标
+			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
+
+			//八叉
+			transform_octree( entity->mesh->octree, entity->world, entity->view );
+
+			//记录网格使用的渲染列表的指针的起始地址
+			entity->mesh->s_rl = rl_ptr;
+
+			if ( ! octree_culling( viewport, camera, entity, entity->mesh->octree, & rl_ptr, & cl_ptr ) )
+			{
+				sceneNode = sceneNode->next;
+
+				continue;
+			}
+			
+			terrain_trace( entity, scene -> nodes, 0 );
+
 		}//end NULL != mesh
 
 		sceneNode = sceneNode->next;
 	}
+
+	viewpor_lightting( viewport );
 }
 
 #include "RenderFGTINVZB.h"

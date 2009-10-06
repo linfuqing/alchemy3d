@@ -17,7 +17,7 @@
 
 typedef struct Mesh
 {
-	int nFaces, nVertices, v_dirty, textureState, lightEnable, octreeState;
+	int nFaces, nVertices, nFacesInRL, v_dirty, textureState, lightEnable, octreeState;
 
 	int type, octree_depth;
 
@@ -35,6 +35,8 @@ typedef struct Mesh
 	Triangle ** faces;
 
 	Vertex ** vertices;
+
+	struct RenderList * s_rl;
 
 	struct Octree * octree;
 
@@ -75,6 +77,7 @@ Mesh * newMesh( int nVertices, int nFaces )
 
 	m->nFaces			= 0;
 	m->nVertices		= 0;
+	m->nFacesInRL		= 0;
 
 	if( nVertices && nFaces )
 	{
@@ -88,6 +91,7 @@ Mesh * newMesh( int nVertices, int nFaces )
 	m->lightEnable		= FALSE;
 
 	m->animation        = NULL;
+	m->s_rl				= NULL;
 
 	m->type				= 0;
 	m->octree_depth		= 0;
@@ -102,6 +106,7 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 
 	v->position = newVector3D(x, y, z, 1.0f);
 	v->w_pos = newVector3D(x, y, z, 1.0f);
+	v->v_pos = newVector3D(x, y, z, 1.0f);
 	v->s_pos = newVector3D(x, y, z, 1.0f);
 
 	v->color = newARGBColor( 255, 255, 255, 255 );
@@ -113,8 +118,6 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 
 	v->transformed = FALSE;
 	v->fix_inv_z = 0;
-
-	//aabb_add_3D( (( OctreeData * )( m->octree->data ))->aabb, v->position );
 
 	m->v_dirty = TRUE;
 	m->nVertices ++;
@@ -427,7 +430,7 @@ Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )
 
 INLINE float mesh_minY( Mesh * mesh )
 {
-	unsigned int i;
+	int i;
 	float min = mesh -> vertices[0] -> w_pos -> y;
 
 	for( i = 1; i < mesh -> nVertices; i ++ )
