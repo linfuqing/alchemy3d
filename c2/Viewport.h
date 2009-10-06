@@ -10,6 +10,7 @@
 #include "Camera.h"
 #include "Matrix3D.h"
 #include "Vector3D.h"
+#include "Terrain.h"
 
 #define NUM_PER_RL_INIT 200
 
@@ -766,7 +767,7 @@ int octree_culling( Viewport * viewport, Camera * camera, Entity * entity, Octre
 void viewport_project( Viewport * viewport, int time )
 {
 	Scene * scene;
-	SceneNode * sceneNode, * ep;
+	SceneNode * sceneNode;
 	Camera * camera;
 	Entity * entity;
 	RenderList * curr_rl_ptr, * rl_ptr, * cl_ptr, * renderList;
@@ -833,99 +834,7 @@ void viewport_project( Viewport * viewport, int time )
 			//优化中
 			transform_octree( entity->mesh->octree, entity->world, entity->view );
 			
-			if( entity->mesh->type == ENTITY_TYPE_MESH_TERRAIN )
-			{
-				float w = entity->mesh->octree->data->aabb->max->x - entity->mesh->octree->data->aabb->min->x;
-				float h = entity->mesh->octree->data->aabb->max->z - entity->mesh->octree->data->aabb->min->z;
-				float textureX = w  * .5f,
-					  textureY = h * .5f,
-
-					  iW = entity->mesh->widthSegment / w,
-					  iH = entity->mesh->heightSegment / h,
-
-					  tx, tz,
-					   
-					  height;
-
-				int //gridX = entity ->  widthSegment + 1,
-					gridZ = entity->mesh->heightSegment + 1,
-					ix, iz, _x, _z, aIndex, bIndex, cIndex;
-
-				Vector3D normal;
-
-				ep = scene -> nodes;
-
-				while( ep != NULL )
-				{
-					if( ep -> entity->mesh->type == ENTITY_TYPE_MESH_TERRAIN
-					||  ep -> entity -> parent != entity -> parent
-					||	ep -> entity -> position -> x < - textureX 
-					||  ep -> entity -> position -> x >   textureX
-					||	ep -> entity -> position -> z < - textureY 
-					||  ep -> entity -> position -> z >   textureY )
-					{
-						ep = ep -> next;
-						continue;
-					}
-
-					tx = ( ep -> entity -> position -> x + textureX ) * iW;
-					tz = ( ep -> entity -> position -> z + textureY ) * iH;
-
-					ix = ( int )tx;
-					iz = ( int )tz;
-					
-					_x = ix + 1;
-					_z = iz + 1;
-
-					if( ( tx -= ix ) + ( tz -= iz ) > 1 )
-					{
-						aIndex = ix * gridZ + iz;
-						cIndex = ix * gridZ + _z;
-						bIndex = _x * gridZ + iz;
-					}
-					else
-					{
-						aIndex = _x * gridZ + _z;
-						cIndex = _x * gridZ + iz;
-						bIndex = ix * gridZ + _z;
-					}
-
-					/*b = entity -> mesh -> vertices[bIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
-					c = entity -> mesh -> vertices[cIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
-
-					//////
-					///跟踪算法1
-					///
-					///三角形插值
-					///根据网格地形三角形投影始终为直角等腰三角形
-					///故点投影高度为:根号2(c-b)+bx+by
-					//////
-					height = invSqrt( 2 ) * tx * ( c - b ) + b * tx + b * tz + entity -> mesh -> vertices[aIndex].position -> y;*/
-
-					//////
-					///跟踪算法2:
-					///
-					///平面算法
-					//////
-					triangle_normal( & normal, (* entity -> mesh -> vertices) + cIndex, (* entity -> mesh -> vertices) + bIndex, (* entity -> mesh -> vertices) + aIndex );
-
-					height = - ( ep -> entity -> position -> x * normal.x + ep -> entity -> position -> z * normal.z - vector3D_dotProduct( & normal, entity -> mesh -> vertices[aIndex]->position ) ) / normal.y;
-
-					/////
-					///跟踪算法3
-					///
-					///平均值
-					/////
-					/*ep -> entity -> position -> y = - ( entity -> mesh -> vertices[aIndex].position -> y
-										  + entity -> mesh -> vertices[bIndex].position -> y
-										  + entity -> mesh -> vertices[cIndex].position -> y
-										   ) * .333333333333333333333333f;*/
-
-					ep -> entity -> position -> y = ep->entity->mesh->halfHeight + height;
-
-					ep = ep -> next;
-				}
-			}
+			terrain_trace( entity, scene -> nodes, 0 );
 
 			//记录当前的渲染列表指针
 			curr_rl_ptr	= rl_ptr;
