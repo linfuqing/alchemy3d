@@ -425,6 +425,22 @@ Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )
 	return m;
 }
 
+INLINE float mesh_minY( Mesh * mesh )
+{
+	unsigned int i;
+	float min = mesh -> vertices[0] -> w_pos -> y;
+
+	for( i = 1; i < mesh -> nVertices; i ++ )
+	{
+		if( mesh -> vertices[i] -> w_pos -> y < min )
+		{
+			min = mesh -> vertices[i] -> w_pos -> y;
+		}
+	}
+
+	return min;
+}
+
 INLINE int mesh_intersectMesh( Mesh * m1, Mesh * m2 )
 {
 	return aabb_intersectAABBs( m1->octree->data->worldAABB, m2->octree->data->worldAABB, NULL );
