@@ -90,7 +90,8 @@ int main()
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	//mesh4 = newTerrain( NULL, texture, 4000, 4000, 2000, 2, material, NULL, RENDER_WIREFRAME_TRIANGLE_32 );
-	mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_WIREFRAME_TRIANGLE_32 );
+	mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
+	//mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh4->octree_depth = 0;
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +106,7 @@ int main()
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
-	entity_setRotationX( do3d3, 90.0f);
+	//entity_setRotationX( do3d3, 90.0f);
 	entity_setZ(do3d3, 500.0f);
 	//entity_setY(do3d3, -1000.0f);
 	entity_setMesh( do3d3, mesh4 );

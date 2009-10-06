@@ -26,7 +26,7 @@ Mesh * newTerrain( Mesh * base, Texture * map, float width, float height, float 
 
 		SWAP( base->vertices[i]->position->y, base->vertices[i]->position->z, tmp );
 
-		base->vertices[i]->position->y = - base->vertices[i]->position->y;
+		//base->vertices[i]->position->y = - base->vertices[i]->position->y;
 	}
 
 	if( addressMode == TERRAIN_ADDRESS_MODE_WRAP )
@@ -182,12 +182,12 @@ void terrain_trace( Entity * terrain, SceneNode * target, int type )
 {
 	if( terrain->mesh->type == ENTITY_TYPE_MESH_TERRAIN )
 	{
-		float w = terrain->mesh->octree->data->aabb->max->x - terrain->mesh->octree->data->aabb->min->x;
-		float h = terrain->mesh->octree->data->aabb->max->z - terrain->mesh->octree->data->aabb->min->z;
+		float w = terrain->mesh->octree->data->worldAABB->max->x - terrain->mesh->octree->data->worldAABB->min->x;
+		float h = terrain->mesh->octree->data->worldAABB->max->z - terrain->mesh->octree->data->worldAABB->min->z;
 		float textureX = w  * .5f,
 			  textureY = h  * .5f,
 		
-			  iW = terrain->mesh-> widthSegment / w,
+			  iW = terrain->mesh->widthSegment / w,
 			  iH = terrain->mesh->heightSegment / h,
 
 			  tx, tz,
@@ -268,7 +268,7 @@ void terrain_trace( Entity * terrain, SceneNode * target, int type )
 										      +   entity -> mesh -> vertices[cIndex].position -> y
 										        ) * .333333333333333333333333f;*/
 
-			ep -> entity -> position -> y = height - ep->entity->mesh->octree->data->aabb->min->y;
+			ep -> entity -> position -> y = height - ep->entity->mesh->octree->data->worldAABB->min->y;
 			//AS3_Trace( AS3_Number( ep->entity->mesh->octree->data->aabb->min->y ) );
 			ep = ep -> next;
 		}

@@ -57,15 +57,10 @@ INLINE void vertex_copy( Vertex * dest, Vertex * src )
 	vector3D_copy( dest->s_pos, src->s_pos );
 
 	vector3D_copy( dest->normal, src->normal );
-
 	argbColor_copy( dest->color, src->color );
-
 	dest->fix_inv_z = src->fix_inv_z;
-
 	dest->contectedFaces = NULL;
-
 	dest->nContectedFaces = 0;
-
 	dest->transformed = src->transformed;
 }
 
@@ -80,15 +75,10 @@ INLINE Vertex * vertex_clone( Vertex * src )
 	dest->s_pos	= vector3D_clone( src->s_pos );
 
 	dest->normal		= vector3D_clone( src->normal );
-
 	dest->color			= argbColor_clone( src->color );
-
 	dest->fix_inv_z = src->fix_inv_z;
-
 	dest->contectedFaces = NULL;
-
 	dest->nContectedFaces = 0;
-
 	dest->transformed = src->transformed;
 
 	return dest;

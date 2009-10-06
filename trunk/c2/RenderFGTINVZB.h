@@ -26,9 +26,9 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,
@@ -795,9 +795,9 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, struct Viewport * 
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,
@@ -1796,9 +1796,9 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,
@@ -2611,9 +2611,9 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,
@@ -2806,7 +2806,6 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 
 	if (tri_type & TRI_TYPE_FLAT_MASK)
 	{
-
 		if (tri_type == TRI_TYPE_FLAT_TOP)
 		{
 			dy = (y2 - y0);
@@ -3770,9 +3769,9 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )/
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,
@@ -4389,9 +4388,9 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,
@@ -5257,9 +5256,9 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,
@@ -6029,9 +6028,9 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct View
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,
@@ -6825,9 +6824,9 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,
@@ -7644,9 +7643,9 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 	int mempitch = viewport->mempitch;
 	int zpitch = viewport->zpitch;
 	int min_clip_x = 0;
-	int max_clip_x = viewport->width - 1;
+	int max_clip_x = viewport->width;
 	int min_clip_y = 0;
-	int max_clip_y = viewport->height - 1;
+	int max_clip_y = viewport->height;
 
 	int temp=0,
 		v0=0,

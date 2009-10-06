@@ -182,53 +182,6 @@ INLINE void viewport_updateAfterRender( Viewport * viewport )
 	scene_updateAfterRender( viewport->scene );
 }
 
-INLINE void transformVertices( Matrix3D * projection, Triangle * face )
-{
-	Vertex * vert;
-
-	if ( face->vertex[0]->transformed == 0 )
-	{
-		face->vertex[0]->transformed = 1;
-
-		vert = face->vertex[0];
-
-		vert->w_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
-		vert->w_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
-		vert->w_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
-
-		vert->s_pos->x = vert->w_pos->x / vert->w_pos->w;
-		vert->s_pos->y = vert->w_pos->y / vert->w_pos->w;
-	}
-
-	if ( face->vertex[1]->transformed == 0 )
-	{
-		face->vertex[1]->transformed = 1;
-
-		vert = face->vertex[1];
-
-		vert->w_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
-		vert->w_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
-		vert->w_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
-
-		vert->s_pos->x = vert->w_pos->x / vert->w_pos->w;
-		vert->s_pos->y = vert->w_pos->y / vert->w_pos->w;
-	}
-
-	if ( face->vertex[2]->transformed == 0 )
-	{
-		face->vertex[2]->transformed = 1;
-
-		vert = face->vertex[2];
-
-		vert->w_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
-		vert->w_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
-		vert->w_pos->w = projection->m14 * vert->position->x + projection->m24 * vert->position->y + projection->m34 * vert->position->z + projection->m44;
-
-		vert->s_pos->x = vert->w_pos->x / vert->w_pos->w;
-		vert->s_pos->y = vert->w_pos->y / vert->w_pos->w;
-	}
-}
-
 //把整个结点加入渲染列表
 void addToRenderList( Viewport * viewport, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr )
 {
@@ -240,7 +193,7 @@ void addToRenderList( Viewport * viewport, Entity * entity, OctreeData * octreeD
 	{
 		face = octreeData->faces[j];
 
-		transformVertices( entity->projection, face );
+		triangle_transform( entity->projection, face );
 
 		insertFaceToList( rl_ptr, face );
 
@@ -257,13 +210,11 @@ void addToRenderList( Viewport * viewport, Entity * entity, OctreeData * octreeD
 //cl_ptr		当前裁剪列表的指针
 void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr )
 {
-	int j, zCode0, zCode1, zCode2, verts_out;
+	int j, zCode0, zCode1, zCode2, verts_out, v0, v1, v2;
+	float t1, t2,  xi, yi, ui, vi, x01i, x02i, y01i, y02i, u01i, u02i, v01i, v02i, dx, dy, dz, near = camera->near, far = camera->far;
 	Vector3D viewerToLocal;
 	Triangle * face, * face1, * face2;
-	int v0, v1, v2;
-	float t1, t2,  xi, yi, ui, vi, x01i, x02i, y01i, y02i, u01i, u02i, v01i, v02i, dx, dy, dz;
 	Vertex * tmpVert1, * tmpVert2, * ver1_0, * ver1_1, * ver1_2, * ver2_0, * ver2_1, * ver2_2;
-	float near = camera->near, far = camera->far;
 
 	//遍历面
 	for ( j = 0; j < octreeData->nFaces; j ++)
@@ -296,7 +247,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			}
 		}
 
-		transformVertices( entity->projection, face );
+		triangle_transform( entity->projection, face );
 
 		if (face->vertex[0]->s_pos->x < -1 &&
 			face->vertex[1]->s_pos->x < -1 &&
@@ -363,283 +314,275 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			continue;
 		}
 
-		//如果包围盒穿越近截面，则进一步检测面是否穿越近截面
-		if ( octreeData->CVVAABB->max->z > near	&& octreeData->CVVAABB->min->z < near )
+		if ( face->vertex[0]->w_pos->w < near )
 		{
-			if ( face->vertex[0]->w_pos->w <= near )
-			{
-				verts_out ++;
+			verts_out ++;
 
-				zCode0 = 0x01;
+			zCode0 = 0x01;
+		}
+
+		if ( face->vertex[1]->w_pos->w < near )
+		{
+			verts_out ++;
+
+			zCode1 = 0x02;
+		}
+
+		if ( face->vertex[2]->w_pos->w < near )
+		{
+			verts_out ++;
+
+			zCode2 = 0x04;
+		}
+
+		if ( verts_out == 3 )
+		{
+			viewport->nCullList ++;
+
+			face->vertex[0]->transformed = FALSE;
+			face->vertex[1]->transformed = FALSE;
+			face->vertex[2]->transformed = FALSE;
+
+			continue;
+		}
+		//开始裁剪
+		//分两种情况
+		//1、只有一个顶点在近截面内侧
+		else if ( verts_out == 2 )
+		{
+			//累计裁剪多边形
+			viewport->nClippList ++;
+
+			//检查当前裁剪列表指针的面指针是否为空
+			//如果是则恢复为原始信息
+			if ( ( * cl_ptr )->polygon )
+			{
+				face1 = ( * cl_ptr )->polygon;
+
+				triangle_copy( face1, face );
+
+				( * cl_ptr ) = ( * cl_ptr )->next;
+			}
+			//否则创建一个新三角形
+			else
+			{
+				//克隆一个面
+				face1 = triangle_clone( face );
+
+				//插入裁剪列表
+				insertFaceToList( cl_ptr, face1 );
 			}
 
-			if ( face->vertex[1]->w_pos->w <= near )
+			//找出位于内侧的顶点
+			if ( zCode0 == 0x01 && zCode1 == 0x02 )
 			{
-				verts_out ++;
-
-				zCode1 = 0x02;
+				v0 = 2;	v1 = 0;	v2 = 1;
+			}
+			else if ( zCode1 == 0x02 && zCode2 == 0x04 )
+			{
+				v0 = 0;	v1 = 1;	v2 = 2;
+			}
+			else
+			{
+				v0 = 1;	v1 = 2;	v2 = 0;
 			}
 
-			if ( face->vertex[2]->w_pos->w <= near )
+			ver1_0 = face1->vertex[v0];
+			ver1_1 = face1->vertex[v1];
+			ver1_2 = face1->vertex[v2];
+
+			//对各边裁剪
+
+			//=======================对v0->v1边进行裁剪=======================
+			dx = ver1_1->w_pos->x - ver1_0->w_pos->x;
+			dy = ver1_1->w_pos->y - ver1_0->w_pos->y;
+			dz = ver1_1->w_pos->w - ver1_0->w_pos->w;
+
+			t1 = ( ( near - ver1_0->w_pos->w ) / dz );
+
+			//计算交点x、y坐标
+			xi = ver1_0->w_pos->x + dx * t1;
+			yi = ver1_0->w_pos->y + dy * t1;
+
+			//用交点覆盖原来的顶点
+			ver1_1->w_pos->x = xi;
+			ver1_1->w_pos->y = yi;
+			ver1_1->w_pos->w = near;
+			ver1_1->s_pos->x = xi / near;
+			ver1_1->s_pos->y = yi / near;
+
+			//=======================对v0->v2边进行裁剪=======================
+			dx = ver1_2->w_pos->x - ver1_0->w_pos->x;
+			dy = ver1_2->w_pos->y - ver1_0->w_pos->y;
+			dz = ver1_2->w_pos->w - ver1_0->w_pos->w;
+
+			t2 = ( ( near - ver1_0->w_pos->w ) / dz );
+
+			//计算交点x、y坐标
+			xi = ver1_0->w_pos->x + dx * t2;
+			yi = ver1_0->w_pos->y + dy * t2;
+
+			//用交点覆盖原来的顶点
+			ver1_2->w_pos->x = xi;
+			ver1_2->w_pos->y = yi;
+			ver1_2->w_pos->w = near;
+			ver1_2->s_pos->x = xi / near;
+			ver1_2->s_pos->y = yi / near;
+
+			//检查多边形是否带纹理
+			//如果有，则对纹理坐标进行裁剪
+			if ( NULL != face->texture )
 			{
-				verts_out ++;
+				ui = face1->uv[v0]->u + ( face1->uv[v1]->u - face1->uv[v0]->u ) * t1;
+				vi = face1->uv[v0]->v + ( face1->uv[v1]->v - face1->uv[v0]->v ) * t1;
 
-				zCode2 = 0x04;
-			}
+				face1->uv[v1]->u = ui;
+				face1->uv[v1]->v = vi;
 
-			//输出码为非零则面穿越近截面
-			if ( zCode0 | zCode1 | zCode2 )
-			{
-				//开始裁剪
-				//分两种情况
-				//1、只有一个顶点在近截面内侧
-				if ( verts_out == 2 )
-				{
-					//累计裁剪多边形
-					viewport->nClippList ++;
+				ui = face1->uv[v0]->u + ( face1->uv[v2]->u - face1->uv[v0]->u ) * t2;
+				vi = face1->uv[v0]->v + ( face1->uv[v2]->v - face1->uv[v0]->v ) * t2;
 
-					//检查当前裁剪列表指针的面指针是否为空
-					//如果是则恢复为原始信息
-					if ( ( * cl_ptr )->polygon )
-					{
-						face1 = ( * cl_ptr )->polygon;
-
-						triangle_copy( face1, face );
-
-						( * cl_ptr ) = ( * cl_ptr )->next;
-					}
-					//否则创建一个新三角形
-					else
-					{
-						//克隆一个面
-						face1 = triangle_clone( face );
-
-						//插入裁剪列表
-						insertFaceToList( cl_ptr, face1 );
-					}
-
-					//找出位于内侧的顶点
-					if ( zCode0 == 0x01 && zCode1 == 0x02 )
-					{
-						v0 = 2;	v1 = 0;	v2 = 1;
-					}
-					else if ( zCode1 == 0x02 && zCode2 == 0x04 )
-					{
-						v0 = 0;	v1 = 1;	v2 = 2;
-					}
-					else
-					{
-						v0 = 1;	v1 = 2;	v2 = 0;
-					}
-
-					ver1_0 = face1->vertex[v0];
-					ver1_1 = face1->vertex[v1];
-					ver1_2 = face1->vertex[v2];
-
-					//对各边裁剪
-
-					//=======================对v0->v1边进行裁剪=======================
-					dx = ver1_1->w_pos->x - ver1_0->w_pos->x;
-					dy = ver1_1->w_pos->y - ver1_0->w_pos->y;
-					dz = ver1_1->w_pos->w - ver1_0->w_pos->w;
-
-					t1 = ( ( near - ver1_0->w_pos->w ) / dz );
-
-					//计算交点x、y坐标
-					xi = ver1_0->w_pos->x + dx * t1;
-					yi = ver1_0->w_pos->y + dy * t1;
-
-					//用交点覆盖原来的顶点
-					ver1_1->w_pos->x = xi;
-					ver1_1->w_pos->y = yi;
-					ver1_1->w_pos->w = near;
-					ver1_1->s_pos->x = xi / near;
-					ver1_1->s_pos->y = yi / near;
-
-					//=======================对v0->v2边进行裁剪=======================
-					dx = ver1_2->w_pos->x - ver1_0->w_pos->x;
-					dy = ver1_2->w_pos->y - ver1_0->w_pos->y;
-					dz = ver1_2->w_pos->w - ver1_0->w_pos->w;
-
-					t2 = ( ( near - ver1_0->w_pos->w ) / dz );
-
-					//计算交点x、y坐标
-					xi = ver1_0->w_pos->x + dx * t2;
-					yi = ver1_0->w_pos->y + dy * t2;
-
-					//用交点覆盖原来的顶点
-					ver1_2->w_pos->x = xi;
-					ver1_2->w_pos->y = yi;
-					ver1_2->w_pos->w = near;
-					ver1_2->s_pos->x = xi / near;
-					ver1_2->s_pos->y = yi / near;
-
-					//检查多边形是否带纹理
-					//如果有，则对纹理坐标进行裁剪
-					if ( NULL != face->texture )
-					{
-						ui = face1->uv[v0]->u + ( face1->uv[v1]->u - face1->uv[v0]->u ) * t1;
-						vi = face1->uv[v0]->v + ( face1->uv[v1]->v - face1->uv[v0]->v ) * t1;
-
-						face1->uv[v1]->u = ui;
-						face1->uv[v1]->v = vi;
-
-						ui = face1->uv[v0]->u + ( face1->uv[v2]->u - face1->uv[v0]->u ) * t2;
-						vi = face1->uv[v0]->v + ( face1->uv[v2]->v - face1->uv[v0]->v ) * t2;
-
-						face1->uv[v2]->u = ui;
-						face1->uv[v2]->v = vi;
-					}
-				}
-				else if ( verts_out == 1 )
-				{
-					//三角形被裁剪后为四边形，需要分割为两个三角形
-
-					//累计裁剪多边形
-					viewport->nClippList += 2;
-
-					//检查当前裁剪列表指针的面指针是否为空
-					//如果是则恢复为原始信息
-					if ( ( * cl_ptr )->polygon )
-					{
-						face1 = ( * cl_ptr )->polygon;
-
-						triangle_copy( face1, face );
-
-						( * cl_ptr ) = ( * cl_ptr )->next;
-					}
-					//否则创建一个新三角形
-					else
-					{
-						//克隆一个面
-						face1 = triangle_clone( face );
-
-						//插入裁剪列表
-						insertFaceToList( cl_ptr, face1 );
-					}
-
-					if ( ( * cl_ptr )->polygon )
-					{
-						face2 = ( * cl_ptr )->polygon;
-
-						triangle_copy( face2, face );
-
-						( * cl_ptr ) = ( * cl_ptr )->next;
-					}
-					//否则创建一个新三角形
-					else
-					{
-						//克隆一个面
-						face2 = triangle_clone( face );
-
-						//插入裁剪列表
-						insertFaceToList( cl_ptr, face2 );
-					}
-
-					//找出位于外侧的顶点
-					if ( zCode0 == 0x01 )
-					{
-						v0 = 0;	v1 = 1;	v2 = 2;
-					}
-					else if ( zCode1 == 0x02 )
-					{
-						v0 = 1;	v1 = 2;	v2 = 0;
-					}
-					else
-					{
-						v0 = 2;	v1 = 0;	v2 = 1;
-					}
-
-					ver1_0 = face1->vertex[v0];
-					ver1_1 = face1->vertex[v1];
-					ver1_2 = face1->vertex[v2];
-
-					ver2_0 = face2->vertex[v0];
-					ver2_1 = face2->vertex[v1];
-					ver2_2 = face2->vertex[v2];
-
-					//对各边裁剪
-
-					//=======================对v0->v1边进行裁剪=======================
-					dx = ver1_1->w_pos->x - ver1_0->w_pos->x;
-					dy = ver1_1->w_pos->y - ver1_0->w_pos->y;
-					dz = ver1_1->w_pos->w - ver1_0->w_pos->w;
-
-					t1 = ( ( near - ver1_0->w_pos->w ) / dz );
-
-					x01i = ver1_0->w_pos->x + dx * t1;
-					y01i = ver1_0->w_pos->y + dy * t1;
-
-					//=======================对v0->v2边进行裁剪=======================
-					dx = ver1_2->w_pos->x - ver1_0->w_pos->x;
-					dy = ver1_2->w_pos->y - ver1_0->w_pos->y;
-					dz = ver1_2->w_pos->w - ver1_0->w_pos->w;
-
-					t2 = ( ( near - ver1_0->w_pos->w ) / dz );
-
-					x02i = ver1_0->w_pos->x + dx * t2;
-					y02i = ver1_0->w_pos->y + dy * t2;
-
-					//计算出交点后需要用交点1覆盖原来的三角形顶点
-					//分割后的第一个三角形
-
-					//用交点1覆盖原来三角形的顶点0
-					ver1_0->w_pos->x = x01i;
-					ver1_0->w_pos->y = y01i;
-					ver1_0->w_pos->w = near;
-					ver1_0->s_pos->x = x01i / near;
-					ver1_0->s_pos->y = y01i / near;
-
-					//用交点1覆盖新三角形的顶点1，交点2覆盖顶点0
-					ver2_1->w_pos->x = x01i;
-					ver2_1->w_pos->y = y01i;
-					ver2_1->w_pos->w = near;
-					ver2_1->s_pos->x = x01i / near;
-					ver2_1->s_pos->y = y01i / near;
-
-					ver2_0->w_pos->x = x02i;
-					ver2_0->w_pos->y = y02i;
-					ver2_0->w_pos->w = near;
-					ver2_0->s_pos->x = x02i / near;
-					ver2_0->s_pos->y = y02i / near;
-
-					//检查多边形是否带纹理
-					//如果有，则对纹理坐标进行裁剪
-					if ( NULL != face->texture )
-					{
-						u01i = face1->uv[v0]->u + ( face1->uv[v1]->u - face1->uv[v0]->u ) * t1;
-						v01i = face1->uv[v0]->v + ( face1->uv[v1]->v - face1->uv[v0]->v ) * t1;
-
-						u02i = face1->uv[v0]->u + ( face1->uv[v2]->u - face1->uv[v0]->u ) * t2;
-						v02i = face1->uv[v0]->v + ( face1->uv[v2]->v - face1->uv[v0]->v ) * t2;
-
-						//覆盖原来的纹理坐标
-						face1->uv[v0]->u = u01i;
-						face1->uv[v0]->v = v01i;
-
-						face2->uv[v1]->u = u01i;
-						face2->uv[v1]->v = v01i;
-
-						face2->uv[v0]->u = u02i;
-						face2->uv[v0]->v = v02i;
-					}
-
-					//计算顶点法线
-				}
-				//所有顶点在近截面外则
-				else
-				{
-					//累计剔除多边形
-					viewport->nCullList ++;
-
-					continue;
-				}
-				
-				face->vertex[0]->transformed = FALSE;
-				face->vertex[1]->transformed = FALSE;
-				face->vertex[2]->transformed = FALSE;
+				face1->uv[v2]->u = ui;
+				face1->uv[v2]->v = vi;
 			}
 		}
+		else if ( verts_out == 1 )
+		{
+			//三角形被裁剪后为四边形，需要分割为两个三角形
+
+			//累计裁剪多边形
+			viewport->nClippList += 2;
+
+			//检查当前裁剪列表指针的面指针是否为空
+			//如果是则恢复为原始信息
+			if ( ( * cl_ptr )->polygon )
+			{
+				face1 = ( * cl_ptr )->polygon;
+
+				triangle_copy( face1, face );
+
+				( * cl_ptr ) = ( * cl_ptr )->next;
+			}
+			//否则创建一个新三角形
+			else
+			{
+				//克隆一个面
+				face1 = triangle_clone( face );
+
+				//插入裁剪列表
+				insertFaceToList( cl_ptr, face1 );
+			}
+
+			if ( ( * cl_ptr )->polygon )
+			{
+				face2 = ( * cl_ptr )->polygon;
+
+				triangle_copy( face2, face );
+
+				( * cl_ptr ) = ( * cl_ptr )->next;
+			}
+			//否则创建一个新三角形
+			else
+			{
+				//克隆一个面
+				face2 = triangle_clone( face );
+
+				//插入裁剪列表
+				insertFaceToList( cl_ptr, face2 );
+			}
+
+			//找出位于外侧的顶点
+			if ( zCode0 == 0x01 )
+			{
+				v0 = 0;	v1 = 1;	v2 = 2;
+			}
+			else if ( zCode1 == 0x02 )
+			{
+				v0 = 1;	v1 = 2;	v2 = 0;
+			}
+			else
+			{
+				v0 = 2;	v1 = 0;	v2 = 1;
+			}
+
+			ver1_0 = face1->vertex[v0];
+			ver1_1 = face1->vertex[v1];
+			ver1_2 = face1->vertex[v2];
+
+			ver2_0 = face2->vertex[v0];
+			ver2_1 = face2->vertex[v1];
+			ver2_2 = face2->vertex[v2];
+
+			//对各边裁剪
+
+			//=======================对v0->v1边进行裁剪=======================
+			dx = ver1_1->w_pos->x - ver1_0->w_pos->x;
+			dy = ver1_1->w_pos->y - ver1_0->w_pos->y;
+			dz = ver1_1->w_pos->w - ver1_0->w_pos->w;
+
+			t1 = ( ( near - ver1_0->w_pos->w ) / dz );
+
+			x01i = ver1_0->w_pos->x + dx * t1;
+			y01i = ver1_0->w_pos->y + dy * t1;
+
+			//=======================对v0->v2边进行裁剪=======================
+			dx = ver1_2->w_pos->x - ver1_0->w_pos->x;
+			dy = ver1_2->w_pos->y - ver1_0->w_pos->y;
+			dz = ver1_2->w_pos->w - ver1_0->w_pos->w;
+
+			t2 = ( ( near - ver1_0->w_pos->w ) / dz );
+
+			x02i = ver1_0->w_pos->x + dx * t2;
+			y02i = ver1_0->w_pos->y + dy * t2;
+
+			//计算出交点后需要用交点1覆盖原来的三角形顶点
+			//分割后的第一个三角形
+
+			//用交点1覆盖原来三角形的顶点0
+			ver1_0->w_pos->x = x01i;
+			ver1_0->w_pos->y = y01i;
+			ver1_0->w_pos->w = near;
+			ver1_0->s_pos->x = x01i / near;
+			ver1_0->s_pos->y = y01i / near;
+
+			//用交点1覆盖新三角形的顶点1，交点2覆盖顶点0
+			ver2_1->w_pos->x = x01i;
+			ver2_1->w_pos->y = y01i;
+			ver2_1->w_pos->w = near;
+			ver2_1->s_pos->x = x01i / near;
+			ver2_1->s_pos->y = y01i / near;
+
+			ver2_0->w_pos->x = x02i;
+			ver2_0->w_pos->y = y02i;
+			ver2_0->w_pos->w = near;
+			ver2_0->s_pos->x = x02i / near;
+			ver2_0->s_pos->y = y02i / near;
+
+			//检查多边形是否带纹理
+			//如果有，则对纹理坐标进行裁剪
+			if ( NULL != face->texture )
+			{
+				u01i = face1->uv[v0]->u + ( face1->uv[v1]->u - face1->uv[v0]->u ) * t1;
+				v01i = face1->uv[v0]->v + ( face1->uv[v1]->v - face1->uv[v0]->v ) * t1;
+
+				u02i = face1->uv[v0]->u + ( face1->uv[v2]->u - face1->uv[v0]->u ) * t2;
+				v02i = face1->uv[v0]->v + ( face1->uv[v2]->v - face1->uv[v0]->v ) * t2;
+
+				//覆盖原来的纹理坐标
+				face1->uv[v0]->u = u01i;
+				face1->uv[v0]->v = v01i;
+
+				face2->uv[v1]->u = u01i;
+				face2->uv[v1]->v = v01i;
+
+				face2->uv[v0]->u = u02i;
+				face2->uv[v0]->v = v02i;
+			}
+		}
+
+		face->vertex[0]->transformed = FALSE;
+		face->vertex[1]->transformed = FALSE;
+		face->vertex[2]->transformed = FALSE;
 
 		//插入新建的面
 		//如果没有新面，则插入原来的面
@@ -830,8 +773,7 @@ void viewport_project( Viewport * viewport, int time )
 			//计算视点在实体的局部坐标
 			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
 
-			//变换八叉树
-			//优化中
+			//八叉
 			transform_octree( entity->mesh->octree, entity->world, entity->view );
 			
 			terrain_trace( entity, scene -> nodes, 0 );
