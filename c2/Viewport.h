@@ -147,8 +147,6 @@ INLINE void insertFaceToList( RenderList ** rl_ptr, Triangle * face)
 //äÖÈ¾Ç°¸üÐÂ
 void viewport_updateBeforeRender( Viewport * viewport )
 {
-	//SceneNode * sceneNode = viewport->scene->nodes;
-
 #ifdef __NOT_AS3__
 
 	LPDWORD zBuf = ( LPDWORD )viewport->zBuffer;
@@ -174,14 +172,6 @@ void viewport_updateBeforeRender( Viewport * viewport )
 	}
 
 	viewport->nRenderList = viewport->nClippList = viewport->nCullList = 0;
-
-	
-	/*while( sceneNode )
-	{
-		terrain_trace( sceneNode -> entity, viewport -> scene -> nodes, 0 );
-
-		sceneNode = sceneNode->next;
-	}*/
 }
 
 INLINE void viewport_updateAfterRender( Viewport * viewport )
@@ -1049,6 +1039,8 @@ void viewport_project( Viewport * viewport, int time )
 
 		sceneNode = sceneNode->next;
 	}
+
+	//terrain_sceneTrace( scene -> nodes );
 
 	viewport_lightting( viewport );
 }
