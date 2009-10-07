@@ -9,6 +9,7 @@
 #include "Mesh.h"
 #include "Math3D.h"
 #include "AABB.h"
+#include "Physics.h"
 //#include "Animation.h"
 
 #define ENTITY_TYPE_MESH_TERRAIN 1
@@ -38,6 +39,7 @@ typedef struct Entity
 	//Íø¸ñ
 	Mesh * mesh;
 
+	Physics * physics;
 	//¶¯»­
 	//Animation * animation;
 
@@ -76,6 +78,7 @@ Entity * newEntity()
 	entity->parent			= NULL;
 	entity->mesh			= NULL;
 	entity->scene			= NULL;
+	entity->physics         = NULL;
 	//entity->animation       = NULL;
 
 	entity->visible = entity->transformDirty = TRUE;
