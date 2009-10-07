@@ -172,6 +172,8 @@ void viewport_updateBeforeRender( Viewport * viewport )
 	}
 
 	viewport->nRenderList = viewport->nClippList = viewport->nCullList = 0;
+
+	terrain_sceneTrace( viewport -> scene -> nodes );
 }
 
 INLINE void viewport_updateAfterRender( Viewport * viewport )

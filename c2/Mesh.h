@@ -431,13 +431,13 @@ Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )
 INLINE float mesh_minY( Mesh * mesh )
 {
 	int i;
-	float min = mesh -> vertices[0] -> w_pos -> y;
+	float min = mesh -> vertices[0] -> position -> y;
 
 	for( i = 1; i < mesh -> nVertices; i ++ )
 	{
-		if( mesh -> vertices[i] -> w_pos -> y < min )
+		if( mesh -> vertices[i] -> position -> y < min )
 		{
-			min = mesh -> vertices[i] -> w_pos -> y;
+			min = mesh -> vertices[i] -> position -> y;
 		}
 	}
 
