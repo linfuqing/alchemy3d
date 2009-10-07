@@ -178,7 +178,7 @@ float terrain_getHeight( Mesh * terrain, float x, float z )
 	return 0;
 }
 
-void terrain_trace( Entity * terrain, SceneNode * target, int type )
+INLINE void terrain_trace( Entity * terrain, SceneNode * target, int type )
 {
 	if( terrain->mesh->type == ENTITY_TYPE_MESH_TERRAIN )
 	{
@@ -272,6 +272,19 @@ void terrain_trace( Entity * terrain, SceneNode * target, int type )
 			//AS3_Trace( AS3_Number( ep->entity->mesh->octree->data->aabb->min->y ) );
 			ep = ep -> next;
 		}
+	}
+}
+
+
+INLINE void terrain_sceneTrace( SceneNode * scene )
+{
+	SceneNode * sceneNode = scene;
+
+	while( sceneNode )
+	{
+		terrain_trace( sceneNode -> entity, scene, 0 );
+
+		sceneNode = sceneNode->next;
 	}
 }
 
