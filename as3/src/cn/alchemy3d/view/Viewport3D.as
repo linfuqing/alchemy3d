@@ -6,8 +6,8 @@ package cn.alchemy3d.view
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.display.DisplayObjectContainer;
 	import flash.display.Sprite;
+	import flash.geom.Matrix;
 	import flash.utils.ByteArray;
 	import flash.utils.getTimer;
 
@@ -17,15 +17,13 @@ package cn.alchemy3d.view
 		private var zBufferPointer:uint;
 		private var cameraPointer:uint;
 		private var scenePointer:uint;
-		private var nRenderListPointer:uint;
-		private var nCullListPointer:uint;
-		private var nClippListPointer:uint;
 		
 		private var viewWidth:Number;
 		private var viewHeight:Number;
 		
 		private var _camera:Camera3D;
 		private var _scene:Scene3D;
+		private var _container:Sprite;
 		
 		protected var video:Bitmap;
 		protected var videoBuffer:BitmapData;
@@ -41,24 +39,6 @@ package cn.alchemy3d.view
 			return _camera;
 		}
 		
-		public function get nRenderList():int
-		{
-			Library.memory.position = nRenderListPointer;
-			return Library.memory.readInt();
-		}
-		
-		public function get nCullList():int
-		{
-			Library.memory.position = nCullListPointer;
-			return Library.memory.readInt();
-		}
-		
-		public function get nClippList():int
-		{
-			Library.memory.position = nClippListPointer;
-			return Library.memory.readInt();
-		}
-		
 		public function get mouseX():Number
 		{
 			return video.mouseX - viewWidth * .5;
@@ -71,62 +51,59 @@ package cn.alchemy3d.view
 		
 		public function set backgroundColor(color:uint):void
 		{
-			if( !video.parent )
+			if( !this._container )
 			{
 				return;
 			}
 			
-			var parent:DisplayObjectContainer = video.parent;
-			
-			while( parent && parent.parent )
+			with ( this._container.graphics )
 			{
-				parent = parent.parent;
+				beginFill( color, 1 );
+				drawRect( 0, 0, this.viewWidth, this.viewHeight );
+				endFill();
+			}
+		}
+		
+		public function set backgroundImage(bitmapData:BitmapData):void
+		{
+			if( !this._container )
+			{
+				return;
 			}
 			
-			if( parent is Sprite )
+			var t1:Number = viewWidth / bitmapData.width;
+			var t2:Number = viewHeight / bitmapData.height;
+			
+			with ( this._container.graphics )
 			{
-				with ( ( parent as Sprite ).graphics )
-				{
-					beginFill( color, 1 );
-					drawRect( 0, 0, this.width, this.height );
-					endFill();
-				}
+				beginBitmapFill( bitmapData, new Matrix(t1, 0, 0, t2, 0 ,0), true, true );
+				drawRect( 0, 0, this.viewWidth, this.viewHeight );
+				endFill();
 			}
 		}
 		
 		private var clearBA:ByteArray;
 		
-		public function Viewport3D(width:Number, height:Number, camera:Camera3D)
+		public function Viewport3D(container:Sprite, width:int, height:int, camera:Camera3D, scene:Scene3D)
 		{
-			//if (scene.pointer == 0)
-				//Alchemy3DLog.error("场景没有被添加到设备列表");
+			_container = container;
 			
-			//if (camera.pointer == 0)
-				//Alchemy3DLog.error("摄像机没有被添加到设备列表");
-			
-			//this.scene = scene;
 			_camera = camera;
-			
-			_scene = new Scene3D();
+			_scene = scene;
 			
 			viewWidth = width;
 			viewHeight = height;
-			wh = int(width) * int(height);
+			wh = width * height;
 			
-			videoBuffer = new BitmapData(width, height, false);
+			videoBuffer = new BitmapData(width, height, true, 0);
 			video = new Bitmap(videoBuffer, "never", false);
-			//addChild(video);
+			container.addChild(video);
 			
 			clearBA = new ByteArray();
 			for (var i:int = 0; i < width * height * 4; i ++ )
 				clearBA.writeByte(0);
 			
 			super();
-		}
-		
-		public function displayTo( root:DisplayObjectContainer ):void
-		{
-			root.addChild( video );
 		}
 		
 		override protected function initialize():void
@@ -138,9 +115,6 @@ package cn.alchemy3d.view
 			zBufferPointer		= ps[2]
 			cameraPointer		= ps[3];
 			scenePointer		= ps[4];
-			nRenderListPointer	= ps[5];
-			nCullListPointer	= ps[6];
-			nClippListPointer	= ps[7];
 		}
 		
 		public function render():void

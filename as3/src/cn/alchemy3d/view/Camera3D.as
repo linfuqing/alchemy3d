@@ -158,10 +158,10 @@ package cn.alchemy3d.view
 			Library.memory.writeInt(TRUE);
 		}
 		
-		public function Camera3D(fov:Number = 90, near:Number = 100, far:Number = 5000, eye:Entity = null)
+		public function Camera3D(fov:Number = 90, near:Number = 20, far:Number = 5000, eye:Entity = null)
 		{
 			this._fov = fov;
-			this._near = near;
+			this._near = near < 20 ? 20 : near;
 			this._far = far;
 			
 			this.eye = eye == null ? new Entity("camera_eye") : eye;

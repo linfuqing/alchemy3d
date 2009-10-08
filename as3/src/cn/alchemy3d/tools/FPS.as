@@ -1,6 +1,6 @@
 package cn.alchemy3d.tools
 {
-	import cn.alchemy3d.view.Viewport3D;
+	import cn.alchemy3d.container.Scene3D;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -22,6 +22,7 @@ package cn.alchemy3d.tools
 		
 		private var fps:TextField;
 		private var mem:TextField;
+		private var objects:TextField;
 		private var faces:TextField;
 		private var rendered:TextField;
 		private var culled:TextField;
@@ -35,7 +36,7 @@ package cn.alchemy3d.tools
 		private const hgap:int = 2;
 		private const textHeight:int = 10;
 
-		private var viewport:Viewport3D;
+		private var scene:Scene3D;
 
 		static private var instance:FPS;
 		static private const maxMemory:uint = uint.MAX_VALUE;
@@ -43,9 +44,9 @@ package cn.alchemy3d.tools
 		static private const tfDelayMax:int = 10;
 		static private const diagramHeight:uint = 40;
 
-		public function FPS(viewport:Viewport3D = null)
+		public function FPS(scene:Scene3D = null)
 		{
-			this.viewport = viewport;
+			this.scene = scene;
 
 			this.addEventListener(Event.ADDED_TO_STAGE, run);
 		}
@@ -83,12 +84,34 @@ package cn.alchemy3d.tools
 
 				currentY += textHeight + hgap;
 
-				if (viewport)
+				if (scene)
 				{
+					objects = new TextField();
+					objects.defaultTextFormat = tf;
+					objects.autoSize = TextFieldAutoSize.LEFT;
+					objects.text = "OBJECTS: " + scene.nNodes;
+					objects.selectable = false;
+					objects.x = -diagramWidth - 2;
+					objects.y = currentY;
+					addChild(objects);
+					
+					currentY += textHeight + hgap;
+					
+					faces = new TextField();
+					faces.defaultTextFormat = tf;
+					faces.autoSize = TextFieldAutoSize.LEFT;
+					faces.text = "TRIANGLES: " + scene.nFaces;
+					faces.selectable = false;
+					faces.x = -diagramWidth - 2;
+					faces.y = currentY;
+					addChild(faces);
+					
+					currentY += textHeight + hgap;
+					
 					rendered = new TextField();
 					rendered.defaultTextFormat = tf;
 					rendered.autoSize = TextFieldAutoSize.LEFT;
-					rendered.text = "TRI RENDERED: " + viewport.nRenderList;
+					rendered.text = "TRI RENDERED: " + scene.nRenderList;
 					rendered.selectable = false;
 					rendered.x = -diagramWidth - 2;
 					rendered.y = currentY;
@@ -99,7 +122,7 @@ package cn.alchemy3d.tools
 					culled = new TextField();
 					culled.defaultTextFormat = tf;
 					culled.autoSize = TextFieldAutoSize.LEFT;
-					culled.text = "TRI CULLED: " + viewport.nCullList;
+					culled.text = "TRI CULLED: " + scene.nCullList;
 					culled.selectable = false;
 					culled.x = -diagramWidth - 2;
 					culled.y = currentY;
@@ -110,7 +133,7 @@ package cn.alchemy3d.tools
 					clipped = new TextField();
 					clipped.defaultTextFormat = tf;
 					clipped.autoSize = TextFieldAutoSize.LEFT;
-					clipped.text = "TRI CLIPPED: " + viewport.nClippList;
+					clipped.text = "TRI CLIPPED: " + scene.nClippList;
 					clipped.selectable = false;
 					clipped.x = -diagramWidth - 2;
 					clipped.y = currentY;
@@ -189,9 +212,11 @@ package cn.alchemy3d.tools
 
 			mem.text = "MEM: " + bytesToString(System.totalMemory);
 			
-			if (viewport) rendered.text = "TRI RENDERED: " + viewport.nRenderList;
-			if (viewport) culled.text = "TRI CULLED: " + viewport.nCullList;
-			if (viewport) clipped.text = "TRI CLIPPED: " + viewport.nClippList;
+			if (scene) objects.text = "OBJECTS: " + scene.nNodes;
+			if (scene) faces.text = "TRIANGLES: " + scene.nFaces;
+			if (scene) rendered.text = "TRI RENDERED: " + scene.nRenderList;
+			if (scene) culled.text = "TRI CULLED: " + scene.nCullList;
+			if (scene) clipped.text = "TRI CLIPPED: " + scene.nClippList;
 
 			var s:Number = skins == 0 ? (0) : (skinsChanged / skins);
 			diagram.setPixel32(0, diagramHeight * (1 - s), 0xffff6600);

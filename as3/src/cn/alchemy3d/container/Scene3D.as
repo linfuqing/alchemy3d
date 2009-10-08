@@ -5,6 +5,49 @@ package cn.alchemy3d.container
 	
 	public class Scene3D extends SceneContainer
 	{
+		private var nNodesPointer:uint;
+		private var nVerticesPointer:uint;
+		private var nFacesPointer:uint;
+		private var nRenderListPointer:uint;
+		private var nCullListPointer:uint;
+		private var nClippListPointer:uint;
+		
+		public function get nNodes():int
+		{
+			Library.memory.position = nNodesPointer;
+			return Library.memory.readUnsignedInt();
+		}
+		
+		public function get nVertices():int
+		{
+			Library.memory.position = nVerticesPointer;
+			return Library.memory.readUnsignedInt();
+		}
+		
+		public function get nFaces():int
+		{
+			Library.memory.position = nFacesPointer;
+			return Library.memory.readUnsignedInt();
+		}
+		
+		public function get nRenderList():int
+		{
+			Library.memory.position = nRenderListPointer;
+			return Library.memory.readUnsignedInt();
+		}
+		
+		public function get nCullList():int
+		{
+			Library.memory.position = nCullListPointer;
+			return Library.memory.readUnsignedInt();
+		}
+		
+		public function get nClippList():int
+		{
+			Library.memory.position = nClippListPointer;
+			return Library.memory.readUnsignedInt();
+		}
+		
 		public function Scene3D()
 		{
 			super();
@@ -12,7 +55,15 @@ package cn.alchemy3d.container
 		
 		override protected function initialize():void
 		{
-			_pointer = Library.alchemy3DLib.initializeScene();
+			var ps:Array = Library.alchemy3DLib.initializeScene();
+			
+			_pointer 			= ps[0];
+			nNodesPointer		= ps[1];
+			nVerticesPointer	= ps[2];
+			nFacesPointer		= ps[3];
+			nRenderListPointer	= ps[4];
+			nCullListPointer	= ps[5];
+			nClippListPointer	= ps[6];
 		}
 		
 		override protected function isChild():uint

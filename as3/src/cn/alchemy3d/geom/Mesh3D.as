@@ -31,22 +31,14 @@ package cn.alchemy3d.geom
 		{
 			return faces ? faces.length : 0;
 		}
-
-		//public var pointer:uint;
 		
-		private var lightEnablePtr:uint;
-		//public var meshBuffPointer:uint;
-		//private var verticesPointer:uint;
-		//private var facesPointer:uint;
+		private var lightEnablePointer:uint;
+		private var useMipmapPointer:uint;
+		private var mipDistPointer:uint;
 		private var vDirtyPointer:uint;
 		private var octreeDepthPointer:uint;
 		
-		//private var _material:Material;
-		//private var _texture:Texture;
 		private var _lightEnable:Boolean;
-		
-		//private const vSize:uint = 5;
-		//private const fSize:uint = 12;
 		
 		private function setVertices( vs:Vector.<Vertex3D> ):uint
 		{
@@ -197,6 +189,18 @@ package cn.alchemy3d.geom
 			Library.memory.writeUnsignedInt(1);
 		}*/
 		
+		public function set useMipmap(bool:Boolean):void
+		{
+			Library.memory.position = useMipmapPointer;
+			Library.memory.writeBoolean(bool);
+		}
+		
+		public function set mipDist(value:Number):void
+		{
+			Library.memory.position = mipDistPointer;
+			Library.memory.writeFloat(value);
+		}
+		
 		public function set octreeDepth(value:uint):void
 		{
 			Library.memory.position = octreeDepthPointer;
@@ -212,7 +216,7 @@ package cn.alchemy3d.geom
 		{
 			_lightEnable = bool;
 			
-			Library.memory.position = lightEnablePtr;
+			Library.memory.position = lightEnablePointer;
 			
 			if (bool)
 				Library.memory.writeUnsignedInt(1);
@@ -322,8 +326,6 @@ package cn.alchemy3d.geom
 		
 		override protected function initialize():void
 		{
-			//var tPtr:uint = texture == null ? 0 : texture.pointer;
-			//var mPtr:uint = material == null ? 0 : material.pointer;
 			var p  :Vector.<uint> = setFaces( faces );
 			var vp :uint          = setVertices( vertices ),
 			
@@ -337,76 +339,23 @@ package cn.alchemy3d.geom
 			var ps:Array = Library.alchemy3DLib.initializeMesh( vp, fp, uvp, mp, tp, rmp,  numVertices, numFaces );
 			
 			_pointer            = ps[0];
-			lightEnablePtr		= ps[1];
-			vDirtyPointer		= ps[2];
-			octreeDepthPointer	= ps[3];
+			lightEnablePointer	= ps[1];
+			useMipmapPointer	= ps[2];
+			mipDistPointer		= ps[3];
+			vDirtyPointer		= ps[4];
+			octreeDepthPointer	= ps[5];
 
-			if( ps[4] && vertices )
+			if( ps[6] && vertices )
 			{
-				Library.memory.position = ps[4];
+				Library.memory.position = ps[6];
 			
 				for( var i:uint = 0; i < vertices.length; i ++ )
 				{
 					vertices[i].setPointer( Library.memory.readUnsignedInt() );
 				}
 				
-				Library.alchemy3DLib.freeTmpBuffer( ps[4] );
+				Library.alchemy3DLib.freeTmpBuffer( ps[6] );
 			}
 		}
-		
-		/*
-		public function flipFaces():void
-		{
-			for each(var f:Triangle3D in this.faces)
-			{
-				var tmp:Vertex3D = f.v0;
-				f.v0 = f.v2;
-				f.v2 = tmp;
-				
-				var tmpUV:Point = f.uv0;
-				f.uv0 = f.uv2;
-				f.uv2 = tmpUV;
-			}
-		}
-		
-		
-		protected function mergeVertices():void
-		{
-			var uniqueDic:Dictionary = new Dictionary();
-			var indexDic:Dictionary = new Dictionary();
-			var uniqueList:Vector.<Vertex3D> = new Vector.<Vertex3D>();
-	
-			//找出共有顶点
-			var v:Vertex3D;
-			var vu:Vertex3D;
-			for each(v in _vertices)
-			{
-				for each(vu in uniqueDic)
-				{
-					if (v.equals(vu))
-					{
-						uniqueDic[v] = vu;
-						break;
-					}
-				}
-				
-				if( ! uniqueDic[v] )
-				{
-					uniqueDic[v] = v;
-					uniqueList.push(v);
-				}
-			}
-
-			this.vertices = uniqueList;
-
-			//更新面信息
-			var f:Triangle3D;
-			for each(f in _faces)
-			{
-				f.v0 = uniqueDic[f.v0];
-				f.v1 = uniqueDic[f.v1];
-				f.v2 = uniqueDic[f.v2];
-			}
-		}*/
 	}
 }
