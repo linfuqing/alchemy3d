@@ -78,22 +78,22 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
 
-	textmap = (DWORD *)face->texture->pRGBABuffer;
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
-	texture_shift2 = logbase2ofx[face->texture->width];
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
 
 	mempitch >>= 2;
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -152,22 +152,22 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 
 	x0 = (int)( face->vertex[v0]->s_pos->x );
 	y0 = (int)( face->vertex[v0]->s_pos->y );
-	tu0 = (int)( face->uv[v0]->u );
-	tv0 = (int)( face->uv[v0]->v );
+	tu0 = (int)( face->t_uv[v0]->u );
+	tv0 = (int)( face->t_uv[v0]->v );
 
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)( face->vertex[v1]->s_pos->x );
 	y1 = (int)( face->vertex[v1]->s_pos->y );
-	tu1 = (int)( face->uv[v1]->u );
-	tv1 = (int)( face->uv[v1]->v );
+	tu1 = (int)( face->t_uv[v1]->u );
+	tv1 = (int)( face->t_uv[v1]->v );
 
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)( face->vertex[v2]->s_pos->x );
 	y2 = (int)( face->vertex[v2]->s_pos->y );
-	tu2 = (int)( face->uv[v2]->u );
-	tv2 = (int)( face->uv[v2]->v );
+	tu2 = (int)( face->t_uv[v2]->u );
+	tv2 = (int)( face->t_uv[v2]->v );
 
 	tz2 = face->vertex[v2]->fix_inv_z;
 
@@ -853,24 +853,24 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, struct Viewport * 
 		r_textel01, g_textel01, b_textel01, r_textel11, g_textel11, b_textel11, dtu, dtv, one_minus_dtu, one_minus_dtv, one_minus_dtu_x_one_minus_dtv,
 		dtu_x_one_minus_dtv, dtu_x_dtv,one_minus_dtu_x_dtv, r_textel, g_textel, b_textel;
 
-	textmap = (DWORD *)face->texture->pRGBABuffer;
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
-	texture_shift2 = logbase2ofx[face->texture->width];
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
 
-	texture_size = face->texture->width - 1;
+	texture_size = face->texture->mipmaps[face->miplevel]->width - 1;
 
 	mempitch >>= 2;
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -929,22 +929,22 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, struct Viewport * 
 
 	x0 = (int)( face->vertex[v0]->s_pos->x );
 	y0 = (int)( face->vertex[v0]->s_pos->y );
-	tu0 = (int)( face->uv[v0]->u );
-	tv0 = (int)( face->uv[v0]->v );
+	tu0 = (int)( face->t_uv[v0]->u );
+	tv0 = (int)( face->t_uv[v0]->v );
 
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)( face->vertex[v1]->s_pos->x );
 	y1 = (int)( face->vertex[v1]->s_pos->y );
-	tu1 = (int)( face->uv[v1]->u );
-	tv1 = (int)( face->uv[v1]->v );
+	tu1 = (int)( face->t_uv[v1]->u );
+	tv1 = (int)( face->t_uv[v1]->v );
 
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)( face->vertex[v2]->s_pos->x );
 	y2 = (int)( face->vertex[v2]->s_pos->y );
-	tu2 = (int)( face->uv[v2]->u );
-	tv2 = (int)( face->uv[v2]->v );
+	tu2 = (int)( face->t_uv[v2]->u );
+	tv2 = (int)( face->t_uv[v2]->v );
 
 	tz2 = face->vertex[v2]->fix_inv_z;
 
@@ -1851,22 +1851,22 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
 
-	textmap = (DWORD *)face->texture->pRGBABuffer;
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
-	texture_shift2 = logbase2ofx[face->texture->width];
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
 
 	mempitch >>= 2;
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -1929,20 +1929,20 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = (int)(face->uv[v0]->u);
-	tv0 = (int)(face->uv[v0]->v);
+	tu0 = (int)(face->t_uv[v0]->u);
+	tv0 = (int)(face->t_uv[v0]->v);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = (int)(face->uv[v1]->u);
-	tv1 = (int)(face->uv[v1]->v);
+	tu1 = (int)(face->t_uv[v1]->u);
+	tv1 = (int)(face->t_uv[v1]->v);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = (int)(face->uv[v2]->u);
-	tv2 = (int)(face->uv[v2]->v);
+	tu2 = (int)(face->t_uv[v2]->u);
+	tv2 = (int)(face->t_uv[v2]->v);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
@@ -2682,22 +2682,22 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	DWORD	*z_ptr = NULL,
 			*zbuffer = (DWORD *)_zbuffer;
 
-	textmap = (DWORD *)face->texture->pRGBABuffer;
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
-	texture_shift2 = logbase2ofx[face->texture->width];
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
 
 	mempitch >>= 2;
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -2770,8 +2770,8 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	y0 = (int)(face->vertex[v0]->s_pos->y);
 
 	tz0 = face->vertex[v0]->fix_inv_z;
-	ts0 = (int)(face->uv[v0]->u);
-	tt0 = (int)(face->uv[v0]->v);
+	ts0 = (int)(face->t_uv[v0]->u);
+	tt0 = (int)(face->t_uv[v0]->v);
 
 	tu0 = r_base0;
 	tv0 = g_base0;
@@ -2781,8 +2781,8 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	y1 = (int)(face->vertex[v1]->s_pos->y);
 
 	tz1 = face->vertex[v1]->fix_inv_z;
-	ts1 = (int)(face->uv[v1]->u);
-	tt1 = (int)(face->uv[v1]->v);
+	ts1 = (int)(face->t_uv[v1]->u);
+	tt1 = (int)(face->t_uv[v1]->v);
 
 	tu1 = r_base1;
 	tv1 = g_base1;
@@ -2792,8 +2792,8 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	y2 = (int)(face->vertex[v2]->s_pos->y);
 
 	tz2 = face->vertex[v2]->fix_inv_z;
-	ts2 = (int)(face->uv[v2]->u);
-	tt2 = (int)(face->uv[v2]->v);
+	ts2 = (int)(face->t_uv[v2]->u);
+	tt2 = (int)(face->t_uv[v2]->v);
 
 	tu2 = r_base2;
 	tv2 = g_base2;
@@ -3815,14 +3815,14 @@ void Draw_Flat_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )/
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -4450,14 +4450,14 @@ void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -5308,22 +5308,22 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
 
-	textmap = (DWORD *)face->texture->pRGBABuffer;
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
-	texture_shift2 = logbase2ofx[face->texture->width];
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
 
 	mempitch >>= 2;
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -5382,20 +5382,20 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = ((int)(face->uv[v0]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
-	tv0 = ((int)(face->uv[v0]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tu0 = ((int)(face->t_uv[v0]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tv0 = ((int)(face->t_uv[v0]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = ((int)(face->uv[v1]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
-	tv1 = ((int)(face->uv[v1]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tu1 = ((int)(face->t_uv[v1]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tv1 = ((int)(face->t_uv[v1]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = ((int)(face->uv[v2]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
-	tv2 = ((int)(face->uv[v2]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tu2 = ((int)(face->t_uv[v2]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tv2 = ((int)(face->t_uv[v2]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 
@@ -6081,22 +6081,22 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct View
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
-	textmap = (DWORD *)face->texture->pRGBABuffer;
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
-	texture_shift2 = logbase2ofx[face->texture->width];
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
 
 	mempitch >>= 2;
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -6155,20 +6155,20 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct View
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = ((int)(face->uv[v0]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
-	tv0 = ((int)(face->uv[v0]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tu0 = ((int)(face->t_uv[v0]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tv0 = ((int)(face->t_uv[v0]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = ((int)(face->uv[v1]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
-	tv1 = ((int)(face->uv[v1]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tu1 = ((int)(face->t_uv[v1]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tv1 = ((int)(face->t_uv[v1]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = ((int)(face->uv[v2]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
-	tv2 = ((int)(face->uv[v2]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tu2 = ((int)(face->t_uv[v2]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tv2 = ((int)(face->t_uv[v2]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 
@@ -6880,22 +6880,22 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
 
-	textmap = (DWORD *)face->texture->pRGBABuffer;
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
-	texture_shift2 = logbase2ofx[face->texture->width];
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
 
 	mempitch >>= 2;
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -6958,20 +6958,20 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = ((int)(face->uv[v0]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
-	tv0 = ((int)(face->uv[v0]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tu0 = ((int)(face->t_uv[v0]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tv0 = ((int)(face->t_uv[v0]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = ((int)(face->uv[v1]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
-	tv1 = ((int)(face->uv[v1]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tu1 = ((int)(face->t_uv[v1]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tv1 = ((int)(face->t_uv[v1]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = ((int)(face->uv[v2]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
-	tv2 = ((int)(face->uv[v2]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tu2 = ((int)(face->t_uv[v2]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tv2 = ((int)(face->t_uv[v2]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 
@@ -7701,22 +7701,22 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
 
-	textmap = (DWORD *)face->texture->pRGBABuffer;
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
-	texture_shift2 = logbase2ofx[face->texture->width];
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
 
 	mempitch >>= 2;
 
 	zpitch >>= 2;
 
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5));
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.5f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.5f));
 
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5));
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.5f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.5f));
 
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5));
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.5f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.5f));
 
 	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
 		(face->vertex[1]->s_pos->y < min_clip_y) &&
@@ -7779,20 +7779,20 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 
 	x0  = (int)(face->vertex[v0]->s_pos->x);
 	y0  = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = ((int)(face->uv[v0]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
-	tv0 = ((int)(face->uv[v0]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tu0 = ((int)(face->t_uv[v0]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tv0 = ((int)(face->t_uv[v0]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1  = (int)(face->vertex[v1]->s_pos->x);
 	y1  = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = ((int)(face->uv[v1]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
-	tv1 = ((int)(face->uv[v1]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tu1 = ((int)(face->t_uv[v1]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tv1 = ((int)(face->t_uv[v1]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2  = (int)(face->vertex[v2]->s_pos->x);
 	y2  = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = ((int)(face->uv[v2]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
-	tv2 = ((int)(face->uv[v2]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tu2 = ((int)(face->t_uv[v2]->u + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tv2 = ((int)(face->t_uv[v2]->v + 0.5) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))

@@ -187,19 +187,19 @@ void entity_dispose( Entity * entity )
 	free( entity );
 }
 
-void entity_setMesh( Entity * entity, Mesh * m )
+INLINE void entity_setMesh( Entity * entity, Mesh * m )
 {
 	if ( ! m || ! m->vertices || ! m->faces || m->nFaces == 0 || m->nVertices == 0 ) return;
 
 	entity->mesh = m;
 }
 
-void entity_updateAfterRender( Entity * entity )
+INLINE void entity_updateAfterRender( Entity * entity )
 {
 	if ( entity->mesh )
 	{
 		entity->mesh->v_dirty = FALSE;
-		entity->mesh->nFacesInRL = 0;
+		entity->mesh->nRenderList = entity->mesh->nCullList = entity->mesh->nClippList = 0;
 	}
 }
 

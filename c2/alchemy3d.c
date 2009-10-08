@@ -9,6 +9,7 @@
 #include "Entity.h"
 #include "Material.h"
 #include "Texture.h"
+#include "Bitmap.h"
 #include "Light.h"
 #include "Scene.h"
 #include "Viewport.h"
@@ -31,6 +32,8 @@ AS3_Val initializeCamera( void* self, AS3_Val args )
 	double fov, nearClip, farClip;
 
 	AS3_ArrayValue( args, "PtrType, DoubleType, DoubleType, DoubleType", & eye, & fov, & nearClip, & farClip );
+
+	nearClip = nearClip < 20 ? 20 : nearClip;
 
 	camera = newCamera( (float)fov, (float)nearClip, (float)farClip, eye );
 
@@ -57,7 +60,7 @@ AS3_Val initializeScene( void* self, AS3_Val args )
 
 	scene =  newScene();
 
-	return AS3_Ptr( scene );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", scene, & scene->nNodes, & scene->nVertices, & scene->nFaces, & scene->nRenderList, & scene->nCullList, & scene->nClippList );
 }
 
 AS3_Val attachScene( void* self, AS3_Val args )
@@ -103,7 +106,7 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 
 	view = newViewport( (float)width, (float)height, scene, camera );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", view, view->videoBuffer, view->zBuffer, & view->camera, & view->scene, & view->nRenderList, & view->nCullList, & view->nClippList );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType", view, view->videoBuffer, view->zBuffer, & view->camera, & view->scene );
 }
 
 AS3_Val initializeLight( void* self, AS3_Val args )
@@ -202,7 +205,8 @@ AS3_Val initializeTerrain( void * self, AS3_Val args )
 {
 	Entity * entity;
 	Material * material;
-	Texture * texture, * map;
+	Texture * texture;
+	Bitmap * map;
 	int addressMode;
 	double width, height, maxHeight;
 	DWORD render_mode;
@@ -232,49 +236,12 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 	Vector       * uvp;
 
-	//float * meshBuffer = NULL;
-	//DWORD * p_meshBuffer = NULL, ** pp_meshBuffer = NULL;
-
-	//int vNum, fNum, vLen, i, j;
-
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, IntType, IntType",& vs, & fs, & uvp, & mp, & tp, & rmp, & vl, & fl );
-
-	//pp_meshBuffer = ( DWORD ** )meshBuffer;
-	//p_meshBuffer = ( DWORD * )meshBuffer;
 
 	mesh = newMesh( vl, fl );
 
-	/*vLen = vNum * VERTEX_SIZE;
-
-	i = 0;
-	j = 0;
-
-	for ( ; i < vNum; i ++, j += VERTEX_SIZE )
-	{
-		pp_meshBuffer[j + 4] = ( DWORD * )mesh_push_vertex( mesh, meshBuffer[j + 0], meshBuffer[j + 1], meshBuffer[j + 2] );
-	}
-
-	for ( i = 0, j = vLen; i < fNum; i ++, j += FACE_SIZE )
-	{
-		mesh_push_triangle( mesh,
-							(Vertex * )( * pp_meshBuffer[j] ),
-							(Vertex * )( * pp_meshBuffer[j + 1] ),
-							(Vertex * )( * pp_meshBuffer[j + 2] ),
-							newVector( meshBuffer[j + 3], meshBuffer[j + 4] ),
-							newVector( meshBuffer[j + 5], meshBuffer[j + 6] ),
-							newVector( meshBuffer[j + 7], meshBuffer[j + 8] ),
-							( Material * )( p_meshBuffer[j + 10] ),
-							( Texture * )( p_meshBuffer[j + 11] ) );
-	}*/
-
-	//vp = vs;
-
 	for( i = 0; i < vl; i ++ )
 	{
-		//AS3_Trace( AS3_Number( vs[i * 3]     ) );
-		//AS3_Trace( AS3_Number( vs[i * 3 + 1] ) );
-		//AS3_Trace( AS3_Number( vs[i * 3 + 2] ) );
-
 		mesh_push_vertex( mesh, vs[i * 3], vs[i * 3 + 1], vs[i * 3 + 2] );
 	}
 
@@ -293,22 +260,15 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 			mp[i],
 			tp[i],
 			rmp[i] );
-
-		//AS3_Trace( AS3_Number( fs[i * 3]     ) );
-		//AS3_Trace( AS3_Number( fs[i * 3 + 1] ) );
-		//AS3_Trace( AS3_Number( fs[i * 3 + 2] ) );
-
-		//AS3_Trace( AS3_Number( mp[i]->ambient->red ) );
-		//AS3_Trace( AS3_Int( rmp[i] ) );
 	}
 
 	free( fs );
 
 	free( rmp );
 
-	if( ( vp = ( Vector3D * *   )malloc( sizeof( Vector3D *   ) * mesh -> nVertices ) ) == NULL )
+	if( ( vp = ( Vector3D * *   )malloc( sizeof( Vector3D * ) * mesh -> nVertices ) ) == NULL )
 	{
-		return AS3_Array( "PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->octree_depth );
+		return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->useMipmap, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth );
 	}
 
 	for( i = 0; i < mesh -> nVertices; i ++ )
@@ -316,7 +276,7 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 		vp[i] = mesh -> vertices[i]->position;
 	}
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->v_dirty, & mesh->octree_depth, & vp );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->useMipmap, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth, & vp );
 }
 
 AS3_Val initializeEntity( void* self, AS3_Val args )
@@ -349,19 +309,6 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 
 AS3_Val addEntity( void* self, AS3_Val args )
 {
-	/*Scene * scene = NULL;
-
-	Entity * entity = NULL, * parent = NULL;
-
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType", &scene, &entity, &parent );
-
-	//如果有父亲，加入父亲的孩子列表
-	if ( parent ) entity_addChild( parent, entity );
-
-	//加入场景列表
-	if ( parent ) scene_addEntity( scene, entity, parent );
-	else scene_addEntity( scene, entity, NULL );*/
-
 	SceneNode * parent, * node, * ep;
 
 	unsigned int isChild;
@@ -527,27 +474,40 @@ AS3_Val initializeMaterial( void* self, AS3_Val args )
 //
 ///////////////////////////////////////////////////////////////////////////////////
 
+AS3_Val initializeBitmap( void* self, AS3_Val args )
+{
+	Bitmap * bitmap;
+	int width, height;
+	LPBYTE data;
+
+	AS3_ArrayValue( args, "IntType, IntType, PtrType", &width, &height, &data );
+
+	bitmap = newBitmap( width, height, data );
+
+	return AS3_Ptr( bitmap );
+}
+
 AS3_Val initializeTexture( void* self, AS3_Val args )
 {
 	char * name;
+
 	Texture * texture;
 
 	AS3_ArrayValue( args, "StrType", &name );
 
 	texture = newTexture( name );
 
-	return AS3_Ptr( texture );
+	return AS3_Array( "PtrType, PtrType", texture, & texture->perspective_dist );
 }
 
-AS3_Val fillTextureData( void* self, AS3_Val args )
+AS3_Val setMipmap( void* self, AS3_Val args )
 {
 	Texture * texture;
-	int width, height;
-	LPBYTE data;
+	Bitmap * bitmap;
 
-	AS3_ArrayValue( args, "PtrType, IntType, IntType, PtrType", &texture, &width, &height, &data );
+	AS3_ArrayValue( args, "PtrType, PtrType", &texture, &bitmap );
 
-	texture_setData( texture, width, height, data );
+	texture_setMipmap( texture, bitmap );
 
 	return 0;
 }
@@ -631,8 +591,9 @@ int main()
 	AS3_Val attachSceneMethod = AS3_Function( NULL, attachScene );
 	AS3_Val initializeViewportMethod = AS3_Function( NULL, initializeViewport );
 	AS3_Val initializeMaterialMethod = AS3_Function( NULL, initializeMaterial );
+	AS3_Val initializeBitmapMethod = AS3_Function( NULL, initializeBitmap );
 	AS3_Val initializeTextureMethod = AS3_Function( NULL, initializeTexture );
-	AS3_Val fillTextureDataMethod = AS3_Function( NULL, fillTextureData );
+	AS3_Val setMipmapMethod = AS3_Function( NULL, setMipmap );
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
 	AS3_Val addLightMethod = AS3_Function( NULL, addLight );
 	AS3_Val removeLightMethod = AS3_Function( NULL, removeLight );
@@ -659,8 +620,9 @@ int main()
 								 attachScene:AS3ValType,\
 								 initializeViewport:AS3ValType,\
 								 initializeMaterial:AS3ValType,\
+								 initializeBitmap:AS3ValType,\
 								 initializeTexture:AS3ValType,\
-								 fillTextureData:AS3ValType,\
+								 setMipmap:AS3ValType,\
 								 initializeLight:AS3ValType,\
 								 addLight:AS3ValType,\
 								 removeLight:AS3ValType,\
@@ -684,8 +646,9 @@ int main()
 								attachSceneMethod,
 								initializeViewportMethod,
 								initializeMaterialMethod,
+								initializeBitmapMethod,
 								initializeTextureMethod,
-								fillTextureDataMethod,
+								setMipmapMethod,
 								initializeLightMethod,
 								addLightMethod,
 								removeLightMethod,
@@ -711,8 +674,9 @@ int main()
 	AS3_Release( attachSceneMethod );
 	AS3_Release( initializeViewportMethod );
 	AS3_Release( initializeMaterialMethod );
+	AS3_Release( initializeBitmapMethod );
 	AS3_Release( initializeTextureMethod );
-	AS3_Release( fillTextureDataMethod );
+	AS3_Release( setMipmapMethod );
 	AS3_Release( initializeLightMethod );
 	AS3_Release( addLightMethod );
 	AS3_Release( removeLightMethod );

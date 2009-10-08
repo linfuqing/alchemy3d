@@ -7,19 +7,19 @@
 #include "AABB.h"
 #include "Material.h"
 #include "Texture.h"
+#include "RenderList.h"
 
-#define NO_TEXTURE			0
-#define TEX_NOT_READY		1
-#define TEX_READY			2
 
 #define OCTREE_NOT_READY	0
 #define OCTREE_READY		1
 
 typedef struct Mesh
 {
-	int nFaces, nVertices, nFacesInRL, v_dirty, textureState, lightEnable, octreeState;
+	DWORD nFaces, nVertices, nRenderList, nClippList, nCullList;
 
-	int type, octree_depth;
+	int type, octree_depth, octreeState, v_dirty, lightEnable, useMipmap;
+	
+	float mip_dist;
 
 	//如果不是地形,那么将存在高度
 	union
@@ -36,11 +36,11 @@ typedef struct Mesh
 
 	Vertex ** vertices;
 
-	struct RenderList * s_rl;
-
 	struct Octree * octree;
 
 	struct Animation * animation;
+
+	struct RenderList * renderList, * clippedList;
 
 }Mesh;
 
@@ -67,6 +67,10 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	{
 		m->vertices[i] = & vertices[i];
 	}
+	
+	//构造渲染列表和裁剪列表
+	m->renderList = initializeRenderList( nFaces + 2 );
+	m->clippedList = initializeRenderList( nFaces + 2 );
 }
 
 Mesh * newMesh( int nVertices, int nFaces )
@@ -77,7 +81,6 @@ Mesh * newMesh( int nVertices, int nFaces )
 
 	m->nFaces			= 0;
 	m->nVertices		= 0;
-	m->nFacesInRL		= 0;
 
 	if( nVertices && nFaces )
 	{
@@ -87,15 +90,15 @@ Mesh * newMesh( int nVertices, int nFaces )
 	m->octree			= newOctree();
 	m->octreeState		= OCTREE_NOT_READY;
 	m->v_dirty			= FALSE;
-	m->textureState		= NO_TEXTURE;
 	m->lightEnable		= FALSE;
-
+	m->useMipmap		= FALSE;
+	m->mip_dist			= 0;
 	m->animation        = NULL;
-	m->s_rl				= NULL;
-
 	m->type				= 0;
 	m->octree_depth		= 0;
 	m->halfHeight		= 0;
+
+	m->nRenderList = m->nCullList = m->nClippList = 0;
 
 	return m;
 }
@@ -133,17 +136,20 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	p->vertex[1] = vb;
 	p->vertex[2] = vc;
 
-	p->uv[0] = vector_clone( uva );
-	p->uv[1] = vector_clone( uvb );
-	p->uv[2] = vector_clone( uvc );
+	p->uv[0] = uva;
+	p->uv[1] = uvb;
+	p->uv[2] = uvc;
+
+	p->t_uv[0] = vector_clone( uva );;
+	p->t_uv[1] = vector_clone( uvb );;
+	p->t_uv[2] = vector_clone( uvc );;
 
 	p->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
-
-	if ( texture ) m->textureState = TEX_NOT_READY;
 
 	p->texture = texture;
 	p->material = material;
 
+	p->miplevel = 0;
 	p->render_mode = render_mode;
 	p->uvTransformed = FALSE;
 
@@ -162,12 +168,9 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 //效率可改进函数,将IF提出循环
 void mesh_updateFaces( Mesh * m )
 {
-	int i = 0, j = 0;
-	Texture * t;
+	DWORD i = 0;
 	Triangle * face;
 	Vertex * v0, * v1, * v2;
-
-	if ( ! m->v_dirty && m->textureState == NO_TEXTURE ) return;
 
 	if ( ! m->faces || m->nFaces == 0) exit( TRUE );
 
@@ -175,62 +178,31 @@ void mesh_updateFaces( Mesh * m )
 	{
 		face = m->faces[i];
 
-		if ( m->v_dirty )
-		{
-			v0 = face->vertex[0];
-			v1 = face->vertex[1];
-			v2 = face->vertex[2];
+		v0 = face->vertex[0];
+		v1 = face->vertex[1];
+		v2 = face->vertex[2];
 
-			face->normal->x = 0.0f;
-			face->normal->y = 0.0f;
-			face->normal->z = 0.0f;
-			face->normal->w = 1.0f;
+		face->normal->x = 0.0f;
+		face->normal->y = 0.0f;
+		face->normal->z = 0.0f;
+		face->normal->w = 1.0f;
 
-			triangle_normal( face->normal, v0, v1, v2 );
-		}
-
-		if ( m->textureState == TEX_NOT_READY && face->texture )
-		{
-			t = face->texture;
-
-			if ( ! face->uvTransformed && t->pRGBABuffer && t->width != 0 && t->height != 0 )
-			{
-				face->uv[0]->u *= t->width - 1;
-				face->uv[0]->v *= t->height - 1;
-
-				face->uv[1]->u *= t->width - 1;
-				face->uv[1]->v *= t->height - 1;
-
-				face->uv[2]->u *= t->width - 1;
-				face->uv[2]->v *= t->height - 1;
-
-				face->uvTransformed = TRUE;
-			}
-
-			if ( face->uvTransformed ) j ++;
-		}
-	}
-
-	if ( i == j )
-	{
-		m->textureState = TEX_READY;
+		triangle_normal( face->normal, v0, v1, v2 );
 	}
 }
 
 void mesh_updateVertices( Mesh * m )
 {
-	int i = 0;
+	DWORD i = 0;
 	float len, oneOverMag;
 	ContectedFaces * cf;
 	Vertex * vert;
-
-	if ( ! m->v_dirty ) return;
 
 	if ( ! m->vertices || m->nVertices == 0) exit( TRUE );
 
 	aabb_empty( m->octree->data->aabb );
 
-	//为提高效率，这么不使用任何内联函数，以降低函数调用开销
+	//不使用任何内联函数
 	for( ; i < m->nVertices; i ++ )
 	{
 		vert = m->vertices[i];
@@ -271,7 +243,7 @@ void mesh_updateVertices( Mesh * m )
 
 void mesh_setRenderMode(  Mesh * m, DWORD renderMode )
 {
-	int i = 0;
+	DWORD i = 0;
 
 	for( ; i < m->nFaces; i ++ )
 	{
@@ -281,7 +253,7 @@ void mesh_setRenderMode(  Mesh * m, DWORD renderMode )
 
 void mesh_setMaterial( Mesh * m, Material * mat )
 {
-	int i = 0;
+	DWORD i = 0;
 
 	for( ; i < m->nFaces; i ++ )
 	{
@@ -291,118 +263,138 @@ void mesh_setMaterial( Mesh * m, Material * mat )
 
 void mesh_setTexture( Mesh * m, Texture * t )
 {
-	int i = 0;
+	DWORD i = 0;
 
 	for( ; i < m->nFaces; i ++ )
 	{
 		m->faces[i]->texture = t;
 	}
-
-	m->textureState = TEX_NOT_READY;
 }
 
-void mesh_updateMesh( Mesh * mesh )
+void mesh_setAttribute( Mesh * mesh, Material * material, Texture * texture, DWORD renderMode )
 {
-	//重新计算法向量
-	mesh_updateFaces( mesh );
-	mesh_updateVertices( mesh );
+	DWORD i = 0;
 
-	if ( mesh->octreeState == OCTREE_NOT_READY )
+	for( ; i < mesh->nFaces; i ++ )
 	{
-		buildOctree( mesh->octree, mesh->octree_depth );
-
-		mesh->octreeState = OCTREE_READY;
+		mesh->faces[i]->material = material;
+		mesh->faces[i]->texture = texture;
+		mesh->faces[i]->render_mode = renderMode;
 	}
 }
 
-INLINE AABB * mesh_transformNewAABB( AABB * output, AABB * aabb, Matrix3D * m )
+INLINE void mesh_updateMesh( Mesh * m )
 {
-	float invw;
+	if ( ! m->v_dirty ) return;
 
-	Vector3D T_L_F_V;
-	Vector3D T_R_F_V;
-	Vector3D T_L_B_V;
-	Vector3D T_R_B_V;
-	Vector3D B_L_F_V;
-	Vector3D B_R_F_V;
-	Vector3D B_L_B_V;
-	Vector3D B_R_B_V;
+	//重新计算法向量
+	mesh_updateFaces( m );
+	mesh_updateVertices( m );
 
-	Vector3D * min = aabb->min, * max = aabb->max;
+	if ( m->octreeState == OCTREE_NOT_READY )
+	{
+		buildOctree( m->octree, m->octree_depth );
 
-	T_L_F_V.x = min->x;	T_L_F_V.y = min->y;	T_L_F_V.z = min->z;	T_L_F_V.w = 1.0f;
-	T_R_F_V.x = max->x;	T_R_F_V.y = min->y;	T_R_F_V.z = min->z;	T_R_F_V.w = 1.0f;
-	T_L_B_V.x = min->x;	T_L_B_V.y = min->y;	T_L_B_V.z = max->z;	T_L_B_V.w = 1.0f;
-	T_R_B_V.x = max->x;	T_R_B_V.y = min->y;	T_R_B_V.z = max->z;	T_R_B_V.w = 1.0f;
-	B_L_F_V.x = min->x;	B_L_F_V.y = max->y;	B_L_F_V.z = min->z;	B_L_F_V.w = 1.0f;
-	B_R_F_V.x = max->x;	B_R_F_V.y = max->y;	B_R_F_V.z = min->z;	B_R_F_V.w = 1.0f;
-	B_L_B_V.x = min->x;	B_L_B_V.y = max->y;	B_L_B_V.z = max->z;	B_L_B_V.w = 1.0f;
-	B_R_B_V.x = max->x;	B_R_B_V.y = max->y;	B_R_B_V.z = max->z;	B_R_B_V.w = 1.0f;
-
-	matrix3D_transformVector_self( m, & T_L_F_V );
-	invw = 1.0f / T_L_F_V.w;
-	T_L_F_V.x *= invw;
-	T_L_F_V.y *= invw;
-
-	matrix3D_transformVector_self( m, & T_R_F_V );
-	invw = 1.0f / T_R_F_V.w;
-	T_R_F_V.x *= invw;
-	T_R_F_V.y *= invw;
-
-	matrix3D_transformVector_self( m, & T_L_B_V );
-	invw = 1.0f / T_L_B_V.w;
-	T_L_B_V.x *= invw;
-	T_L_B_V.y *= invw;
-
-	matrix3D_transformVector_self( m, & T_R_B_V );
-	invw = 1.0f / T_R_B_V.w;
-	T_R_B_V.x *= invw;
-	T_R_B_V.y *= invw;
-
-	matrix3D_transformVector_self( m, & B_L_F_V );
-	invw = 1.0f / B_L_F_V.w;
-	B_L_F_V.x *= invw;
-	B_L_F_V.y *= invw;
-
-	matrix3D_transformVector_self( m, & B_R_F_V );
-	invw = 1.0f / B_R_F_V.w;
-	B_R_F_V.x *= invw;
-	B_R_F_V.y *= invw;
-
-	matrix3D_transformVector_self( m, & B_L_B_V );
-	invw = 1.0f / B_L_B_V.w;
-	B_L_B_V.x *= invw;
-	B_L_B_V.y *= invw;
-
-	matrix3D_transformVector_self( m, & B_R_B_V );
-	invw = 1.0f / B_R_B_V.w;
-	B_R_B_V.x *= invw;
-	B_R_B_V.y *= invw;
-
-	aabb_empty( output );
-	aabb_add_4D( output, & T_L_F_V );
-	aabb_add_4D( output, & T_R_F_V );
-	aabb_add_4D( output, & T_L_B_V );
-	aabb_add_4D( output, & T_R_B_V );
-	aabb_add_4D( output, & B_L_F_V );
-	aabb_add_4D( output, & B_R_F_V );
-	aabb_add_4D( output, & B_L_B_V );
-	aabb_add_4D( output, & B_R_B_V );
-
-	return output;
+		m->octreeState = OCTREE_READY;
+	}
 }
+
+//INLINE AABB * mesh_transformNewAABB( AABB * output, AABB * aabb, Matrix3D * m )
+//{
+//	float invw;
+//
+//	Vector3D T_L_F_V;
+//	Vector3D T_R_F_V;
+//	Vector3D T_L_B_V;
+//	Vector3D T_R_B_V;
+//	Vector3D B_L_F_V;
+//	Vector3D B_R_F_V;
+//	Vector3D B_L_B_V;
+//	Vector3D B_R_B_V;
+//
+//	Vector3D * min = aabb->min, * max = aabb->max;
+//
+//	T_L_F_V.x = min->x;	T_L_F_V.y = min->y;	T_L_F_V.z = min->z;	T_L_F_V.w = 1.0f;
+//	T_R_F_V.x = max->x;	T_R_F_V.y = min->y;	T_R_F_V.z = min->z;	T_R_F_V.w = 1.0f;
+//	T_L_B_V.x = min->x;	T_L_B_V.y = min->y;	T_L_B_V.z = max->z;	T_L_B_V.w = 1.0f;
+//	T_R_B_V.x = max->x;	T_R_B_V.y = min->y;	T_R_B_V.z = max->z;	T_R_B_V.w = 1.0f;
+//	B_L_F_V.x = min->x;	B_L_F_V.y = max->y;	B_L_F_V.z = min->z;	B_L_F_V.w = 1.0f;
+//	B_R_F_V.x = max->x;	B_R_F_V.y = max->y;	B_R_F_V.z = min->z;	B_R_F_V.w = 1.0f;
+//	B_L_B_V.x = min->x;	B_L_B_V.y = max->y;	B_L_B_V.z = max->z;	B_L_B_V.w = 1.0f;
+//	B_R_B_V.x = max->x;	B_R_B_V.y = max->y;	B_R_B_V.z = max->z;	B_R_B_V.w = 1.0f;
+//
+//	matrix3D_transformVector_self( m, & T_L_F_V );
+//	invw = 1.0f / T_L_F_V.w;
+//	T_L_F_V.x *= invw;
+//	T_L_F_V.y *= invw;
+//
+//	matrix3D_transformVector_self( m, & T_R_F_V );
+//	invw = 1.0f / T_R_F_V.w;
+//	T_R_F_V.x *= invw;
+//	T_R_F_V.y *= invw;
+//
+//	matrix3D_transformVector_self( m, & T_L_B_V );
+//	invw = 1.0f / T_L_B_V.w;
+//	T_L_B_V.x *= invw;
+//	T_L_B_V.y *= invw;
+//
+//	matrix3D_transformVector_self( m, & T_R_B_V );
+//	invw = 1.0f / T_R_B_V.w;
+//	T_R_B_V.x *= invw;
+//	T_R_B_V.y *= invw;
+//
+//	matrix3D_transformVector_self( m, & B_L_F_V );
+//	invw = 1.0f / B_L_F_V.w;
+//	B_L_F_V.x *= invw;
+//	B_L_F_V.y *= invw;
+//
+//	matrix3D_transformVector_self( m, & B_R_F_V );
+//	invw = 1.0f / B_R_F_V.w;
+//	B_R_F_V.x *= invw;
+//	B_R_F_V.y *= invw;
+//
+//	matrix3D_transformVector_self( m, & B_L_B_V );
+//	invw = 1.0f / B_L_B_V.w;
+//	B_L_B_V.x *= invw;
+//	B_L_B_V.y *= invw;
+//
+//	matrix3D_transformVector_self( m, & B_R_B_V );
+//	invw = 1.0f / B_R_B_V.w;
+//	B_R_B_V.x *= invw;
+//	B_R_B_V.y *= invw;
+//
+//	aabb_empty( output );
+//	aabb_add_4D( output, & T_L_F_V );
+//	aabb_add_4D( output, & T_R_F_V );
+//	aabb_add_4D( output, & T_L_B_V );
+//	aabb_add_4D( output, & T_R_B_V );
+//	aabb_add_4D( output, & B_L_F_V );
+//	aabb_add_4D( output, & B_R_F_V );
+//	aabb_add_4D( output, & B_L_B_V );
+//	aabb_add_4D( output, & B_R_B_V );
+//
+//	return output;
+//}
 
 void mesh_clear( Mesh * mesh )
 {
-	int i = 0;
+	DWORD i = 0;
 
 	for ( ; i < mesh->nVertices; i ++ )
 	{
 		vertex_dispose( mesh->vertices[i] );
 	}
+
 	for ( i = 0; i < mesh->nFaces; i ++ )
 	{
 		triangle_dispose( mesh->faces[i] );
+	}
+
+	if ( mesh->renderList )
+	{
+		free( mesh->renderList );
+
+		mesh->nRenderList = mesh->nCullList = mesh->nClippList = 0;
 	}
 
 	free( mesh->vertices );
@@ -430,7 +422,7 @@ Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )
 
 INLINE float mesh_minY( Mesh * mesh )
 {
-	int i;
+	DWORD i;
 	float min = mesh -> vertices[0] -> position -> y;
 
 	for( i = 1; i < mesh -> nVertices; i ++ )

@@ -12,20 +12,10 @@
 #include "Vector3D.h"
 #include "Terrain.h"
 
-#define NUM_PER_RL_INIT 200
-
-typedef struct RenderList
-{
-	Triangle * polygon;
-
-	struct RenderList * next;
-	struct RenderList * pre;
-}RenderList;
-
 typedef struct Viewport
 {
 	//高宽积，是否更改属性，渲染数，裁剪数，剔除数
-	int wh, dirty, nRenderList, nClippList, nCullList;
+	int wh, dirty, nClippList, nCullList;
 
 	//视口宽高和宽高比
 	int width, height, mempitch, zpitch;
@@ -42,7 +32,6 @@ typedef struct Viewport
 
 	struct Camera * camera;
 
-	struct RenderList * renderList, * clippedList;
 }Viewport;
 
 void viewport_resize( Viewport * viewport, int width, int height )
@@ -65,37 +54,6 @@ void viewport_resize( Viewport * viewport, int width, int height )
 	if( ( viewport->zBuffer			= ( LPBYTE )calloc( wh * sizeof( DWORD ), sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
 }
 
-//已优化
-RenderList * initializeRenderList( int number )
-{
-	int i = 0;
-
-	RenderList * renderList, * lastRenderList;
-
-	if( ( renderList = ( RenderList * )malloc( sizeof( RenderList ) * number ) ) == NULL ) exit( TRUE );
-
-	lastRenderList = renderList;
-
-	for ( ; i < number - 1; i ++ )
-	{
-		lastRenderList->polygon = NULL;
-
-		lastRenderList->next = lastRenderList + 1;
-
-		lastRenderList->pre = lastRenderList - 1;
-
-		lastRenderList ++;
-	}
-
-	lastRenderList->polygon = NULL;
-
-	lastRenderList -> next = NULL;
-
-	lastRenderList->pre = lastRenderList - 1;
-
-	return renderList;
-}
-
 Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 {
 	Viewport * viewport;
@@ -103,45 +61,14 @@ Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 	if( (viewport = ( Viewport * )malloc( sizeof( Viewport ) ) ) == NULL) exit( TRUE );
 
 	viewport->videoBuffer = NULL;
-
 	viewport->zBuffer = NULL;
 
 	viewport_resize(viewport, width, height);
 	
 	viewport->camera = camera;
-
 	viewport->scene = scene;
 
-	//构造渲染列表
-	viewport->renderList = initializeRenderList( scene->nFaces + 2 );
-
-	//构造裁剪列表
-	viewport->clippedList = initializeRenderList( scene->nFaces + 2 );
-
-	viewport->nRenderList = 0;
-
 	return viewport;
-}
-
-INLINE void extendRenderList( RenderList ** rl_ptr, int length )
-{
-	RenderList * newRL;
-
-	newRL = initializeRenderList( length );
-
-	newRL->pre = * rl_ptr;
-
-	(* rl_ptr)->next = newRL;
-}
-
-INLINE void insertFaceToList( RenderList ** rl_ptr, Triangle * face)
-{
-	//如果到达渲染列表尾部，则插入NUM_PER_RL_INIT个新的结点(注意保留表尾)
-	if ( NULL == (* rl_ptr)->next )
-		extendRenderList( rl_ptr, NUM_PER_RL_INIT );
-
-	( * rl_ptr )->polygon = face;
-	( * rl_ptr ) = ( * rl_ptr )->next;
 }
 
 //渲染前更新
@@ -162,17 +89,6 @@ void viewport_updateBeforeRender( Viewport * viewport )
 
 #endif
 
-	//如果场景有改变
-	if ( TRUE == viewport->scene->dirty )
-	{
-		free( viewport->renderList );
-
-		//重新构造渲染列表
-		viewport->renderList = initializeRenderList( viewport->scene->nFaces + 2 );
-	}
-
-	viewport->nRenderList = viewport->nClippList = viewport->nCullList = 0;
-
 	terrain_sceneTrace( viewport -> scene -> nodes );
 }
 
@@ -184,11 +100,11 @@ INLINE void viewport_updateAfterRender( Viewport * viewport )
 }
 
 //把整个结点加入渲染列表
-void addToRenderList( Viewport * viewport, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr )
+void addToRenderList( Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr )
 {
-	int j = 0;
-
 	Triangle * face;
+
+	int j = 0;
 
 	for ( ; j < octreeData->nFaces; j ++)
 	{
@@ -196,11 +112,9 @@ void addToRenderList( Viewport * viewport, Entity * entity, OctreeData * octreeD
 
 		triangle_transform( entity->world, entity->projection, face );
 
-		insertFaceToList( rl_ptr, face );
+		renderList_push( rl_ptr, face );
 
-		viewport->nRenderList ++;
-
-		entity->mesh->nFacesInRL ++;
+		entity->mesh->nRenderList ++;
 	}
 }
 
@@ -211,13 +125,14 @@ void addToRenderList( Viewport * viewport, Entity * entity, OctreeData * octreeD
 //octreeData	八叉树
 //rl_ptr		当前渲染列表的指针
 //cl_ptr		当前裁剪列表的指针
-void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr )
+void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr )
 {
 	int j, zCode0, zCode1, zCode2, verts_out, v0, v1, v2;
 	float t1, t2,  xi, yi, ui, vi, x01i, x02i, y01i, y02i, u01i, u02i, v01i, v02i, dx, dy, dz, near = camera->near, far = camera->far;
 	Vector3D viewerToLocal;
 	Triangle * face, * face1, * face2;
 	Vertex * tmpVert1, * tmpVert2, * ver1_0, * ver1_1, * ver1_2, * ver2_0, * ver2_1, * ver2_2;
+	Mesh * mesh = entity->mesh;
 
 	//遍历面
 	for ( j = 0; j < octreeData->nFaces; j ++)
@@ -244,7 +159,11 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			//如果夹角大于90或小于-90时，即背向摄像机
 			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.0f )
 			{
-				viewport->nCullList ++;
+				mesh->nCullList ++;
+
+				face->vertex[0]->transformed = FALSE;
+				face->vertex[1]->transformed = FALSE;
+				face->vertex[2]->transformed = FALSE;
 
 				continue;
 			}
@@ -256,7 +175,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			face->vertex[1]->s_pos->x < -1 &&
 			face->vertex[2]->s_pos->x < -1 )
 		{
-			viewport->nCullList ++;
+			mesh->nCullList ++;
 
 			face->vertex[0]->transformed = FALSE;
 			face->vertex[1]->transformed = FALSE;
@@ -269,7 +188,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			face->vertex[1]->s_pos->x > 1 &&
 			face->vertex[2]->s_pos->x > 1 )
 		{
-			viewport->nCullList ++;
+			mesh->nCullList ++;
 
 			face->vertex[0]->transformed = FALSE;
 			face->vertex[1]->transformed = FALSE;
@@ -282,7 +201,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			face->vertex[1]->s_pos->y < -1 &&
 			face->vertex[2]->s_pos->y < -1 )
 		{
-			viewport->nCullList ++;
+			mesh->nCullList ++;
 
 			face->vertex[0]->transformed = FALSE;
 			face->vertex[1]->transformed = FALSE;
@@ -295,7 +214,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			face->vertex[1]->s_pos->y > 1 &&
 			face->vertex[2]->s_pos->y > 1 )
 		{
-			viewport->nCullList ++;
+			mesh->nCullList ++;
 
 			face->vertex[0]->transformed = FALSE;
 			face->vertex[1]->transformed = FALSE;
@@ -308,7 +227,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			face->vertex[1]->v_pos->w > far &&
 			face->vertex[2]->v_pos->w > far )
 		{
-			viewport->nCullList ++;
+			mesh->nCullList ++;
 
 			face->vertex[0]->transformed = FALSE;
 			face->vertex[1]->transformed = FALSE;
@@ -340,7 +259,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 
 		if ( verts_out == 3 )
 		{
-			viewport->nCullList ++;
+			mesh->nCullList ++;
 
 			face->vertex[0]->transformed = FALSE;
 			face->vertex[1]->transformed = FALSE;
@@ -354,7 +273,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 		else if ( verts_out == 2 )
 		{
 			//累计裁剪多边形
-			viewport->nClippList ++;
+			mesh->nClippList ++;
 
 			//检查当前裁剪列表指针的面指针是否为空
 			//如果是则恢复为原始信息
@@ -373,7 +292,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 				face1 = triangle_clone( face );
 
 				//插入裁剪列表
-				insertFaceToList( cl_ptr, face1 );
+				renderList_push( cl_ptr, face1 );
 			}
 
 			//找出位于内侧的顶点
@@ -434,7 +353,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 
 			//检查多边形是否带纹理
 			//如果有，则对纹理坐标进行裁剪
-			if ( NULL != face->texture )
+			if ( face->texture && face->texture->mipmaps )
 			{
 				ui = face1->uv[v0]->u + ( face1->uv[v1]->u - face1->uv[v0]->u ) * t1;
 				vi = face1->uv[v0]->v + ( face1->uv[v1]->v - face1->uv[v0]->v ) * t1;
@@ -447,6 +366,8 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 
 				face1->uv[v2]->u = ui;
 				face1->uv[v2]->v = vi;
+
+				face1->uvTransformed = FALSE;
 			}
 		}
 		else if ( verts_out == 1 )
@@ -454,7 +375,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 			//三角形被裁剪后为四边形，需要分割为两个三角形
 
 			//累计裁剪多边形
-			viewport->nClippList += 2;
+			mesh->nClippList += 2;
 
 			//检查当前裁剪列表指针的面指针是否为空
 			//如果是则恢复为原始信息
@@ -473,7 +394,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 				face1 = triangle_clone( face );
 
 				//插入裁剪列表
-				insertFaceToList( cl_ptr, face1 );
+				renderList_push( cl_ptr, face1 );
 			}
 
 			if ( ( * cl_ptr )->polygon )
@@ -491,7 +412,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 				face2 = triangle_clone( face );
 
 				//插入裁剪列表
-				insertFaceToList( cl_ptr, face2 );
+				renderList_push( cl_ptr, face2 );
 			}
 
 			//找出位于外侧的顶点
@@ -563,7 +484,7 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 
 			//检查多边形是否带纹理
 			//如果有，则对纹理坐标进行裁剪
-			if ( NULL != face->texture )
+			if ( face->texture && face->texture->mipmaps )
 			{
 				u01i = face1->uv[v0]->u + ( face1->uv[v1]->u - face1->uv[v0]->u ) * t1;
 				v01i = face1->uv[v0]->v + ( face1->uv[v1]->v - face1->uv[v0]->v ) * t1;
@@ -580,6 +501,9 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 
 				face2->uv[v0]->u = u02i;
 				face2->uv[v0]->v = v02i;
+
+				face1->uvTransformed = FALSE;
+				face2->uvTransformed = FALSE;
 			}
 		}
 
@@ -591,31 +515,25 @@ void frustumClipping( Viewport * viewport, Camera * camera, Entity * entity, Oct
 		//如果没有新面，则插入原来的面
 		if ( NULL == face1 && NULL == face2 )
 		{
-			insertFaceToList( rl_ptr, face );
+			renderList_push( rl_ptr, face );
 
-			viewport->nRenderList ++;
-
-			entity->mesh->nFacesInRL ++;
+			mesh->nRenderList ++;
 		}
 		//否则插入新面
 		else
 		{
 			if ( NULL != face1 )
 			{
-				insertFaceToList( rl_ptr, face1 );
+				renderList_push( rl_ptr, face1 );
 
-				viewport->nRenderList ++;
-
-				entity->mesh->nFacesInRL ++;
+				mesh->nRenderList ++;
 			}
 
 			if ( NULL != face2 )
 			{
-				insertFaceToList( rl_ptr, face2 );
+				renderList_push( rl_ptr, face2 );
 
-				viewport->nRenderList ++;
-
-				entity->mesh->nFacesInRL ++;
+				mesh->nRenderList ++;
 			}
 		}
 	}
@@ -625,7 +543,6 @@ void transform_octree( Octree * octree, Matrix3D * world, Matrix3D * view )
 {
 	aabb_setToTransformedBox( octree->data->worldAABB, octree->data->aabb, world );
 	aabb_setToTransformedBox( octree->data->CVVAABB, octree->data->aabb, view );
-	//mesh_transformNewAABB( octree->data->CVVAABB, octree->data->aabb, projection );
 
 	if ( octree->tlb ) transform_octree( octree->tlb, world, view );
 	if ( octree->tlf ) transform_octree( octree->tlf, world, view );
@@ -637,7 +554,7 @@ void transform_octree( Octree * octree, Matrix3D * world, Matrix3D * view )
 	if ( octree->brf ) transform_octree( octree->brf, world, view );
 }
 
-int octree_culling( Viewport * viewport, Camera * camera, Entity * entity, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr )
+int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr )
 {
 	int code = 0, noChild = 0;
 
@@ -657,7 +574,7 @@ int octree_culling( Viewport * viewport, Camera * camera, Entity * entity, Octre
 	//输出码为非零侧包围盒离屏
 	if ( code > 0 )
 	{
-		viewport->nCullList += octree->data->nFaces;
+		entity->mesh->nCullList += octree->data->nFaces;
 
 		return 0;
 	}
@@ -676,7 +593,7 @@ int octree_culling( Viewport * viewport, Camera * camera, Entity * entity, Octre
 		//直接把所有多边形添加到渲染列表
 		if ( code == 0x3f )
 		{
-			addToRenderList( viewport, entity, octree->data, rl_ptr );
+			addToRenderList( entity, octree->data, rl_ptr );
 
 			return 2;
 		}
@@ -685,31 +602,31 @@ int octree_culling( Viewport * viewport, Camera * camera, Entity * entity, Octre
 		else
 		{
 			//如果有子结点则继续递归
-			if ( octree->tlb )	code = octree_culling( viewport, camera, entity, octree->tlb, rl_ptr, cl_ptr );
+			if ( octree->tlb )	code = octree_culling( camera, entity, octree->tlb, rl_ptr, cl_ptr );
 			else				noChild |= 0x01;
 
-			if ( octree->tlf )	code = octree_culling( viewport, camera, entity, octree->tlf, rl_ptr, cl_ptr );
+			if ( octree->tlf )	code = octree_culling( camera, entity, octree->tlf, rl_ptr, cl_ptr );
 			else				noChild |= 0x02;
 
-			if ( octree->trb )	code = octree_culling( viewport, camera, entity, octree->trb, rl_ptr, cl_ptr );
+			if ( octree->trb )	code = octree_culling( camera, entity, octree->trb, rl_ptr, cl_ptr );
 			else				noChild |= 0x04;
 
-			if ( octree->trf )	code = octree_culling( viewport, camera, entity, octree->trf, rl_ptr, cl_ptr );
+			if ( octree->trf )	code = octree_culling( camera, entity, octree->trf, rl_ptr, cl_ptr );
 			else				noChild |= 0x08;
 
-			if ( octree->blb )	code = octree_culling( viewport, camera, entity, octree->blb, rl_ptr, cl_ptr );
+			if ( octree->blb )	code = octree_culling( camera, entity, octree->blb, rl_ptr, cl_ptr );
 			else				noChild |= 0x10;
 
-			if ( octree->blf )	code = octree_culling( viewport, camera, entity, octree->blf, rl_ptr, cl_ptr );
+			if ( octree->blf )	code = octree_culling( camera, entity, octree->blf, rl_ptr, cl_ptr );
 			else				noChild |= 0x20;
 
-			if ( octree->brb )	code = octree_culling( viewport, camera, entity, octree->brb, rl_ptr, cl_ptr );
+			if ( octree->brb )	code = octree_culling( camera, entity, octree->brb, rl_ptr, cl_ptr );
 			else				noChild |= 0x40;
 
-			if ( octree->brf )	code = octree_culling( viewport, camera, entity, octree->brf, rl_ptr, cl_ptr );
+			if ( octree->brf )	code = octree_culling( camera, entity, octree->brf, rl_ptr, cl_ptr );
 			else				noChild |= 0x80;
 
-			if ( noChild == 0xff ) frustumClipping( viewport, camera, entity, octree->data, rl_ptr, cl_ptr );
+			if ( noChild == 0xff ) frustumClipping( camera, entity, octree->data, rl_ptr, cl_ptr );
 		}
 	}
 
@@ -731,7 +648,7 @@ void viewport_lightting( Viewport * viewport )
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
 	FloatColor fColor, lastColor, outPutColor;
 	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
-	int l = 0, j = 0, i = 0;
+	DWORD l = 0, j = 0, i = 0;
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
 	Vector3D vLightsToObject[MAX_LIGHTS];
@@ -767,10 +684,9 @@ void viewport_lightting( Viewport * viewport )
 			}
 
 			//遍历渲染列表
-			renderList = mesh->s_rl;
+			renderList = mesh->renderList->next;
 
-			//while ( NULL != renderList && NULL != renderList->polygon )
-			for ( i = 0; i < mesh->nFacesInRL; i ++ )
+			for ( i = 0; i < mesh->nRenderList; i ++ )
 			{
 				material = renderList->polygon->material;
 
@@ -977,14 +893,10 @@ void viewport_project( Viewport * viewport, int time )
 	SceneNode * sceneNode;
 	Camera * camera;
 	Entity * entity;
-	RenderList * rl_ptr, * cl_ptr;
+	RenderList * rl, * cl;
 
 	scene = viewport->scene;
 	camera = viewport->camera;
-
-	//把渲染列表的指针指向表头的下一个结点
-	rl_ptr = viewport->renderList->next;
-	cl_ptr = viewport->clippedList->next;
 
 	//更新摄像机矩阵
 	camera_updateTransform( camera );
@@ -992,9 +904,7 @@ void viewport_project( Viewport * viewport, int time )
 	//如果摄像机或视口的属性改变
 	//则重新计算投影矩阵
 	if ( TRUE == camera->fnfDirty || TRUE == viewport->dirty )
-	{
 		getPerspectiveFovLH( camera->projectionMatrix, camera, viewport->aspect );
-	}
 
 	//遍历实体
 	sceneNode = scene->nodes;
@@ -1002,6 +912,8 @@ void viewport_project( Viewport * viewport, int time )
 	while( sceneNode )
 	{
 		entity = sceneNode->entity;
+		rl = entity->mesh->renderList->next;
+		cl = entity->mesh->clippedList->next;
 
 		entity_updateTransform(entity);
 
@@ -1012,6 +924,7 @@ void viewport_project( Viewport * viewport, int time )
 				animation_update( entity -> mesh -> animation, time );
 			}
 
+			//重新计算法向量以及构造八叉树（如果顶点是静态的只会执行一次）
 			mesh_updateMesh( entity->mesh );
 
 			matrix3D_append( entity->view, entity->world, camera->eye->world );
@@ -1025,17 +938,14 @@ void viewport_project( Viewport * viewport, int time )
 			//八叉
 			transform_octree( entity->mesh->octree, entity->world, entity->view );
 
-			//记录网格使用的渲染列表的指针的起始地址
-			entity->mesh->s_rl = rl_ptr;
-
-			if ( ! octree_culling( viewport, camera, entity, entity->mesh->octree, & rl_ptr, & cl_ptr ) )
+			if ( ! octree_culling( camera, entity, entity->mesh->octree, & rl, & cl ) )
 			{
 				sceneNode = sceneNode->next;
 
 				continue;
 			}
 			
-			terrain_trace( entity, scene -> nodes, 0 );
+			//terrain_trace( entity, scene -> nodes, 0 );
 
 		}//end NULL != mesh
 
@@ -1050,108 +960,158 @@ void viewport_project( Viewport * viewport, int time )
 #include "RenderFGTINVZB.h"
 #include "RenderWF.h"
 
-void viewport_render(Viewport * viewport)
+void viewport_render( Viewport * viewport )
 {
-	Triangle * face;
-
+	DWORD tmiplevels, miplevel, i;
+	Entity * entity;
 	RenderList * rl;
+	SceneNode * sceneNode;
+	Mesh * mesh;
+	Triangle * face;
+	Bitmap * bitmap;
 
-	rl = viewport->renderList->next;
+	//遍历实体
+	sceneNode = viewport->scene->nodes;
 
-	while ( NULL != rl && NULL != rl->polygon )
+	while( sceneNode )
 	{
-		face = rl->polygon;
+		entity = sceneNode->entity;
+		mesh = entity->mesh;
 
-		if ( face->texture && face->texture->width && face->texture->height && face->texture->pRGBABuffer )
+		if ( mesh && mesh->nFaces && mesh->nVertices )
 		{
-			switch ( face->render_mode )
+			//遍历渲染列表
+			rl = mesh->renderList->next;
+
+			for ( i = 0; i < mesh->nRenderList; i ++ )
 			{
-				case RENDER_WIREFRAME_TRIANGLE_32:
-					Draw_Wireframe_Triangle_32( face, viewport );
-					break;
+				face = rl->polygon;
 
-				case RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
-					Draw_Textured_Triangle_FSINVZB_32( face, viewport );
-					break;
+				if ( face->texture && face->texture->mipmaps )
+				{
+					if ( mesh->useMipmap && mesh->mip_dist )
+					{
+						tmiplevels = logbase2ofx[face->texture->mipmaps[0]->width];
 
-				case RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:
-					Draw_Textured_Triangle_GSINVZB_32( face, viewport );
-					break;
+						miplevel = (int)(tmiplevels * face->vertex[0]->v_pos->w / mesh->mip_dist);
 
-				case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
-					Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
-					break;
+						if ( miplevel > tmiplevels ) miplevel = tmiplevels;
 
-				case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
-					Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
-					break;
+						bitmap = face->texture->mipmaps[miplevel];
 
-				case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
-					Draw_Textured_Triangle_INVZB_32( face, viewport );
-					break;
+						if ( miplevel != face->miplevel || ! face->uvTransformed )
+						{
+							triangle_setUV( face, bitmap->width, bitmap->height );
 
-				case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
-					Draw_Textured_Bilerp_Triangle_INVZB_32( face, viewport );
-					break;
+							face->miplevel = miplevel;
 
-				case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
-					Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
-					break;
+							face->uvTransformed = TRUE;
+						}
+					}
+					else
+					{
+						bitmap = face->texture->mipmaps[0];
 
-				case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
-					Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
-					break;
+						if ( ! face->uvTransformed )
+						{
+							triangle_setUV( face, bitmap->width, bitmap->height );
 
-				case RENDER_FLAT_TRIANGLE_32 :
-					Draw_Flat_Triangle_32( face, viewport );
-					break;
+							face->uvTransformed = TRUE;
+						}
+					}
 
-				case RENDER_FLAT_TRIANGLEFP_32 :
-					Draw_Flat_TriangleFP_32( face, viewport );
-					break;
+					switch ( face->render_mode )
+					{
+						case RENDER_WIREFRAME_TRIANGLE_32:
+							Draw_Wireframe_Triangle_32( face, viewport );
+							break;
 
-				case RENDER_FLAT_TRIANGLE_INVZB_32:
-					Draw_Flat_Triangle_INVZB_32( face, viewport );
-					break;
+						case RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
+							Draw_Textured_Triangle_FSINVZB_32( face, viewport );
+							break;
 
-				case RENDER_GOURAUD_TRIANGLE_INVZB_32:
-					Draw_Gouraud_Triangle_INVZB_32( face, viewport );
-					break;
+						case RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:
+							Draw_Textured_Triangle_GSINVZB_32( face, viewport );
+							break;
+
+						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
+							Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
+							break;
+
+						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
+							Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
+							break;
+
+						case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
+							Draw_Textured_Triangle_INVZB_32( face, viewport );
+							break;
+
+						case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
+							Draw_Textured_Bilerp_Triangle_INVZB_32( face, viewport );
+							break;
+
+						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
+							Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
+							break;
+
+						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
+							Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
+							break;
+
+						case RENDER_FLAT_TRIANGLE_32 :
+							Draw_Flat_Triangle_32( face, viewport );
+							break;
+
+						case RENDER_FLAT_TRIANGLEFP_32 :
+							Draw_Flat_TriangleFP_32( face, viewport );
+							break;
+
+						case RENDER_FLAT_TRIANGLE_INVZB_32:
+							Draw_Flat_Triangle_INVZB_32( face, viewport );
+							break;
+
+						case RENDER_GOURAUD_TRIANGLE_INVZB_32:
+							Draw_Gouraud_Triangle_INVZB_32( face, viewport );
+							break;
+					}
+				}
+				else
+				{
+					switch ( face->render_mode )
+					{
+						case RENDER_WIREFRAME_TRIANGLE_32:
+							Draw_Wireframe_Triangle_32( face, viewport );
+							break;
+
+						case RENDER_FLAT_TRIANGLE_32 :
+							Draw_Flat_Triangle_32( face, viewport );
+							break;
+
+						case RENDER_FLAT_TRIANGLEFP_32 :
+							Draw_Flat_TriangleFP_32( face, viewport );
+							break;
+
+						case RENDER_FLAT_TRIANGLE_INVZB_32:
+							Draw_Flat_Triangle_INVZB_32( face, viewport );
+							break;
+
+						case RENDER_GOURAUD_TRIANGLE_INVZB_32:
+							Draw_Gouraud_Triangle_INVZB_32( face, viewport );
+							break;
+					}
+				}
+
+				face->vertex[0]->transformed = FALSE;
+				face->vertex[1]->transformed = FALSE;
+				face->vertex[2]->transformed = FALSE;
+
+				rl->polygon = NULL;
+
+				rl = rl->next;
 			}
 		}
-		else
-		{
-			switch ( face->render_mode )
-			{
-				case RENDER_WIREFRAME_TRIANGLE_32:
-					Draw_Wireframe_Triangle_32( face, viewport );
-					break;
 
-				case RENDER_FLAT_TRIANGLE_32 :
-					Draw_Flat_Triangle_32( face, viewport );
-					break;
-
-				case RENDER_FLAT_TRIANGLEFP_32 :
-					Draw_Flat_TriangleFP_32( face, viewport );
-					break;
-
-				case RENDER_FLAT_TRIANGLE_INVZB_32:
-					Draw_Flat_Triangle_INVZB_32( face, viewport );
-					break;
-
-				case RENDER_GOURAUD_TRIANGLE_INVZB_32:
-					Draw_Gouraud_Triangle_INVZB_32( face, viewport );
-					break;
-			}
-		}
-
-		face->vertex[0]->transformed = FALSE;
-		face->vertex[1]->transformed = FALSE;
-		face->vertex[2]->transformed = FALSE;
-
-		rl->polygon = NULL;
-
-		rl = rl->next;
+		sceneNode = sceneNode->next;
 	}
 }
 
