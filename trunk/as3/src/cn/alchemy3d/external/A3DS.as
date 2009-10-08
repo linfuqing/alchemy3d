@@ -165,7 +165,7 @@ package cn.alchemy3d.external
 			for (; i < j; i ++)
 				Library.memory.writeUnsignedInt(byte.readUnsignedInt());
 			
-			Library.alchemy3DLib.fillTextureData(pointer, bitmapdata.width, bitmapdata.height, bitmapDataPtr);
+			Library.alchemy3DLib.initializeMipmap(pointer, bitmapdata.width, bitmapdata.height, bitmapDataPtr);
 			
 			bitmapdata.dispose();
 			bitmapdata = null;

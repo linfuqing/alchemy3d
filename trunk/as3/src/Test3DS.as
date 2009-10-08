@@ -32,7 +32,7 @@ package
 		
 		private function showInfo():void
 		{
-			var fps:FPS = new FPS(viewport);
+			var fps:FPS = new FPS(scene);
 			addChild(fps);
 			
 			var tformat:TextFormat = new TextFormat("宋体", 16, 0xffffff, true);
@@ -47,7 +47,7 @@ package
 		
 		protected function init(e:Event = null):void
 		{
-			a3ds = new A3DS(RenderMode.RENDER_TEXTRUED_TRIANGLE_INVZB_32);
+			a3ds = new A3DS(RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
 			a3ds.load("asset/3ds/scene.jpg");
 			viewport.scene.addChild(a3ds);
 			

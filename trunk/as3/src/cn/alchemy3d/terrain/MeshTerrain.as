@@ -12,6 +12,7 @@ package cn.alchemy3d.terrain
 	public class MeshTerrain extends Entity
 	{
 		private var _renderMode:uint;
+		private var _bmPointer:uint
 		
 		public function get material():Material
 		{
@@ -23,17 +24,12 @@ package cn.alchemy3d.terrain
 			return _texture;
 		}
 		
-		public function MeshTerrain( map:Texture = null, material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32 )
+		public function MeshTerrain( material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32 )
 		{
-			_map      = map      ? map      : new Texture();
+			var bitmap:BitmapData = new BitmapData( 64, 64 );
+			bitmap.perlinNoise(64, 64, 4, Math.random() * 1000, true, true, 7, true);
 			
-			if( !_map.ready )
-			{
-				var bitmap:BitmapData = new BitmapData( 256, 256 );
-				bitmap.perlinNoise(256, 256, 16, Math.random() * 1000, true, true, 7, true);
-				//bitmap.fillRect(bitmap.rect,0);
-				_map.bitmapData = bitmap;
-			}
+			_bmPointer = Texture.initializeBitmap(bitmap);
 			
 			_material = material ? material : new Material();
 			_texture  = texture  ? texture  : new Texture();
@@ -51,7 +47,7 @@ package cn.alchemy3d.terrain
 		{
 			Library.alchemy3DLib.initializeTerrain( 
 													_pointer, 
-													_map.pointer,
+													_bmPointer,
 													_material.pointer, 
 													_texture.pointer, 
 													width, 

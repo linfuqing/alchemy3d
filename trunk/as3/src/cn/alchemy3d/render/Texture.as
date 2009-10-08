@@ -14,21 +14,35 @@ package cn.alchemy3d.render
 	import flash.utils.ByteArray;
 	
 	public class Texture extends Pointer
-	{
-		//public var pointer:uint = 0;
-		
+	{	
 		public var name:String;
+		
+		private var _perspectiveDistPointer:uint;
 		
 		private var doubleSidePtr:uint;
 		
+		private var loader:Loader;
 		private var _ready:Boolean;
 		private var _doubleSide:Boolean;
-		private var loader:Loader;
 		private var _bitmapdata:BitmapData;
 		
 		public function get ready():Boolean
 		{
 			return this._ready;
+		}
+		
+		public function get perspectiveDist():Number
+		{
+			Library.memory.position = _perspectiveDistPointer;
+			
+			return Library.memory.readFloat();
+		}
+		
+		public function set perspectiveDist(value:Number):void
+		{
+			Library.memory.position = _perspectiveDistPointer;
+			
+			Library.memory.writeFloat(value);
 		}
 		
 		/*public function get bitmapData():BitmapData
@@ -44,7 +58,7 @@ package cn.alchemy3d.render
 
 			checkBitmapSize(_bitmapdata.width, _bitmapdata.height);
 			
-			fillData();
+			Library.alchemy3DLib.setMipmap(_pointer, initializeBitmap(_bitmapdata));
 		}
 		
 		public function get doubleSide():Boolean
@@ -55,12 +69,9 @@ package cn.alchemy3d.render
 		public function set doubleSide(bool:Boolean):void
 		{
 			_doubleSide = bool;
-			Library.memory.position = doubleSidePtr;
 			
-			if (bool)
-				Library.memory.writeFloat(1);
-			else
-				Library.memory.writeFloat(0);
+			Library.memory.position = doubleSidePtr;
+			Library.memory.writeBoolean(bool);
 		}
 		
 		public function Texture(bitmapdata:BitmapData = null, name:String = "")
@@ -94,30 +105,38 @@ package cn.alchemy3d.render
 		
 		override protected function initialize():void
 		{
-			_pointer = Library.alchemy3DLib.initializeTexture(name);
+			var ps:Array = Library.alchemy3DLib.initializeTexture(name);
 			
-			if ( _bitmapdata ) fillData();
+			_pointer				= ps[0];
+			_perspectiveDistPointer	= ps[1];
+			
+			if ( _bitmapdata )
+			{
+				Library.alchemy3DLib.setMipmap(_pointer, initializeBitmap(_bitmapdata));
+			}
+			
+			this._ready = true;
 		}
 		
-		protected function fillData():void
+		static public function initializeBitmap(bitmapdata:BitmapData):uint
 		{
 			var byte:ByteArray = new ByteArray();
-			byte = _bitmapdata.getPixels(_bitmapdata.rect);
+			byte = bitmapdata.getPixels(bitmapdata.rect);
 			byte.position = 0;
 			
-			var i:int = 0, j:int = _bitmapdata.width * _bitmapdata.height;
+			var i:int = 0, j:int = bitmapdata.width * bitmapdata.height;
 			var bitmapDataPtr:uint = Library.alchemy3DLib.applyForTmpBuffer(j * 4);
 			Library.memory.position = bitmapDataPtr;
 			
 			for (; i < j; i ++)
 				Library.memory.writeUnsignedInt(byte.readUnsignedInt());
 			
-			Library.alchemy3DLib.fillTextureData(_pointer, _bitmapdata.width, _bitmapdata.height, bitmapDataPtr);
+			var bmPointer:uint = Library.alchemy3DLib.initializeBitmap(bitmapdata.width, bitmapdata.height, bitmapDataPtr);
 			
-			_bitmapdata.dispose();
-			_bitmapdata = null;
+			bitmapdata.dispose();
+			bitmapdata = null;
 			
-			this._ready = true;
+			return bmPointer;
 		}
 		
 		public function load(url:String):void
