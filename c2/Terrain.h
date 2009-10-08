@@ -268,7 +268,7 @@ INLINE void terrain_trace( Entity * terrain, SceneNode * target, int type )
 										      +   entity -> mesh -> vertices[cIndex].position -> y
 										        ) * .333333333333333333333333f;*/
 
-			ep -> entity -> position -> y = height - mesh_minY( ep->entity->mesh ) * ep -> entity -> scale -> y;
+			ep -> entity -> position -> y = height - ( ep->entity->mesh ? mesh_minY( ep->entity->mesh ) * ep -> entity -> scale -> y : 0 );
 			//AS3_Trace( AS3_Number( ep->entity->mesh->octree->data->aabb->min->y ) );
 			ep = ep -> next;
 		}
