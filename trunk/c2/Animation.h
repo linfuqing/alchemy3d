@@ -67,7 +67,7 @@ Animation   * newAnimation( Mesh * parent, Frame * frames, unsigned int length, 
 
 void animation_updateToFrame( Animation * animation, unsigned int keyFrame )
 {
-	int i;
+	DWORD i;
 
 	if( animation -> length == 0 || animation -> length < keyFrame || animation -> parent == NULL )
 	{
@@ -86,7 +86,7 @@ void animation_updateToTime( Animation * animation, float timeAlpha )
 {
 	float frameAlpha;
 	unsigned int   currentFrameIndex = ( unsigned int )floor( ( animation -> length - 1 ) * timeAlpha );
-	int i;
+	DWORD i;
 
 	if( animation -> length == 0 || animation -> parent == NULL  )
 	{

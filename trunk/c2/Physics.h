@@ -30,6 +30,8 @@ Physics * newPhysics( float mass, float friction )
 	p -> mass         = mass;
 	p -> velocity     = newVector3D( 0, 0, 0, 1 );
 	p -> acceleration = newVector3D( 0, 0, 0, 1 );
+
+	return p;
 }
 
 void physics_update( Physics * p, Vector3D * target )

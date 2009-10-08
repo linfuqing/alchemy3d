@@ -5,14 +5,15 @@
 #include "Triangle.h"
 #include "Entity.h"
 #include "Primitives.h"
+#include "Bitmap.h"
 
 #define TERRAIN_ADDRESS_MODE_NONE		0
 #define TERRAIN_ADDRESS_MODE_WRAP		1
 #define TERRAIN_ADDRESS_MODE_MIRROR		2
 
-Mesh * newTerrain( Mesh * base, Texture * map, float width, float height, float maxHeight, int addressMode,  Material * material, Texture * texture, DWORD render_mode )
+Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float maxHeight, int addressMode,  Material * material, Texture * texture, DWORD render_mode )
 {
-	int i, * buffer = ( int * )map->pRGBABuffer, wh, widthSegments = map -> width - 1, heightSegments = map->height - 1;
+	DWORD i, * buffer = ( DWORD * )map->pRGBABuffer, wh, widthSegments = map -> width - 1, heightSegments = map->height - 1;
 
 	float tmp;
 
@@ -54,7 +55,7 @@ Mesh * newTerrain( Mesh * base, Texture * map, float width, float height, float 
 	}
 	else if( addressMode == TERRAIN_ADDRESS_MODE_MIRROR )
 	{
-		int ib, jb,
+		DWORD ib, jb,
 			j, k = 0;
 
 		float vx0, vx1, vx2, vx3, 
@@ -186,12 +187,12 @@ INLINE void terrain_trace( Entity * terrain, SceneNode * target, int type )
 		float h = terrain->mesh->octree->data->aabb->max->z - terrain->mesh->octree->data->aabb->min->z;
 		float textureX = w  * .5f,
 			  textureY = h  * .5f,
-		
+
 			  iW = terrain->mesh->widthSegment / w,
 			  iH = terrain->mesh->heightSegment / h,
 
 			  tx, tz,
-					   
+
 			  height;
 
 		int //gridX = terrain ->  widthSegment + 1,

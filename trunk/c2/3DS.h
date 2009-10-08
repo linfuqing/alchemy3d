@@ -597,7 +597,8 @@ Mesh * A3DS_BuildMeshes( int vNum, int fNum, int uvNum, float * pfVertex, float 
 
 void A3DS_Objblock_Chunk_Handler( FILE * file, A3DS * a3ds, DWORD dwLength  )
 {
-	int		iCount, i = 0;
+	int		iCount;
+	DWORD	i = 0;
 	WORD	wID;
 	DWORD	dwBlockLength;
 	DWORD	dwNextChunk	= (DWORD)(ftell( file )) + dwLength;
@@ -729,7 +730,7 @@ void A3DS_Objblock_Chunk_Handler( FILE * file, A3DS * a3ds, DWORD dwLength  )
 
 				nml = a3ds->a3d_materialList->next;
 
-				if ( nml->texture ) mesh->textureState = TEX_NOT_READY;
+				//if ( nml->texture ) mesh->textureState = TEX_NOT_READY;
 
 				while ( nml )
 				{

@@ -9,6 +9,8 @@
 //R
 typedef struct Triangle
 {
+	int miplevel;
+
 	DWORD render_mode;
 
 	int uvTransformed;
@@ -21,7 +23,8 @@ typedef struct Triangle
 
 	Vertex * vertex[3];
 
-	Vector * uv[3];
+	Vector * uv[3], * t_uv[3];
+
 }Triangle;
 
 INLINE Vector3D * triangle_normal( Vector3D * normal, Vertex * v0, Vertex * v1, Vertex * v2 )
@@ -45,9 +48,13 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->vertex[1] = vb;
 	p->vertex[2] = vc;
 
-	p->uv[0] = vector_clone( uva );
-	p->uv[1] = vector_clone( uvb );
-	p->uv[2] = vector_clone( uvc );
+	p->uv[0] = uva;
+	p->uv[1] = uvb;
+	p->uv[2] = uvc;
+
+	p->t_uv[0] = vector_clone( uva );;
+	p->t_uv[1] = vector_clone( uvb );;
+	p->t_uv[2] = vector_clone( uvc );;
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );
@@ -56,6 +63,7 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->texture = texture;
 	p->material = material;
 
+	p->miplevel = 0;
 	p->render_mode = RENDER_NONE;
 	p->uvTransformed = FALSE;
 
@@ -72,11 +80,17 @@ INLINE void triangle_copy( Triangle * dest, Triangle * src )
 	vector_copy( dest->uv[1], src->uv[1] );
 	vector_copy( dest->uv[2], src->uv[2] );
 
+	vector_copy( dest->t_uv[0], src->t_uv[0] );
+	vector_copy( dest->t_uv[1], src->t_uv[1] );
+	vector_copy( dest->t_uv[2], src->t_uv[2] );
+
 	vector3D_copy( dest->normal, src->normal );
 
 	dest->texture = src->texture;
 	dest->material = src->material;
 	dest->render_mode = src->render_mode;
+	dest->miplevel = src->miplevel;
+	dest->uvTransformed = src->uvTransformed;
 }
 
 INLINE Triangle * triangle_clone( Triangle * src )
@@ -93,6 +107,10 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	dest->uv[1] = vector_clone( src->uv[1] );
 	dest->uv[2] = vector_clone( src->uv[2] );
 
+	dest->t_uv[0] = vector_clone( src->t_uv[0] );
+	dest->t_uv[1] = vector_clone( src->t_uv[1] );
+	dest->t_uv[2] = vector_clone( src->t_uv[2] );
+
 	vertex_addContectedFaces( dest, dest->vertex[0] );
 	vertex_addContectedFaces( dest, dest->vertex[1] );
 	vertex_addContectedFaces( dest, dest->vertex[2] );
@@ -100,6 +118,8 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	dest->texture = src->texture;
 	dest->material = src->material;
 	dest->render_mode = src->render_mode;
+	dest->miplevel = src->miplevel;
+	dest->uvTransformed = src->uvTransformed;
 
 	dest->normal = vector3D_clone( src->normal );
 
@@ -109,15 +129,9 @@ INLINE Triangle * triangle_clone( Triangle * src )
 INLINE void triangle_dispose( Triangle * p)
 {
 	free( p->normal );
-	
-	p->texture = NULL;
-	p->normal = NULL;
-	p->vertex[0] = NULL;
-	p->vertex[1] = NULL;
-	p->vertex[2] = NULL;
-	p->uv[0] = NULL;
-	p->uv[1] = NULL;
-	p->uv[2] = NULL;
+	free( p->t_uv );
+
+	memset( p, 0, sizeof( Triangle ) );
 }
 
 INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangle * face )
@@ -171,6 +185,22 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 		vert->s_pos->x = vert->v_pos->x / vert->v_pos->w;
 		vert->s_pos->y = vert->v_pos->y / vert->v_pos->w;
 	}
+}
+
+INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight )
+{
+	texWidth--;
+
+	texHeight--;
+
+	face->t_uv[0]->u = face->uv[0]->u * texWidth;
+	face->t_uv[0]->v = face->uv[0]->v * texHeight;
+
+	face->t_uv[1]->u = face->uv[1]->u * texWidth;
+	face->t_uv[1]->v = face->uv[1]->v * texHeight;
+
+	face->t_uv[2]->u = face->uv[2]->u * texWidth;
+	face->t_uv[2]->v = face->uv[2]->v * texHeight;
 }
 
 #endif

@@ -2,22 +2,15 @@
 #define __TEXTURE_H
 
 #include <malloc.h>
-
-#define TEXTURE_WRAP	0x01
-#define TEXTURE_MIRROR	0x02
-#define TEXTURE_CLAMP	0x04
-#define TEXTURE_BORDER	0x08
+#include "Bitmap.h"
 
 typedef struct Texture
 {
 	char * name;
 
-	int address;
-	int width;
-	int height;
-	int wh;
-	
-	LPBYTE pRGBABuffer;
+	float perspective_dist;
+
+	Bitmap ** mipmaps;
 
 }Texture;
 
@@ -36,27 +29,37 @@ Texture * newTexture( char * name )
 	if( ( texture = ( Texture * )malloc( sizeof( Texture ) ) ) == NULL ) exit( TRUE );
 
 	texture->name = name;
-	texture->address = TEXTURE_WRAP;
-	texture->width = 0;
-	texture->height = 0;
-	texture->wh = 0;
-	texture->pRGBABuffer = NULL;
+
+	texture->perspective_dist = 0;
+
+	texture->mipmaps = NULL;
 
 	return texture;
 }
 
-void texture_setData( Texture * texture, int width, int height, LPBYTE data )
+void texture_setMipmap( Texture * t, Bitmap * b )
 {
-	texture->width = width;
-	texture->height = height;
-	texture->wh = width * height;
-	texture->pRGBABuffer = data;
+	bitmap_generateMipmaps( b, & t->mipmaps, 1.01f );
 }
 
-void texture_dispose( Texture * texture )
+int texture_dispose( Texture * texture )
 {
-	free( texture->pRGBABuffer );
-	texture->pRGBABuffer = NULL;
+	int num_mip_levels;
+
+	if ( texture && texture->mipmaps )
+	{
+		num_mip_levels = logbase2ofx[texture->mipmaps[0]->width] + 1;
+
+		bitmap_deleteMipmaps( texture->mipmaps , num_mip_levels );
+
+		memset( texture, 0, sizeof( Texture ) );
+
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 TextureList * newTextureList()

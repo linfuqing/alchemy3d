@@ -6,7 +6,9 @@
 
 typedef struct Scene
 {
-	int nNodes, nVertices, nFaces, nLights, lightOn, dirty;
+	int nLights, lightOn, dirty;
+
+	DWORD nNodes, nVertices, nFaces,nRenderList, nClippList, nCullList;
 
 	struct SceneNode * nodes;
 
@@ -25,6 +27,7 @@ Scene * newScene()
 	}
 
 	scene->nFaces = scene->nNodes = scene->nVertices = scene->nLights = scene->lightOn = 0;
+	scene->nRenderList = scene->nClippList = scene->nCullList = 0;
 	scene->nodes = NULL;
 	scene->lights = NULL;
 	scene->dirty = FALSE;
@@ -182,11 +185,11 @@ void scene_removeEntity( Scene * scene, Entity * entity )
 	scene->nVertices -= entity->mesh->nVertices;
 }
 
-int scene_removeEntityAt( Scene * scene, int i )
+int scene_removeEntityAt( Scene * scene, DWORD i )
 {
 	SceneNode * sceneNode, * s;
 
-	int j = 1;
+	DWORD j = 1;
 
 	if( i > scene->nNodes - 1)
 	{
@@ -392,9 +395,17 @@ void scene_updateAfterRender( Scene * scene )
 
 	sceneNode = scene->nodes;
 
+	scene->nNodes = scene->nFaces = scene->nRenderList = scene->nClippList = scene->nCullList = 0;
+
 	//遍历场景结点，更新实体
 	while( NULL != sceneNode )
 	{
+		scene->nNodes ++;
+		scene->nFaces += sceneNode->entity->mesh->nFaces;
+		scene->nRenderList += sceneNode->entity->mesh->nRenderList;
+		scene->nClippList += sceneNode->entity->mesh->nClippList;
+		scene->nCullList += sceneNode->entity->mesh->nCullList;
+
 		entity_updateAfterRender( sceneNode->entity );
 
 		sceneNode = sceneNode->next;
