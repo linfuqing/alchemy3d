@@ -50,6 +50,7 @@ int main()
 	Texture * texture;
 	Bitmap * bitmap;
 	Mesh * mesh4;
+	Fog * fog;
 
 	int i = 0;
 	int j = 0;
@@ -99,6 +100,9 @@ int main()
 	mesh4->mip_dist = 2000.0f;
 
 	/////////////////////////////////////////////////////////////////////////////////////
+
+	fog = newFog( 2000.0f, 5000.0f );
+	buildFogTable( fog, 4990.0f );
 	
 	scene = newScene();
 

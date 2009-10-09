@@ -207,4 +207,13 @@ INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight )
 	face->t_uv[2]->v = face->uv[2]->v * texHeight;
 }
 
+INLINE int triangle_backFaceCulling( Triangle * face, Vector3D * viewerToLocal, Vector3D * viewerPosition  )
+{
+	vector3D_subtract( viewerToLocal, face->center, viewerPosition );
+
+	vector3D_normalize( viewerToLocal );
+
+	return ( vector3D_dotProduct( viewerToLocal, face->normal ) < 0.0f );
+}
+
 #endif

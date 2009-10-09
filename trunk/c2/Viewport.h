@@ -99,25 +99,6 @@ INLINE void viewport_updateAfterRender( Viewport * viewport )
 	scene_updateAfterRender( viewport->scene );
 }
 
-//把整个结点加入渲染列表
-void addToRenderList( Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr )
-{
-	Triangle * face;
-
-	int j = 0;
-
-	for ( ; j < octreeData->nFaces; j ++)
-	{
-		face = octreeData->faces[j];
-
-		triangle_transform( entity->world, entity->projection, face );
-
-		renderList_push( rl_ptr, face );
-
-		entity->mesh->nRenderList ++;
-	}
-}
-
 //基于AABB包围盒的视空间裁剪
 //viewport		视口
 //camera		摄像机
@@ -152,18 +133,10 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 		//线框模式将不进行背面剔除
 		if ( face->render_mode != RENDER_WIREFRAME_TRIANGLE_32 )
 		{
-			vector3D_subtract( & viewerToLocal, face->center, entity->viewerToLocal );
-
-			vector3D_normalize( & viewerToLocal );
-
 			//如果夹角大于90或小于-90时，即背向摄像机
-			if ( vector3D_dotProduct( & viewerToLocal, face->normal ) < 0.0f )
+			if ( triangle_backFaceCulling( face, & viewerToLocal, entity->viewerToLocal ) )
 			{
 				mesh->nCullList ++;
-
-				face->vertex[0]->transformed = FALSE;
-				face->vertex[1]->transformed = FALSE;
-				face->vertex[2]->transformed = FALSE;
 
 				continue;
 			}
@@ -539,30 +512,22 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 	}
 }
 
-void transform_octree( Octree * octree, Matrix3D * world, Matrix3D * view )
-{
-	aabb_setToTransformedBox( octree->data->worldAABB, octree->data->aabb, world );
-	aabb_setToTransformedBox( octree->data->CVVAABB, octree->data->aabb, view );
-
-	if ( octree->tlb ) transform_octree( octree->tlb, world, view );
-	if ( octree->tlf ) transform_octree( octree->tlf, world, view );
-	if ( octree->trb ) transform_octree( octree->trb, world, view );
-	if ( octree->trf ) transform_octree( octree->trf, world, view );
-	if ( octree->blb ) transform_octree( octree->blb, world, view );
-	if ( octree->blf ) transform_octree( octree->blf, world, view );
-	if ( octree->brb ) transform_octree( octree->brb, world, view );
-	if ( octree->brf ) transform_octree( octree->brf, world, view );
-}
-
-int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr )
+int octree_culling( Camera * camera, Entity * entity, Octree * octree, Matrix3D * world, Matrix3D * view, RenderList ** rl_ptr, RenderList ** cl_ptr )
 {
 	int code = 0, noChild = 0;
 
-	AABB * aabb = octree->data->CVVAABB;
+	float t, x, y;
 
-	float t = ( aabb->max->z - camera->near ) / ( camera->far - camera->near );
-	float x = ( camera->f_left - camera->n_left ) * t + camera->n_left;
-	float y = ( camera->f_top - camera->n_top ) * t + camera->n_top;
+	AABB * aabb;
+	
+	aabb_setToTransformedBox( octree->data->worldAABB, octree->data->aabb, world );
+	aabb_setToTransformedBox( octree->data->CVVAABB, octree->data->aabb, view );
+
+	aabb = octree->data->CVVAABB;
+
+	t = ( aabb->max->z - camera->near ) / ( camera->far - camera->near );
+	x = ( camera->f_left - camera->n_left ) * t + camera->n_left;
+	y = ( camera->f_top - camera->n_top ) * t + camera->n_top;
 
 	if ( aabb->max->x <= x )				code |= 0x01;
 	if ( aabb->min->x >= -x )				code |= 0x02;
@@ -593,7 +558,27 @@ int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderLis
 		//直接把所有多边形添加到渲染列表
 		if ( code == 0x3f )
 		{
-			addToRenderList( entity, octree->data, rl_ptr );
+			Triangle * face;
+
+			Vector3D viewerToLocal;
+
+			for ( code = 0; code < octree->data->nFaces; code ++ )
+			{
+				face = octree->data->faces[code];
+
+				if ( triangle_backFaceCulling( face, & viewerToLocal, entity->viewerToLocal ) )
+				{
+					entity->mesh->nCullList ++;
+
+					continue;
+				}
+
+				triangle_transform( entity->world, entity->projection, face );
+
+				renderList_push( rl_ptr, face );
+
+				entity->mesh->nRenderList ++;
+			}
 
 			return 2;
 		}
@@ -602,28 +587,28 @@ int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderLis
 		else
 		{
 			//如果有子结点则继续递归
-			if ( octree->tlb )	code = octree_culling( camera, entity, octree->tlb, rl_ptr, cl_ptr );
+			if ( octree->tlb )	code = octree_culling( camera, entity, octree->tlb, world, view, rl_ptr, cl_ptr );
 			else				noChild |= 0x01;
 
-			if ( octree->tlf )	code = octree_culling( camera, entity, octree->tlf, rl_ptr, cl_ptr );
+			if ( octree->tlf )	code = octree_culling( camera, entity, octree->tlf, world, view, rl_ptr, cl_ptr );
 			else				noChild |= 0x02;
 
-			if ( octree->trb )	code = octree_culling( camera, entity, octree->trb, rl_ptr, cl_ptr );
+			if ( octree->trb )	code = octree_culling( camera, entity, octree->trb, world, view, rl_ptr, cl_ptr );
 			else				noChild |= 0x04;
 
-			if ( octree->trf )	code = octree_culling( camera, entity, octree->trf, rl_ptr, cl_ptr );
+			if ( octree->trf )	code = octree_culling( camera, entity, octree->trf, world, view, rl_ptr, cl_ptr );
 			else				noChild |= 0x08;
 
-			if ( octree->blb )	code = octree_culling( camera, entity, octree->blb, rl_ptr, cl_ptr );
+			if ( octree->blb )	code = octree_culling( camera, entity, octree->blb, world, view, rl_ptr, cl_ptr );
 			else				noChild |= 0x10;
 
-			if ( octree->blf )	code = octree_culling( camera, entity, octree->blf, rl_ptr, cl_ptr );
+			if ( octree->blf )	code = octree_culling( camera, entity, octree->blf, world, view, rl_ptr, cl_ptr );
 			else				noChild |= 0x20;
 
-			if ( octree->brb )	code = octree_culling( camera, entity, octree->brb, rl_ptr, cl_ptr );
+			if ( octree->brb )	code = octree_culling( camera, entity, octree->brb, world, view, rl_ptr, cl_ptr );
 			else				noChild |= 0x40;
 
-			if ( octree->brf )	code = octree_culling( camera, entity, octree->brf, rl_ptr, cl_ptr );
+			if ( octree->brf )	code = octree_culling( camera, entity, octree->brf, world, view, rl_ptr, cl_ptr );
 			else				noChild |= 0x80;
 
 			if ( noChild == 0xff ) frustumClipping( camera, entity, octree->data, rl_ptr, cl_ptr );
@@ -936,9 +921,7 @@ void viewport_project( Viewport * viewport, int time )
 			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
 
 			//八叉
-			transform_octree( entity->mesh->octree, entity->world, entity->view );
-
-			if ( ! octree_culling( camera, entity, entity->mesh->octree, & rl, & cl ) )
+			if ( ! octree_culling( camera, entity, entity->mesh->octree, entity->world, entity->view, & rl, & cl ) )
 			{
 				sceneNode = sceneNode->next;
 

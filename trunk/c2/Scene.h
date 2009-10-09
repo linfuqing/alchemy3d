@@ -348,6 +348,26 @@ int scene_removeLightAt( Scene * scene, int i )
 }
 //------------------------end Light----------------------
 
+//------------------------Fog----------------------
+int scene_addFog(Scene * scene, Fog * fog)
+{
+	if ( scene->fog ) return 0;
+
+	scene->fog = fog;
+
+	return 1;
+}
+
+int scene_removeFog(Scene * scene, Fog * fog)
+{
+	if ( ! scene->fog ) return 0;
+
+	scene->fog = NULL;
+
+	return 1;
+}
+//------------------------end Fog----------------------
+
 void scene_dispose( Scene * head )
 {
 	/*SceneNode * sceneNode, * p1;
@@ -404,7 +424,6 @@ void scene_updateAfterRender( Scene * scene )
 
 	scene->nNodes = scene->nFaces = scene->nRenderList = scene->nClippList = scene->nCullList = 0;
 
-	//遍历场景结点，更新实体
 	while( NULL != sceneNode )
 	{
 		scene->nNodes ++;
