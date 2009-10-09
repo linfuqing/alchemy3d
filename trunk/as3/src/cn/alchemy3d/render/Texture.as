@@ -15,15 +15,23 @@ package cn.alchemy3d.render
 	
 	public class Texture extends Pointer
 	{	
+		static public var ADDRESS_MODE_WRAP  :int = 1;
+		static public var ADDRESS_MODE_BORDER:int = 2;
+		static public var ADDRESS_MODE_CLAMP :int = 3;
+		static public var ADDRESS_MODE_MIRROR:int = 4;
+		
 		public var name:String;
 		
 		private var _perspectiveDistPointer:uint;
 		
 		private var doubleSidePtr:uint;
 		
+		private var addressModePointer:uint;
+		
 		private var loader:Loader;
 		private var _ready:Boolean;
 		private var _doubleSide:Boolean;
+		private var address_mode:int;
 		private var _bitmapdata:BitmapData;
 		
 		public function get ready():Boolean
@@ -43,6 +51,20 @@ package cn.alchemy3d.render
 			Library.memory.position = _perspectiveDistPointer;
 			
 			Library.memory.writeFloat(value);
+		}
+		
+		public function set addressMode( value:int ):void
+		{
+			address_mode = value;
+			
+			Library.memory.position = addressModePointer;
+			
+			Library.memory.writeInt( value );
+		}
+		
+		public function get addressMode():int
+		{
+			return address_mode;
 		}
 		
 		/*public function get bitmapData():BitmapData
@@ -79,6 +101,8 @@ package cn.alchemy3d.render
 			this._ready = false;
 			this.name = name;
 			_bitmapdata = bitmapdata;
+			
+			this.address_mode = ADDRESS_MODE_WRAP;
 					
 			if (_bitmapdata)
 			{
@@ -109,6 +133,7 @@ package cn.alchemy3d.render
 			
 			_pointer				= ps[0];
 			_perspectiveDistPointer	= ps[1];
+			addressModePointer      = ps[2];
 			
 			if ( _bitmapdata )
 			{
@@ -133,8 +158,8 @@ package cn.alchemy3d.render
 			
 			var bmPointer:uint = Library.alchemy3DLib.initializeBitmap(bitmapdata.width, bitmapdata.height, bitmapDataPtr);
 			
-			bitmapdata.dispose();
-			bitmapdata = null;
+			//bitmapdata.dispose();
+			//bitmapdata = null;
 			
 			return bmPointer;
 		}
