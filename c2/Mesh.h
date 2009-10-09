@@ -51,22 +51,30 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	int i;
 	Triangle * faces;
 	Vertex * vertices;
+	Vector   * uvp;
 	Vector3D * vp;
 	ARGBColor * ap;
 
 	
-	if( ( faces		  = ( Triangle  * )malloc( sizeof( Triangle   ) * nFaces        ) ) == NULL
-	 || ( vertices	  = ( Vertex    * )malloc( sizeof( Vertex     ) * nVertices     ) ) == NULL
-	 || ( m->faces	  = ( Triangle ** )malloc( sizeof( Triangle * ) * nFaces        ) ) == NULL
-	 || ( m->vertices = ( Vertex   ** )malloc( sizeof( Vertex   * ) * nVertices     ) ) == NULL
-	 || ( vp	      = ( Vector3D  * )malloc( sizeof( Vector3D   ) * nVertices * 5 ) ) == NULL
-	 || ( ap	      = ( ARGBColor * )malloc( sizeof( ARGBColor  ) * nVertices     ) ) == NULL ) 
+	if( ( faces		  = ( Triangle  * )malloc( sizeof( Triangle   ) * nFaces                     ) ) == NULL
+	 || ( vertices	  = ( Vertex    * )malloc( sizeof( Vertex     ) * nVertices                  ) ) == NULL
+	 || ( m->faces	  = ( Triangle ** )malloc( sizeof( Triangle * ) * nFaces                     ) ) == NULL
+	 || ( m->vertices = ( Vertex   ** )malloc( sizeof( Vertex   * ) * nVertices                  ) ) == NULL
+	 || ( vp	      = ( Vector3D  * )malloc( sizeof( Vector3D   ) * ( nVertices * 5 + nFaces ) ) ) == NULL
+	 || ( ap	      = ( ARGBColor * )malloc( sizeof( ARGBColor  ) * nVertices                  ) ) == NULL
+	 || ( uvp	      = ( Vector    * )malloc( sizeof( Vector     ) * nFaces    * 3              ) ) == NULL ) 
 	{
 		exit( TRUE );
 	}
 
 	for ( i = 0; i < nFaces; i ++ )
 	{
+		faces[i].normal = vp ++;
+
+		faces[i].t_uv[0]  = uvp ++;
+		faces[i].t_uv[1]  = uvp ++;
+		faces[i].t_uv[2]  = uvp ++;
+
 		m->faces[i] = faces + i;
 	}
 
@@ -155,11 +163,11 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	p->uv[1] = uvb;
 	p->uv[2] = uvc;
 
-	p->t_uv[0] = vector_clone( uva );
-	p->t_uv[1] = vector_clone( uvb );
-	p->t_uv[2] = vector_clone( uvc );
+	vector_copy( p->t_uv[0], uva );// = vector_clone( uva );
+	vector_copy( p->t_uv[1], uvb );// = vector_clone( uvb );
+	vector_copy( p->t_uv[2], uvc );// = vector_clone( uvc );
 
-	p->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+	vector3D_set ( p->normal, 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 
 	p->texture = texture;
 	p->material = material;
