@@ -4,11 +4,19 @@
 #include <malloc.h>
 #include "Bitmap.h"
 
+//# define ADDRESS_MODE_NONE   0
+# define ADDRESS_MODE_WRAP   1
+# define ADDRESS_MODE_BORDER 2
+# define ADDRESS_MODE_CLAMP  3
+# define ADDRESS_MODE_MIRROR 4
+
 typedef struct Texture
 {
 	char * name;
 
 	float perspective_dist;
+
+	int addressMode;
 
 	Bitmap ** mipmaps;
 
@@ -33,6 +41,8 @@ Texture * newTexture( char * name )
 	texture->perspective_dist = 0;
 
 	texture->mipmaps = NULL;
+
+	texture->addressMode = ADDRESS_MODE_WRAP;
 
 	return texture;
 }

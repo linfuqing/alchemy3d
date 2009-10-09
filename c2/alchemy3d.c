@@ -497,7 +497,7 @@ AS3_Val initializeTexture( void* self, AS3_Val args )
 
 	texture = newTexture( name );
 
-	return AS3_Array( "PtrType, PtrType", texture, & texture->perspective_dist );
+	return AS3_Array( "PtrType, PtrType, PtrType", texture, & texture->perspective_dist, & texture -> addressMode );
 }
 
 AS3_Val setMipmap( void* self, AS3_Val args )
