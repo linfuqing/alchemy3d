@@ -152,7 +152,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 		//线框模式将不进行背面剔除
 		if ( face->render_mode != RENDER_WIREFRAME_TRIANGLE_32 )
 		{
-			vector3D_subtract( & viewerToLocal, face->vertex[0]->position, entity->viewerToLocal );
+			vector3D_subtract( & viewerToLocal, face->center, entity->viewerToLocal );
 
 			vector3D_normalize( & viewerToLocal );
 
@@ -944,15 +944,10 @@ void viewport_project( Viewport * viewport, int time )
 
 				continue;
 			}
-			
-			//terrain_trace( entity, scene -> nodes, 0 );
-
-		}//end NULL != mesh
+		}
 
 		sceneNode = sceneNode->next;
 	}
-
-	//terrain_sceneTrace( scene -> nodes );
 
 	viewport_lightting( viewport );
 }
@@ -969,6 +964,7 @@ void viewport_render( Viewport * viewport )
 	Mesh * mesh;
 	Triangle * face;
 	Bitmap * bitmap;
+	float minZ;
 
 	//遍历实体
 	sceneNode = viewport->scene->nodes;
@@ -987,13 +983,17 @@ void viewport_render( Viewport * viewport )
 			{
 				face = rl->polygon;
 
+				minZ = face->vertex[0]->v_pos->w;
+				minZ = MIN( minZ, face->vertex[1]->v_pos->w );
+				minZ = MIN( minZ, face->vertex[2]->v_pos->w );
+
 				if ( face->texture && face->texture->mipmaps )
 				{
 					if ( mesh->useMipmap && mesh->mip_dist )
 					{
 						tmiplevels = logbase2ofx[face->texture->mipmaps[0]->width];
 
-						miplevel = (int)(tmiplevels * face->vertex[0]->v_pos->w / mesh->mip_dist);
+						miplevel = (int)(tmiplevels * minZ / mesh->mip_dist);
 
 						if ( miplevel > tmiplevels ) miplevel = tmiplevels;
 
@@ -1026,6 +1026,14 @@ void viewport_render( Viewport * viewport )
 							Draw_Wireframe_Triangle_32( face, viewport );
 							break;
 
+						case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
+							Draw_Textured_Triangle_INVZB_32( face, viewport );
+							break;
+
+						case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
+							Draw_Textured_Bilerp_Triangle_INVZB_32( face, viewport );
+							break;
+
 						case RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
 							Draw_Textured_Triangle_FSINVZB_32( face, viewport );
 							break;
@@ -1035,27 +1043,43 @@ void viewport_render( Viewport * viewport )
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
-							Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
+
+							if ( tmiplevels * minZ < face->texture->perspective_dist )
+								Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
+							else
+								Draw_Textured_Triangle_FSINVZB_32( face, viewport );
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
-							Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
+
+							if ( tmiplevels * minZ < face->texture->perspective_dist )
+								Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
+							else
+								Draw_Textured_Triangle_FSINVZB_32( face, viewport );
 							break;
 
-						case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
-							Draw_Textured_Triangle_INVZB_32( face, viewport );
-							break;
+						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32:
 
-						case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
-							Draw_Textured_Bilerp_Triangle_INVZB_32( face, viewport );
+							if ( tmiplevels * minZ < face->texture->perspective_dist )
+								Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
+							else
+								Draw_Textured_Triangle_GSINVZB_32( face, viewport );
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
-							Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
+
+							if ( tmiplevels * minZ < face->texture->perspective_dist )
+								Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
+							else
+								Draw_Textured_Triangle_INVZB_32( face, viewport );
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
-							Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
+
+							if ( tmiplevels * minZ < face->texture->perspective_dist )
+								Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
+							else
+								Draw_Textured_Triangle_INVZB_32( face, viewport );
 							break;
 
 						case RENDER_FLAT_TRIANGLE_32 :

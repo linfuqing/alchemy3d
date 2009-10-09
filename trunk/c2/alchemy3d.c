@@ -268,7 +268,7 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 	if( ( vp = ( Vector3D * *   )malloc( sizeof( Vector3D * ) * mesh -> nVertices ) ) == NULL )
 	{
-		return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->useMipmap, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth );
+		return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth );
 	}
 
 	for( i = 0; i < mesh -> nVertices; i ++ )
@@ -276,7 +276,7 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 		vp[i] = mesh -> vertices[i]->position;
 	}
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->useMipmap, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth, & vp );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth, & vp );
 }
 
 AS3_Val initializeEntity( void* self, AS3_Val args )

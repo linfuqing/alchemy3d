@@ -92,7 +92,7 @@ int main()
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	//mesh4 = newTerrain( NULL, texture, 4000, 4000, 2000, 2, material, NULL, RENDER_WIREFRAME_TRIANGLE_32 );
-	mesh4 = newPlane( NULL, material, texture, 350.0f, 350.0f, 1, 1, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
+	mesh4 = newPlane( NULL, material, texture, 350.0f, 350.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32 );
 	//mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh4->octree_depth = 1;
 	mesh4->useMipmap = TRUE;
@@ -103,14 +103,14 @@ int main()
 	scene = newScene();
 
 	camera = newCamera( 90.0f, 10.0f, 5000.0f, newEntity() );
-	entity_setZ(camera->eye, -1000.0f);
+	//entity_setZ(camera->eye, -1000.0f);
 
 	view = newViewport( 640, 480, scene, camera );
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
 	entity_setRotationX( do3d3, 90.0f);
-	entity_setZ(do3d3, -900.0f);
+	entity_setZ(do3d3, 1000.0f);
 	entity_setY(do3d3, -30.0f);
 	entity_setMesh( do3d3, mesh4 );
 
