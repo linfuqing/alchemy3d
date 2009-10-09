@@ -48,24 +48,39 @@ typedef struct Mesh
 
 void mesh_build( Mesh * m, int nVertices, int nFaces )
 {
-	int i = 0;
+	int i;
 	Triangle * faces;
 	Vertex * vertices;
+	Vector3D * vp;
+	ARGBColor * ap;
+
 	
-	if( ( faces		= ( Triangle * )malloc( sizeof( Triangle ) * nFaces ) ) == NULL ) exit( TRUE );
-	if( ( vertices	= ( Vertex * )malloc( sizeof( Vertex ) * nVertices ) ) == NULL ) exit( TRUE );
-
-	if( ( m->faces		= ( Triangle ** )malloc( sizeof( Triangle * ) * nFaces ) ) == NULL ) exit( TRUE );
-	if( ( m->vertices	= ( Vertex ** )malloc( sizeof( Vertex * ) * nVertices ) ) == NULL ) exit( TRUE );
-
-	for ( ; i < nFaces; i ++ )
+	if( ( faces		  = ( Triangle  * )malloc( sizeof( Triangle   ) * nFaces        ) ) == NULL
+	 || ( vertices	  = ( Vertex    * )malloc( sizeof( Vertex     ) * nVertices     ) ) == NULL
+	 || ( m->faces	  = ( Triangle ** )malloc( sizeof( Triangle * ) * nFaces        ) ) == NULL
+	 || ( m->vertices = ( Vertex   ** )malloc( sizeof( Vertex   * ) * nVertices     ) ) == NULL
+	 || ( vp	      = ( Vector3D  * )malloc( sizeof( Vector3D   ) * nVertices * 5 ) ) == NULL
+	 || ( ap	      = ( ARGBColor * )malloc( sizeof( ARGBColor  ) * nVertices     ) ) == NULL ) 
 	{
-		m->faces[i] = & faces[i];
+		exit( TRUE );
+	}
+
+	for ( i = 0; i < nFaces; i ++ )
+	{
+		m->faces[i] = faces + i;
 	}
 
 	for ( i = 0; i < nVertices; i ++ )
 	{
-		m->vertices[i] = & vertices[i];
+		vertices[i].position = vp ++;
+		vertices[i].w_pos    = vp ++;
+		vertices[i].v_pos    = vp ++;
+		vertices[i].s_pos    = vp ++;
+		vertices[i].normal   = vp ++;
+
+		vertices[i].color    = ap ++;
+
+		m->vertices[i] = vertices + i;
 	}
 	
 	//构造渲染列表和裁剪列表
@@ -107,14 +122,14 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 {
 	Vertex * v = m->vertices[m->nVertices];
 
-	v->position = newVector3D(x, y, z, 1.0f);
-	v->w_pos = newVector3D(x, y, z, 1.0f);
-	v->v_pos = newVector3D(x, y, z, 1.0f);
-	v->s_pos = newVector3D(x, y, z, 1.0f);
+	vector3D_set( v->position, x, y, z, 1.0f );// = newVector3D(x, y, z, 1.0f);
+	vector3D_set( v->w_pos   , x, y, z, 1.0f );// = newVector3D(x, y, z, 1.0f);
+	vector3D_set( v->v_pos   , x, y, z, 1.0f );// = newVector3D(x, y, z, 1.0f);
+	vector3D_set( v->s_pos   , x, y, z, 1.0f );// = newVector3D(x, y, z, 1.0f);
 
-	v->color = newARGBColor( 255, 255, 255, 255 );
+	argbColor_identity( v->color );// = newARGBColor( 255, 255, 255, 255 );
 
-	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+	vector3D_set( v->normal, x, y, z, 1.0f );// = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 
 	v->contectedFaces = NULL;
 	v->nContectedFaces = 0;
@@ -140,9 +155,9 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	p->uv[1] = uvb;
 	p->uv[2] = uvc;
 
-	p->t_uv[0] = vector_clone( uva );;
-	p->t_uv[1] = vector_clone( uvb );;
-	p->t_uv[2] = vector_clone( uvc );;
+	p->t_uv[0] = vector_clone( uva );
+	p->t_uv[1] = vector_clone( uvb );
+	p->t_uv[2] = vector_clone( uvc );
 
 	p->normal = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 
