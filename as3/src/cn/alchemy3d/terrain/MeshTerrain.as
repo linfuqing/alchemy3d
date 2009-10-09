@@ -24,10 +24,11 @@ package cn.alchemy3d.terrain
 			return _texture;
 		}
 		
-		public function MeshTerrain( material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32 )
+		public function MeshTerrain( map:BitmapData = null, material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32 )
 		{
-			var bitmap:BitmapData = new BitmapData( 64, 64 );
-			bitmap.perlinNoise(64, 64, 4, Math.random() * 1000, true, true, 7, true);
+			var bitmap:BitmapData = map || new BitmapData( 64, 64 );
+			
+			if ( ! map ) bitmap.perlinNoise(64, 64, 4, Math.random() * 1000, true, true, 7, true);
 			
 			_bmPointer = Texture.initializeBitmap(bitmap);
 			

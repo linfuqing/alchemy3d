@@ -36,7 +36,7 @@ package cn.alchemy3d.external
 			this.mesh.lightEnable = bool;
 		}
 		
-		public function MD2(material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 )
+		public function MD2(material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32 )
 		{
 			_material = material;
 			_texture  = texture;
