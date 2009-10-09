@@ -33,6 +33,7 @@ package cn.alchemy3d.geom
 		}
 		
 		private var lightEnablePointer:uint;
+		private var fogEnablePointer:uint;
 		private var useMipmapPointer:uint;
 		private var mipDistPointer:uint;
 		private var vDirtyPointer:uint;
@@ -189,10 +190,22 @@ package cn.alchemy3d.geom
 			Library.memory.writeUnsignedInt(1);
 		}*/
 		
+		public function get useMipmap():Boolean
+		{
+			Library.memory.position = useMipmapPointer;
+			return Library.memory.readBoolean();
+		}
+		
 		public function set useMipmap(bool:Boolean):void
 		{
 			Library.memory.position = useMipmapPointer;
 			Library.memory.writeBoolean(bool);
+		}
+		
+		public function get mipDist():Number
+		{
+			Library.memory.position = mipDistPointer;
+			return Library.memory.readFloat();
 		}
 		
 		public function set mipDist(value:Number):void
@@ -207,6 +220,18 @@ package cn.alchemy3d.geom
 			Library.memory.writeInt(value);
 		}
 		
+		public function get fogEnable():Number
+		{
+			Library.memory.position = fogEnablePointer;
+			return Library.memory.readFloat();
+		}
+		
+		public function set fogEnable(value:Number):void
+		{
+			Library.memory.position = fogEnablePointer;
+			Library.memory.writeFloat(value);
+		}
+		
 		public function get lightEnable():Boolean
 		{
 			return _lightEnable;
@@ -217,11 +242,7 @@ package cn.alchemy3d.geom
 			_lightEnable = bool;
 			
 			Library.memory.position = lightEnablePointer;
-			
-			if (bool)
-				Library.memory.writeUnsignedInt(1);
-			else
-				Library.memory.writeUnsignedInt(0);
+			Library.memory.writeBoolean(bool);
 		}
 		
 		/*public function setVertices(index:int, v:Vector3D):void
@@ -340,21 +361,22 @@ package cn.alchemy3d.geom
 			
 			_pointer            = ps[0];
 			lightEnablePointer	= ps[1];
-			useMipmapPointer	= ps[2];
-			mipDistPointer		= ps[3];
-			vDirtyPointer		= ps[4];
-			octreeDepthPointer	= ps[5];
+			fogEnablePointer	= ps[2];
+			useMipmapPointer	= ps[3];
+			mipDistPointer		= ps[4];
+			vDirtyPointer		= ps[5];
+			octreeDepthPointer	= ps[6];
 
-			if( ps[6] && vertices )
+			if( ps[7] && vertices )
 			{
-				Library.memory.position = ps[6];
+				Library.memory.position = ps[7];
 			
 				for( var i:uint = 0; i < vertices.length; i ++ )
 				{
 					vertices[i].setPointer( Library.memory.readUnsignedInt() );
 				}
 				
-				Library.alchemy3DLib.freeTmpBuffer( ps[6] );
+				Library.alchemy3DLib.freeTmpBuffer( ps[7] );
 			}
 		}
 	}
