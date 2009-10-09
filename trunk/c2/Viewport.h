@@ -984,7 +984,7 @@ void viewport_render( Viewport * viewport )
 
 						if ( miplevel != face->miplevel || ! face->uvTransformed )
 						{
-							triangle_setUV( face, bitmap->width, bitmap->height );
+							triangle_setUV( face, bitmap->width, bitmap->height, face->texture->addressMode );
 
 							face->miplevel = miplevel;
 
@@ -997,7 +997,7 @@ void viewport_render( Viewport * viewport )
 
 						if ( ! face->uvTransformed )
 						{
-							triangle_setUV( face, bitmap->width, bitmap->height );
+							triangle_setUV( face, bitmap->width, bitmap->height, face->texture->addressMode );
 
 							face->uvTransformed = TRUE;
 						}

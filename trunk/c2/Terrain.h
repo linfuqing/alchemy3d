@@ -30,7 +30,7 @@ Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float m
 		//base->vertices[i]->position->y = - base->vertices[i]->position->y;
 	}
 
-	if( addressMode == TERRAIN_ADDRESS_MODE_WRAP )
+	/*if( addressMode == TERRAIN_ADDRESS_MODE_WRAP )
 	{
 		for( i = 0; i < base -> nFaces; i += 2 )
 		{
@@ -120,6 +120,37 @@ Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float m
 
 				k ++;
 			}
+		}
+	}*/
+
+	DWORD j, k = 0;
+
+	for(  i = 0; i < widthSegments; i ++ )
+	{
+		for(  j = 0; j < heightSegments; j ++ )
+		{
+
+			base -> faces[k]->uv[0] -> x = i;
+			base -> faces[k]->uv[0] -> y = heightSegments - j;
+
+			base -> faces[k]->uv[1] -> x = i + 1;
+			base -> faces[k]->uv[1] -> y = heightSegments - j;
+
+			base -> faces[k]->uv[2] -> x = i;
+			base -> faces[k]->uv[2] -> y = heightSegments - j - 1;
+
+			k ++;
+
+			base -> faces[k]->uv[0] -> x = i + 1;
+			base -> faces[k]->uv[0] -> y = heightSegments - j - 1;
+
+			base -> faces[k]->uv[1] -> x = i;
+			base -> faces[k]->uv[1] -> y = heightSegments - j - 1;
+
+			base -> faces[k]->uv[2] -> x = i + 1;
+			base -> faces[k]->uv[2] -> y = heightSegments - j;
+
+			k ++;
 		}
 	}
 

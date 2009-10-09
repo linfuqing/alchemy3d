@@ -191,20 +191,83 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 	}
 }
 
-INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight )
+INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight, int addressMode )
 {
-	texWidth--;
+	if( addressMode == ADDRESS_MODE_CLAMP )
+	{
+		face->t_uv[0]->u = ( face->uv[0]->u > 1 ? 1 : face->uv[0]->u ) * texWidth ;
+		face->t_uv[0]->v = ( face->uv[0]->v > 1 ? 1 : face->uv[0]->v ) * texHeight;
 
-	texHeight--;
+		face->t_uv[1]->u = ( face->uv[1]->u > 1 ? 1 : face->uv[1]->u ) * texWidth ;
+		face->t_uv[1]->v = ( face->uv[1]->v > 1 ? 1 : face->uv[1]->v ) * texHeight;
 
-	face->t_uv[0]->u = face->uv[0]->u * texWidth;
-	face->t_uv[0]->v = face->uv[0]->v * texHeight;
+		face->t_uv[2]->u = ( face->uv[2]->u > 1 ? 1 : face->uv[2]->u ) * texWidth ;
+		face->t_uv[2]->v = ( face->uv[2]->v > 1 ? 1 : face->uv[2]->v ) * texHeight;
+	}
+	else
+	{
+		int u0 = ( int )( face->uv[0]->u ), v0 = ( int )( face->uv[0]->v ),
+			u1 = ( int )( face->uv[1]->u ), v1 = ( int )( face->uv[1]->v ),
+			u2 = ( int )( face->uv[2]->u ), v2 = ( int )( face->uv[2]->v ),
+			maxU,maxV;
 
-	face->t_uv[1]->u = face->uv[1]->u * texWidth;
-	face->t_uv[1]->v = face->uv[1]->v * texHeight;
+		float tu0 = face->uv[0]->u - u0, tv0 = face->uv[0]->v - v0,
+			  tu1 = face->uv[1]->u - u1, tv1 = face->uv[1]->v - v1,
+			  tu2 = face->uv[2]->u - u2, tv2 = face->uv[2]->v - v2;
 
-	face->t_uv[2]->u = face->uv[2]->u * texWidth;
-	face->t_uv[2]->v = face->uv[2]->v * texHeight;
+		maxU = face->uv[0]->u > face->uv[1]->u ? ( face->uv[0]->u > face->uv[2]->u ? u0 : u2 ) : ( face->uv[2]->u > face->uv[1]->u ? u2 : u1 );
+		maxV = face->uv[0]->v > face->uv[1]->v ? ( face->uv[0]->v > face->uv[2]->v ? v0 : v2 ) : ( face->uv[2]->v > face->uv[1]->v ? v2 : v1 );
+	
+		tu0 = ( !tu0 && u0 ) ? ( u0 == maxU ? 1 : 0 ) : tu0, tv0 = ( !tv0 && v0 ) ? ( v0 == maxV ? 1 : 0 ) : tv0,
+		tu1 = ( !tu1 && u1 ) ? ( u1 == maxU ? 1 : 0 ) : tu1, tv1 = ( !tv1 && v1 ) ? ( v1 == maxV ? 1 : 0 ) : tv1,
+		tu2 = ( !tu2 && u2 ) ? ( u2 == maxU ? 1 : 0 ) : tu2, tv2 = ( !tv2 && v2 ) ? ( v2 == maxV ? 1 : 0 ) : tv2;
+
+		texWidth--;
+
+		texHeight--;
+
+		switch( addressMode )
+		{
+		case ADDRESS_MODE_WRAP:
+
+			face->t_uv[0]->u = tu0 * texWidth ;
+			face->t_uv[0]->v = tv0 * texHeight;
+
+			face->t_uv[1]->u = tu1 * texWidth ;
+			face->t_uv[1]->v = tv1 * texHeight;
+
+			face->t_uv[2]->u = tu2 * texWidth ;
+			face->t_uv[2]->v = tv2 * texHeight;
+
+			break;
+
+		case ADDRESS_MODE_MIRROR:
+
+			face->t_uv[0]->u = ( u0 % 2 ? ( 1 - tu0 ) : tu0 ) * texWidth ;
+			face->t_uv[0]->v = ( v0 % 2 ? ( 1 - tv0 ) : tv0 ) * texHeight;
+
+			face->t_uv[1]->u = ( u1 % 2 ? ( 1 - tu1 ) : tu1 ) * texWidth ;
+			face->t_uv[1]->v = ( v1 % 2 ? ( 1 - tv1 ) : tv1 ) * texHeight;
+
+			face->t_uv[2]->u = ( u2 % 2 ? ( 1 - tu2 ) : tu2 ) * texWidth ;
+			face->t_uv[2]->v = ( v2 % 2 ? ( 1 - tv2 ) : tv2 ) * texHeight;
+
+			break;
+
+		default:
+
+			face->t_uv[0]->u = tu0 * texWidth ;
+			face->t_uv[0]->v = tv0 * texHeight;
+
+			face->t_uv[1]->u = tu1 * texWidth ;
+			face->t_uv[1]->v = tv1 * texHeight;
+
+			face->t_uv[2]->u = tu2 * texWidth ;
+			face->t_uv[2]->v = tv2 * texHeight;
+
+			break;
+		}
+	}
 }
 
 INLINE int triangle_backFaceCulling( Triangle * face, Vector3D * viewerToLocal, Vector3D * viewerPosition  )
