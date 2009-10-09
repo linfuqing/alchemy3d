@@ -19,7 +19,7 @@ typedef struct Triangle
 
 	Material * material;
 
-	Vector3D * normal;
+	Vector3D * normal, * center;
 
 	Vertex * vertex[3];
 
@@ -52,9 +52,13 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->uv[1] = uvb;
 	p->uv[2] = uvc;
 
-	p->t_uv[0] = vector_clone( uva );;
-	p->t_uv[1] = vector_clone( uvb );;
-	p->t_uv[2] = vector_clone( uvc );;
+	p->t_uv[0] = vector_clone( uva );
+	p->t_uv[1] = vector_clone( uvb );
+	p->t_uv[2] = vector_clone( uvc );
+	
+	p->center = newVector3D( ( va->position->x + vb->position->x + vc->position->x ) * .333333333f,
+								( va->position->y + vb->position->y + vc->position->y ) * .333333333f,
+								( va->position->z + vb->position->z + vc->position->z ) * .333333333f, 1.0f );
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );

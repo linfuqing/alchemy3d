@@ -1,12 +1,15 @@
 #ifndef __SCENE_H
 #define __SCENE_H
 
+#include <malloc.h>
+
 #include "Entity.h"
 #include "Light.h"
+#include "Fog.h"
 
 typedef struct Scene
 {
-	int nLights, lightOn, dirty;
+	int nLights, dirty;
 
 	DWORD nNodes, nVertices, nFaces,nRenderList, nClippList, nCullList;
 
@@ -15,6 +18,9 @@ typedef struct Scene
 	struct Viewport * viewport;
 
 	struct Lights * lights;
+
+	struct Fog * fog;
+
 }Scene;
 
 Scene * newScene()
@@ -26,11 +32,12 @@ Scene * newScene()
 		exit( TRUE );
 	}
 
-	scene->nFaces = scene->nNodes = scene->nVertices = scene->nLights = scene->lightOn = 0;
-	scene->nRenderList = scene->nClippList = scene->nCullList = 0;
-	scene->nodes = NULL;
-	scene->lights = NULL;
-	scene->dirty = FALSE;
+	scene->nFaces		= scene->nNodes = scene->nVertices = scene->nLights = 0;
+	scene->nRenderList	= scene->nClippList = scene->nCullList = 0;
+	scene->nodes		= NULL;
+	scene->lights		= NULL;
+	scene->fog			= NULL;
+	scene->dirty		= FALSE;
 
 	return scene;
 }

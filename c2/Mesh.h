@@ -17,7 +17,7 @@ typedef struct Mesh
 {
 	DWORD nFaces, nVertices, nRenderList, nClippList, nCullList;
 
-	int type, octree_depth, octreeState, v_dirty, lightEnable, useMipmap;
+	int type, octree_depth, octreeState, v_dirty, lightEnable, fogEnable, useMipmap;
 	
 	float mip_dist;
 
@@ -114,6 +114,7 @@ Mesh * newMesh( int nVertices, int nFaces )
 	m->octreeState		= OCTREE_NOT_READY;
 	m->v_dirty			= FALSE;
 	m->lightEnable		= FALSE;
+	m->fogEnable		= FALSE;
 	m->useMipmap		= FALSE;
 	m->mip_dist			= 0;
 	m->animation        = NULL;
@@ -168,6 +169,9 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	vector_copy( p->t_uv[2], uvc );// = vector_clone( uvc );
 
 	vector3D_set ( p->normal, 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+	p->center = newVector3D( ( va->position->x + vb->position->x + vc->position->x ) * .333333333f,
+								( va->position->y + vb->position->y + vc->position->y ) * .333333333f,
+								( va->position->z + vb->position->z + vc->position->z ) * .333333333f, 1.0f );
 
 	p->texture = texture;
 	p->material = material;
@@ -209,6 +213,10 @@ void mesh_updateFaces( Mesh * m )
 		face->normal->y = 0.0f;
 		face->normal->z = 0.0f;
 		face->normal->w = 1.0f;
+		
+		face->center = newVector3D( ( face->vertex[0]->position->x + face->vertex[1]->position->x + face->vertex[2]->position->x ) * .333333333f,
+									( face->vertex[0]->position->y + face->vertex[1]->position->y + face->vertex[2]->position->y ) * .333333333f,
+									( face->vertex[0]->position->z + face->vertex[1]->position->z + face->vertex[2]->position->z ) * .333333333f, 1.0f );
 
 		triangle_normal( face->normal, v0, v1, v2 );
 	}

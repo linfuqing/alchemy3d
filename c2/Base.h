@@ -58,6 +58,7 @@ typedef unsigned long		ULONG;
 #define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32		0x000040	//32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射
 #define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32		0x000080	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Flat光照模型
 #define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32	0x000100	//32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射 + Flat光照模型
+#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32		0x002000	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Gouraud光照模型
 
 //不带纹理光栅化
 #define RENDER_FLAT_TRIANGLE_32								0x000200	//32位Flat模式不带Z缓冲
