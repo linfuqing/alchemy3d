@@ -3,7 +3,7 @@
 
 #include <malloc.h>
 
-typedef struct Fog_TYP
+typedef struct Fog
 {
 	float min_dist, max_dist;
 
@@ -32,31 +32,46 @@ Fog * newFog( float min_d, float max_d )
 	return f;
 }
 
-int buildFogTable( Fog * f, float near, float far )
+int buildFogTable( Fog * f, float distance )
 {
-	if ( ! FCMP( f->min_dist, f->max_dist ) )
+	if ( FCMP( f->min_dist, f->max_dist ) )
 		return 0;
 	else
 	{
-		/*DWORD i;
+		int i, j, end, len;
 
-		if( ( f->fog_table = ( BYTE * )calloc( far - near, sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
+		int d = (int)( distance + 0.5f );
+		int nd = (int)( f->min_dist + 0.0f );
+		int md = (int)( f->max_dist + 0.5f );
 
-		if ( f->min_dist > near )
+		if( ( f->fog_table = ( BYTE * )calloc( d, sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
+
+		if ( nd > 0 )
 		{
-			for ( i = 0; i < f->min_dist; i ++ )
+			for ( i = 0; i < nd; i ++ )
 			{
 				f->fog_table[i] = 0;
 			}
 		}
 
-		if ( f->max_dist < far )
+		if ( md < d )
 		{
-			for ( i = f->max_dist; i < far; i ++ )
+			for ( i = md; i < d; i ++ )
 			{
 				f->fog_table[i] = 255;
 			}
-		}*/
+		}
+
+		end = MIN( md, d );
+
+		len = end - nd;
+
+		j = 0;
+
+		for ( i = nd; i < end; i ++, j ++ )
+		{
+			f->fog_table[i] = (int)( 255 * j / len );
+		}
 	}
 
 	return 1;
