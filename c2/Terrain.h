@@ -7,19 +7,17 @@
 #include "Primitives.h"
 #include "Bitmap.h"
 
-#define TERRAIN_ADDRESS_MODE_NONE		0
+/*#define TERRAIN_ADDRESS_MODE_NONE		0
 #define TERRAIN_ADDRESS_MODE_WRAP		1
-#define TERRAIN_ADDRESS_MODE_MIRROR		2
+#define TERRAIN_ADDRESS_MODE_MIRROR		2*/
 
-Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float maxHeight,  Material * material, Texture * texture, DWORD render_mode )
+Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float maxHeight,  Material * material, Texture * texture, DWORD render_mode, int address )
 {
 	DWORD i, * buffer = ( DWORD * )map->pRGBABuffer, wh, widthSegments = map -> width - 1, heightSegments = map->height - 1;
 
-	DWORD j, k = 0;
-
 	float tmp;
 
-	int addressMode = 2;
+	//int addressMode = 2;
 
 	base = newPlane( base, material, texture, width, height, widthSegments, heightSegments, render_mode );
 
@@ -34,7 +32,7 @@ Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float m
 		//base->vertices[i]->position->y = - base->vertices[i]->position->y;
 	}
 
-	if( addressMode == TERRAIN_ADDRESS_MODE_WRAP )
+	/*if( addressMode == TERRAIN_ADDRESS_MODE_WRAP )
 	{
 		for( i = 0; i < base -> nFaces; i += 2 )
 		{
@@ -125,35 +123,41 @@ Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float m
 				k ++;
 			}
 		}
-	}
-
-	/*for(  i = 0; i < widthSegments; i ++ )
-	{
-		for(  j = 0; j < heightSegments; j ++ )
-		{
-			base -> faces[k]->uv[0] -> x = (float)i;
-			base -> faces[k]->uv[0] -> y = (float)(heightSegments - j);
-
-			base -> faces[k]->uv[1] -> x = (float)(i + 1);
-			base -> faces[k]->uv[1] -> y = (float)(heightSegments - j);
-
-			base -> faces[k]->uv[2] -> x = (float)(i);
-			base -> faces[k]->uv[2] -> y = (float)(heightSegments - j - 1);
-
-			k ++;
-
-			base -> faces[k]->uv[0] -> x = (float)(i + 1);
-			base -> faces[k]->uv[0] -> y = (float)(heightSegments - j - 1);
-
-			base -> faces[k]->uv[1] -> x = (float)(i);
-			base -> faces[k]->uv[1] -> y = (float)(heightSegments - j - 1);
-
-			base -> faces[k]->uv[2] -> x = (float)(i + 1);
-			base -> faces[k]->uv[2] -> y = (float)(heightSegments - j);
-
-			k ++;
-		}
 	}*/
+
+	if( address )
+	{
+		
+		DWORD j, k = 0;
+
+		for(  i = 0; i < widthSegments; i ++ )
+		{
+			for(  j = 0; j < heightSegments; j ++ )
+			{
+				base -> faces[k]->uv[0] -> x = (float)i;
+				base -> faces[k]->uv[0] -> y = (float)(heightSegments - j);
+
+				base -> faces[k]->uv[1] -> x = (float)(i + 1);
+				base -> faces[k]->uv[1] -> y = (float)(heightSegments - j);
+
+				base -> faces[k]->uv[2] -> x = (float)(i);
+				base -> faces[k]->uv[2] -> y = (float)(heightSegments - j - 1);
+
+				k ++;
+
+				base -> faces[k]->uv[0] -> x = (float)(i + 1);
+				base -> faces[k]->uv[0] -> y = (float)(heightSegments - j - 1);
+
+				base -> faces[k]->uv[1] -> x = (float)(i);
+				base -> faces[k]->uv[1] -> y = (float)(heightSegments - j - 1);
+
+				base -> faces[k]->uv[2] -> x = (float)(i + 1);
+				base -> faces[k]->uv[2] -> y = (float)(heightSegments - j);
+
+				k ++;
+			}
+		}
+	}
 
 	base->type			= ENTITY_TYPE_MESH_TERRAIN;
 	base->widthSegment	= map->width - 1;

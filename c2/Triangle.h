@@ -189,6 +189,10 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 
 INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight, int addressMode )
 {
+	texWidth--;
+
+	texHeight--;
+
 	if( addressMode == ADDRESS_MODE_CLAMP )
 	{
 		face->t_uv[0]->u = ( face->uv[0]->u > 1 ? 1 : face->uv[0]->u ) * texWidth ;
@@ -218,50 +222,39 @@ INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight, int ad
 		tu1 = ( !tu1 && u1 ) ? ( u1 == maxU ? 1 : 0 ) : tu1, tv1 = ( !tv1 && v1 ) ? ( v1 == maxV ? 1 : 0 ) : tv1,
 		tu2 = ( !tu2 && u2 ) ? ( u2 == maxU ? 1 : 0 ) : tu2, tv2 = ( !tv2 && v2 ) ? ( v2 == maxV ? 1 : 0 ) : tv2;
 
-		texWidth--;
-
-		texHeight--;
-
-		switch( addressMode )
+		if( addressMode == ADDRESS_MODE_MIRROR )
 		{
-			case ADDRESS_MODE_WRAP:
+			int bu0 = u0 % 2, bu1 = u1 % 2, bu2 = u2 % 2,
+				bv0 = v0 % 2, bv1 = v1 % 2, bv2 = v2 % 2,
 
-				face->t_uv[0]->u = tu0 * texWidth ;
-				face->t_uv[0]->v = tv0 * texHeight;
+				nu0 = tu0 == 1 && maxU == u0,
+				nv0 = tv0 == 1 && maxV == v0,
 
-				face->t_uv[1]->u = tu1 * texWidth ;
-				face->t_uv[1]->v = tv1 * texHeight;
+				nu1 = tu1 == 1 && maxU == u1,
+				nv1 = tv1 == 1 && maxV == v1,
 
-				face->t_uv[2]->u = tu2 * texWidth ;
-				face->t_uv[2]->v = tv2 * texHeight;
+				nu2 = tu2 == 1 && maxU == u2,
+				nv2 = tv2 == 1 && maxV == v2;
 
-				break;
+			face->t_uv[0]->u = ( ( bu0 && ! nu0 ) || ( ! bu0 && nu0 ) ? ( 1 - tu0 ) : tu0 ) * texWidth ;
+			face->t_uv[0]->v = ( ( bv0 && ! nv0 ) || ( ! bv0 && nv0 ) ? ( 1 - tv0 ) : tv0 ) * texHeight;
 
-			case ADDRESS_MODE_MIRROR:
+			face->t_uv[1]->u = ( ( bu1 && ! nu1 ) || ( ! bu1 && nu1 ) ? ( 1 - tu1 ) : tu1 ) * texWidth ;
+			face->t_uv[1]->v = ( ( bv1 && ! nv1 ) || ( ! bv1 && nv1 ) ? ( 1 - tv1 ) : tv1 ) * texHeight;
 
-				face->t_uv[0]->u = ( u0 % 2 ? ( 1 - tu0 ) : tu0 ) * texWidth ;
-				face->t_uv[0]->v = ( v0 % 2 ? ( 1 - tv0 ) : tv0 ) * texHeight;
+			face->t_uv[2]->u = ( ( bu2 && ! nu2 ) || ( ! bu2 && nu2 ) ? ( 1 - tu2 ) : tu2 ) * texWidth ;
+			face->t_uv[2]->v = ( ( bv2 && ! nv2 ) || ( ! bv2 && nv2 ) ? ( 1 - tv2 ) : tv2 ) * texHeight;
+		}
+		else
+		{
+			face->t_uv[0]->u = tu0 * texWidth ;
+			face->t_uv[0]->v = tv0 * texHeight;
 
-				face->t_uv[1]->u = ( u1 % 2 ? ( 1 - tu1 ) : tu1 ) * texWidth ;
-				face->t_uv[1]->v = ( v1 % 2 ? ( 1 - tv1 ) : tv1 ) * texHeight;
+			face->t_uv[1]->u = tu1 * texWidth ;
+			face->t_uv[1]->v = tv1 * texHeight;
 
-				face->t_uv[2]->u = ( u2 % 2 ? ( 1 - tu2 ) : tu2 ) * texWidth ;
-				face->t_uv[2]->v = ( v2 % 2 ? ( 1 - tv2 ) : tv2 ) * texHeight;
-
-				break;
-
-			default:
-
-				face->t_uv[0]->u = tu0 * texWidth ;
-				face->t_uv[0]->v = tv0 * texHeight;
-
-				face->t_uv[1]->u = tu1 * texWidth ;
-				face->t_uv[1]->v = tv1 * texHeight;
-
-				face->t_uv[2]->u = tu2 * texWidth ;
-				face->t_uv[2]->v = tv2 * texHeight;
-
-				break;
+			face->t_uv[2]->u = tu2 * texWidth ;
+			face->t_uv[2]->v = tv2 * texHeight;
 		}
 	}
 }
