@@ -6,6 +6,7 @@ package
 	import cn.alchemy3d.container.Entity;
 	import cn.alchemy3d.external.MD2;
 	import cn.alchemy3d.external.Primitives;
+	import cn.alchemy3d.fog.Fog;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
 	import cn.alchemy3d.render.Material;
@@ -25,7 +26,7 @@ package
 	
 	import gs.TweenLite;
 
-	[SWF(width="600",height="400",backgroundColor="#000000",frameRate="60")]
+	[SWF(width="600",height="400",backgroundColor="#ffffff",frameRate="60")]
 	public class Test8X extends Basic
 	{
 		protected var bl:BulkLoader;
@@ -35,7 +36,7 @@ package
 		//protected var p:Plane;
 		
 		protected var md2:MD2;
-		protected var md22:MD2;
+		protected var terrain:MeshTerrain;
 		
 		protected var t0:Texture;
 		protected var t1:Texture;
@@ -83,18 +84,20 @@ package
 			
 			t0 = new Texture(bl.getBitmapData("2"));
 			t1 = new Texture(bl.getBitmapData("1"));
-			t0.perspectiveDist = 800;
-			t1.perspectiveDist = 800;
+			t0.perspectiveDist = 1000;
+			t1.perspectiveDist = 1000;
 			t1.addressMode = Texture.ADDRESS_MODE_WRAP;
-			t0.addressMode = Texture.ADDRESS_MODE_WRAP;
 			
-			viewport.backgroundImage = bl.getBitmapData("0");
+			//viewport.backgroundImage = bl.getBitmapData("0");
 			
 //			camera.z = -2000;
 			
 			center = new Entity();
 			center.z = 0;
 			viewport.scene.addChild(center);
+			
+			var fog:Fog = new Fog(new ColorTransform(1, 1, 1, 1), 50, 60000);
+			scene.addFog(fog);
 			
 			var m:Material = new Material();
 			m.ambient = new ColorTransform(1, 1, 1, 1);
@@ -126,11 +129,12 @@ package
 			lightObj3.z = 0;
 			viewport.scene.addChild(lightObj3);
 
-			md2 = new MD2(m, t0, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32);
+			md2 = new MD2(m, t0, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
 			md2.lightEnable = true;
 			md2.mesh.useMipmap = true;
 			md2.mesh.mipDist = 10000;
-			md2.load("asset/md2/tris.md2");
+			md2.mesh.fogEnable = true;
+			md2.load("asset/md2/tris.jpg");
 			viewport.scene.addChild( md2 );
 			
 			md2.rotationX = -90;
@@ -147,12 +151,13 @@ package
 //			p.rotationX = 45;
 //			this.viewport.scene.addChild(p);
 			
-			var terrain:MeshTerrain = new MeshTerrain(null, m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32);
+			terrain = new MeshTerrain(null, m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
 			terrain.buildOn(60000, 60000, 40000);
 			terrain.mesh.lightEnable = true;
 			terrain.mesh.octreeDepth = 3;
 			terrain.mesh.useMipmap = true;
-			terrain.mesh.mipDist = 8000;
+			terrain.mesh.mipDist = 12000;
+			terrain.mesh.fogEnable = true;
 			terrain.z = 0;
 			
 			viewport.scene.addChild(terrain);
@@ -209,7 +214,17 @@ package
 			if ( e.keyCode == Keyboard.DOWN )
 				camera.z -= 10;
 				
-			trace(camera.z);
+			if ( e.keyCode == Keyboard.LEFT )
+			{
+				md2.mesh.fogEnable = false;
+				terrain.mesh.fogEnable = false;
+			}
+			
+			if ( e.keyCode == Keyboard.RIGHT )
+			{
+				md2.mesh.fogEnable = true;
+				terrain.mesh.fogEnable = true;
+			}
 		}
 		
 		protected function moveLight1(dir:int = 1):void
@@ -240,7 +255,7 @@ package
 			//center.z ++;
 //			center.rotationY ++;
 			
-//			camera.target = md2.worldPosition;
+//			camera.target = center.worldPosition;
 			
 			var mx:Number = viewport.mouseX / 30;
 			var my:Number = - viewport.mouseY / 30;

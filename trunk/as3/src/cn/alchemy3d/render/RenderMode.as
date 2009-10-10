@@ -57,6 +57,16 @@ package cn.alchemy3d.render
 		public static const RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32:uint			= 0x002000;
 		
 		/**
+		 * 32位模式 + 1/z深度缓冲 + Gouraud光照模型 + 纹理映射 + 雾化效果
+		 */
+		//public static const RENDER_TEXTRUED_TRIANGLE_FOG_GSINVZB_32:uint					= 0x004000;
+		
+		/**
+		 * 32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Gouraud光照模型 + 雾化效果
+		 */
+		public static const RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32:uint		= 0x008000;
+		
+		/**
 		 * 32位Flat模式不带Z缓冲
 		 */
 		//public static const RENDER_FLAT_TRIANGLE_32:uint									= 0x000200;
