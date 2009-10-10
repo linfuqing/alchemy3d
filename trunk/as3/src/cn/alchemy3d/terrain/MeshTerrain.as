@@ -43,8 +43,7 @@ package cn.alchemy3d.terrain
 		public function buildOn( 
 								width:Number  = 1000, 
 								height:Number = 1000, 
-								maxHeight:int = 500,
-								addressMode:int = TerrainAddressMode.MIRROR ):void
+								maxHeight:int = 500 ):void
 		{
 			Library.alchemy3DLib.initializeTerrain( 
 													_pointer, 
@@ -54,7 +53,6 @@ package cn.alchemy3d.terrain
 													width, 
 													height,
 													maxHeight,
-													addressMode,
 													_renderMode );
 		}
 		
