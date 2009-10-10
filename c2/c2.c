@@ -94,18 +94,20 @@ int main()
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	//mesh4 = newTerrain( NULL, texture, 4000, 4000, 2000, 2, material, NULL, RENDER_WIREFRAME_TRIANGLE_32 );
-	mesh4 = newPlane( NULL, material, texture, 350.0f, 350.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32 );
+	mesh4 = newPlane( NULL, material, texture, 350.0f, 350.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
 	//mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh4->octree_depth = 0;
 	mesh4->useMipmap = TRUE;
 	mesh4->mip_dist = 2000.0f;
+	mesh4->fogEnable = TRUE;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	fog = newFog( 2000.0f, 5000.0f );
-	buildFogTable( fog, 4990.0f );
+	fog = newFog( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ), 0.0f, 4800.0f );
 	
 	scene = newScene();
+
+	scene_addFog( scene, fog );
 
 	camera = newCamera( 90.0f, 10.0f, 5000.0f, newEntity() );
 	entity_setZ(camera->eye, -1000.0f);
@@ -114,7 +116,7 @@ int main()
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
-	entity_setRotationX( do3d3, 90.0f);
+	entity_setRotationX( do3d3, 45.0f);
 	entity_setZ(do3d3, -600.0f);
 	entity_setY(do3d3, -50.0f);
 	entity_setMesh( do3d3, mesh4 );

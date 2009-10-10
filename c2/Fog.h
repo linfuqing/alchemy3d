@@ -3,15 +3,21 @@
 
 #include <malloc.h>
 
+#include "ARGBColor.h"
+
 typedef struct Fog
 {
 	float min_dist, max_dist;
 
-	BYTE * fog_table;
+	int ready;
+
+	float * fog_table;
+
+	ARGBColor * global;
 
 }Fog;
 
-Fog * newFog( float min_d, float max_d )
+Fog * newFog( FloatColor * color, float min_d, float max_d )
 {
 	Fog * f;
 
@@ -27,6 +33,10 @@ Fog * newFog( float min_d, float max_d )
 	f->min_dist = min_d < 0.0f ? 0.0f : min_d;
 	f->max_dist = max_d < 0.0f ? 0.0f : max_d;
 
+	f->ready = FALSE;
+
+	f->global = floatColor_toARGBColor( color );
+
 	f->fog_table = NULL;
 
 	return f;
@@ -40,27 +50,13 @@ int buildFogTable( Fog * f, float distance )
 	{
 		int i, j, end, len;
 
-		int d = (int)( distance + 0.5f );
+		int d = (int)( distance + 0.5f ) + 1;
 		int nd = (int)( f->min_dist + 0.0f );
 		int md = (int)( f->max_dist + 0.5f );
+		
+		if ( f->fog_table ) free( f->fog_table );
 
-		if( ( f->fog_table = ( BYTE * )calloc( d, sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
-
-		if ( nd > 0 )
-		{
-			for ( i = 0; i < nd; i ++ )
-			{
-				f->fog_table[i] = 0;
-			}
-		}
-
-		if ( md < d )
-		{
-			for ( i = md; i < d; i ++ )
-			{
-				f->fog_table[i] = 255;
-			}
-		}
+		if( ( f->fog_table = ( float * )calloc( d, sizeof( float ) ) ) == NULL ) exit( TRUE );
 
 		end = MIN( md, d );
 
@@ -70,7 +66,12 @@ int buildFogTable( Fog * f, float distance )
 
 		for ( i = nd; i < end; i ++, j ++ )
 		{
-			f->fog_table[i] = (int)( 255 * j / len );
+			f->fog_table[i] = (float)j / len;
+		}
+
+		for ( ; i <= d; i ++ )
+		{
+			f->fog_table[i] = 1.0f;
 		}
 	}
 

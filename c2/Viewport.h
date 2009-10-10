@@ -89,6 +89,13 @@ void viewport_updateBeforeRender( Viewport * viewport )
 
 #endif
 
+	if ( viewport->scene->fog && ( ! viewport->scene->fog->ready || viewport->camera->fnfDirty ) )
+	{
+		buildFogTable( viewport->scene->fog, viewport->camera->far - viewport->camera->near );
+
+		viewport->scene->fog->ready = TRUE;
+	}
+
 	terrain_sceneTrace( viewport -> scene -> nodes );
 }
 
@@ -196,8 +203,8 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 			continue;
 		}
 
-		if (face->vertex[0]->v_pos->w > far &&
-			face->vertex[1]->v_pos->w > far &&
+		if (face->vertex[0]->v_pos->w > far ||
+			face->vertex[1]->v_pos->w > far ||
 			face->vertex[2]->v_pos->w > far )
 		{
 			mesh->nCullList ++;
@@ -638,6 +645,10 @@ void viewport_lightting( Viewport * viewport )
 	//此数组用于记录以本地作为参考点的光源方向
 	Vector3D vLightsToObject[MAX_LIGHTS];
 
+	//雾化变量
+	//Fog * fog = viewport->scene->fog;
+	//float f_concentration;
+
 	//遍历实体
 	sceneNode = viewport->scene->nodes;
 
@@ -682,6 +693,12 @@ void viewport_lightting( Viewport * viewport )
 
 					//如果顶点已经变换或计算，则直接进入下一个顶点
 					if ( vs->transformed == 2 ) continue;
+
+					vs->s_pos->x = ( vs->s_pos->x + 1.0f ) * viewport->width * 0.5f;
+					vs->s_pos->y = ( vs->s_pos->y + 1.0f ) * viewport->height * 0.5f;
+					vs->s_pos->w = vs->v_pos->w;
+
+					vs->fix_inv_z = ( 1 << FIXP28_SHIFT ) / (int)( vs->v_pos->w + 0.5f );
 
 					//===================光照和顶点颜色值===================
 
@@ -843,18 +860,26 @@ void viewport_lightting( Viewport * viewport )
 							l ++;
 						}//end light
 
+						//if ( fog && fog->ready && mesh->fogEnable )
+						//{
+						//	f_concentration = fog->fog_table[(int)vs->v_pos->w];
+
+						//	AS3_Trace(AS3_Number(vs->v_pos->w));
+
+						//	floatColor_add( & fColor, fog->global, & lastColor );
+						//	floatColor_copy( & fColor, fog->global );
+
+						//	floatColor_scaleBy_self( & fColor, f_concentration, f_concentration, f_concentration, 1.0f );
+
+						//	floatColor_add_self( & lastColor, & fColor );
+						//}
+
 						//作颜色归一化处理
 						floatColor_normalize( & lastColor );
 
 						//对于alpha, 这里简单地用材质漫反射属性来代替
 						lastColor.alpha = material->diffuse->alpha;
 					}
-
-					vs->s_pos->x = ( vs->s_pos->x + 1.0f ) * viewport->width * 0.5f;
-					vs->s_pos->y = ( vs->s_pos->y + 1.0f ) * viewport->height * 0.5f;
-					vs->s_pos->w = vs->v_pos->w;
-
-					vs->fix_inv_z = ( 1 << FIXP28_SHIFT ) / (int)( vs->v_pos->w + 0.5f );
 
 					vs->color->red = (BYTE)(lastColor.red * 255.0f);
 					vs->color->green = (BYTE)(lastColor.green * 255.0f);
@@ -1081,6 +1106,24 @@ void viewport_render( Viewport * viewport )
 
 						case RENDER_GOURAUD_TRIANGLE_INVZB_32:
 							Draw_Gouraud_Triangle_INVZB_32( face, viewport );
+							break;
+
+						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32:
+
+							if ( viewport->scene->fog && mesh->fogEnable )
+							{
+								if ( minZ < face->texture->perspective_dist )
+									Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( face, viewport );
+								else
+									Draw_Textured_Triangle_FOG_GSINVZB_32( face, viewport );
+							}
+							else
+							{
+								if ( minZ < face->texture->perspective_dist )
+									Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
+								else
+									Draw_Textured_Triangle_GSINVZB_32( face, viewport );
+							}
 							break;
 					}
 				}
