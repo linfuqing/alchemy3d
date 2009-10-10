@@ -11,7 +11,7 @@ typedef struct Scene
 {
 	int nLights, dirty;
 
-	DWORD nNodes, nVertices, nFaces,nRenderList, nClippList, nCullList;
+	DWORD nNodes, nVertices, nFaces, nRenderList, nClippList, nCullList;
 
 	struct SceneNode * nodes;
 

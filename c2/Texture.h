@@ -38,7 +38,7 @@ Texture * newTexture( char * name )
 
 	texture->name = name;
 
-	texture->perspective_dist = 0;
+	texture->perspective_dist = 5000.0f;
 
 	texture->mipmaps = NULL;
 

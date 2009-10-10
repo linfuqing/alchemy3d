@@ -33,7 +33,7 @@ AS3_Val initializeCamera( void* self, AS3_Val args )
 
 	AS3_ArrayValue( args, "PtrType, DoubleType, DoubleType, DoubleType", & eye, & fov, & nearClip, & farClip );
 
-	nearClip = nearClip < 20 ? 20 : nearClip;
+	nearClip = nearClip < 5.0f ? 5.0f : nearClip;
 
 	camera = newCamera( (float)fov, (float)nearClip, (float)farClip, eye );
 
@@ -207,14 +207,13 @@ AS3_Val initializeTerrain( void * self, AS3_Val args )
 	Material * material;
 	Texture * texture;
 	Bitmap * map;
-	int addressMode;
 	double width, height, maxHeight;
 	DWORD render_mode;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType, IntType, IntType", 
-		& entity, & map, & material, & texture, & width, & height, & maxHeight, & addressMode, & render_mode );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType, IntType", 
+		& entity, & map, & material, & texture, & width, & height, & maxHeight, & render_mode );
 
-	newTerrain( entity->mesh, map, ( float )width, ( float )height, ( float )maxHeight, addressMode, material, texture, render_mode );
+	newTerrain( entity->mesh, map, ( float )width, ( float )height, ( float )maxHeight, material, texture, render_mode );
 
 	return 0;
 }
