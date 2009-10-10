@@ -12,7 +12,6 @@ package
 	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.render.Texture;
 	import cn.alchemy3d.terrain.MeshTerrain;
-	import cn.alchemy3d.terrain.TerrainAddressMode;
 	import cn.alchemy3d.tools.Basic;
 	import cn.alchemy3d.tools.FPS;
 	
@@ -60,7 +59,6 @@ package
 			bl.add("asset/sky_beiz.jp_L04899.jpg", {id:"0"});
 			bl.add("asset/texture.jpg", {id:"1"});
 			bl.add("asset/md2/blograde.jpg", {id:"2"});
-			bl.add("asset/hm.png", {id:"3"});
 			bl.start();
 		}
 		
@@ -85,7 +83,10 @@ package
 			
 			t0 = new Texture(bl.getBitmapData("2"));
 			t1 = new Texture(bl.getBitmapData("1"));
+			t0.perspectiveDist = 800;
 			t1.perspectiveDist = 800;
+			t1.addressMode = Texture.ADDRESS_MODE_WRAP;
+			t0.addressMode = Texture.ADDRESS_MODE_WRAP;
 			
 			viewport.backgroundImage = bl.getBitmapData("0");
 			
@@ -125,11 +126,11 @@ package
 			lightObj3.z = 0;
 			viewport.scene.addChild(lightObj3);
 
-			md2 = new MD2(m, t0, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32);
+			md2 = new MD2(m, t0, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32);
 			md2.lightEnable = true;
 			md2.mesh.useMipmap = true;
-			md2.mesh.mipDist = 8000;
-			md2.load("asset/md2/tris.jpg");
+			md2.mesh.mipDist = 10000;
+			md2.load("asset/md2/tris.md2");
 			viewport.scene.addChild( md2 );
 			
 			md2.rotationX = -90;
@@ -146,12 +147,12 @@ package
 //			p.rotationX = 45;
 //			this.viewport.scene.addChild(p);
 			
-			var terrain:MeshTerrain = new MeshTerrain(null, m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32);
-			terrain.buildOn(60000, 60000, 40000, TerrainAddressMode.MIRROR);
+			var terrain:MeshTerrain = new MeshTerrain(null, m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32);
+			terrain.buildOn(60000, 60000, 40000);
 			terrain.mesh.lightEnable = true;
-			terrain.mesh.octreeDepth = 2;
+			terrain.mesh.octreeDepth = 3;
 			terrain.mesh.useMipmap = true;
-			terrain.mesh.mipDist = 12000;
+			terrain.mesh.mipDist = 8000;
 			terrain.z = 0;
 			
 			viewport.scene.addChild(terrain);
