@@ -185,6 +185,54 @@ AS3_Val removeLight( void * self, AS3_Val args )
 	return 0;
 }
 
+AS3_Val initializeFog( void* self, AS3_Val args )
+{
+	Fog * fog;
+
+	AS3_Val color;
+
+	double a, r, g, b, min_dist, max_dist;
+
+	AS3_ArrayValue( args, "AS3ValType, DoubleType, DoubleType", & color, & min_dist, & max_dist );
+
+	r = AS3_NumberValue( AS3_GetS( color, "redMultiplier" ) );
+	g = AS3_NumberValue( AS3_GetS( color, "greenMultiplier" ) );
+	b = AS3_NumberValue( AS3_GetS( color, "blueMultiplier" ) );
+	a = AS3_NumberValue( AS3_GetS( color, "alphaMultiplier" ) );
+
+	fog = newFog( newFloatColor( (float)r, (float)g, (float)b, (float)a ), (float)min_dist, (float)max_dist );
+
+	AS3_Release( color );
+
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", fog, fog->global, & fog->min_dist, & fog->max_dist );
+}
+
+AS3_Val addFog( void * self, AS3_Val args )
+{
+	Scene * scene;
+
+	Fog * fog;
+
+	AS3_ArrayValue( args, "PtrType, PtrType", & scene, & fog );
+
+	scene_addFog( scene, fog );
+
+	return 0;
+}
+
+AS3_Val removeFog( void * self, AS3_Val args )
+{
+	Scene * scene;
+
+	Fog * fog;
+
+	AS3_ArrayValue( args, "PtrType, PtrType", & scene, & fog );
+
+	scene_removeFog( scene, fog );
+
+	return 0;
+}
+
 AS3_Val initializePrimitives( void * self, AS3_Val args )
 {
 	Mesh     * base;
@@ -597,6 +645,9 @@ int main()
 	AS3_Val initializeLightMethod = AS3_Function( NULL, initializeLight );
 	AS3_Val addLightMethod = AS3_Function( NULL, addLight );
 	AS3_Val removeLightMethod = AS3_Function( NULL, removeLight );
+	AS3_Val initializeFogMethod = AS3_Function( NULL, initializeFog );
+	AS3_Val addFogMethod = AS3_Function( NULL, addFog );
+	AS3_Val removeFogMethod = AS3_Function( NULL, removeFog );
 	AS3_Val initializePrimitivesMethod = AS3_Function( NULL, initializePrimitives );
 	AS3_Val initializeTerrainMethod = AS3_Function( NULL, initializeTerrain );
 	AS3_Val initializeMeshMethod = AS3_Function( NULL, initializeMesh );
@@ -626,6 +677,9 @@ int main()
 								 initializeLight:AS3ValType,\
 								 addLight:AS3ValType,\
 								 removeLight:AS3ValType,\
+								 initializeFog:AS3ValType,\
+								 addFog:AS3ValType,\
+								 removeFog:AS3ValType,\
 								 initializePrimitives:AS3ValType,\
 								 initializeTerrain:AS3ValType,\
 								 initializeMesh:AS3ValType,\
@@ -652,6 +706,9 @@ int main()
 								initializeLightMethod,
 								addLightMethod,
 								removeLightMethod,
+								initializeFogMethod,
+								addFogMethod,
+								removeFogMethod,
 								initializePrimitivesMethod,
 								initializeTerrainMethod,
 								initializeMeshMethod,
@@ -680,6 +737,9 @@ int main()
 	AS3_Release( initializeLightMethod );
 	AS3_Release( addLightMethod );
 	AS3_Release( removeLightMethod );
+	AS3_Release( initializeFogMethod );
+	AS3_Release( addFogMethod );
+	AS3_Release( removeFogMethod );
 	AS3_Release( initializePrimitivesMethod );
 	AS3_Release( initializeTerrainMethod );
 	AS3_Release( initializeMeshMethod );

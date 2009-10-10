@@ -111,6 +111,16 @@ INLINE FloatColor * floatColor_add( FloatColor * output, FloatColor * c1, FloatC
 	return output;
 }
 
+INLINE FloatColor * floatColor_subtract( FloatColor * output, FloatColor * c1, FloatColor * c2 )
+{
+	output->alpha = c1->alpha - c2->alpha;
+	output->red = c1->red - c2->red;
+	output->green = c1->green - c2->green;
+	output->blue = c1->blue - c2->blue;
+
+	return output;
+}
+
 INLINE FloatColor * floatColor_scaleBy( FloatColor * output, FloatColor * c, float r, float g, float b, float a )
 {
 	output->alpha = c->alpha * a;
@@ -139,6 +149,16 @@ INLINE FloatColor * floatColor_add_self( FloatColor * c1, FloatColor * c2 )
 	c1->red += c2->red;
 	c1->green += c2->green;
 	c1->blue += c2->blue;
+
+	return c1;
+}
+
+INLINE FloatColor * floatColor_subtract_self( FloatColor * c1, FloatColor * c2 )
+{
+	c1->alpha -= c2->alpha;
+	c1->red -= c2->red;
+	c1->green -= c2->green;
+	c1->blue -= c2->blue;
 
 	return c1;
 }
