@@ -970,6 +970,8 @@ void viewport_render( Viewport * viewport )
 				minZ = MIN( minZ, face->vertex[1]->v_pos->w );
 				minZ = MIN( minZ, face->vertex[2]->v_pos->w );
 
+				//AS3_Trace(AS3_Number(face->texture->perspective_dist));
+
 				if ( face->texture && face->texture->mipmaps )
 				{
 					if ( mesh->useMipmap && mesh->mip_dist )
@@ -1027,7 +1029,7 @@ void viewport_render( Viewport * viewport )
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
 
-							if ( tmiplevels * minZ < face->texture->perspective_dist )
+							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_FSINVZB_32( face, viewport );
@@ -1035,7 +1037,7 @@ void viewport_render( Viewport * viewport )
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
 
-							if ( tmiplevels * minZ < face->texture->perspective_dist )
+							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_FSINVZB_32( face, viewport );
@@ -1043,7 +1045,7 @@ void viewport_render( Viewport * viewport )
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32:
 
-							if ( tmiplevels * minZ < face->texture->perspective_dist )
+							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_GSINVZB_32( face, viewport );
@@ -1051,7 +1053,7 @@ void viewport_render( Viewport * viewport )
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
 
-							if ( tmiplevels * minZ < face->texture->perspective_dist )
+							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_INVZB_32( face, viewport );
@@ -1059,7 +1061,7 @@ void viewport_render( Viewport * viewport )
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
 
-							if ( tmiplevels * minZ < face->texture->perspective_dist )
+							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_INVZB_32( face, viewport );

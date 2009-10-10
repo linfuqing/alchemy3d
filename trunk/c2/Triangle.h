@@ -19,7 +19,7 @@ typedef struct Triangle
 
 	Material * material;
 
-	Vector3D * normal, * center;
+	Vector3D * normal;
 
 	Vertex * vertex[3];
 
@@ -55,10 +55,6 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->t_uv[0] = vector_clone( uva );
 	p->t_uv[1] = vector_clone( uvb );
 	p->t_uv[2] = vector_clone( uvc );
-	
-	p->center = newVector3D( ( va->position->x + vb->position->x + vc->position->x ) * .333333333f,
-								( va->position->y + vb->position->y + vc->position->y ) * .333333333f,
-								( va->position->z + vb->position->z + vc->position->z ) * .333333333f, 1.0f );
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );
@@ -148,7 +144,7 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 
 		vert = face->vertex[0];
 
-		matrix3D_transformVector( vert->w_pos, world, vert->position );
+		//matrix3D_transformVector( vert->w_pos, world, vert->position );
 
 		vert->v_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
 		vert->v_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
@@ -164,7 +160,7 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 
 		vert = face->vertex[1];
 
-		matrix3D_transformVector( vert->w_pos, world, vert->position );
+		//matrix3D_transformVector( vert->w_pos, world, vert->position );
 
 		vert->v_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
 		vert->v_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
@@ -180,7 +176,7 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 
 		vert = face->vertex[2];
 
-		matrix3D_transformVector( vert->w_pos, world, vert->position );
+		//matrix3D_transformVector( vert->w_pos, world, vert->position );
 
 		vert->v_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
 		vert->v_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
@@ -228,51 +224,51 @@ INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight, int ad
 
 		switch( addressMode )
 		{
-		case ADDRESS_MODE_WRAP:
+			case ADDRESS_MODE_WRAP:
 
-			face->t_uv[0]->u = tu0 * texWidth ;
-			face->t_uv[0]->v = tv0 * texHeight;
+				face->t_uv[0]->u = tu0 * texWidth ;
+				face->t_uv[0]->v = tv0 * texHeight;
 
-			face->t_uv[1]->u = tu1 * texWidth ;
-			face->t_uv[1]->v = tv1 * texHeight;
+				face->t_uv[1]->u = tu1 * texWidth ;
+				face->t_uv[1]->v = tv1 * texHeight;
 
-			face->t_uv[2]->u = tu2 * texWidth ;
-			face->t_uv[2]->v = tv2 * texHeight;
+				face->t_uv[2]->u = tu2 * texWidth ;
+				face->t_uv[2]->v = tv2 * texHeight;
 
-			break;
+				break;
 
-		case ADDRESS_MODE_MIRROR:
+			case ADDRESS_MODE_MIRROR:
 
-			face->t_uv[0]->u = ( u0 % 2 ? ( 1 - tu0 ) : tu0 ) * texWidth ;
-			face->t_uv[0]->v = ( v0 % 2 ? ( 1 - tv0 ) : tv0 ) * texHeight;
+				face->t_uv[0]->u = ( u0 % 2 ? ( 1 - tu0 ) : tu0 ) * texWidth ;
+				face->t_uv[0]->v = ( v0 % 2 ? ( 1 - tv0 ) : tv0 ) * texHeight;
 
-			face->t_uv[1]->u = ( u1 % 2 ? ( 1 - tu1 ) : tu1 ) * texWidth ;
-			face->t_uv[1]->v = ( v1 % 2 ? ( 1 - tv1 ) : tv1 ) * texHeight;
+				face->t_uv[1]->u = ( u1 % 2 ? ( 1 - tu1 ) : tu1 ) * texWidth ;
+				face->t_uv[1]->v = ( v1 % 2 ? ( 1 - tv1 ) : tv1 ) * texHeight;
 
-			face->t_uv[2]->u = ( u2 % 2 ? ( 1 - tu2 ) : tu2 ) * texWidth ;
-			face->t_uv[2]->v = ( v2 % 2 ? ( 1 - tv2 ) : tv2 ) * texHeight;
+				face->t_uv[2]->u = ( u2 % 2 ? ( 1 - tu2 ) : tu2 ) * texWidth ;
+				face->t_uv[2]->v = ( v2 % 2 ? ( 1 - tv2 ) : tv2 ) * texHeight;
 
-			break;
+				break;
 
-		default:
+			default:
 
-			face->t_uv[0]->u = tu0 * texWidth ;
-			face->t_uv[0]->v = tv0 * texHeight;
+				face->t_uv[0]->u = tu0 * texWidth ;
+				face->t_uv[0]->v = tv0 * texHeight;
 
-			face->t_uv[1]->u = tu1 * texWidth ;
-			face->t_uv[1]->v = tv1 * texHeight;
+				face->t_uv[1]->u = tu1 * texWidth ;
+				face->t_uv[1]->v = tv1 * texHeight;
 
-			face->t_uv[2]->u = tu2 * texWidth ;
-			face->t_uv[2]->v = tv2 * texHeight;
+				face->t_uv[2]->u = tu2 * texWidth ;
+				face->t_uv[2]->v = tv2 * texHeight;
 
-			break;
+				break;
 		}
 	}
 }
 
 INLINE int triangle_backFaceCulling( Triangle * face, Vector3D * viewerToLocal, Vector3D * viewerPosition  )
 {
-	vector3D_subtract( viewerToLocal, face->center, viewerPosition );
+	vector3D_subtract( viewerToLocal, face->vertex[0]->position, viewerPosition );
 
 	vector3D_normalize( viewerToLocal );
 

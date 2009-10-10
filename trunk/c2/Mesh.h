@@ -169,9 +169,6 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	vector_copy( p->t_uv[2], uvc );// = vector_clone( uvc );
 
 	vector3D_set ( p->normal, 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
-	p->center = newVector3D( ( va->position->x + vb->position->x + vc->position->x ) * .333333333f,
-								( va->position->y + vb->position->y + vc->position->y ) * .333333333f,
-								( va->position->z + vb->position->z + vc->position->z ) * .333333333f, 1.0f );
 
 	p->texture = texture;
 	p->material = material;
@@ -213,10 +210,6 @@ void mesh_updateFaces( Mesh * m )
 		face->normal->y = 0.0f;
 		face->normal->z = 0.0f;
 		face->normal->w = 1.0f;
-
-		face->center->x = ( face->vertex[0]->position->x + face->vertex[1]->position->x + face->vertex[2]->position->x ) * .333333333f;
-		face->center->y = ( face->vertex[0]->position->y + face->vertex[1]->position->y + face->vertex[2]->position->y ) * .333333333f;
-		face->center->z = ( face->vertex[0]->position->z + face->vertex[1]->position->z + face->vertex[2]->position->z ) * .333333333f;
 
 		triangle_normal( face->normal, v0, v1, v2 );
 	}
@@ -485,3 +478,4 @@ void mesh_dispose( Mesh * mesh )
 }
 
 #endif
+
