@@ -4,12 +4,14 @@ package cn.alchemy3d.container
 	
 	import cn.alchemy3d.base.Library;
 	import cn.alchemy3d.base.Node;
+	import cn.alchemy3d.fog.Fog;
 	import cn.alchemy3d.lights.Light3D;
 
 	public class SceneContainer extends Node
 	{
 		private var children:Vector.<Entity>;
 		private var lights:Vector.<Light3D>;
+		private var fog:Fog;
 		
 		public function get numChildren():uint
 		{
@@ -104,7 +106,6 @@ package cn.alchemy3d.container
 			
 			return null;
 		}
-		
 				
 		protected static function getLightsPointerOn( s:SceneContainer ):uint
 		{
@@ -113,5 +114,31 @@ package cn.alchemy3d.container
 		
 				
 		private var lightsPtr:uint = NULL;
+		
+		public function addFog( fog:Fog ):void
+		{
+			if( ! this.fog && fog )
+			{
+				Library.alchemy3DLib.addFog( _pointer, fog.pointer );
+			}
+			else
+			{
+				return;
+			}
+			
+			this.fog = fog;
+		}
+		
+		public function removeFog( fog:Fog ):Fog
+		{
+			if( this.fog && fog )
+			{
+				Library.alchemy3DLib.removeFog( _pointer, fog.pointer );
+					
+				return fog;
+			}
+			
+			return null;
+		}
 	}
 }
