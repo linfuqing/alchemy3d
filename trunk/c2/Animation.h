@@ -8,6 +8,15 @@
 
 #define FRAME_NAME_LENGTH 16
 
+typedef enum
+{
+	Morph,
+	TerrainTrace,
+	TextureCoordinates,
+	Noise,
+	MatrixStack
+}AnimationType;
+
 typedef struct
 {
 	char         name[FRAME_NAME_LENGTH];
@@ -21,17 +30,22 @@ typedef struct
 
 typedef struct Animation
 {
-	Frame        * frames;
+	AnimationType  type;
+
+	int            loop;
+	int            isPlay;
+
 	Mesh         * parent;
+	Frame        * frames;
 	char           currentFrameName[FRAME_NAME_LENGTH];
 	int            dirty;
 	int            maxTime;
 	int            minTime;
-	int            loop;
-	int            isPlay;
 	int            durationTime;
 	int            startTime;
 	unsigned int   length;
+
+	struct Animation * next;
 }Animation;
 
 typedef struct
@@ -40,7 +54,7 @@ typedef struct
 	unsigned int length;
 }Movie;
 
-Animation   * newAnimation( Mesh * parent, Frame * frames, unsigned int length, int duration )
+Animation   * newMorphAnimation( Mesh * parent, Frame * frames, unsigned int length, int duration )
 {
 	Animation * a;
 
@@ -49,6 +63,7 @@ Animation   * newAnimation( Mesh * parent, Frame * frames, unsigned int length, 
 		exit( TRUE );
 	}
 
+	a -> type                = Morph;
 	a -> parent              = parent;
 	a -> frames              = frames;
 	a -> dirty               = FALSE;
@@ -59,13 +74,14 @@ Animation   * newAnimation( Mesh * parent, Frame * frames, unsigned int length, 
 	a -> isPlay              = TRUE;
 	a -> startTime           = 0;
 	a -> durationTime        = duration;
+	a -> next                = NULL;
 	//a -> currentFrameIndex = 0;
 
 	return a;
 }
 
 
-void animation_updateToFrame( Animation * animation, unsigned int keyFrame )
+void animation_morph_updateToFrame( Animation * animation, unsigned int keyFrame )
 {
 	DWORD i;
 
@@ -82,7 +98,7 @@ void animation_updateToFrame( Animation * animation, unsigned int keyFrame )
 	}
 }
 
-void animation_updateToTime( Animation * animation, float timeAlpha )
+void animation_morph_updateToTime( Animation * animation, float timeAlpha )
 {
 	float frameAlpha;
 	unsigned int   currentFrameIndex = ( unsigned int )floor( ( animation -> length - 1 ) * timeAlpha );
@@ -114,7 +130,7 @@ void animation_updateToTime( Animation * animation, float timeAlpha )
 }
 
 //可优化函数,将动作指令存储到内存中
-int animation_updateToName( Animation * animation, char name[FRAME_NAME_LENGTH] )
+int animation_morph_updateToName( Animation * animation, char name[FRAME_NAME_LENGTH] )
 {
 	DWORD i;
 	int min = OFF, max = OFF, match;
@@ -170,37 +186,62 @@ int animation_updateToName( Animation * animation, char name[FRAME_NAME_LENGTH] 
 
 void animation_update( Animation * animation, int time )
 {
-	if( animation -> dirty )
+	Animation * ap = animation;
+
+	while( ap != NULL )
 	{
-		animation -> dirty = FALSE;
-
-		animation_updateToName( animation, animation -> currentFrameName );
-	}
-
-	if( animation -> isPlay )
-	{
-		//animation -> currentFrameIndex = ( animation -> currentFrameIndex ) > ( animation -> length ) ? 0 : ( animation -> currentFrameIndex );
-
-		//animation_updateToFrame( animation, animation -> currentFrameIndex );
-
-		//animation -> currentFrameIndex ++;
-
-		int elapsed  = time - animation -> startTime + animation -> minTime;
-
-		if( elapsed > animation -> maxTime )
+		switch( ap -> type )
 		{
-			animation -> startTime = time;
+		case Morph:
 
-			elapsed                = animation -> minTime;
+			if( ap -> dirty )
+			{
+				ap -> dirty = FALSE;
 
-			animation -> isPlay    = animation -> loop ? TRUE : FALSE;
+				animation_morph_updateToName( ap, ap -> currentFrameName );
+			}
+
+			if( ap -> isPlay )
+			{
+				//animation -> currentFrameIndex = ( animation -> currentFrameIndex ) > ( animation -> length ) ? 0 : ( animation -> currentFrameIndex );
+
+				//animation_updateToFrame( animation, animation -> currentFrameIndex );
+
+				//animation -> currentFrameIndex ++;
+
+				int elapsed  = time - animation -> startTime + animation -> minTime;
+
+				if( elapsed > animation -> maxTime )
+				{
+					animation -> startTime = time;
+
+					elapsed                = animation -> minTime;
+
+					animation -> isPlay    = animation -> loop ? TRUE : FALSE;
+				}
+
+				animation_morph_updateToTime( animation, elapsed * 1.0f / animation -> durationTime );
+			}
+
+			break;
+
+		case TerrainTrace:
+			break;
+
+		case TextureCoordinates:
+			break;
+
+		case Noise:
+			break;
+
+		case MatrixStack:
+			break;
+
+		default:
+			break;
 		}
 
-		//AS3_Trace( AS3_Number( ( float )( elapsed * 1.0 / ( animation -> durationTime ) ) ) );
-		//AS3_Trace( AS3_Number( animation -> durationTime ) );
-		//AS3_Trace( AS3_Int( clock() ) );
-
-		animation_updateToTime( animation, elapsed * 1.0f / animation -> durationTime );
+		ap = ap -> next;
 	}
 }
 
