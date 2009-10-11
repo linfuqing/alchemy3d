@@ -189,9 +189,9 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		}
 	}
 
-	animation = newAnimation( m -> entity -> mesh, frames, m -> header.num_frames, ( m -> header.num_frames - 1 ) * duration );
+	animation = newMorphAnimation( m -> entity -> mesh, frames, m -> header.num_frames, ( m -> header.num_frames - 1 ) * duration );
 
-	animation_updateToFrame( animation, 0 );
+	animation_morph_updateToFrame( animation, 0 );
 
 	m -> entity -> animation = animation;
 	//for ( j = 0; j < 8 ; j ++ )

@@ -363,6 +363,11 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 	AS3_ArrayValue( args, "PtrType, PtrType, IntType",  & parent, & node, & isChild );
 
+	if( parent == NULL )
+	{
+		return 0;
+	}
+
 	ep = isChild ? node : parent;
 
 	if( ep == NULL )
@@ -373,6 +378,7 @@ AS3_Val addEntity( void* self, AS3_Val args )
 	while( ep -> next != NULL )
 	{
 		ep = ep -> next;
+		ep -> entity -> scene = parent -> entity -> scene;
 	}
 
 	if( isChild )
@@ -391,6 +397,8 @@ AS3_Val addEntity( void* self, AS3_Val args )
 
 		node -> entity -> parent = NULL;
 	}
+
+	node -> entity -> scene = parent -> entity -> scene;
 
 	return 0;
 }
