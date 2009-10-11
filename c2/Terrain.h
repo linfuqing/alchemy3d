@@ -11,7 +11,7 @@
 #define TERRAIN_ADDRESS_MODE_WRAP		1
 #define TERRAIN_ADDRESS_MODE_MIRROR		2*/
 
-Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float maxHeight,  Material * material, Texture * texture, DWORD render_mode, int address )
+Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, float maxHeight,  Material * material, Texture * texture, DWORD render_mode, int address )
 {
 	DWORD i, * buffer = ( DWORD * )map->pRGBABuffer, wh, widthSegments = map -> width - 1, heightSegments = map->height - 1;
 
@@ -19,15 +19,15 @@ Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float m
 
 	//int addressMode = 2;
 
-	base = newPlane( base, material, texture, width, height, widthSegments, heightSegments, render_mode );
+	base -> mesh = newPlane( base -> mesh, material, texture, width, height, widthSegments, heightSegments, render_mode );
 
 	wh = map->height * map->width;
 
 	for( i = 0; i < wh; i ++ )
 	{
-		base->vertices[i]->position->z = ( (int)( ( buffer[i] & 0x0000FF ) * maxHeight ) >> 8 ) - maxHeight * .5f;
+		base -> mesh ->vertices[i]->position->z = ( (int)( ( buffer[i] & 0x0000FF ) * maxHeight ) >> 8 ) - maxHeight * .5f;
 
-		SWAP( base->vertices[i]->position->y, base->vertices[i]->position->z, tmp );
+		SWAP( base ->mesh->vertices[i]->position->y, base->mesh->vertices[i]->position->z, tmp );
 
 		//base->vertices[i]->position->y = - base->vertices[i]->position->y;
 	}
@@ -134,34 +134,36 @@ Mesh * newTerrain( Mesh * base, Bitmap * map, float width, float height, float m
 		{
 			for(  j = 0; j < heightSegments; j ++ )
 			{
-				base -> faces[k]->uv[0] -> x = (float)i;
-				base -> faces[k]->uv[0] -> y = (float)(heightSegments - j);
+				base -> mesh -> faces[k]->uv[0] -> x = (float)i;
+				base -> mesh -> faces[k]->uv[0] -> y = (float)(heightSegments - j);
 
-				base -> faces[k]->uv[1] -> x = (float)(i + 1);
-				base -> faces[k]->uv[1] -> y = (float)(heightSegments - j);
+				base -> mesh -> faces[k]->uv[1] -> x = (float)(i + 1);
+				base -> mesh -> faces[k]->uv[1] -> y = (float)(heightSegments - j);
 
-				base -> faces[k]->uv[2] -> x = (float)(i);
-				base -> faces[k]->uv[2] -> y = (float)(heightSegments - j - 1);
+				base -> mesh -> faces[k]->uv[2] -> x = (float)(i);
+				base -> mesh -> faces[k]->uv[2] -> y = (float)(heightSegments - j - 1);
 
 				k ++;
 
-				base -> faces[k]->uv[0] -> x = (float)(i + 1);
-				base -> faces[k]->uv[0] -> y = (float)(heightSegments - j - 1);
+				base -> mesh -> faces[k]->uv[0] -> x = (float)(i + 1);
+				base -> mesh -> faces[k]->uv[0] -> y = (float)(heightSegments - j - 1);
 
-				base -> faces[k]->uv[1] -> x = (float)(i);
-				base -> faces[k]->uv[1] -> y = (float)(heightSegments - j - 1);
+				base -> mesh -> faces[k]->uv[1] -> x = (float)(i);
+				base -> mesh -> faces[k]->uv[1] -> y = (float)(heightSegments - j - 1);
 
-				base -> faces[k]->uv[2] -> x = (float)(i + 1);
-				base -> faces[k]->uv[2] -> y = (float)(heightSegments - j);
+				base -> mesh -> faces[k]->uv[2] -> x = (float)(i + 1);
+				base -> mesh -> faces[k]->uv[2] -> y = (float)(heightSegments - j);
 
 				k ++;
 			}
 		}
 	}
 
-	base->type			= ENTITY_TYPE_MESH_TERRAIN;
-	base->widthSegment	= map->width - 1;
-	base->heightSegment	= map->height - 1;
+	base -> mesh->type			= ENTITY_TYPE_MESH_TERRAIN;
+	base -> mesh->widthSegment	= map->width - 1;
+	base -> mesh->heightSegment	= map->height - 1;
+
+	base -> animation = newTerrainTraceAnimation( base, map->width - 1, map->height - 1 );
 
 	return base;
 }

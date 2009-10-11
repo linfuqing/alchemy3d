@@ -4,7 +4,7 @@
 //# include <time.h>
 # include <ctype.h>
 
-#include "Mesh.h"
+#include "Entity.h"
 
 #define FRAME_NAME_LENGTH 16
 
@@ -35,15 +35,32 @@ typedef struct Animation
 	int            loop;
 	int            isPlay;
 
-	Mesh         * parent;
-	Frame        * frames;
-	char           currentFrameName[FRAME_NAME_LENGTH];
-	int            dirty;
-	int            maxTime;
-	int            minTime;
-	int            durationTime;
-	int            startTime;
-	unsigned int   length;
+	union
+	{
+		Mesh   * parent;
+		Entity * container;
+	};
+
+	union
+	{
+		struct
+		{
+			Frame        * frames;
+			char           currentFrameName[FRAME_NAME_LENGTH];
+			int            dirty;
+			int            maxTime;
+			int            minTime;
+			int            durationTime;
+			int            startTime;
+			unsigned int   length;
+		};
+
+		struct
+		{
+			int  widthSegment;
+			int heightSegment;
+		};
+	};
 
 	struct Animation * next;
 }Animation;
@@ -80,6 +97,9 @@ Animation   * newMorphAnimation( Mesh * parent, Frame * frames, unsigned int len
 	return a;
 }
 
+///////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////MORPH//////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
 
 void animation_morph_updateToFrame( Animation * animation, unsigned int keyFrame )
 {
@@ -184,6 +204,126 @@ int animation_morph_updateToName( Animation * animation, char name[FRAME_NAME_LE
 	return FALSE;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////TERRAIN_TRACE//////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
+Animation * newTerrainTraceAnimation( Entity * container, float widthSegment, float heightSegment )
+{
+	Animation * a;
+
+	if( ( a = ( Animation * ) malloc( sizeof( Animation ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	a -> type          = TerrainTrace;
+	a -> container     = container;
+	a -> widthSegment  = widthSegment;
+	a -> heightSegment = heightSegment;
+
+	return a;
+}
+
+void animation_terrainTrace_update( Animation * animation )
+{
+	if( animation -> container -> scene )
+	{
+		float w = animation->container->mesh->octree->data->aabb->max->x - animation->container->mesh->octree->data->aabb->min->x,
+			  h = animation->container->mesh->octree->data->aabb->max->z - animation->container->mesh->octree->data->aabb->min->z,
+			  textureX = w  * .5f,
+			  textureY = h  * .5f,
+
+			  iW = animation->container->mesh->widthSegment / w,
+			  iH = animation->container->mesh->heightSegment / h,
+
+			  tx, tz,
+
+			  height;
+
+		int //gridX = terrain ->  widthSegment + 1,
+			gridZ = animation->container->mesh->heightSegment + 1,
+			ix, iz, _x, _z, aIndex, bIndex, cIndex;
+
+		Vector3D normal;
+
+		SceneNode * ep = animation -> container -> scene -> nodes;
+
+		//AS3_Trace( AS3_Number( 1 ) );
+
+		while( ep != NULL )
+		{
+			if( ep -> entity->mesh->type == ENTITY_TYPE_MESH_TERRAIN
+			||  ep -> entity -> parent != animation-> container -> parent
+			||	ep -> entity -> position -> x < - textureX 
+			||  ep -> entity -> position -> x >   textureX
+			||	ep -> entity -> position -> z < - textureY 
+			||  ep -> entity -> position -> z >   textureY )
+			{
+				ep = ep -> next;
+				continue;
+			}
+
+			tx = ( ep -> entity -> position -> x + textureX ) * iW;
+			tz = ( ep -> entity -> position -> z + textureY ) * iH;
+
+			ix = ( int )tx;
+			iz = ( int )tz;
+					
+			_x = ix + 1;
+			_z = iz + 1;
+
+			if( ( tx -= ix ) + ( tz -= iz ) > 1 )
+			{
+				aIndex = ix * gridZ + iz;
+				cIndex = ix * gridZ + _z;
+				bIndex = _x * gridZ + iz;
+			}
+			else
+			{
+				aIndex = _x * gridZ + _z;
+				cIndex = _x * gridZ + iz;
+				bIndex = ix * gridZ + _z;
+			}
+
+			/*b = entity -> mesh -> vertices[bIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
+			c = entity -> mesh -> vertices[cIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
+
+			//////
+			///跟踪算法1
+			///
+			///三角形插值
+			///根据网格地形三角形投影始终为直角等腰三角形
+			///故点投影高度为:根号2(c-b)+bx+by
+			//////
+			height = invSqrt( 2 ) * tx * ( c - b ) + b * tx + b * tz + entity -> mesh -> vertices[aIndex].position -> y;*/
+
+			//////
+			///跟踪算法2:
+			///
+			///平面算法
+			//////
+			triangle_normal( & normal, animation -> container -> mesh -> vertices[cIndex], animation -> container -> mesh -> vertices[bIndex], animation -> container -> mesh -> vertices[aIndex] );
+
+			height = - ( ep -> entity -> position -> x * normal.x + ep -> entity -> position -> z * normal.z - vector3D_dotProduct( & normal, animation -> container -> mesh -> vertices[aIndex]->position ) ) / normal.y;
+
+			/////
+			///跟踪算法3
+			///
+			///平均值
+			/////
+			/*ep -> entity -> position -> y = - ( entity -> mesh -> vertices[aIndex].position -> y
+										      +   entity -> mesh -> vertices[bIndex].position -> y
+										      +   entity -> mesh -> vertices[cIndex].position -> y
+										        ) * .333333333333333333333333f;*/
+
+			ep -> entity -> position -> y = height - ( ep->entity->mesh ? mesh_minY( ep->entity->mesh ) * ep -> entity -> scale -> y : 0 );
+			//AS3_Trace( AS3_Number( ep->entity->mesh->octree->data->aabb->min->y ) );
+			ep = ep -> next;
+		}
+	}
+}
+
 void animation_update( Animation * animation, int time )
 {
 	Animation * ap = animation;
@@ -226,6 +366,9 @@ void animation_update( Animation * animation, int time )
 			break;
 
 		case TerrainTrace:
+
+			animation_terrainTrace_update( animation );
+
 			break;
 
 		case TextureCoordinates:
