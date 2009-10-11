@@ -10,9 +10,11 @@
 #include "Math3D.h"
 #include "AABB.h"
 #include "Physics.h"
-#include "Animation.h"
+//#include "Animation.h"
 
 #define ENTITY_TYPE_MESH_TERRAIN 1
+
+struct Animation;
 
 typedef struct Entity
 {
@@ -41,7 +43,7 @@ typedef struct Entity
 
 	Physics * physics;
 	//¶¯»­
-	Animation * animation;
+	struct Animation * animation;
 
 }Entity;
 

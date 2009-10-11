@@ -96,7 +96,7 @@ void viewport_updateBeforeRender( Viewport * viewport )
 		viewport->scene->fog->ready = TRUE;
 	}
 
-	terrain_sceneTrace( viewport -> scene -> nodes );
+	//terrain_sceneTrace( viewport -> scene -> nodes );
 }
 
 INLINE void viewport_updateAfterRender( Viewport * viewport )

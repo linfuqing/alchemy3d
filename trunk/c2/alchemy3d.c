@@ -262,7 +262,7 @@ AS3_Val initializeTerrain( void * self, AS3_Val args )
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType, IntType, IntType", 
 		& entity, & map, & material, & texture, & width, & height, & maxHeight, & render_mode, & address );
 
-	newTerrain( entity->mesh, map, ( float )width, ( float )height, ( float )maxHeight, material, texture, render_mode, address );
+	newTerrain( entity, map, ( float )width, ( float )height, ( float )maxHeight, material, texture, render_mode, address );
 
 	return 0;
 }
@@ -456,16 +456,13 @@ AS3_Val initializeMD2( void* self, AS3_Val args )
 {
 	MD2 * md2;
 	Entity * entity;
-	Mesh * mesh;
 	Material * material;
 	Texture * texture;
 	UCHAR * buffer;
 	int render_mode;
 	unsigned int fps;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, PtrType, IntType, IntType", & entity, & mesh, & buffer, & material, & texture, & render_mode, & fps );
-
-	entity -> mesh = mesh;
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType, IntType", & entity, & buffer, & material, & texture, & render_mode, & fps );
 
 	md2 = newMD2(entity);
 
