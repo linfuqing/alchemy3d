@@ -1,7 +1,7 @@
 #ifndef __MD2_H
 #define __MD2_H
 
-#include "Mesh.h"
+#include "Entity.h"
 
 #define SKIN_NAME_LENGTH 64
 
@@ -35,10 +35,10 @@ typedef struct
 {
 	MD2Skin     * skins;
 	MD2Header     header;
-	Mesh        * mesh;
+	Entity      * entity;
 }MD2;
 
-MD2 * newMD2( Mesh * mesh )
+MD2 * newMD2( Entity * entity )
 {
 	MD2 * m;
 
@@ -48,7 +48,7 @@ MD2 * newMD2( Mesh * mesh )
 	}
 
 	m -> skins  = NULL;
-	m -> mesh   = mesh ? mesh : newMesh( 0, 0 );
+	m -> entity   = entity ? entity : newEntity();
 
 	return m;
 }
@@ -115,11 +115,11 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		//printf("%f\n", uvs[i].v);
 	}
 
-	m -> mesh = mesh_reBuild( m -> mesh, m -> header.num_vertices, m -> header.num_tris );
+	m -> entity -> mesh = mesh_reBuild( m -> entity -> mesh, m -> header.num_vertices, m -> header.num_tris );
 
 	for( i = 0; i < m -> header.num_vertices; i ++ )
 	{
-		mesh_push_vertex( m -> mesh, 0, 0, 0 );
+		mesh_push_vertex( m -> entity -> mesh, 0, 0, 0 );
 	}
 
 	for( i = 0; i < m -> header.num_tris; i ++ )
@@ -131,10 +131,10 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		memcpy( uvIndex,     pointer + sizeof( unsigned short ) * 3, sizeof( unsigned short ) * 3 );
 
 		mesh_push_triangle( 
-							m -> mesh, 
-							(* m -> mesh -> vertices) + vertexIndex[0],
-							(* m -> mesh -> vertices) + vertexIndex[1],
-							(* m -> mesh -> vertices) + vertexIndex[2],
+							m -> entity -> mesh, 
+							(* m -> entity -> mesh -> vertices) + vertexIndex[0],
+							(* m -> entity -> mesh -> vertices) + vertexIndex[1],
+							(* m -> entity -> mesh -> vertices) + vertexIndex[2],
 							uvs + uvIndex[0],
 							uvs + uvIndex[1],
 							uvs + uvIndex[2],
@@ -144,8 +144,8 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 	}
 
 	//mesh_setRenderMode( m -> mesh, render_mode );
-	mesh_updateFaces( m -> mesh );
-	mesh_updateVertices( m -> mesh );
+	mesh_updateFaces( m -> entity -> mesh );
+	mesh_updateVertices( m -> entity -> mesh );
 
 	for( i = 0; i < m -> header.num_frames; i ++ )
 	{
@@ -189,11 +189,11 @@ int md2_read( UCHAR ** buffer, MD2 * m, Material * material, Texture * texture, 
 		}
 	}
 
-	animation = newAnimation( m -> mesh, frames, m -> header.num_frames, ( m -> header.num_frames - 1 ) * duration );
+	animation = newAnimation( m -> entity -> mesh, frames, m -> header.num_frames, ( m -> header.num_frames - 1 ) * duration );
 
 	animation_updateToFrame( animation, 0 );
 
-	m -> mesh -> animation = animation;
+	m -> entity -> animation = animation;
 	//for ( j = 0; j < 8 ; j ++ )
 	//{
 	//	printf("%f %f %f\n", mesh->vertices[j].position->x, mesh->vertices[j].position->y, mesh->vertices[j].position->z);

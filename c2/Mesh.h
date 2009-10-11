@@ -38,7 +38,7 @@ typedef struct Mesh
 
 	struct Octree * octree;
 
-	struct Animation * animation;
+	//struct Animation * animation;
 
 	struct RenderList * renderList, * clippedList;
 
@@ -117,7 +117,7 @@ Mesh * newMesh( int nVertices, int nFaces )
 	m->fogEnable		= FALSE;
 	m->useMipmap		= FALSE;
 	m->mip_dist			= 0;
-	m->animation        = NULL;
+	//m->animation        = NULL;
 	m->type				= 0;
 	m->octree_depth		= 0;
 	m->halfHeight		= 0;
