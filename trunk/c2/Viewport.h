@@ -925,14 +925,19 @@ void viewport_project( Viewport * viewport, int time )
 		rl = entity->mesh->renderList->next;
 		cl = entity->mesh->clippedList->next;
 
+		if( entity -> animation )
+		{
+			animation_update( entity -> animation, time );
+		}
+
 		entity_updateTransform(entity);
 
 		if ( entity->mesh && entity -> mesh -> nFaces && entity -> mesh -> nVertices )
 		{
-			if( entity -> mesh -> animation && entity -> mesh -> animation -> length > 1 )
+			/*if( entity -> mesh -> animation && entity -> mesh -> animation -> length > 1 )
 			{
 				animation_update( entity -> mesh -> animation, time );
-			}
+			}*/
 
 			//重新计算法向量以及构造八叉树（如果顶点是静态的只会执行一次）
 			mesh_updateMesh( entity->mesh );

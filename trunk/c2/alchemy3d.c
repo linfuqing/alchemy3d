@@ -447,6 +447,7 @@ AS3_Val loadComplete3DS( void* self, AS3_Val args )
 AS3_Val initializeMD2( void* self, AS3_Val args )
 {
 	MD2 * md2;
+	Entity * entity;
 	Mesh * mesh;
 	Material * material;
 	Texture * texture;
@@ -454,16 +455,18 @@ AS3_Val initializeMD2( void* self, AS3_Val args )
 	int render_mode;
 	unsigned int fps;
 
-	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, IntType, IntType", & mesh, & buffer, & material, & texture, & render_mode, & fps );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, PtrType, IntType, IntType", & entity, & mesh, & buffer, & material, & texture, & render_mode, & fps );
 
-	md2 = newMD2(mesh);
+	entity -> mesh = mesh;
+
+	md2 = newMD2(entity);
 
 	md2_read( & buffer, md2, material, texture, render_mode, fps );
 
 	//return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
 	//	& entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
-		& md2 -> mesh -> animation -> isPlay, & md2 -> mesh -> animation -> loop, & md2 -> mesh -> animation -> dirty, md2 -> mesh -> animation -> currentFrameName );
+		& md2 -> entity -> animation -> isPlay, & md2 -> entity -> animation -> loop, & md2 -> entity -> animation -> dirty, md2 -> entity -> animation -> currentFrameName );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
