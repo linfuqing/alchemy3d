@@ -256,13 +256,13 @@ AS3_Val initializeTerrain( void * self, AS3_Val args )
 	Texture * texture;
 	Bitmap * map;
 	double width, height, maxHeight;
-	int address;
+	int addressMode;
 	DWORD render_mode;
 
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType, PtrType, DoubleType, DoubleType, DoubleType, IntType, IntType", 
-		& entity, & map, & material, & texture, & width, & height, & maxHeight, & render_mode, & address );
+		& entity, & map, & material, & texture, & width, & height, & maxHeight, & render_mode, & addressMode );
 
-	newTerrain( entity, map, ( float )width, ( float )height, ( float )maxHeight, material, texture, render_mode, address );
+	newTerrain( entity, map, ( float )width, ( float )height, ( float )maxHeight, material, texture, render_mode, addressMode );
 
 	return 0;
 }

@@ -39,6 +39,14 @@ INLINE int vector_fast_lengthSquared( int x, int y )
 	return(x+y-(mn>>1)-(mn>>2)+(mn>>4));
 }
 
+INLINE Vector * vector_set( Vector * v, float x, float y )
+{
+	v -> x = x;
+	v -> y = y;
+
+	return v;
+}
+
 Vector * newVector( float x, float y)
 {
 	Vector * v;
@@ -48,10 +56,10 @@ Vector * newVector( float x, float y)
 		exit( TRUE );
 	}
 
-	v->x = x;
-	v->y = y;
+	//v->x = x;
+	//v->y = y;
 
-	return v;
+	return vector_set( v, x, y );
 }
 
 INLINE Vector * vector_clone( Vector * src )

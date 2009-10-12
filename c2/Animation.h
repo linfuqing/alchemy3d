@@ -98,7 +98,7 @@ Animation   * newMorphAnimation( Mesh * parent, Frame * frames, unsigned int len
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////MORPH//////////////////////////////////////
+////////////////////////////////////////Morph//////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
 void animation_morph_updateToFrame( Animation * animation, unsigned int keyFrame )
@@ -205,7 +205,7 @@ int animation_morph_updateToName( Animation * animation, char name[FRAME_NAME_LE
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////TERRAIN_TRACE//////////////////////////////////////
+////////////////////////////////////////TerrainTrace///////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 Animation * newTerrainTraceAnimation( Entity * container, float widthSegment, float heightSegment )
@@ -221,6 +221,7 @@ Animation * newTerrainTraceAnimation( Entity * container, float widthSegment, fl
 	a -> container     = container;
 	a -> widthSegment  = widthSegment;
 	a -> heightSegment = heightSegment;
+	a -> next          = NULL;
 
 	return a;
 }
@@ -321,6 +322,44 @@ void animation_terrainTrace_update( Animation * animation )
 			//AS3_Trace( AS3_Number( ep->entity->mesh->octree->data->aabb->min->y ) );
 			ep = ep -> next;
 		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////TextureCoordinates/////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
+Animation * newTextureCoordinatesAnimation( Mesh * parent, float widthSegment, float heightSegment )
+{
+	Animation * a;
+
+	if( ( a = ( Animation * ) malloc( sizeof( Animation ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	a -> type          = TextureCoordinates;
+	a -> parent        = parent;
+
+	return a;
+}
+
+void animation_textureCoordinates_update( Animation * animation )
+{
+	int i;
+
+	for( i = 0; i < animation -> parent -> nFaces; i ++ )
+	{
+		animation -> parent -> faces[i] -> uv[0] -> u += .001;
+		animation -> parent -> faces[i] -> uv[0] -> v += .001;
+
+		animation -> parent -> faces[i] -> uv[1] -> u += .001;
+		animation -> parent -> faces[i] -> uv[1] -> v += .001;
+
+		animation -> parent -> faces[i] -> uv[2] -> u += .001;
+		animation -> parent -> faces[i] -> uv[2] -> v += .001;
+
+		animation -> parent -> faces[i] -> uvTransformed = FALSE;
 	}
 }
 
