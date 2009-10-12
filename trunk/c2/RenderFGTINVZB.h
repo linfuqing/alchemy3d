@@ -387,6 +387,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 					{
 						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
+
 						z_ptr[xi] = zi;
 					}
 
@@ -619,6 +620,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 					if (zi > z_ptr[xi])
 					{
 						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+
 
 						z_ptr[xi] = zi;
 					}

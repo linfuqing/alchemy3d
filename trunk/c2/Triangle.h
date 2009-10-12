@@ -193,7 +193,16 @@ INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight, int ad
 
 	texHeight--;
 
-	if( addressMode == ADDRESS_MODE_CLAMP )
+	face->t_uv[0]->u = face->uv[0]->u * texWidth ;
+	face->t_uv[0]->v = face->uv[0]->v * texHeight;
+
+	face->t_uv[1]->u = face->uv[1]->u * texWidth ;
+	face->t_uv[1]->v = face->uv[1]->v * texHeight;
+
+	face->t_uv[2]->u = face->uv[2]->u * texWidth ;
+	face->t_uv[2]->v = face->uv[2]->v * texHeight;
+
+	/*if( addressMode == ADDRESS_MODE_CLAMP )
 	{
 		face->t_uv[0]->u = ( face->uv[0]->u > 1 ? 1 : face->uv[0]->u ) * texWidth ;
 		face->t_uv[0]->v = ( face->uv[0]->v > 1 ? 1 : face->uv[0]->v ) * texHeight;
@@ -218,9 +227,9 @@ INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight, int ad
 		maxU = face->uv[0]->u > face->uv[1]->u ? ( face->uv[0]->u > face->uv[2]->u ? u0 : u2 ) : ( face->uv[2]->u > face->uv[1]->u ? u2 : u1 );
 		maxV = face->uv[0]->v > face->uv[1]->v ? ( face->uv[0]->v > face->uv[2]->v ? v0 : v2 ) : ( face->uv[2]->v > face->uv[1]->v ? v2 : v1 );
 	
-		tu0 = ( !tu0 && u0 ) ? ( u0 == maxU ? 1 : 0 ) : tu0, tv0 = ( !tv0 && v0 ) ? ( v0 == maxV ? 1 : 0 ) : tv0,
-		tu1 = ( !tu1 && u1 ) ? ( u1 == maxU ? 1 : 0 ) : tu1, tv1 = ( !tv1 && v1 ) ? ( v1 == maxV ? 1 : 0 ) : tv1,
-		tu2 = ( !tu2 && u2 ) ? ( u2 == maxU ? 1 : 0 ) : tu2, tv2 = ( !tv2 && v2 ) ? ( v2 == maxV ? 1 : 0 ) : tv2;
+		tu0 = ( tu0 == 0 ) ? ( u0 == maxU ? 1 : 0 ) : tu0, tv0 = ( tv0 == 0 ) ? ( v0 == maxV ? 1 : 0 ) : tv0,
+		tu1 = ( tu1 == 0 ) ? ( u1 == maxU ? 1 : 0 ) : tu1, tv1 = ( tv1 == 0 ) ? ( v1 == maxV ? 1 : 0 ) : tv1,
+		tu2 = ( tu2 == 0 ) ? ( u2 == maxU ? 1 : 0 ) : tu2, tv2 = ( tv2 == 0 ) ? ( v2 == maxV ? 1 : 0 ) : tv2;
 
 		if( addressMode == ADDRESS_MODE_MIRROR )
 		{
@@ -256,7 +265,7 @@ INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight, int ad
 			face->t_uv[2]->u = tu2 * texWidth ;
 			face->t_uv[2]->v = tv2 * texHeight;
 		}
-	}
+	}*/
 }
 
 INLINE int triangle_backFaceCulling( Triangle * face, Vector3D * viewerToLocal, Vector3D * viewerPosition  )

@@ -44,7 +44,7 @@ package cn.alchemy3d.terrain
 								width:Number  = 1000, 
 								height:Number = 1000, 
 								maxHeight:int = 500,
-								address:Boolean = true ):void
+								addressMode:int = TerrainAddressMode.MIRROR ):void
 		{
 			Library.alchemy3DLib.initializeTerrain( 
 													_pointer, 
@@ -55,7 +55,7 @@ package cn.alchemy3d.terrain
 													height,
 													maxHeight,
 													_renderMode,
-													address );
+													addressMode );
 		}
 		
 		private var _map:Texture;

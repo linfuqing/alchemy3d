@@ -7,11 +7,11 @@
 #include "Primitives.h"
 #include "Bitmap.h"
 
-/*#define TERRAIN_ADDRESS_MODE_NONE		0
+#define TERRAIN_ADDRESS_MODE_NONE		0
 #define TERRAIN_ADDRESS_MODE_WRAP		1
-#define TERRAIN_ADDRESS_MODE_MIRROR		2*/
+#define TERRAIN_ADDRESS_MODE_MIRROR		2
 
-Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, float maxHeight,  Material * material, Texture * texture, DWORD render_mode, int address )
+Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, float maxHeight,  Material * material, Texture * texture, DWORD render_mode, int addressMode )
 {
 	DWORD i, * buffer = ( DWORD * )map->pRGBABuffer, wh, widthSegments = map -> width - 1, heightSegments = map->height - 1;
 
@@ -32,27 +32,27 @@ Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, flo
 		//base->vertices[i]->position->y = - base->vertices[i]->position->y;
 	}
 
-	/*if( addressMode == TERRAIN_ADDRESS_MODE_WRAP )
+	if( addressMode == TERRAIN_ADDRESS_MODE_WRAP )
 	{
-		for( i = 0; i < base -> nFaces; i += 2 )
+		for( i = 0; i < base -> mesh -> nFaces; i += 2 )
 		{
-			base -> faces[i    ]->uv[0] -> x = 0.0f;
-			base -> faces[i    ]->uv[0] -> y = 0.0f;
+			base -> mesh -> faces[i    ]->uv[0] -> u = 0.0f;
+			base -> mesh -> faces[i    ]->uv[0] -> v = 1.0f;
 
-			base -> faces[i    ]->uv[1] -> x = 0.0f;
-			base -> faces[i    ]->uv[1] -> y = 1.0f;
+			base -> mesh -> faces[i    ]->uv[1] -> u = 1.0f;
+			base -> mesh -> faces[i    ]->uv[1] -> v = 1.0f;
 
-			base -> faces[i    ]->uv[2] -> x = 1.0f;
-			base -> faces[i    ]->uv[2] -> y = 0.0f;
+			base -> mesh -> faces[i    ]->uv[2] -> x = 0.0f;
+			base -> mesh -> faces[i    ]->uv[2] -> y = 0.0f;
 
-			base -> faces[i + 1]->uv[0] -> x = 1.0f;
-			base -> faces[i + 1]->uv[0] -> y = 0.0f;
+			base -> mesh -> faces[i + 1]->uv[0] -> x = 1.0f;
+			base -> mesh -> faces[i + 1]->uv[0] -> y = 0.0f;
 
-			base -> faces[i + 1]->uv[1] -> x = 1.0f;
-			base -> faces[i + 1]->uv[1] -> y = 1.0f;
+			base -> mesh -> faces[i + 1]->uv[1] -> x = 0.0f;
+			base -> mesh -> faces[i + 1]->uv[1] -> y = 0.0f;
 
-			base -> faces[i + 1]->uv[2] -> x = 0.0f;
-			base -> faces[i + 1]->uv[2] -> y = 1.0f;
+			base -> mesh -> faces[i + 1]->uv[2] -> x = 1.0f;
+			base -> mesh -> faces[i + 1]->uv[2] -> y = 1.0f;
 		}
 	}
 	else if( addressMode == TERRAIN_ADDRESS_MODE_MIRROR )
@@ -70,7 +70,7 @@ Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, flo
 				ib = i % 2;
 				jb = j % 2;
 
-				if( jb )
+				if( ib )
 				{
 					vx0 = 1;
 					vx1 = 0;
@@ -85,7 +85,7 @@ Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, flo
 					vx3 = 1;
 				}
 
-				if( ib )
+				if( jb )
 				{
 					vy0 = 1;
 					vy1 = 1;
@@ -100,32 +100,32 @@ Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, flo
 					vy3 = 1;
 				}
 
-				base -> faces[k]->uv[0] -> x = vx0;
-				base -> faces[k]->uv[0] -> y = vy0;
+				base -> mesh -> faces[k]->uv[0] -> x = vx2;
+				base -> mesh -> faces[k]->uv[0] -> y = vy2;
 
-				base -> faces[k]->uv[1] -> x = vx2;
-				base -> faces[k]->uv[1] -> y = vy2;
+				base -> mesh -> faces[k]->uv[1] -> x = vx3;
+				base -> mesh -> faces[k]->uv[1] -> y = vy3;
 
-				base -> faces[k]->uv[2] -> x = vx1;
-				base -> faces[k]->uv[2] -> y = vy1;
+				base -> mesh -> faces[k]->uv[2] -> x = vx0;
+				base -> mesh -> faces[k]->uv[2] -> y = vy0;
 
 				k ++;
 
-				base -> faces[k]->uv[0] -> x = vx1;
-				base -> faces[k]->uv[0] -> y = vy1;
+				base -> mesh -> faces[k]->uv[0] -> x = vx1;
+				base -> mesh -> faces[k]->uv[0] -> y = vy1;
 
-				base -> faces[k]->uv[1] -> x = vx3;
-				base -> faces[k]->uv[1] -> y = vy3;
+				base -> mesh -> faces[k]->uv[1] -> x = vx0;
+				base -> mesh -> faces[k]->uv[1] -> y = vy0;
 
-				base -> faces[k]->uv[2] -> x = vx2;
-				base -> faces[k]->uv[2] -> y = vy2;
+				base -> mesh -> faces[k]->uv[2] -> x = vx3;
+				base -> mesh -> faces[k]->uv[2] -> y = vy3;
 
 				k ++;
 			}
 		}
-	}*/
+	}
 
-	if( address )
+	/*if( address )
 	{
 		
 		DWORD j, k = 0;
@@ -157,7 +157,7 @@ Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, flo
 				k ++;
 			}
 		}
-	}
+	}*/
 
 	base -> mesh->type			= ENTITY_TYPE_MESH_TERRAIN;
 	base -> mesh->widthSegment	= map->width - 1;
