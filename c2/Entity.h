@@ -207,34 +207,31 @@ INLINE void entity_updateAfterRender( Entity * entity )
 
 INLINE void entity_updateTransform( Entity * entity )
 {
-	Quaternion qua;
-	Matrix3D quaMtr;
-
-	/*if( entity -> animation != NULL )
+	if ( entity->transformDirty )
 	{
-		animation_update( entity -> animation, time );
-	}*/
+		Quaternion qua;
+		Matrix3D quaMtr;
 
+		//单位化
+		matrix3D_identity( entity->transform );
+		//缩放
+		matrix3D_appendScale( entity->transform, entity->scale->x, entity->scale->y, entity->scale->z );
+		//旋转
+		matrix3D_append_self( entity->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( entity->direction->y ), DEG2RAD( entity->direction->x ), DEG2RAD( entity->direction->z ) ) ) );
+		//位移
+		matrix3D_appendTranslation( entity->transform, entity->position->x, entity->position->y, entity->position->z );
 
-	//单位化
-	matrix3D_identity( entity->transform );
-	//缩放
-	matrix3D_appendScale( entity->transform, entity->scale->x, entity->scale->y, entity->scale->z );
-	//旋转
-	matrix3D_append_self( entity->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( entity->direction->y ), DEG2RAD( entity->direction->x ), DEG2RAD( entity->direction->z ) ) ) );
-	//位移
-	matrix3D_appendTranslation( entity->transform, entity->position->x, entity->position->y, entity->position->z );
+		matrix3D_copy( entity->world, entity->transform );
+		
+		//如果存在父结点，则连接父结点世界矩阵
+		if( NULL != entity->parent ) matrix3D_append_self(entity->world, entity->parent->world);
 
-	matrix3D_copy( entity->world, entity->transform );
-	
-	//如果存在父结点，则连接父结点世界矩阵
-	if( NULL != entity->parent ) matrix3D_append_self(entity->world, entity->parent->world);
-
-	matrix3D_copy( entity->worldInvert, entity->world );
-	//世界逆矩阵
-	matrix3D_fastInvert( entity->worldInvert );
-	//从世界矩阵获得世界位置
-	matrix3D_getPosition( entity->w_pos, entity->world );
+		matrix3D_copy( entity->worldInvert, entity->world );
+		//世界逆矩阵
+		matrix3D_fastInvert( entity->worldInvert );
+		//从世界矩阵获得世界位置
+		matrix3D_getPosition( entity->w_pos, entity->world );
+	}
 }
 
 /**

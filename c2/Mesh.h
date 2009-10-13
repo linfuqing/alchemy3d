@@ -132,9 +132,9 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 	Vertex * v = m->vertices[m->nVertices];
 
 	vector3D_set( v->position, x, y, z, 1.0f );// = newVector3D(x, y, z, 1.0f);
-	vector3D_set( v->w_pos   , x, y, z, 1.0f );// = newVector3D(x, y, z, 1.0f);
-	vector3D_set( v->v_pos   , x, y, z, 1.0f );// = newVector3D(x, y, z, 1.0f);
-	vector3D_set( v->s_pos   , x, y, z, 1.0f );// = newVector3D(x, y, z, 1.0f);
+	//vector3D_set( v->w_pos   , 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D(x, y, z, 1.0f);
+	//vector3D_set( v->v_pos   , 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D(x, y, z, 1.0f);
+	//vector3D_set( v->s_pos   , 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D(x, y, z, 1.0f);
 
 	argbColor_identity( v->color );// = newARGBColor( 255, 255, 255, 255 );
 
@@ -367,7 +367,7 @@ Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )
 	return m;
 }
 
-INLINE float mesh_minY( Mesh * mesh )
+float mesh_minY( Mesh * mesh )
 {
 	DWORD i;
 	float min = mesh -> vertices[0] -> position -> y;
@@ -381,6 +381,22 @@ INLINE float mesh_minY( Mesh * mesh )
 	}
 
 	return min;
+}
+
+float mesh_maxY( Mesh * mesh )
+{
+	DWORD i;
+	float max = mesh -> vertices[0] -> position -> y;
+
+	for( i = 1; i < mesh -> nVertices; i ++ )
+	{
+		if( mesh -> vertices[i] -> position -> y > max )
+		{
+			max = mesh -> vertices[i] -> position -> y;
+		}
+	}
+
+	return max;
 }
 
 INLINE int mesh_intersectMesh( Mesh * m1, Mesh * m2 )

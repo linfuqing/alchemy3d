@@ -43,12 +43,12 @@ int main()
 	Camera * camera;
 	Viewport * view;
 	Scene * scene;
-	Entity * do3d3;
+	Entity * do3d3, * do3d;
 	Material * material, * material2;
 	//Entity * lightSource;
 	//Light * light;
 	Texture * texture;
-	Bitmap * bitmap;
+	Bitmap * bitmap, * bitmap2;
 	Mesh * mesh4;
 	Fog * fog;
 
@@ -75,33 +75,35 @@ int main()
 							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
 							4.0f );
-
-	if( ( bitmapData = ( LPDWORD )calloc( 256 * 256, sizeof( DWORD ) ) ) == NULL )
+	if( ( bitmapData = ( LPDWORD )calloc( 3 * 3, sizeof( DWORD ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
-	for ( i = 0; i < 256 * 256; i ++ )
+	for ( i = 0; i < 3 * 3; i ++ )
 	{
 		bitmapData[i] = 0xffffffff;
 	}
 
-	bitmap = newBitmap( 256, 256, (LPBYTE)bitmapData );
+	bitmap2 = newBitmap( 3, 3, (LPBYTE)bitmapData );
+
+	//
+
+	if( ( bitmapData = ( LPDWORD )calloc( 4 * 4, sizeof( DWORD ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	for ( i = 0; i < 4 * 4; i ++ )
+	{
+		bitmapData[i] = 0xffffffff;
+	}
+
+	bitmap = newBitmap( 4, 4, (LPBYTE)bitmapData );
 	texture = newTexture( "default_tex" );
 	texture_setMipmap( texture, bitmap );
 	texture->perspective_dist = 5000.0f;
-
-	/////////////////////////////////////////////////////////////////////////////////////
-
-	//mesh4 = newTerrain( NULL, texture, 4000, 4000, 2000, 2, material, NULL, RENDER_WIREFRAME_TRIANGLE_32 );
-	mesh4 = newPlane( NULL, material, texture, 350.0f, 350.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
-	//mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
-	mesh4->octree_depth = 0;
-	mesh4->useMipmap = TRUE;
-	mesh4->mip_dist = 2000.0f;
-	mesh4->fogEnable = TRUE;
-
-	/////////////////////////////////////////////////////////////////////////////////////
+	texture->addressMode = 1;
 
 	fog = newFog( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ), 0.0f, 4800.0f );
 	
@@ -110,18 +112,34 @@ int main()
 	scene_addFog( scene, fog );
 
 	camera = newCamera( 90.0f, 10.0f, 5000.0f, newEntity() );
-	entity_setZ(camera->eye, -1000.0f);
+	entity_setX(camera->eye, -910.0f);
 
-	view = newViewport( 640, 480, scene, camera );
+	view = newViewport( 600, 400, scene, camera );
+
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
-	entity_setRotationX( do3d3, 45.0f);
-	entity_setZ(do3d3, -600.0f);
-	entity_setY(do3d3, -50.0f);
-	entity_setMesh( do3d3, mesh4 );
+	//entity_setRotationX( do3d3, 45.0f);
+	//entity_setZ(do3d3, -20.0f);
+	entity_setY(do3d3, 30.0f);
 
+	do3d = newEntity();
+	mesh4 = newPlane( NULL, material, texture, 200.0f, 200.0f, 2, 2, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
+	//mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
+	entity_setMesh( do3d, mesh4 );
+
+	scene_addEntity(scene, do3d, NULL);
 	scene_addEntity(scene, do3d3, NULL);
+
+	/////////////////////////////////////////////////////////////////////////////////////
+
+	do3d3 = newTerrain( do3d3, bitmap2, 800, 800, 0, material, texture, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32, 1 );
+	do3d3->mesh->octree_depth = 0;
+	//do3d3->mesh->useMipmap = TRUE;
+	//do3d3->mesh->mip_dist = 2000.0f;
+	//do3d3->mesh->fogEnable = TRUE;
+
+	/////////////////////////////////////////////////////////////////////////////////////
 
 	//camera_setTarget( camera, do3d3->w_pos );
 

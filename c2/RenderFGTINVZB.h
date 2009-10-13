@@ -17,7 +17,1493 @@
 
 #define RASTERIZER_MODE RASTERIZER_ACCURATE
 
-///////////////////////////////////支持1/z深度缓冲////////////////////////////////////
+void Draw_Flat_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )// bytes per line of zbuffer
+{
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height;
+
+	int temp=0,
+		v0=0,
+		v1=1,
+		v2=2,
+		tri_type = TRI_TYPE_NONE,
+		irestart = INTERP_LHS;
+
+	int dx,dy,dyl,dyr,
+		dz,
+		xi,yi,
+		xstart,
+		xend,
+		ystart,
+		yrestart,
+		yend,
+		xl,
+		dxdyl,
+		xr,
+		dxdyr,
+		dzdyl,
+		zl,
+		dzdyr,
+		zr;
+
+	DWORD zi;
+
+	int x0,y0,tz0,
+		x1,y1,tz1,
+		x2,y2,tz2;
+
+	DWORD *screen_ptr = NULL,
+		*dest_buffer = (DWORD *)_dest_buffer;
+
+	DWORD *z_ptr = NULL,
+		*zbuffer = (DWORD *)_zbuffer;
+
+	DWORD color; // polygon color
+
+	mempitch >>= 2;
+
+	zpitch >>= 2;
+
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.0f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.0f));
+
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.0f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.0f));
+
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.0f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.0f));
+
+	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
+		(face->vertex[1]->s_pos->y < min_clip_y) &&
+		(face->vertex[2]->s_pos->y < min_clip_y)) ||
+
+		((face->vertex[0]->s_pos->y > max_clip_y) &&
+		(face->vertex[1]->s_pos->y > max_clip_y) &&
+		(face->vertex[2]->s_pos->y > max_clip_y)) ||
+
+		((face->vertex[0]->s_pos->x < min_clip_x) &&
+		(face->vertex[1]->s_pos->x < min_clip_x) &&
+		(face->vertex[2]->s_pos->x < min_clip_x)) ||
+
+		((face->vertex[0]->s_pos->x > max_clip_x) &&
+		(face->vertex[1]->s_pos->x > max_clip_x) &&
+		(face->vertex[2]->s_pos->x > max_clip_x)))
+		return;
+
+	if ( face->vertex[v1]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v1,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v2,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v1]->s_pos->y )
+	{
+		SWAP(v1,v2,temp);
+	}
+
+	if (FCMP(face->vertex[v0]->s_pos->y, face->vertex[v1]->s_pos->y) )
+	{
+		tri_type = TRI_TYPE_FLAT_TOP;
+
+		if (face->vertex[v1]->s_pos->x < face->vertex[v0]->s_pos->x)
+		{
+			SWAP(v0,v1,temp);
+		}
+	}
+	else if (FCMP(face->vertex[v1]->s_pos->y ,face->vertex[v2]->s_pos->y))
+	{
+		tri_type = TRI_TYPE_FLAT_BOTTOM;
+
+		if (face->vertex[v2]->s_pos->x < face->vertex[v1]->s_pos->x)
+		{
+			SWAP(v1,v2,temp);
+		}
+	}
+	else
+	{
+		tri_type = TRI_TYPE_GENERAL;
+	}
+
+	x0 = (int)(face->vertex[v0]->s_pos->x);
+	y0 = (int)(face->vertex[v0]->s_pos->y);
+
+	tz0 = face->vertex[v0]->fix_inv_z;
+
+	x1 = (int)(face->vertex[v1]->s_pos->x);
+	y1 = (int)(face->vertex[v1]->s_pos->y);
+
+	tz1 = face->vertex[v1]->fix_inv_z;
+
+	x2 = (int)(face->vertex[v2]->s_pos->x);
+	y2 = (int)(face->vertex[v2]->s_pos->y);
+
+	tz2 = face->vertex[v2]->fix_inv_z;
+
+	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
+		return;
+
+	// extract constant color
+	color = RGB32BIT( face->vertex[v0]->color->alpha, face->vertex[v0]->color->red, face->vertex[v0]->color->green, face->vertex[v0]->color->blue );
+
+	yrestart = y1;
+
+	if (tri_type & TRI_TYPE_FLAT_MASK)
+	{
+
+		if (tri_type == TRI_TYPE_FLAT_TOP)
+		{
+			dy = (y2 - y0);
+
+			dxdyl = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz2 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x1) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz1) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x1 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz1 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x1 << FIXP16_SHIFT);
+
+				zl = (tz0 << 0);
+				zr = (tz1 << 0);
+
+				ystart = y0;
+			}
+		}
+		else
+		{
+			dy = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz1 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz0) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz0 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x0 << FIXP16_SHIFT);
+
+				zl = (tz0 << 0);
+				zr = (tz0 << 0);
+
+				ystart = y0;
+			}
+		}
+
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v,w interpolants
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = color;
+
+						z_ptr[xi] = zi;
+					}
+
+					zi+=dz;
+				}
+
+				// interpolate z,x along right and left edge
+				xl+=dxdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v,w interpolants
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = color;
+
+						z_ptr[xi] = zi;
+					}
+
+					// interpolate z
+					zi+=dz;
+				}
+
+				// interpolate x,z along right and left edge
+				xl+=dxdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+
+	}
+	else if (tri_type==TRI_TYPE_GENERAL)
+	{
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if (y1 < min_clip_y)
+		{
+			dyl = (y2 - y1);
+
+			dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dyr = (min_clip_y - y0);
+			dyl = (min_clip_y - y1);
+
+			xl = dxdyl*dyl + (x1 << FIXP16_SHIFT);
+			zl = dzdyl*dyl + (tz1 << 0);
+
+			xr = dxdyr*dyr + (x0 << FIXP16_SHIFT);
+			zr = dzdyr*dyr + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr > dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else if (y0 < min_clip_y)
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dy = (min_clip_y - y0);
+
+			xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+			zl = dzdyl*dy + (tz0 << 0);
+
+			xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+			zr = dzdyr*dy + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			xl = (x0 << FIXP16_SHIFT);
+			xr = (x0 << FIXP16_SHIFT);
+
+			zl = (tz0 << 0);
+			zr = (tz0 << 0);
+
+			ystart = y0;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for z interpolants
+				zi = zl;
+
+				// compute z interpolants
+				if ((dx = (xend - xstart))>0)
+				{
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = color;
+
+						z_ptr[xi] = zi;
+					}
+
+					// interpolate z
+					zi+=dz;
+				}
+
+				// interpolate z,x along right and left edge
+				xl+=dxdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						zr+=dzdyr;
+					}
+				}
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				zi = zl; // + FIXP16_ROUND_UP;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = color;
+
+						z_ptr[xi] = zi;
+					}
+
+					// interpolate z
+					zi+=dz;
+				}
+
+				// interpolate x,z along right and left edge
+				xl+=dxdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						zr+=dzdyr;
+					}
+
+				}
+			}
+		}
+	}
+}
+
+void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )// bytes per line of zbuffer
+{
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height;
+
+	int temp=0,
+		v0=0,
+		v1=1,
+		v2=2,
+		tri_type = TRI_TYPE_NONE,
+		irestart = INTERP_LHS;
+
+	int dx,dy,dyl,dyr,
+		du,dv,dw,dz,
+		xi,yi,
+		ui,vi,wi,
+		xstart,
+		xend,
+		ystart,
+		yrestart,
+		yend,
+		xl,
+		dxdyl,
+		xr,
+		dxdyr,
+		dudyl,
+		ul,
+		dvdyl,
+		vl,
+		dwdyl,
+		wl,
+		dzdyl,
+		zl,
+		dudyr,
+		ur,
+		dvdyr,
+		vr,
+		dwdyr,
+		wr,
+		dzdyr,
+		zr;
+
+	DWORD zi;
+
+	int x0,y0,tu0,tv0,tw0,tz0,
+		x1,y1,tu1,tv1,tw1,tz1,
+		x2,y2,tu2,tv2,tw2,tz2;
+
+	int r_base0, g_base0, b_base0,
+		r_base1, g_base1, b_base1,
+		r_base2, g_base2, b_base2,
+		a_base;
+
+	DWORD *screen_ptr = NULL,
+		*dest_buffer = (DWORD *)_dest_buffer;
+
+	DWORD *z_ptr = NULL,
+		*zbuffer = (DWORD *)_zbuffer;
+
+	mempitch >>= 2;
+
+	zpitch >>= 2;
+
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.0f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.0f));
+
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.0f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.0f));
+
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.0f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.0f));
+
+	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
+		(face->vertex[1]->s_pos->y < min_clip_y) &&
+		(face->vertex[2]->s_pos->y < min_clip_y)) ||
+
+		((face->vertex[0]->s_pos->y > max_clip_y) &&
+		(face->vertex[1]->s_pos->y > max_clip_y) &&
+		(face->vertex[2]->s_pos->y > max_clip_y)) ||
+
+		((face->vertex[0]->s_pos->x < min_clip_x) &&
+		(face->vertex[1]->s_pos->x < min_clip_x) &&
+		(face->vertex[2]->s_pos->x < min_clip_x)) ||
+
+		((face->vertex[0]->s_pos->x > max_clip_x) &&
+		(face->vertex[1]->s_pos->x > max_clip_x) &&
+		(face->vertex[2]->s_pos->x > max_clip_x)))
+		return;
+
+	if ( face->vertex[v1]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v1,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v2,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v1]->s_pos->y )
+	{
+		SWAP(v1,v2,temp);
+	}
+
+	if (FCMP(face->vertex[v0]->s_pos->y, face->vertex[v1]->s_pos->y) )
+	{
+		tri_type = TRI_TYPE_FLAT_TOP;
+
+		if (face->vertex[v1]->s_pos->x < face->vertex[v0]->s_pos->x)
+		{
+			SWAP(v0,v1,temp);
+		}
+	}
+	else if (FCMP(face->vertex[v1]->s_pos->y ,face->vertex[v2]->s_pos->y))
+	{
+		tri_type = TRI_TYPE_FLAT_BOTTOM;
+
+		if (face->vertex[v2]->s_pos->x < face->vertex[v1]->s_pos->x)
+		{
+			SWAP(v1,v2,temp);
+		}
+	}
+	else
+	{
+		tri_type = TRI_TYPE_GENERAL;
+	}
+
+	a_base = face->vertex[v0]->color->alpha;
+
+	r_base0 = face->vertex[v0]->color->red;
+	g_base0 = face->vertex[v0]->color->green;
+	b_base0 = face->vertex[v0]->color->blue;
+
+	r_base1 = face->vertex[v1]->color->red;
+	g_base1 = face->vertex[v1]->color->green;
+	b_base1 = face->vertex[v1]->color->blue;
+
+	r_base2 = face->vertex[v2]->color->red;
+	g_base2 = face->vertex[v2]->color->green;
+	b_base2 = face->vertex[v2]->color->blue;
+
+	x0 = (int)(face->vertex[v0]->s_pos->x);
+	y0 = (int)(face->vertex[v0]->s_pos->y);
+
+	tz0 = face->vertex[v0]->fix_inv_z;
+	tu0 = r_base0;
+	tv0 = g_base0;
+	tw0 = b_base0;
+
+	x1 = (int)(face->vertex[v1]->s_pos->x);
+	y1 = (int)(face->vertex[v1]->s_pos->y);
+
+	tz1 = face->vertex[v1]->fix_inv_z;
+	tu1 = r_base1;
+	tv1 = g_base1;
+	tw1 = b_base1;
+
+	x2 = (int)(face->vertex[v2]->s_pos->x);
+	y2 = (int)(face->vertex[v2]->s_pos->y);
+
+	tz2 = face->vertex[v2]->fix_inv_z;
+	tu2 = r_base2;
+	tv2 = g_base2;
+	tw2 = b_base2;
+
+	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
+		return;
+
+	yrestart = y1;
+
+	if (tri_type & TRI_TYPE_FLAT_MASK)
+	{
+		if (tri_type == TRI_TYPE_FLAT_TOP)
+		{
+			dy = (y2 - y0);
+
+			dxdyl = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dudyl = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyl = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
+			dwdyl = ((tw2 - tw0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz2 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x1) << FIXP16_SHIFT)/dy;
+			dudyr = ((tu2 - tu1) << FIXP16_SHIFT)/dy;
+			dvdyr = ((tv2 - tv1) << FIXP16_SHIFT)/dy;
+			dwdyr = ((tw2 - tw1) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz1) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+				wl = dwdyl*dy + (tw0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x1 << FIXP16_SHIFT);
+				ur = dudyr*dy + (tu1 << FIXP16_SHIFT);
+				vr = dvdyr*dy + (tv1 << FIXP16_SHIFT);
+				wr = dwdyr*dy + (tw1 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz1 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x1 << FIXP16_SHIFT);
+
+				ul = (tu0 << FIXP16_SHIFT);
+				vl = (tv0 << FIXP16_SHIFT);
+				wl = (tw0 << FIXP16_SHIFT);
+				zl = (tz0 << 0);
+
+				ur = (tu1 << FIXP16_SHIFT);
+				vr = (tv1 << FIXP16_SHIFT);
+				wr = (tw1 << FIXP16_SHIFT);
+				zr = (tz1 << 0);
+
+				ystart = y0;
+			}
+		}
+		else
+		{
+			dy = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dy;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dy;
+			dwdyl = ((tw1 - tw0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz1 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
+			dwdyr = ((tw2 - tw0) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz0) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+				wl = dwdyl*dy + (tw0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+				ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
+				vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
+				wr = dwdyr*dy + (tw0 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz0 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x0 << FIXP16_SHIFT);
+
+				ul = (tu0 << FIXP16_SHIFT);
+				vl = (tv0 << FIXP16_SHIFT);
+				wl = (tw0 << FIXP16_SHIFT);
+				zl = (tz0 << 0);
+
+				ur = (tu0 << FIXP16_SHIFT);
+				vr = (tv0 << FIXP16_SHIFT);
+				wr = (tw0 << FIXP16_SHIFT);
+				zr = (tz0 << 0);
+
+				ystart = y0;
+			}
+		}
+
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v,w interpolants
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				wi = wl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dw = (wr - wl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dw = (wr - wl);
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					ui+=dx*du;
+					vi+=dx*dv;
+					wi+=dx*dw;
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = (a_base << FIXP24_SHIFT) + ((ui >> FIXP16_SHIFT) << 16) + ((vi >> FIXP16_SHIFT) << 8) + (wi >> FIXP16_SHIFT);
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					wi+=dw;
+					zi+=dz;
+				}
+
+				// interpolate u,v,x along right and left edge
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				wl+=dwdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				wr+=dwdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v,w interpolants
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				wi = wl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dw = (wr - wl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dw = (wr - wl);
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = (a_base << FIXP24_SHIFT) + ((ui >> FIXP16_SHIFT) << 16) + ((vi >> FIXP16_SHIFT) << 8) + (wi >> FIXP16_SHIFT);
+
+						z_ptr[xi] = zi;
+					}
+
+
+					ui+=du;
+					vi+=dv;
+					wi+=dw;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				wl+=dwdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				wr+=dwdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+
+	}
+	else if (tri_type==TRI_TYPE_GENERAL)
+	{
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if (y1 < min_clip_y)
+		{
+			dyl = (y2 - y1);
+
+			dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+			dwdyl = ((tw2 - tw1) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dwdyr = ((tw2 - tw0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dyr = (min_clip_y - y0);
+			dyl = (min_clip_y - y1);
+
+			xl = dxdyl*dyl + (x1 << FIXP16_SHIFT);
+
+			ul = dudyl*dyl + (tu1 << FIXP16_SHIFT);
+			vl = dvdyl*dyl + (tv1 << FIXP16_SHIFT);
+			wl = dwdyl*dyl + (tw1 << FIXP16_SHIFT);
+			zl = dzdyl*dyl + (tz1 << 0);
+
+			xr = dxdyr*dyr + (x0 << FIXP16_SHIFT);
+
+			ur = dudyr*dyr + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr*dyr + (tv0 << FIXP16_SHIFT);
+			wr = dwdyr*dyr + (tw0 << FIXP16_SHIFT);
+			zr = dzdyr*dyr + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr > dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dwdyl,dwdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(wl,wr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tw1,tw2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else if (y0 < min_clip_y)
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
+			dwdyl = ((tw1 - tw0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dwdyr = ((tw2 - tw0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dy = (min_clip_y - y0);
+
+			xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+			ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+			vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+			wl = dwdyl*dy + (tw0 << FIXP16_SHIFT);
+			zl = dzdyl*dy + (tz0 << 0);
+
+			xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+			ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
+			wr = dwdyr*dy + (tw0 << FIXP16_SHIFT);
+			zr = dzdyr*dy + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dwdyl,dwdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(wl,wr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tw1,tw2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
+			dwdyl = ((tw1 - tw0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dwdyr = ((tw2 - tw0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			xl = (x0 << FIXP16_SHIFT);
+			xr = (x0 << FIXP16_SHIFT);
+
+			ul = (tu0 << FIXP16_SHIFT);
+			vl = (tv0 << FIXP16_SHIFT);
+			wl = (tw0 << FIXP16_SHIFT);
+			zl = (tz0 << 0);
+
+			ur = (tu0 << FIXP16_SHIFT);
+			vr = (tv0 << FIXP16_SHIFT);
+			wr = (tw0 << FIXP16_SHIFT);
+			zr = (tz0 << 0);
+
+			ystart = y0;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dwdyl,dwdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(wl,wr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tw1,tw2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v,w interpolants
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				wi = wl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dw = (wr - wl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dw = (wr - wl);
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					ui+=dx*du;
+					vi+=dx*dv;
+					wi+=dx*dw;
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = (a_base << FIXP24_SHIFT) + ((ui >> FIXP16_SHIFT) << 16) + ((vi >> FIXP16_SHIFT) << 8) + (wi >> FIXP16_SHIFT);
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					wi+=dw;
+					zi+=dz;
+				}
+
+				// interpolate u,v,x along right and left edge
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				wl+=dwdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				wr+=dwdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+						dwdyl = ((tw2 - tw1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
+						wl = (tw1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						ul+=dudyl;
+						vl+=dvdyl;
+						wl+=dwdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
+						dwdyr = ((tw1 - tw2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
+						wr = (tw2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						ur+=dudyr;
+						vr+=dvdyr;
+						wr+=dwdyr;
+						zr+=dzdyr;
+					}
+				}
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				wi = wl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dw = (wr - wl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dw = (wr - wl);
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = (a_base << FIXP24_SHIFT) + ((ui >> FIXP16_SHIFT) << 16) + ((vi >> FIXP16_SHIFT) << 8) + (wi >> FIXP16_SHIFT);
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					wi+=dw;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				wl+=dwdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				wr+=dwdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+						dwdyl = ((tw2 - tw1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
+						wl = (tw1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						ul+=dudyl;
+						vl+=dvdyl;
+						wl+=dwdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
+						dwdyr = ((tw1 - tw2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
+						wr = (tw2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						ur+=dudyr;
+						vr+=dvdyr;
+						wr+=dwdyr;
+						zr+=dzdyr;
+					}
+
+				}
+			}
+		}
+	}
+}
+
+
 void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )
 {
 	BYTE * _dest_buffer = viewport->videoBuffer;
@@ -387,7 +1873,6 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 					{
 						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
-
 						z_ptr[xi] = zi;
 					}
 
@@ -620,7 +2105,6 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 					if (zi > z_ptr[xi])
 					{
 						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
-
 
 						z_ptr[xi] = zi;
 					}
@@ -3762,1493 +5246,6 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	}
 }
 
-void Draw_Flat_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )// bytes per line of zbuffer
-{
-	BYTE * _dest_buffer = viewport->videoBuffer;
-	BYTE * _zbuffer = viewport->zBuffer;
-
-	int mempitch = viewport->mempitch;
-	int zpitch = viewport->zpitch;
-	int min_clip_x = 0;
-	int max_clip_x = viewport->width;
-	int min_clip_y = 0;
-	int max_clip_y = viewport->height;
-
-	int temp=0,
-		v0=0,
-		v1=1,
-		v2=2,
-		tri_type = TRI_TYPE_NONE,
-		irestart = INTERP_LHS;
-
-	int dx,dy,dyl,dyr,
-		dz,
-		xi,yi,
-		xstart,
-		xend,
-		ystart,
-		yrestart,
-		yend,
-		xl,
-		dxdyl,
-		xr,
-		dxdyr,
-		dzdyl,
-		zl,
-		dzdyr,
-		zr;
-
-	DWORD zi;
-
-	int x0,y0,tz0,
-		x1,y1,tz1,
-		x2,y2,tz2;
-
-	DWORD *screen_ptr = NULL,
-		*dest_buffer = (DWORD *)_dest_buffer;
-
-	DWORD *z_ptr = NULL,
-		*zbuffer = (DWORD *)_zbuffer;
-
-	DWORD color; // polygon color
-
-	mempitch >>= 2;
-
-	zpitch >>= 2;
-
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.0f));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.0f));
-
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.0f));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.0f));
-
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.0f));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.0f));
-
-	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
-		(face->vertex[1]->s_pos->y < min_clip_y) &&
-		(face->vertex[2]->s_pos->y < min_clip_y)) ||
-
-		((face->vertex[0]->s_pos->y > max_clip_y) &&
-		(face->vertex[1]->s_pos->y > max_clip_y) &&
-		(face->vertex[2]->s_pos->y > max_clip_y)) ||
-
-		((face->vertex[0]->s_pos->x < min_clip_x) &&
-		(face->vertex[1]->s_pos->x < min_clip_x) &&
-		(face->vertex[2]->s_pos->x < min_clip_x)) ||
-
-		((face->vertex[0]->s_pos->x > max_clip_x) &&
-		(face->vertex[1]->s_pos->x > max_clip_x) &&
-		(face->vertex[2]->s_pos->x > max_clip_x)))
-		return;
-
-	if ( face->vertex[v1]->s_pos->y < face->vertex[v0]->s_pos->y )
-	{
-		SWAP(v0,v1,temp);
-	}
-
-	if ( face->vertex[v2]->s_pos->y < face->vertex[v0]->s_pos->y )
-	{
-		SWAP(v0,v2,temp);
-	}
-
-	if ( face->vertex[v2]->s_pos->y < face->vertex[v1]->s_pos->y )
-	{
-		SWAP(v1,v2,temp);
-	}
-
-	if (FCMP(face->vertex[v0]->s_pos->y, face->vertex[v1]->s_pos->y) )
-	{
-		tri_type = TRI_TYPE_FLAT_TOP;
-
-		if (face->vertex[v1]->s_pos->x < face->vertex[v0]->s_pos->x)
-		{
-			SWAP(v0,v1,temp);
-		}
-	}
-	else if (FCMP(face->vertex[v1]->s_pos->y ,face->vertex[v2]->s_pos->y))
-	{
-		tri_type = TRI_TYPE_FLAT_BOTTOM;
-
-		if (face->vertex[v2]->s_pos->x < face->vertex[v1]->s_pos->x)
-		{
-			SWAP(v1,v2,temp);
-		}
-	}
-	else
-	{
-		tri_type = TRI_TYPE_GENERAL;
-	}
-
-	x0 = (int)(face->vertex[v0]->s_pos->x);
-	y0 = (int)(face->vertex[v0]->s_pos->y);
-
-	tz0 = face->vertex[v0]->fix_inv_z;
-
-	x1 = (int)(face->vertex[v1]->s_pos->x);
-	y1 = (int)(face->vertex[v1]->s_pos->y);
-
-	tz1 = face->vertex[v1]->fix_inv_z;
-
-	x2 = (int)(face->vertex[v2]->s_pos->x);
-	y2 = (int)(face->vertex[v2]->s_pos->y);
-
-	tz2 = face->vertex[v2]->fix_inv_z;
-
-	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
-		return;
-
-	// extract constant color
-	color = RGB32BIT( face->vertex[v0]->color->alpha, face->vertex[v0]->color->red, face->vertex[v0]->color->green, face->vertex[v0]->color->blue );
-
-	yrestart = y1;
-
-	if (tri_type & TRI_TYPE_FLAT_MASK)
-	{
-
-		if (tri_type == TRI_TYPE_FLAT_TOP)
-		{
-			dy = (y2 - y0);
-
-			dxdyl = ((x2 - x0) << FIXP16_SHIFT)/dy;
-			dzdyl = ((tz2 - tz0) << 0)/dy;
-
-			dxdyr = ((x2 - x1) << FIXP16_SHIFT)/dy;
-			dzdyr = ((tz2 - tz1) << 0)/dy;
-
-			if (y0 < min_clip_y)
-			{
-				dy = (min_clip_y - y0);
-
-				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
-				zl = dzdyl*dy + (tz0 << 0);
-
-				xr = dxdyr*dy + (x1 << FIXP16_SHIFT);
-				zr = dzdyr*dy + (tz1 << 0);
-
-				ystart = min_clip_y;
-			}
-			else
-			{
-				xl = (x0 << FIXP16_SHIFT);
-				xr = (x1 << FIXP16_SHIFT);
-
-				zl = (tz0 << 0);
-				zr = (tz1 << 0);
-
-				ystart = y0;
-			}
-		}
-		else
-		{
-			dy = (y1 - y0);
-
-			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dy;
-			dzdyl = ((tz1 - tz0) << 0)/dy;
-
-			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dy;
-			dzdyr = ((tz2 - tz0) << 0)/dy;
-
-			if (y0 < min_clip_y)
-			{
-				dy = (min_clip_y - y0);
-
-				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
-				zl = dzdyl*dy + (tz0 << 0);
-
-				xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
-				zr = dzdyr*dy + (tz0 << 0);
-
-				ystart = min_clip_y;
-			}
-			else
-			{
-				xl = (x0 << FIXP16_SHIFT);
-				xr = (x0 << FIXP16_SHIFT);
-
-				zl = (tz0 << 0);
-				zr = (tz0 << 0);
-
-				ystart = y0;
-			}
-		}
-
-		if ((yend = y2) > max_clip_y)
-			yend = max_clip_y;
-
-		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
-			(x1 < min_clip_x) || (x1 > max_clip_x) ||
-			(x2 < min_clip_x) || (x2 > max_clip_x))
-		{
-			screen_ptr = dest_buffer + (ystart * mempitch);
-
-			z_ptr = zbuffer + (ystart * zpitch);
-
-			for (yi = ystart; yi < yend; yi++)
-			{
-				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-
-				// compute starting points for u,v,w interpolants
-				zi = zl;
-
-				if ((dx = (xend - xstart))>0)
-				{
-					dz = (zr - zl)/dx;
-				}
-				else
-				{
-					dz = (zr - zl);
-				}
-
-				///////////////////////////////////////////////////////////////////////
-
-				if (xstart < min_clip_x)
-				{
-					dx = min_clip_x - xstart;
-
-					zi+=dx*dz;
-
-					xstart = min_clip_x;
-
-				}
-
-				if (xend > max_clip_x)
-					xend = max_clip_x;
-
-				///////////////////////////////////////////////////////////////////////
-
-				for (xi=xstart; xi < xend; xi++)
-				{
-					if (zi > z_ptr[xi])
-					{
-						screen_ptr[xi] = color;
-
-						z_ptr[xi] = zi;
-					}
-
-					zi+=dz;
-				}
-
-				// interpolate z,x along right and left edge
-				xl+=dxdyl;
-				zl+=dzdyl;
-
-				xr+=dxdyr;
-				zr+=dzdyr;
-
-				screen_ptr+=mempitch;
-
-				z_ptr+=zpitch;
-			}
-		}
-		else
-		{
-			screen_ptr = dest_buffer + (ystart * mempitch);
-
-			z_ptr = zbuffer + (ystart * zpitch);
-
-			for (yi = ystart; yi < yend; yi++)
-			{
-				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-
-				// compute starting points for u,v,w interpolants
-				zi = zl;
-
-				if ((dx = (xend - xstart))>0)
-				{
-					dz = (zr - zl)/dx;
-				}
-				else
-				{
-					dz = (zr - zl);
-				}
-
-				for (xi=xstart; xi < xend; xi++)
-				{
-					if (zi > z_ptr[xi])
-					{
-						screen_ptr[xi] = color;
-
-						z_ptr[xi] = zi;
-					}
-
-					// interpolate z
-					zi+=dz;
-				}
-
-				// interpolate x,z along right and left edge
-				xl+=dxdyl;
-				zl+=dzdyl;
-
-				xr+=dxdyr;
-				zr+=dzdyr;
-
-				screen_ptr+=mempitch;
-
-				z_ptr+=zpitch;
-			}
-		}
-
-	}
-	else if (tri_type==TRI_TYPE_GENERAL)
-	{
-		if ((yend = y2) > max_clip_y)
-			yend = max_clip_y;
-
-		if (y1 < min_clip_y)
-		{
-			dyl = (y2 - y1);
-
-			dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
-			dzdyl = ((tz2 - tz1) << 0)/dyl;
-
-			dyr = (y2 - y0);
-
-			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
-			dzdyr = ((tz2 - tz0) << 0)/dyr;
-
-			dyr = (min_clip_y - y0);
-			dyl = (min_clip_y - y1);
-
-			xl = dxdyl*dyl + (x1 << FIXP16_SHIFT);
-			zl = dzdyl*dyl + (tz1 << 0);
-
-			xr = dxdyr*dyr + (x0 << FIXP16_SHIFT);
-			zr = dzdyr*dyr + (tz0 << 0);
-
-			ystart = min_clip_y;
-
-			if (dxdyr > dxdyl)
-			{
-				SWAP(dxdyl,dxdyr,temp);
-				SWAP(dzdyl,dzdyr,temp);
-				SWAP(xl,xr,temp);
-				SWAP(zl,zr,temp);
-				SWAP(x1,x2,temp);
-				SWAP(y1,y2,temp);
-				SWAP(tz1,tz2,temp);
-
-				irestart = INTERP_RHS;
-			}
-		}
-		else if (y0 < min_clip_y)
-		{
-			dyl = (y1 - y0);
-
-			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
-			dzdyl = ((tz1 - tz0) << 0)/dyl;
-
-			dyr = (y2 - y0);
-
-			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
-			dzdyr = ((tz2 - tz0) << 0)/dyr;
-
-			dy = (min_clip_y - y0);
-
-			xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
-			zl = dzdyl*dy + (tz0 << 0);
-
-			xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
-			zr = dzdyr*dy + (tz0 << 0);
-
-			ystart = min_clip_y;
-
-			if (dxdyr < dxdyl)
-			{
-				SWAP(dxdyl,dxdyr,temp);
-				SWAP(dzdyl,dzdyr,temp);
-				SWAP(xl,xr,temp);
-				SWAP(zl,zr,temp);
-				SWAP(x1,x2,temp);
-				SWAP(y1,y2,temp);
-				SWAP(tz1,tz2,temp);
-
-				irestart = INTERP_RHS;
-			}
-		}
-		else
-		{
-			dyl = (y1 - y0);
-
-			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
-			dzdyl = ((tz1 - tz0) << 0)/dyl;
-
-			dyr = (y2 - y0);
-
-			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
-			dzdyr = ((tz2 - tz0) << 0)/dyr;
-
-			xl = (x0 << FIXP16_SHIFT);
-			xr = (x0 << FIXP16_SHIFT);
-
-			zl = (tz0 << 0);
-			zr = (tz0 << 0);
-
-			ystart = y0;
-
-			if (dxdyr < dxdyl)
-			{
-				SWAP(dxdyl,dxdyr,temp);
-				SWAP(dzdyl,dzdyr,temp);
-				SWAP(xl,xr,temp);
-				SWAP(zl,zr,temp);
-				SWAP(x1,x2,temp);
-				SWAP(y1,y2,temp);
-				SWAP(tz1,tz2,temp);
-
-				irestart = INTERP_RHS;
-			}
-		}
-
-		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
-			(x1 < min_clip_x) || (x1 > max_clip_x) ||
-			(x2 < min_clip_x) || (x2 > max_clip_x))
-		{
-			screen_ptr = dest_buffer + (ystart * mempitch);
-
-			z_ptr = zbuffer + (ystart * zpitch);
-
-			for (yi = ystart; yi < yend; yi++)
-			{
-				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-
-				// compute starting points for z interpolants
-				zi = zl;
-
-				// compute z interpolants
-				if ((dx = (xend - xstart))>0)
-				{
-					dz = (zr - zl)/dx;
-				}
-				else
-				{
-					dz = (zr - zl);
-				}
-
-				///////////////////////////////////////////////////////////////////////
-
-				if (xstart < min_clip_x)
-				{
-					dx = min_clip_x - xstart;
-
-					zi+=dx*dz;
-
-					xstart = min_clip_x;
-
-				}
-
-				if (xend > max_clip_x)
-					xend = max_clip_x;
-
-				///////////////////////////////////////////////////////////////////////
-
-				for (xi=xstart; xi < xend; xi++)
-				{
-					if (zi > z_ptr[xi])
-					{
-						screen_ptr[xi] = color;
-
-						z_ptr[xi] = zi;
-					}
-
-					// interpolate z
-					zi+=dz;
-				}
-
-				// interpolate z,x along right and left edge
-				xl+=dxdyl;
-				zl+=dzdyl;
-
-				xr+=dxdyr;
-				zr+=dzdyr;
-
-				screen_ptr+=mempitch;
-
-				z_ptr+=zpitch;
-
-				if (yi==yrestart)
-				{
-					if (irestart == INTERP_LHS)
-					{
-						dyl = (y2 - y1);
-
-						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
-						dzdyl = ((tz2 - tz1) << 0)/dyl;
-
-						xl = (x1 << FIXP16_SHIFT);
-						zl = (tz1 << 0);
-
-						xl+=dxdyl;
-						zl+=dzdyl;
-					}
-					else
-					{
-						dyr = (y1 - y2);
-
-						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
-						dzdyr = ((tz1 - tz2) << 0)/dyr;
-
-						xr = (x2 << FIXP16_SHIFT);
-						zr = (tz2 << 0);
-
-						xr+=dxdyr;
-						zr+=dzdyr;
-					}
-				}
-			}
-		}
-		else
-		{
-			screen_ptr = dest_buffer + (ystart * mempitch);
-
-			z_ptr = zbuffer + (ystart * zpitch);
-
-			for (yi = ystart; yi < yend; yi++)
-			{
-				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-
-				zi = zl; // + FIXP16_ROUND_UP;
-
-				if ((dx = (xend - xstart))>0)
-				{
-					dz = (zr - zl)/dx;
-				}
-				else
-				{
-					dz = (zr - zl);
-				}
-
-				for (xi=xstart; xi < xend; xi++)
-				{
-					if (zi > z_ptr[xi])
-					{
-						screen_ptr[xi] = color;
-
-						z_ptr[xi] = zi;
-					}
-
-					// interpolate z
-					zi+=dz;
-				}
-
-				// interpolate x,z along right and left edge
-				xl+=dxdyl;
-				zl+=dzdyl;
-
-				xr+=dxdyr;
-				zr+=dzdyr;
-
-				screen_ptr+=mempitch;
-
-				z_ptr+=zpitch;
-
-				if (yi==yrestart)
-				{
-					if (irestart == INTERP_LHS)
-					{
-						dyl = (y2 - y1);
-
-						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
-						dzdyl = ((tz2 - tz1) << 0)/dyl;
-
-						xl = (x1 << FIXP16_SHIFT);
-						zl = (tz1 << 0);
-
-						xl+=dxdyl;
-						zl+=dzdyl;
-					}
-					else
-					{
-						dyr = (y1 - y2);
-
-						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
-						dzdyr = ((tz1 - tz2) << 0)/dyr;
-
-						xr = (x2 << FIXP16_SHIFT);
-						zr = (tz2 << 0);
-
-						xr+=dxdyr;
-						zr+=dzdyr;
-					}
-
-				}
-			}
-		}
-	}
-}
-
-void Draw_Gouraud_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )// bytes per line of zbuffer
-{
-	BYTE * _dest_buffer = viewport->videoBuffer;
-	BYTE * _zbuffer = viewport->zBuffer;
-
-	int mempitch = viewport->mempitch;
-	int zpitch = viewport->zpitch;
-	int min_clip_x = 0;
-	int max_clip_x = viewport->width;
-	int min_clip_y = 0;
-	int max_clip_y = viewport->height;
-
-	int temp=0,
-		v0=0,
-		v1=1,
-		v2=2,
-		tri_type = TRI_TYPE_NONE,
-		irestart = INTERP_LHS;
-
-	int dx,dy,dyl,dyr,
-		du,dv,dw,dz,
-		xi,yi,
-		ui,vi,wi,
-		xstart,
-		xend,
-		ystart,
-		yrestart,
-		yend,
-		xl,
-		dxdyl,
-		xr,
-		dxdyr,
-		dudyl,
-		ul,
-		dvdyl,
-		vl,
-		dwdyl,
-		wl,
-		dzdyl,
-		zl,
-		dudyr,
-		ur,
-		dvdyr,
-		vr,
-		dwdyr,
-		wr,
-		dzdyr,
-		zr;
-
-	DWORD zi;
-
-	int x0,y0,tu0,tv0,tw0,tz0,
-		x1,y1,tu1,tv1,tw1,tz1,
-		x2,y2,tu2,tv2,tw2,tz2;
-
-	int r_base0, g_base0, b_base0,
-		r_base1, g_base1, b_base1,
-		r_base2, g_base2, b_base2,
-		a_base;
-
-	DWORD *screen_ptr = NULL,
-		*dest_buffer = (DWORD *)_dest_buffer;
-
-	DWORD *z_ptr = NULL,
-		*zbuffer = (DWORD *)_zbuffer;
-
-	mempitch >>= 2;
-
-	zpitch >>= 2;
-
-	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.0f));
-	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.0f));
-
-	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.0f));
-	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.0f));
-
-	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.0f));
-	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.0f));
-
-	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
-		(face->vertex[1]->s_pos->y < min_clip_y) &&
-		(face->vertex[2]->s_pos->y < min_clip_y)) ||
-
-		((face->vertex[0]->s_pos->y > max_clip_y) &&
-		(face->vertex[1]->s_pos->y > max_clip_y) &&
-		(face->vertex[2]->s_pos->y > max_clip_y)) ||
-
-		((face->vertex[0]->s_pos->x < min_clip_x) &&
-		(face->vertex[1]->s_pos->x < min_clip_x) &&
-		(face->vertex[2]->s_pos->x < min_clip_x)) ||
-
-		((face->vertex[0]->s_pos->x > max_clip_x) &&
-		(face->vertex[1]->s_pos->x > max_clip_x) &&
-		(face->vertex[2]->s_pos->x > max_clip_x)))
-		return;
-
-	if ( face->vertex[v1]->s_pos->y < face->vertex[v0]->s_pos->y )
-	{
-		SWAP(v0,v1,temp);
-	}
-
-	if ( face->vertex[v2]->s_pos->y < face->vertex[v0]->s_pos->y )
-	{
-		SWAP(v0,v2,temp);
-	}
-
-	if ( face->vertex[v2]->s_pos->y < face->vertex[v1]->s_pos->y )
-	{
-		SWAP(v1,v2,temp);
-	}
-
-	if (FCMP(face->vertex[v0]->s_pos->y, face->vertex[v1]->s_pos->y) )
-	{
-		tri_type = TRI_TYPE_FLAT_TOP;
-
-		if (face->vertex[v1]->s_pos->x < face->vertex[v0]->s_pos->x)
-		{
-			SWAP(v0,v1,temp);
-		}
-	}
-	else if (FCMP(face->vertex[v1]->s_pos->y ,face->vertex[v2]->s_pos->y))
-	{
-		tri_type = TRI_TYPE_FLAT_BOTTOM;
-
-		if (face->vertex[v2]->s_pos->x < face->vertex[v1]->s_pos->x)
-		{
-			SWAP(v1,v2,temp);
-		}
-	}
-	else
-	{
-		tri_type = TRI_TYPE_GENERAL;
-	}
-
-	a_base = face->vertex[v0]->color->alpha;
-
-	r_base0 = face->vertex[v0]->color->red;
-	g_base0 = face->vertex[v0]->color->green;
-	b_base0 = face->vertex[v0]->color->blue;
-
-	r_base1 = face->vertex[v1]->color->red;
-	g_base1 = face->vertex[v1]->color->green;
-	b_base1 = face->vertex[v1]->color->blue;
-
-	r_base2 = face->vertex[v2]->color->red;
-	g_base2 = face->vertex[v2]->color->green;
-	b_base2 = face->vertex[v2]->color->blue;
-
-	x0 = (int)(face->vertex[v0]->s_pos->x);
-	y0 = (int)(face->vertex[v0]->s_pos->y);
-
-	tz0 = face->vertex[v0]->fix_inv_z;
-	tu0 = r_base0;
-	tv0 = g_base0;
-	tw0 = b_base0;
-
-	x1 = (int)(face->vertex[v1]->s_pos->x);
-	y1 = (int)(face->vertex[v1]->s_pos->y);
-
-	tz1 = face->vertex[v1]->fix_inv_z;
-	tu1 = r_base1;
-	tv1 = g_base1;
-	tw1 = b_base1;
-
-	x2 = (int)(face->vertex[v2]->s_pos->x);
-	y2 = (int)(face->vertex[v2]->s_pos->y);
-
-	tz2 = face->vertex[v2]->fix_inv_z;
-	tu2 = r_base2;
-	tv2 = g_base2;
-	tw2 = b_base2;
-
-	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
-		return;
-
-	yrestart = y1;
-
-	if (tri_type & TRI_TYPE_FLAT_MASK)
-	{
-		if (tri_type == TRI_TYPE_FLAT_TOP)
-		{
-			dy = (y2 - y0);
-
-			dxdyl = ((x2 - x0) << FIXP16_SHIFT)/dy;
-			dudyl = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
-			dvdyl = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
-			dwdyl = ((tw2 - tw0) << FIXP16_SHIFT)/dy;
-			dzdyl = ((tz2 - tz0) << 0)/dy;
-
-			dxdyr = ((x2 - x1) << FIXP16_SHIFT)/dy;
-			dudyr = ((tu2 - tu1) << FIXP16_SHIFT)/dy;
-			dvdyr = ((tv2 - tv1) << FIXP16_SHIFT)/dy;
-			dwdyr = ((tw2 - tw1) << FIXP16_SHIFT)/dy;
-			dzdyr = ((tz2 - tz1) << 0)/dy;
-
-			if (y0 < min_clip_y)
-			{
-				dy = (min_clip_y - y0);
-
-				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
-				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
-				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
-				wl = dwdyl*dy + (tw0 << FIXP16_SHIFT);
-				zl = dzdyl*dy + (tz0 << 0);
-
-				xr = dxdyr*dy + (x1 << FIXP16_SHIFT);
-				ur = dudyr*dy + (tu1 << FIXP16_SHIFT);
-				vr = dvdyr*dy + (tv1 << FIXP16_SHIFT);
-				wr = dwdyr*dy + (tw1 << FIXP16_SHIFT);
-				zr = dzdyr*dy + (tz1 << 0);
-
-				ystart = min_clip_y;
-			}
-			else
-			{
-				xl = (x0 << FIXP16_SHIFT);
-				xr = (x1 << FIXP16_SHIFT);
-
-				ul = (tu0 << FIXP16_SHIFT);
-				vl = (tv0 << FIXP16_SHIFT);
-				wl = (tw0 << FIXP16_SHIFT);
-				zl = (tz0 << 0);
-
-				ur = (tu1 << FIXP16_SHIFT);
-				vr = (tv1 << FIXP16_SHIFT);
-				wr = (tw1 << FIXP16_SHIFT);
-				zr = (tz1 << 0);
-
-				ystart = y0;
-			}
-		}
-		else
-		{
-			dy = (y1 - y0);
-
-			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dy;
-			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dy;
-			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dy;
-			dwdyl = ((tw1 - tw0) << FIXP16_SHIFT)/dy;
-			dzdyl = ((tz1 - tz0) << 0)/dy;
-
-			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dy;
-			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
-			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
-			dwdyr = ((tw2 - tw0) << FIXP16_SHIFT)/dy;
-			dzdyr = ((tz2 - tz0) << 0)/dy;
-
-			if (y0 < min_clip_y)
-			{
-				dy = (min_clip_y - y0);
-
-				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
-				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
-				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
-				wl = dwdyl*dy + (tw0 << FIXP16_SHIFT);
-				zl = dzdyl*dy + (tz0 << 0);
-
-				xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
-				ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
-				vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
-				wr = dwdyr*dy + (tw0 << FIXP16_SHIFT);
-				zr = dzdyr*dy + (tz0 << 0);
-
-				ystart = min_clip_y;
-			}
-			else
-			{
-				xl = (x0 << FIXP16_SHIFT);
-				xr = (x0 << FIXP16_SHIFT);
-
-				ul = (tu0 << FIXP16_SHIFT);
-				vl = (tv0 << FIXP16_SHIFT);
-				wl = (tw0 << FIXP16_SHIFT);
-				zl = (tz0 << 0);
-
-				ur = (tu0 << FIXP16_SHIFT);
-				vr = (tv0 << FIXP16_SHIFT);
-				wr = (tw0 << FIXP16_SHIFT);
-				zr = (tz0 << 0);
-
-				ystart = y0;
-			}
-		}
-
-		if ((yend = y2) > max_clip_y)
-			yend = max_clip_y;
-
-		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
-			(x1 < min_clip_x) || (x1 > max_clip_x) ||
-			(x2 < min_clip_x) || (x2 > max_clip_x))
-		{
-			screen_ptr = dest_buffer + (ystart * mempitch);
-
-			z_ptr = zbuffer + (ystart * zpitch);
-
-			for (yi = ystart; yi < yend; yi++)
-			{
-				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-
-				// compute starting points for u,v,w interpolants
-				ui = ul + FIXP16_ROUND_UP;
-				vi = vl + FIXP16_ROUND_UP;
-				wi = wl + FIXP16_ROUND_UP;
-				zi = zl;
-
-				if ((dx = (xend - xstart))>0)
-				{
-					du = (ur - ul)/dx;
-					dv = (vr - vl)/dx;
-					dw = (wr - wl)/dx;
-					dz = (zr - zl)/dx;
-				}
-				else
-				{
-					du = (ur - ul);
-					dv = (vr - vl);
-					dw = (wr - wl);
-					dz = (zr - zl);
-				}
-
-				///////////////////////////////////////////////////////////////////////
-
-				if (xstart < min_clip_x)
-				{
-					dx = min_clip_x - xstart;
-
-					ui+=dx*du;
-					vi+=dx*dv;
-					wi+=dx*dw;
-					zi+=dx*dz;
-
-					xstart = min_clip_x;
-
-				}
-
-				if (xend > max_clip_x)
-					xend = max_clip_x;
-
-				///////////////////////////////////////////////////////////////////////
-
-				for (xi=xstart; xi < xend; xi++)
-				{
-					if (zi > z_ptr[xi])
-					{
-						screen_ptr[xi] = (a_base << FIXP24_SHIFT) + ((ui >> FIXP16_SHIFT) << 16) + ((vi >> FIXP16_SHIFT) << 8) + (wi >> FIXP16_SHIFT);
-
-						z_ptr[xi] = zi;
-					}
-
-					ui+=du;
-					vi+=dv;
-					wi+=dw;
-					zi+=dz;
-				}
-
-				// interpolate u,v,x along right and left edge
-				xl+=dxdyl;
-				ul+=dudyl;
-				vl+=dvdyl;
-				wl+=dwdyl;
-				zl+=dzdyl;
-
-				xr+=dxdyr;
-				ur+=dudyr;
-				vr+=dvdyr;
-				wr+=dwdyr;
-				zr+=dzdyr;
-
-				screen_ptr+=mempitch;
-
-				z_ptr+=zpitch;
-			}
-		}
-		else
-		{
-			screen_ptr = dest_buffer + (ystart * mempitch);
-
-			z_ptr = zbuffer + (ystart * zpitch);
-
-			for (yi = ystart; yi < yend; yi++)
-			{
-				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-
-				// compute starting points for u,v,w interpolants
-				ui = ul + FIXP16_ROUND_UP;
-				vi = vl + FIXP16_ROUND_UP;
-				wi = wl + FIXP16_ROUND_UP;
-				zi = zl;
-
-				if ((dx = (xend - xstart))>0)
-				{
-					du = (ur - ul)/dx;
-					dv = (vr - vl)/dx;
-					dw = (wr - wl)/dx;
-					dz = (zr - zl)/dx;
-				}
-				else
-				{
-					du = (ur - ul);
-					dv = (vr - vl);
-					dw = (wr - wl);
-					dz = (zr - zl);
-				}
-
-				for (xi=xstart; xi < xend; xi++)
-				{
-					if (zi > z_ptr[xi])
-					{
-						screen_ptr[xi] = (a_base << FIXP24_SHIFT) + ((ui >> FIXP16_SHIFT) << 16) + ((vi >> FIXP16_SHIFT) << 8) + (wi >> FIXP16_SHIFT);
-
-						z_ptr[xi] = zi;
-					}
-
-
-					ui+=du;
-					vi+=dv;
-					wi+=dw;
-					zi+=dz;
-				}
-
-				xl+=dxdyl;
-				ul+=dudyl;
-				vl+=dvdyl;
-				wl+=dwdyl;
-				zl+=dzdyl;
-
-				xr+=dxdyr;
-				ur+=dudyr;
-				vr+=dvdyr;
-				wr+=dwdyr;
-				zr+=dzdyr;
-
-				screen_ptr+=mempitch;
-
-				z_ptr+=zpitch;
-			}
-		}
-
-	}
-	else if (tri_type==TRI_TYPE_GENERAL)
-	{
-		if ((yend = y2) > max_clip_y)
-			yend = max_clip_y;
-
-		if (y1 < min_clip_y)
-		{
-			dyl = (y2 - y1);
-
-			dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
-			dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
-			dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
-			dwdyl = ((tw2 - tw1) << FIXP16_SHIFT)/dyl;
-			dzdyl = ((tz2 - tz1) << 0)/dyl;
-
-			dyr = (y2 - y0);
-
-			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
-			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
-			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
-			dwdyr = ((tw2 - tw0) << FIXP16_SHIFT)/dyr;
-			dzdyr = ((tz2 - tz0) << 0)/dyr;
-
-			dyr = (min_clip_y - y0);
-			dyl = (min_clip_y - y1);
-
-			xl = dxdyl*dyl + (x1 << FIXP16_SHIFT);
-
-			ul = dudyl*dyl + (tu1 << FIXP16_SHIFT);
-			vl = dvdyl*dyl + (tv1 << FIXP16_SHIFT);
-			wl = dwdyl*dyl + (tw1 << FIXP16_SHIFT);
-			zl = dzdyl*dyl + (tz1 << 0);
-
-			xr = dxdyr*dyr + (x0 << FIXP16_SHIFT);
-
-			ur = dudyr*dyr + (tu0 << FIXP16_SHIFT);
-			vr = dvdyr*dyr + (tv0 << FIXP16_SHIFT);
-			wr = dwdyr*dyr + (tw0 << FIXP16_SHIFT);
-			zr = dzdyr*dyr + (tz0 << 0);
-
-			ystart = min_clip_y;
-
-			if (dxdyr > dxdyl)
-			{
-				SWAP(dxdyl,dxdyr,temp);
-				SWAP(dudyl,dudyr,temp);
-				SWAP(dvdyl,dvdyr,temp);
-				SWAP(dwdyl,dwdyr,temp);
-				SWAP(dzdyl,dzdyr,temp);
-				SWAP(xl,xr,temp);
-				SWAP(ul,ur,temp);
-				SWAP(vl,vr,temp);
-				SWAP(wl,wr,temp);
-				SWAP(zl,zr,temp);
-				SWAP(x1,x2,temp);
-				SWAP(y1,y2,temp);
-				SWAP(tu1,tu2,temp);
-				SWAP(tv1,tv2,temp);
-				SWAP(tw1,tw2,temp);
-				SWAP(tz1,tz2,temp);
-
-				irestart = INTERP_RHS;
-			}
-		}
-		else if (y0 < min_clip_y)
-		{
-			dyl = (y1 - y0);
-
-			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
-			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
-			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
-			dwdyl = ((tw1 - tw0) << FIXP16_SHIFT)/dyl;
-			dzdyl = ((tz1 - tz0) << 0)/dyl;
-
-			dyr = (y2 - y0);
-
-			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
-			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
-			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
-			dwdyr = ((tw2 - tw0) << FIXP16_SHIFT)/dyr;
-			dzdyr = ((tz2 - tz0) << 0)/dyr;
-
-			dy = (min_clip_y - y0);
-
-			xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
-			ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
-			vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
-			wl = dwdyl*dy + (tw0 << FIXP16_SHIFT);
-			zl = dzdyl*dy + (tz0 << 0);
-
-			xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
-			ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
-			vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
-			wr = dwdyr*dy + (tw0 << FIXP16_SHIFT);
-			zr = dzdyr*dy + (tz0 << 0);
-
-			ystart = min_clip_y;
-
-			if (dxdyr < dxdyl)
-			{
-				SWAP(dxdyl,dxdyr,temp);
-				SWAP(dudyl,dudyr,temp);
-				SWAP(dvdyl,dvdyr,temp);
-				SWAP(dwdyl,dwdyr,temp);
-				SWAP(dzdyl,dzdyr,temp);
-				SWAP(xl,xr,temp);
-				SWAP(ul,ur,temp);
-				SWAP(vl,vr,temp);
-				SWAP(wl,wr,temp);
-				SWAP(zl,zr,temp);
-				SWAP(x1,x2,temp);
-				SWAP(y1,y2,temp);
-				SWAP(tu1,tu2,temp);
-				SWAP(tv1,tv2,temp);
-				SWAP(tw1,tw2,temp);
-				SWAP(tz1,tz2,temp);
-
-				irestart = INTERP_RHS;
-			}
-		}
-		else
-		{
-			dyl = (y1 - y0);
-
-			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
-			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
-			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
-			dwdyl = ((tw1 - tw0) << FIXP16_SHIFT)/dyl;
-			dzdyl = ((tz1 - tz0) << 0)/dyl;
-
-			dyr = (y2 - y0);
-
-			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
-			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
-			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
-			dwdyr = ((tw2 - tw0) << FIXP16_SHIFT)/dyr;
-			dzdyr = ((tz2 - tz0) << 0)/dyr;
-
-			xl = (x0 << FIXP16_SHIFT);
-			xr = (x0 << FIXP16_SHIFT);
-
-			ul = (tu0 << FIXP16_SHIFT);
-			vl = (tv0 << FIXP16_SHIFT);
-			wl = (tw0 << FIXP16_SHIFT);
-			zl = (tz0 << 0);
-
-			ur = (tu0 << FIXP16_SHIFT);
-			vr = (tv0 << FIXP16_SHIFT);
-			wr = (tw0 << FIXP16_SHIFT);
-			zr = (tz0 << 0);
-
-			ystart = y0;
-
-			if (dxdyr < dxdyl)
-			{
-				SWAP(dxdyl,dxdyr,temp);
-				SWAP(dudyl,dudyr,temp);
-				SWAP(dvdyl,dvdyr,temp);
-				SWAP(dwdyl,dwdyr,temp);
-				SWAP(dzdyl,dzdyr,temp);
-				SWAP(xl,xr,temp);
-				SWAP(ul,ur,temp);
-				SWAP(vl,vr,temp);
-				SWAP(wl,wr,temp);
-				SWAP(zl,zr,temp);
-				SWAP(x1,x2,temp);
-				SWAP(y1,y2,temp);
-				SWAP(tu1,tu2,temp);
-				SWAP(tv1,tv2,temp);
-				SWAP(tw1,tw2,temp);
-				SWAP(tz1,tz2,temp);
-
-				irestart = INTERP_RHS;
-			}
-		}
-
-		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
-			(x1 < min_clip_x) || (x1 > max_clip_x) ||
-			(x2 < min_clip_x) || (x2 > max_clip_x))
-		{
-			screen_ptr = dest_buffer + (ystart * mempitch);
-
-			z_ptr = zbuffer + (ystart * zpitch);
-
-			for (yi = ystart; yi < yend; yi++)
-			{
-				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-
-				// compute starting points for u,v,w interpolants
-				ui = ul + FIXP16_ROUND_UP;
-				vi = vl + FIXP16_ROUND_UP;
-				wi = wl + FIXP16_ROUND_UP;
-				zi = zl;
-
-				if ((dx = (xend - xstart))>0)
-				{
-					du = (ur - ul)/dx;
-					dv = (vr - vl)/dx;
-					dw = (wr - wl)/dx;
-					dz = (zr - zl)/dx;
-				}
-				else
-				{
-					du = (ur - ul);
-					dv = (vr - vl);
-					dw = (wr - wl);
-					dz = (zr - zl);
-				}
-
-				///////////////////////////////////////////////////////////////////////
-
-				if (xstart < min_clip_x)
-				{
-					dx = min_clip_x - xstart;
-
-					ui+=dx*du;
-					vi+=dx*dv;
-					wi+=dx*dw;
-					zi+=dx*dz;
-
-					xstart = min_clip_x;
-
-				}
-
-				if (xend > max_clip_x)
-					xend = max_clip_x;
-
-				///////////////////////////////////////////////////////////////////////
-
-				for (xi=xstart; xi < xend; xi++)
-				{
-					if (zi > z_ptr[xi])
-					{
-						screen_ptr[xi] = (a_base << FIXP24_SHIFT) + ((ui >> FIXP16_SHIFT) << 16) + ((vi >> FIXP16_SHIFT) << 8) + (wi >> FIXP16_SHIFT);
-
-						z_ptr[xi] = zi;
-					}
-
-					ui+=du;
-					vi+=dv;
-					wi+=dw;
-					zi+=dz;
-				}
-
-				// interpolate u,v,x along right and left edge
-				xl+=dxdyl;
-				ul+=dudyl;
-				vl+=dvdyl;
-				wl+=dwdyl;
-				zl+=dzdyl;
-
-				xr+=dxdyr;
-				ur+=dudyr;
-				vr+=dvdyr;
-				wr+=dwdyr;
-				zr+=dzdyr;
-
-				screen_ptr+=mempitch;
-
-				z_ptr+=zpitch;
-
-				if (yi==yrestart)
-				{
-					if (irestart == INTERP_LHS)
-					{
-						dyl = (y2 - y1);
-
-						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
-						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
-						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
-						dwdyl = ((tw2 - tw1) << FIXP16_SHIFT)/dyl;
-						dzdyl = ((tz2 - tz1) << 0)/dyl;
-
-						xl = (x1 << FIXP16_SHIFT);
-						ul = (tu1 << FIXP16_SHIFT);
-						vl = (tv1 << FIXP16_SHIFT);
-						wl = (tw1 << FIXP16_SHIFT);
-						zl = (tz1 << 0);
-
-						xl+=dxdyl;
-						ul+=dudyl;
-						vl+=dvdyl;
-						wl+=dwdyl;
-						zl+=dzdyl;
-					}
-					else
-					{
-						dyr = (y1 - y2);
-
-						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
-						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
-						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
-						dwdyr = ((tw1 - tw2) << FIXP16_SHIFT)/dyr;
-						dzdyr = ((tz1 - tz2) << 0)/dyr;
-
-						xr = (x2 << FIXP16_SHIFT);
-						ur = (tu2 << FIXP16_SHIFT);
-						vr = (tv2 << FIXP16_SHIFT);
-						wr = (tw2 << FIXP16_SHIFT);
-						zr = (tz2 << 0);
-
-						xr+=dxdyr;
-						ur+=dudyr;
-						vr+=dvdyr;
-						wr+=dwdyr;
-						zr+=dzdyr;
-					}
-				}
-			}
-		}
-		else
-		{
-			screen_ptr = dest_buffer + (ystart * mempitch);
-
-			z_ptr = zbuffer + (ystart * zpitch);
-
-			for (yi = ystart; yi < yend; yi++)
-			{
-				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-
-				ui = ul + FIXP16_ROUND_UP;
-				vi = vl + FIXP16_ROUND_UP;
-				wi = wl + FIXP16_ROUND_UP;
-				zi = zl;
-
-				if ((dx = (xend - xstart))>0)
-				{
-					du = (ur - ul)/dx;
-					dv = (vr - vl)/dx;
-					dw = (wr - wl)/dx;
-					dz = (zr - zl)/dx;
-				}
-				else
-				{
-					du = (ur - ul);
-					dv = (vr - vl);
-					dw = (wr - wl);
-					dz = (zr - zl);
-				}
-
-				for (xi=xstart; xi < xend; xi++)
-				{
-					if (zi > z_ptr[xi])
-					{
-						screen_ptr[xi] = (a_base << FIXP24_SHIFT) + ((ui >> FIXP16_SHIFT) << 16) + ((vi >> FIXP16_SHIFT) << 8) + (wi >> FIXP16_SHIFT);
-
-						z_ptr[xi] = zi;
-					}
-
-					ui+=du;
-					vi+=dv;
-					wi+=dw;
-					zi+=dz;
-				}
-
-				xl+=dxdyl;
-				ul+=dudyl;
-				vl+=dvdyl;
-				wl+=dwdyl;
-				zl+=dzdyl;
-
-				xr+=dxdyr;
-				ur+=dudyr;
-				vr+=dvdyr;
-				wr+=dwdyr;
-				zr+=dzdyr;
-
-				screen_ptr+=mempitch;
-
-				z_ptr+=zpitch;
-
-				if (yi==yrestart)
-				{
-					if (irestart == INTERP_LHS)
-					{
-						dyl = (y2 - y1);
-
-						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
-						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
-						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
-						dwdyl = ((tw2 - tw1) << FIXP16_SHIFT)/dyl;
-						dzdyl = ((tz2 - tz1) << 0)/dyl;
-
-						xl = (x1 << FIXP16_SHIFT);
-						ul = (tu1 << FIXP16_SHIFT);
-						vl = (tv1 << FIXP16_SHIFT);
-						wl = (tw1 << FIXP16_SHIFT);
-						zl = (tz1 << 0);
-
-						xl+=dxdyl;
-						ul+=dudyl;
-						vl+=dvdyl;
-						wl+=dwdyl;
-						zl+=dzdyl;
-					}
-					else
-					{
-						dyr = (y1 - y2);
-
-						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
-						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
-						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
-						dwdyr = ((tw1 - tw2) << FIXP16_SHIFT)/dyr;
-						dzdyr = ((tz1 - tz2) << 0)/dyr;
-
-						xr = (x2 << FIXP16_SHIFT);
-						ur = (tu2 << FIXP16_SHIFT);
-						vr = (tv2 << FIXP16_SHIFT);
-						wr = (tw2 << FIXP16_SHIFT);
-						zr = (tz2 << 0);
-
-						xr+=dxdyr;
-						ur+=dudyr;
-						vr+=dvdyr;
-						wr+=dwdyr;
-						zr+=dzdyr;
-					}
-
-				}
-			}
-		}
-	}
-}
-
-///////////////////////////////////支持透视矫正////////////////////////////////////
 void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )
 {
 	BYTE * _dest_buffer = viewport->videoBuffer;
