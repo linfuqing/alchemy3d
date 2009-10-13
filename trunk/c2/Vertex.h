@@ -139,4 +139,27 @@ void vertex_addContectedFaces( struct Triangle * p, Vertex * v )
 	v->nContectedFaces ++;
 }
 
+//Triangle * getFaceByVertices( Vertex * a, Vertex * b, Vertex * c )
+//{
+//	ContectedFaces * cf0, cf1, cf2;
+//
+//	cf0 = a->contectedFaces;
+//
+//	while ( cf0 )
+//	{
+//		cf1 = b->contectedFaces;
+//
+//		while ( cf1 )
+//		{
+//			if ( cf0 == cf1 )
+//			{
+//			}
+//
+//			cf1 = cf1->next;
+//		}
+//
+//		cf0 = cf0->next;
+//	}
+//}
+
 # endif

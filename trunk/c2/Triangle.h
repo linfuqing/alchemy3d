@@ -31,7 +31,7 @@ INLINE Vector3D * triangle_normal( Vector3D * normal, Vertex * v0, Vertex * v1, 
 {	
 	Vector3D u, v;
 
-	vector3D_crossProduct(normal, vector3D_subtract( &u, v1->position, v0->position ), vector3D_subtract( &v, v2->position, v0->position ) );
+	vector3D_crossProduct(normal, vector3D_subtract( &u, v0->position, v2->position ), vector3D_subtract( &v, v1->position, v0->position ) );
 
 	vector3D_normalize(normal);
 
@@ -270,7 +270,7 @@ INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight, int ad
 
 INLINE int triangle_backFaceCulling( Triangle * face, Vector3D * viewerToLocal, Vector3D * viewerPosition  )
 {
-	vector3D_subtract( viewerToLocal, face->vertex[0]->position, viewerPosition );
+	vector3D_subtract( viewerToLocal, viewerPosition, face->vertex[0]->position );
 
 	vector3D_normalize( viewerToLocal );
 

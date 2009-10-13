@@ -52,6 +52,12 @@ typedef struct AABB
 	Vector3D * max;
 }AABB;
 
+INLINE void aabb_zero(AABB * aabb)
+{
+	aabb->min->x = aabb->min->y = aabb->min->z = 0.0f;
+	aabb->max->x = aabb->max->y = aabb->max->z = 0.0f;
+}
+
 //---------------------------------------------------------------------------
 // aabb_empty
 //
@@ -168,8 +174,6 @@ INLINE int aabb_isEmpty(AABB * aabb)
 // Transform the box and compute the new AABB. Remember, this always
 // results in an AABB that is at least as big as the origin, and may be
 // considerably bigger.
-//
-// See 12.4.4
 
 AABB * aabb_setToTransformedBox(AABB * aabb, AABB * box, Matrix3D * m)
 {
@@ -182,6 +186,8 @@ AABB * aabb_setToTransformedBox(AABB * aabb, AABB * box, Matrix3D * m)
 	// Start with the translation portion
 	matrix3D_getPosition(aabb->min, m);
 	matrix3D_getPosition(aabb->max, m);
+
+	//aabb_zero( aabb );
 
 	// Examine each of the 9 matrix elements
 	// and compute the new AABB
@@ -287,7 +293,7 @@ AABB * aabb_setToTransformedBox(AABB * aabb, AABB * box, Matrix3D * m)
 	return aabb;
 }
 
-AABB * aabb_setToTransformedBox_4D(AABB * aabb, AABB * box, Matrix3D * m)
+AABB * aabb_setToTransformedBox_CVV(AABB * aabb, AABB * box, Matrix3D * m)
 {
 	if (aabb_isEmpty(box))
 	{
@@ -296,8 +302,16 @@ AABB * aabb_setToTransformedBox_4D(AABB * aabb, AABB * box, Matrix3D * m)
 	}
 
 	// Start with the translation portion
-	matrix3D_getPosition(aabb->min, m);
-	matrix3D_getPosition(aabb->max, m);
+	//matrix3D_getPosition(aabb->min, m);
+	//matrix3D_getPosition(aabb->max, m);
+
+	aabb->min->x = 0.0f;
+	aabb->min->y = 0.0f;
+	aabb->min->w = 0.0f;
+
+	aabb->max->x = 0.0f;
+	aabb->max->y = 0.0f;
+	aabb->max->w = 0.0f;
 
 	// Examine each of the 9 matrix elements
 	// and compute the new AABB
@@ -323,16 +337,16 @@ AABB * aabb_setToTransformedBox_4D(AABB * aabb, AABB * box, Matrix3D * m)
 		aabb->max->y += m->m12 * box->min->x;
 	}
 
-	if (m->m13 > 0.0f)
-	{
-		aabb->min->z += m->m13 * box->min->x;
-		aabb->max->z += m->m13 * box->max->x;
-	}
-	else
-	{
-		aabb->min->z += m->m13 * box->max->x;
-		aabb->max->z += m->m13 * box->min->x;
-	}
+	//if (m->m13 > 0.0f)
+	//{
+	//	aabb->min->z += m->m13 * box->min->x;
+	//	aabb->max->z += m->m13 * box->max->x;
+	//}
+	//else
+	//{
+	//	aabb->min->z += m->m13 * box->max->x;
+	//	aabb->max->z += m->m13 * box->min->x;
+	//}
 
 	if (m->m14 > 0.0f)
 	{
@@ -367,16 +381,16 @@ AABB * aabb_setToTransformedBox_4D(AABB * aabb, AABB * box, Matrix3D * m)
 		aabb->max->y += m->m22 * box->min->y;
 	}
 
-	if (m->m23 > 0.0f)
-	{
-		aabb->min->z += m->m23 * box->min->y;
-		aabb->max->z += m->m23 * box->max->y;
-	}
-	else
-	{
-		aabb->min->z += m->m23 * box->max->y;
-		aabb->max->z += m->m23 * box->min->y;
-	}
+	//if (m->m23 > 0.0f)
+	//{
+	//	aabb->min->z += m->m23 * box->min->y;
+	//	aabb->max->z += m->m23 * box->max->y;
+	//}
+	//else
+	//{
+	//	aabb->min->z += m->m23 * box->max->y;
+	//	aabb->max->z += m->m23 * box->min->y;
+	//}
 
 	if (m->m24 > 0.0f)
 	{
@@ -411,16 +425,16 @@ AABB * aabb_setToTransformedBox_4D(AABB * aabb, AABB * box, Matrix3D * m)
 		aabb->max->y += m->m32 * box->min->z;
 	}
 
-	if (m->m33 > 0.0f)
-	{
-		aabb->min->z += m->m33 * box->min->z;
-		aabb->max->z += m->m33 * box->max->z;
-	}
-	else
-	{
-		aabb->min->z += m->m33 * box->max->z;
-		aabb->max->z += m->m33 * box->min->z;
-	}
+	//if (m->m33 > 0.0f)
+	//{
+	//	aabb->min->z += m->m33 * box->min->z;
+	//	aabb->max->z += m->m33 * box->max->z;
+	//}
+	//else
+	//{
+	//	aabb->min->z += m->m33 * box->max->z;
+	//	aabb->max->z += m->m33 * box->min->z;
+	//}
 
 	if (m->m34 > 0.0f)
 	{
@@ -433,55 +447,14 @@ AABB * aabb_setToTransformedBox_4D(AABB * aabb, AABB * box, Matrix3D * m)
 		aabb->max->w += m->m34 * box->min->z;
 	}
 
-	//if (m->m41 > 0.0f)
-	//{
-	//	aabb->min->x += m->m41 * box->min->w;
-	//	aabb->max->x += m->m41 * box->max->w;
-	//}
-	//else
-	//{
-	//	aabb->min->x += m->m41 * box->max->w;
-	//	aabb->max->x += m->m41 * box->min->w;
-	//}
+	aabb->min->x += m->m41;
+	aabb->max->x += m->m41;
 
-	//if (m->m42 > 0.0f)
-	//{
-	//	aabb->min->y += m->m42 * box->min->w;
-	//	aabb->max->y += m->m42 * box->max->w;
-	//}
-	//else
-	//{
-	//	aabb->min->y += m->m42 * box->max->w;
-	//	aabb->max->y += m->m42 * box->min->w;
-	//}
+	aabb->min->y += m->m42;
+	aabb->max->y += m->m42;
 
-	//if (m->m43 > 0.0f)
-	//{
-	//	aabb->min->z += m->m43 * box->min->w;
-	//	aabb->max->z += m->m43 * box->max->w;
-	//}
-	//else
-	//{
-	//	aabb->min->z += m->m43 * box->max->w;
-	//	aabb->max->z += m->m43 * box->min->w;
-	//}
-
-	//if (m->m44 > 0.0f)
-	//{
-	//	aabb->min->w += m->m44 * box->min->w;
-	//	aabb->max->w += m->m44 * box->max->w;
-	//}
-	//else
-	//{
-	//	aabb->min->w += m->m44 * box->max->w;
-	//	aabb->max->w += m->m44 * box->min->w;
-	//}
-
-	aabb->min->x /= aabb->min->w;
-	aabb->min->y /= aabb->min->w;
-
-	aabb->max->x /= aabb->max->w;
-	aabb->max->y /= aabb->max->w;
+	aabb->min->w += m->m44;
+	aabb->max->w += m->m44;
 
 	return aabb;
 }

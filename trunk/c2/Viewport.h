@@ -151,9 +151,9 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 
 		triangle_transform( entity->world, entity->projection, face );
 
-		if (face->vertex[0]->s_pos->x < -1 &&
-			face->vertex[1]->s_pos->x < -1 &&
-			face->vertex[2]->s_pos->x < -1 )
+		if (face->vertex[0]->v_pos->x < - face->vertex[0]->v_pos->w &&
+			face->vertex[1]->v_pos->x < - face->vertex[1]->v_pos->w &&
+			face->vertex[2]->v_pos->x < - face->vertex[2]->v_pos->w )
 		{
 			mesh->nCullList ++;
 
@@ -164,9 +164,9 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 			continue;
 		}
 
-		if (face->vertex[0]->s_pos->x > 1 &&
-			face->vertex[1]->s_pos->x > 1 &&
-			face->vertex[2]->s_pos->x > 1 )
+		if (face->vertex[0]->v_pos->x > face->vertex[0]->v_pos->w &&
+			face->vertex[1]->v_pos->x > face->vertex[1]->v_pos->w &&
+			face->vertex[2]->v_pos->x > face->vertex[2]->v_pos->w )
 		{
 			mesh->nCullList ++;
 
@@ -177,9 +177,9 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 			continue;
 		}
 
-		if (face->vertex[0]->s_pos->y < -1 &&
-			face->vertex[1]->s_pos->y < -1 &&
-			face->vertex[2]->s_pos->y < -1 )
+		if (face->vertex[0]->v_pos->y < - face->vertex[0]->v_pos->w &&
+			face->vertex[1]->v_pos->y < - face->vertex[1]->v_pos->w &&
+			face->vertex[2]->v_pos->y < - face->vertex[2]->v_pos->w )
 		{
 			mesh->nCullList ++;
 
@@ -190,9 +190,9 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 			continue;
 		}
 
-		if (face->vertex[0]->s_pos->y > 1 &&
-			face->vertex[1]->s_pos->y > 1 &&
-			face->vertex[2]->s_pos->y > 1 )
+		if (face->vertex[0]->v_pos->y > face->vertex[0]->v_pos->w &&
+			face->vertex[1]->v_pos->y > face->vertex[1]->v_pos->w &&
+			face->vertex[2]->v_pos->y > face->vertex[2]->v_pos->w )
 		{
 			mesh->nCullList ++;
 
@@ -349,6 +349,10 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 
 				face1->uvTransformed = FALSE;
 			}
+			
+			face->vertex[0]->transformed = FALSE;
+			face->vertex[1]->transformed = FALSE;
+			face->vertex[2]->transformed = FALSE;
 		}
 		else if ( verts_out == 1 )
 		{
@@ -485,11 +489,11 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 				face1->uvTransformed = FALSE;
 				face2->uvTransformed = FALSE;
 			}
-		}
 
-		face->vertex[0]->transformed = FALSE;
-		face->vertex[1]->transformed = FALSE;
-		face->vertex[2]->transformed = FALSE;
+			face->vertex[0]->transformed = FALSE;
+			face->vertex[1]->transformed = FALSE;
+			face->vertex[2]->transformed = FALSE;
+		}
 
 		//插入新建的面
 		//如果没有新面，则插入原来的面
@@ -519,29 +523,23 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 	}
 }
 
-int octree_culling( Camera * camera, Entity * entity, Octree * octree, Matrix3D * world, Matrix3D * view, RenderList ** rl_ptr, RenderList ** cl_ptr )
+int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr )
 {
 	int code = 0, noChild = 0;
 
-	float t, x, y;
-
 	AABB * aabb;
 	
-	aabb_setToTransformedBox( octree->data->worldAABB, octree->data->aabb, world );
-	aabb_setToTransformedBox( octree->data->CVVAABB, octree->data->aabb, view );
+	aabb_setToTransformedBox( octree->data->worldAABB, octree->data->aabb, entity->world );
+	aabb_setToTransformedBox_CVV( octree->data->CVVAABB, octree->data->aabb, entity->projection );
 
 	aabb = octree->data->CVVAABB;
 
-	t = ( aabb->max->z - camera->near ) / ( camera->far - camera->near );
-	x = ( camera->f_left - camera->n_left ) * t + camera->n_left;
-	y = ( camera->f_top - camera->n_top ) * t + camera->n_top;
-
-	if ( aabb->max->x <= x )				code |= 0x01;
-	if ( aabb->min->x >= -x )				code |= 0x02;
-	if ( aabb->max->y <= -y )				code |= 0x04;
-	if ( aabb->min->y >= y )				code |= 0x08;
-	if ( aabb->max->z <= camera->near )		code |= 0x10;
-	if ( aabb->min->z >= camera->far )		code |= 0x20;
+	if ( aabb->max->x <= -aabb->max->w )	code |= 0x01;
+	if ( aabb->min->x >= aabb->max->w )		code |= 0x02;
+	if ( aabb->max->y <= -aabb->max->w )	code |= 0x04;
+	if ( aabb->min->y >= aabb->max->w )		code |= 0x08;
+	if ( aabb->max->w <= camera->near )		code |= 0x10;
+	if ( aabb->min->w >= camera->far )		code |= 0x20;
 
 	//输出码为非零侧包围盒离屏
 	if ( code > 0 )
@@ -554,12 +552,12 @@ int octree_culling( Camera * camera, Entity * entity, Octree * octree, Matrix3D 
 	{
 		code = 0;
 
-		if ( aabb->max->x <= -x )				code |= 0x01;
-		if ( aabb->min->x >= x )				code |= 0x02;
-		if ( aabb->max->y <= y )				code |= 0x04;
-		if ( aabb->min->y >= -y )				code |= 0x08;
-		if ( aabb->max->z <= camera->far )		code |= 0x10;
-		if ( aabb->min->z >= camera->near )		code |= 0x20;
+		if ( aabb->max->x <= aabb->max->w )		code |= 0x01;
+		if ( aabb->min->x >= -aabb->max->w )	code |= 0x02;
+		if ( aabb->max->y <= aabb->max->w )		code |= 0x04;
+		if ( aabb->min->y >= -aabb->max->w )	code |= 0x08;
+		if ( aabb->max->w <= camera->far )		code |= 0x10;
+		if ( aabb->min->w >= camera->near )		code |= 0x20;
 
 		//如果包围盒完全在视锥体内
 		//直接把所有多边形添加到渲染列表
@@ -594,28 +592,28 @@ int octree_culling( Camera * camera, Entity * entity, Octree * octree, Matrix3D 
 		else
 		{
 			//如果有子结点则继续递归
-			if ( octree->tlb )	code = octree_culling( camera, entity, octree->tlb, world, view, rl_ptr, cl_ptr );
+			if ( octree->tlb )	code = octree_culling( camera, entity, octree->tlb, rl_ptr, cl_ptr );
 			else				noChild |= 0x01;
 
-			if ( octree->tlf )	code = octree_culling( camera, entity, octree->tlf, world, view, rl_ptr, cl_ptr );
+			if ( octree->tlf )	code = octree_culling( camera, entity, octree->tlf, rl_ptr, cl_ptr );
 			else				noChild |= 0x02;
 
-			if ( octree->trb )	code = octree_culling( camera, entity, octree->trb, world, view, rl_ptr, cl_ptr );
+			if ( octree->trb )	code = octree_culling( camera, entity, octree->trb, rl_ptr, cl_ptr );
 			else				noChild |= 0x04;
 
-			if ( octree->trf )	code = octree_culling( camera, entity, octree->trf, world, view, rl_ptr, cl_ptr );
+			if ( octree->trf )	code = octree_culling( camera, entity, octree->trf, rl_ptr, cl_ptr );
 			else				noChild |= 0x08;
 
-			if ( octree->blb )	code = octree_culling( camera, entity, octree->blb, world, view, rl_ptr, cl_ptr );
+			if ( octree->blb )	code = octree_culling( camera, entity, octree->blb, rl_ptr, cl_ptr );
 			else				noChild |= 0x10;
 
-			if ( octree->blf )	code = octree_culling( camera, entity, octree->blf, world, view, rl_ptr, cl_ptr );
+			if ( octree->blf )	code = octree_culling( camera, entity, octree->blf, rl_ptr, cl_ptr );
 			else				noChild |= 0x20;
 
-			if ( octree->brb )	code = octree_culling( camera, entity, octree->brb, world, view, rl_ptr, cl_ptr );
+			if ( octree->brb )	code = octree_culling( camera, entity, octree->brb, rl_ptr, cl_ptr );
 			else				noChild |= 0x40;
 
-			if ( octree->brf )	code = octree_culling( camera, entity, octree->brf, world, view, rl_ptr, cl_ptr );
+			if ( octree->brf )	code = octree_culling( camera, entity, octree->brf, rl_ptr, cl_ptr );
 			else				noChild |= 0x80;
 
 			if ( noChild == 0xff ) frustumClipping( camera, entity, octree->data, rl_ptr, cl_ptr );
@@ -753,7 +751,7 @@ void viewport_lightting( Viewport * viewport )
 								if ( ( fc1 > 0.0001f ) || ( fc2 > 0.0001f ) )
 								{
 									//求顶点至光源的距离
-									fDist = vector3D_lengthSquared( vector3D_subtract( & vFDist, vs->position, & vLightsToObject[l] ) );
+									fDist = vector3D_lengthSquared( vector3D_subtract( & vFDist, & vLightsToObject[l], vs->position ) );
 
 									//加入一次和二次因子
 									fAttenuCoef += (fc1 * sqrtf( fDist ) + fc2 * fDist);
@@ -778,7 +776,7 @@ void viewport_lightting( Viewport * viewport )
 								//定向光源不产生聚光效果
 
 								//向量: 聚光位置指向照射顶点
-								vector3D_subtract( & vLightToVertex, vs->position, & vLightsToObject[l] );
+								vector3D_subtract( & vLightToVertex, & vLightsToObject[l], vs->position );
 
 								//单位化
 								vector3D_normalize( & vLightToVertex );
@@ -803,7 +801,7 @@ void viewport_lightting( Viewport * viewport )
 							//其次, 计算漫反射部分
 
 							//顶点指向光源的向量
-							vector3D_subtract( & vVertexToLight, vs->position, & vLightsToObject[l] );
+							vector3D_subtract( & vVertexToLight, & vLightsToObject[l], vs->position );
 
 							//如果光源为平行光源(定位光源)
 							if ( light->type == DIRECTIONAL_LIGHT )
@@ -829,7 +827,7 @@ void viewport_lightting( Viewport * viewport )
 								//计算高光部分
 								if ( light->mode == HIGH_MODE )
 								{
-									vector3D_subtract( & vVertexToCamera, vs->position, entity->viewerToLocal );
+									vector3D_subtract( & vVertexToCamera, entity->viewerToLocal, vs->position );
 									vector3D_normalize( & vVertexToCamera );
 									vector3D_add_self( & vVertexToCamera, & vVertexToLight );
 									vector3D_normalize( & vVertexToCamera );
@@ -951,7 +949,7 @@ void viewport_project( Viewport * viewport, int time )
 			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
 
 			//八叉
-			if ( ! octree_culling( camera, entity, entity->mesh->octree, entity->world, entity->view, & rl, & cl ) )
+			if ( ! octree_culling( camera, entity, entity->mesh->octree, & rl, & cl ) )
 			{
 				sceneNode = sceneNode->next;
 

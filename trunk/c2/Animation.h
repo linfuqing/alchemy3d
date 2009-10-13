@@ -208,7 +208,7 @@ int animation_morph_updateToName( Animation * animation, char name[FRAME_NAME_LE
 ////////////////////////////////////////TerrainTrace///////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-Animation * newTerrainTraceAnimation( Entity * container, float widthSegment, float heightSegment )
+Animation * newTerrainTraceAnimation( Entity * container, int widthSegment, int heightSegment )
 {
 	Animation * a;
 
@@ -240,33 +240,31 @@ void animation_terrainTrace_update( Animation * animation )
 
 			  tx, tz,
 
-			  height;
+			  height, minY, maxY;
 
 		int //gridX = terrain ->  widthSegment + 1,
 			gridZ = animation->container->mesh->heightSegment + 1,
 			ix, iz, _x, _z, aIndex, bIndex, cIndex;
 
-		Vector3D normal;
+		Vector3D normal, local;
 
 		SceneNode * ep = animation -> container -> scene -> nodes;
 
-		//AS3_Trace( AS3_Number( 1 ) );
-
-		while( ep != NULL )
+		while( ep != NULL &&  ep -> entity->mesh->type != ENTITY_TYPE_MESH_TERRAIN )
 		{
-			if( ep -> entity->mesh->type == ENTITY_TYPE_MESH_TERRAIN
-			||  ep -> entity -> parent != animation-> container -> parent
-			||	ep -> entity -> position -> x < - textureX 
-			||  ep -> entity -> position -> x >   textureX
-			||	ep -> entity -> position -> z < - textureY 
-			||  ep -> entity -> position -> z >   textureY )
+			matrix3D_transformVector( & local, animation->container->worldInvert, ep->entity->w_pos );
+
+			if(	local.x < - textureX 
+			||  local.x >   textureX
+			||	local.z < - textureY 
+			||  local.z >   textureY )
 			{
 				ep = ep -> next;
 				continue;
 			}
 
-			tx = ( ep -> entity -> position -> x + textureX ) * iW;
-			tz = ( ep -> entity -> position -> z + textureY ) * iH;
+			tx = ( local.x + textureX ) * iW;
+			tz = ( local.z + textureY ) * iH;
 
 			ix = ( int )tx;
 			iz = ( int )tz;
@@ -304,22 +302,72 @@ void animation_terrainTrace_update( Animation * animation )
 			///
 			///平面算法
 			//////
-			triangle_normal( & normal, animation -> container -> mesh -> vertices[cIndex], animation -> container -> mesh -> vertices[bIndex], animation -> container -> mesh -> vertices[aIndex] );
+			triangle_normal( & normal, animation->container->mesh->vertices[aIndex], animation->container->mesh->vertices[bIndex], animation->container->mesh->vertices[cIndex] );
 
-			height = - ( ep -> entity -> position -> x * normal.x + ep -> entity -> position -> z * normal.z - vector3D_dotProduct( & normal, animation -> container -> mesh -> vertices[aIndex]->position ) ) / normal.y;
+			height = ( vector3D_dotProduct( & normal, animation->container->mesh->vertices[aIndex]->position ) 
+					- local.x * normal.x 
+					- local.z * normal.z ) / normal.y;
 
 			/////
 			///跟踪算法3
 			///
 			///平均值
 			/////
-			/*ep -> entity -> position -> y = - ( entity -> mesh -> vertices[aIndex].position -> y
+			/*local.y = - ( entity -> mesh -> vertices[aIndex].position -> y
 										      +   entity -> mesh -> vertices[bIndex].position -> y
 										      +   entity -> mesh -> vertices[cIndex].position -> y
 										        ) * .333333333333333333333333f;*/
 
-			ep -> entity -> position -> y = height - ( ep->entity->mesh ? mesh_minY( ep->entity->mesh ) * ep -> entity -> scale -> y : 0 );
-			//AS3_Trace( AS3_Number( ep->entity->mesh->octree->data->aabb->min->y ) );
+			//local.y = height - ( ep->entity->mesh ? mesh_minY( ep->entity->mesh ) * ep -> entity -> scale -> y : 0 );
+
+			//localAABB.min = & normal;
+			//localAABB.max = & local;
+
+			//aabb_zero( & localAABB );
+
+			//aabb_setToTransformedBox( & localAABB, ep->entity->mesh->octree->data->aabb, animation->container->worldInvert );
+
+			maxY = minY = animation->container->worldInvert->m42;
+
+			if (animation->container->worldInvert->m12 > 0.0f)
+			{
+				minY += animation->container->worldInvert->m12 * ep->entity->mesh->octree->data->worldAABB->min->x;
+				maxY += animation->container->worldInvert->m12 * ep->entity->mesh->octree->data->worldAABB->max->x;
+			}
+			else
+			{
+				minY += animation->container->worldInvert->m12 * ep->entity->mesh->octree->data->worldAABB->max->x;
+				maxY += animation->container->worldInvert->m12 * ep->entity->mesh->octree->data->worldAABB->min->x;
+			}
+
+			if (animation->container->worldInvert->m22 > 0.0f)
+			{
+				minY += animation->container->worldInvert->m22 * ep->entity->mesh->octree->data->worldAABB->min->y;
+				maxY += animation->container->worldInvert->m22 * ep->entity->mesh->octree->data->worldAABB->max->y;
+			}
+			else
+			{
+				minY += animation->container->worldInvert->m22 * ep->entity->mesh->octree->data->worldAABB->max->y;
+				maxY += animation->container->worldInvert->m22 * ep->entity->mesh->octree->data->worldAABB->min->y;
+			}
+
+			if (animation->container->worldInvert->m32 > 0.0f)
+			{
+				minY += animation->container->worldInvert->m32 * ep->entity->mesh->octree->data->worldAABB->min->z;
+				maxY += animation->container->worldInvert->m32 * ep->entity->mesh->octree->data->worldAABB->max->z;
+			}
+			else
+			{
+				minY += animation->container->worldInvert->m32 * ep->entity->mesh->octree->data->worldAABB->max->z;
+				maxY += animation->container->worldInvert->m32 * ep->entity->mesh->octree->data->worldAABB->min->z;
+			}
+
+			//ep->entity->transform->m42 = height - minY;
+
+			ep->entity->position->y += ( height - ( minY + maxY ) * 0.5f );
+
+			//AS3_Trace( AS3_Number( ep->entity->position->y ) );
+
 			ep = ep -> next;
 		}
 	}
@@ -346,18 +394,18 @@ Animation * newTextureCoordinatesAnimation( Mesh * parent, float widthSegment, f
 
 void animation_textureCoordinates_update( Animation * animation )
 {
-	int i;
+	DWORD i;
 
 	for( i = 0; i < animation -> parent -> nFaces; i ++ )
 	{
-		animation -> parent -> faces[i] -> uv[0] -> u += .001;
-		animation -> parent -> faces[i] -> uv[0] -> v += .001;
+		animation -> parent -> faces[i] -> uv[0] -> u += .001f;
+		animation -> parent -> faces[i] -> uv[0] -> v += .001f;
 
-		animation -> parent -> faces[i] -> uv[1] -> u += .001;
-		animation -> parent -> faces[i] -> uv[1] -> v += .001;
+		animation -> parent -> faces[i] -> uv[1] -> u += .001f;
+		animation -> parent -> faces[i] -> uv[1] -> v += .001f;
 
-		animation -> parent -> faces[i] -> uv[2] -> u += .001;
-		animation -> parent -> faces[i] -> uv[2] -> v += .001;
+		animation -> parent -> faces[i] -> uv[2] -> u += .001f;
+		animation -> parent -> faces[i] -> uv[2] -> v += .001f;
 
 		animation -> parent -> faces[i] -> uvTransformed = FALSE;
 	}

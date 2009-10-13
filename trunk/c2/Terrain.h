@@ -209,7 +209,7 @@ float terrain_getHeight( Mesh * terrain, float x, float z )
 			bIndex = ix * gridZ + _z;
 		}
 
-		triangle_normal( & normal, terrain -> vertices[cIndex], terrain -> vertices[bIndex], terrain -> vertices[aIndex] );
+		triangle_normal( & normal, terrain -> vertices[aIndex], terrain -> vertices[bIndex], terrain -> vertices[cIndex] );
 
 		return - ( x * normal.x + z * normal.z - vector3D_dotProduct( & normal, terrain -> vertices[aIndex]->position ) ) / normal.y;
 	}
@@ -221,8 +221,8 @@ INLINE void terrain_trace( Entity * terrain, SceneNode * target, int type )
 {
 	if( terrain->mesh->type == ENTITY_TYPE_MESH_TERRAIN )
 	{
-		float w = terrain->mesh->octree->data->aabb->max->x - terrain->mesh->octree->data->aabb->min->x;
-		float h = terrain->mesh->octree->data->aabb->max->z - terrain->mesh->octree->data->aabb->min->z;
+		float w = terrain->mesh->octree->data->worldAABB->max->x - terrain->mesh->octree->data->worldAABB->min->x;
+		float h = terrain->mesh->octree->data->worldAABB->max->z - terrain->mesh->octree->data->worldAABB->min->z;
 		float textureX = w  * .5f,
 			  textureY = h  * .5f,
 
@@ -293,7 +293,7 @@ INLINE void terrain_trace( Entity * terrain, SceneNode * target, int type )
 			///
 			///Æ½ÃæËã·¨
 			//////
-			triangle_normal( & normal, terrain -> mesh -> vertices[cIndex], terrain -> mesh -> vertices[bIndex], terrain -> mesh -> vertices[aIndex] );
+			triangle_normal( & normal, terrain -> mesh -> vertices[aIndex], terrain -> mesh -> vertices[bIndex], terrain -> mesh -> vertices[cIndex] );
 
 			height = - ( ep -> entity -> position -> x * normal.x + ep -> entity -> position -> z * normal.z - vector3D_dotProduct( & normal, terrain -> mesh -> vertices[aIndex]->position ) ) / normal.y;
 

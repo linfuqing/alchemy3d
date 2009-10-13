@@ -578,7 +578,7 @@ INLINE Vector3D * matrix3D_getPosition( Vector3D * output, Matrix3D * m )
 	output->x = m->m41;
 	output->y = m->m42;
 	output->z = m->m43;
-	output->w = m->m44;
+	//output->w = m->m44;
 
 	return output;
 }
