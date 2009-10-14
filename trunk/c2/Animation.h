@@ -228,61 +228,55 @@ Animation * newTerrainTraceAnimation( Entity * container, int widthSegment, int 
 
 void animation_terrainTrace_update( Animation * animation )
 {
-	if( animation -> container -> scene )
+	if( animation->container->scene )
 	{
-		float w = animation->container->mesh->octree->data->aabb->max->x - animation->container->mesh->octree->data->aabb->min->x,
-			  h = animation->container->mesh->octree->data->aabb->max->z - animation->container->mesh->octree->data->aabb->min->z,
-			  textureX = w  * .5f,
-			  textureY = h  * .5f,
+		float	tx, tz,
+				x0 = animation->container->mesh->octree->data->aabb->min->x,
+				x1 = animation->container->mesh->octree->data->aabb->max->x,
+				z0 = animation->container->mesh->octree->data->aabb->min->z,
+				z1 = animation->container->mesh->octree->data->aabb->max->z;
 
-			  iW = animation->container->mesh->widthSegment / w,
-			  iH = animation->container->mesh->heightSegment / h,
+		float height, minY;
 
-			  tx, tz,
-
-			  height, minY, maxY;
-
-		int //gridX = terrain ->  widthSegment + 1,
-			gridZ = animation->container->mesh->heightSegment + 1,
-			ix, iz, _x, _z, aIndex, bIndex, cIndex;
+		int gridZ = animation->container->mesh->heightSegment + 1,
+			ix, iz, aIndex, bIndex, cIndex;
 
 		Vector3D normal, local;
 
-		SceneNode * ep = animation -> container -> scene -> nodes;
+		SceneNode * ep = animation->container->scene->nodes;
 
-		while( ep != NULL &&  ep -> entity->mesh->type != ENTITY_TYPE_MESH_TERRAIN )
+		while( ep && ep->entity->mesh && ep->entity->mesh->terrainTrace && ep->entity->mesh->type != ENTITY_TYPE_MESH_TERRAIN )
 		{
+			//把实体位置变换到地形的私有坐标系
 			matrix3D_transformVector( & local, animation->container->worldInvert, ep->entity->w_pos );
 
-			if(	local.x < - textureX 
-			||  local.x >   textureX
-			||	local.z < - textureY 
-			||  local.z >   textureY )
+			if(	local.x < x0 
+			||  local.x > x1
+			||	local.z < z0 
+			||  local.z > z1 )
 			{
 				ep = ep -> next;
+
 				continue;
 			}
 
-			tx = ( local.x + textureX ) * iW;
-			tz = ( local.z + textureY ) * iH;
+			tx = ( local.x - x0 ) * animation->container->mesh->widthSegment / ( x1 - x0 );
+			tz = animation->container->mesh->heightSegment - ( local.z - z0 ) * animation->container->mesh->heightSegment / ( z1 - z0 );
 
 			ix = ( int )tx;
 			iz = ( int )tz;
-					
-			_x = ix + 1;
-			_z = iz + 1;
 
 			if( ( tx -= ix ) + ( tz -= iz ) > 1 )
 			{
-				aIndex = ix * gridZ + iz;
-				cIndex = ix * gridZ + _z;
-				bIndex = _x * gridZ + iz;
+				cIndex = (ix + 1) * gridZ + iz;
+				bIndex = ix * gridZ + iz + 1;
+				aIndex = cIndex + 1;
 			}
 			else
 			{
-				aIndex = _x * gridZ + _z;
-				cIndex = _x * gridZ + iz;
-				bIndex = ix * gridZ + _z;
+				aIndex = ix * gridZ + iz;
+				cIndex = aIndex + 1;
+				bIndex = (ix + 1) * gridZ + iz;
 			}
 
 			/*b = entity -> mesh -> vertices[bIndex].position -> y - entity -> mesh -> vertices[aIndex].position -> y;
@@ -327,46 +321,38 @@ void animation_terrainTrace_update( Animation * animation )
 
 			//aabb_setToTransformedBox( & localAABB, ep->entity->mesh->octree->data->aabb, animation->container->worldInvert );
 
-			maxY = minY = animation->container->worldInvert->m42;
+			minY = animation->container->worldInvert->m42;
 
-			if (animation->container->worldInvert->m12 > 0.0f)
+			if ( animation->container->worldInvert->m12 > 0.0f )
 			{
 				minY += animation->container->worldInvert->m12 * ep->entity->mesh->octree->data->worldAABB->min->x;
-				maxY += animation->container->worldInvert->m12 * ep->entity->mesh->octree->data->worldAABB->max->x;
 			}
 			else
 			{
 				minY += animation->container->worldInvert->m12 * ep->entity->mesh->octree->data->worldAABB->max->x;
-				maxY += animation->container->worldInvert->m12 * ep->entity->mesh->octree->data->worldAABB->min->x;
 			}
 
-			if (animation->container->worldInvert->m22 > 0.0f)
+			if ( animation->container->worldInvert->m22 > 0.0f )
 			{
 				minY += animation->container->worldInvert->m22 * ep->entity->mesh->octree->data->worldAABB->min->y;
-				maxY += animation->container->worldInvert->m22 * ep->entity->mesh->octree->data->worldAABB->max->y;
 			}
 			else
 			{
 				minY += animation->container->worldInvert->m22 * ep->entity->mesh->octree->data->worldAABB->max->y;
-				maxY += animation->container->worldInvert->m22 * ep->entity->mesh->octree->data->worldAABB->min->y;
 			}
 
-			if (animation->container->worldInvert->m32 > 0.0f)
+			if ( animation->container->worldInvert->m32 > 0.0f )
 			{
 				minY += animation->container->worldInvert->m32 * ep->entity->mesh->octree->data->worldAABB->min->z;
-				maxY += animation->container->worldInvert->m32 * ep->entity->mesh->octree->data->worldAABB->max->z;
 			}
 			else
 			{
 				minY += animation->container->worldInvert->m32 * ep->entity->mesh->octree->data->worldAABB->max->z;
-				maxY += animation->container->worldInvert->m32 * ep->entity->mesh->octree->data->worldAABB->min->z;
 			}
 
-			//ep->entity->transform->m42 = height - minY;
+			ep->entity->position->y += ( height - minY );
 
-			ep->entity->position->y += ( height - ( minY + maxY ) * 0.5f );
-
-			//AS3_Trace( AS3_Number( ep->entity->position->y ) );
+			ep->entity->transformDirty = TRUE;
 
 			ep = ep -> next;
 		}

@@ -63,6 +63,8 @@ void force_dispose( Force * force )
 	free( force -> value  );
 	free( force -> anchor );
 	free( force );
+
+	memset( force, 0, sizeof( Force ) );
 }
 
 # endif

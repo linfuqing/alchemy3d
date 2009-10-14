@@ -9,7 +9,6 @@
 #include "Texture.h"
 #include "RenderList.h"
 
-
 #define OCTREE_NOT_READY	0
 #define OCTREE_READY		1
 
@@ -17,30 +16,21 @@ typedef struct Mesh
 {
 	DWORD nFaces, nVertices, nRenderList, nClippList, nCullList;
 
-	int type, octree_depth, octreeState, v_dirty, lightEnable, fogEnable, useMipmap;
+	int type, octree_depth, octreeState, v_dirty, lightEnable, fogEnable, useMipmap, terrainTrace;
+
+	int widthSegment, heightSegment;
 	
 	float mip_dist;
-
-	//如果不是地形,那么将存在高度
-	union
-	{
-		float halfHeight;
-
-		struct
-		{
-			int widthSegment, heightSegment;
-		};
-	};
 
 	Triangle ** faces;
 
 	Vertex ** vertices;
 
-	struct Octree * octree;
-
 	//struct Animation * animation;
 
-	struct RenderList * renderList, * clippedList;
+	RenderList * renderList, * clippedList;
+
+	struct Octree * octree;
 
 }Mesh;
 
@@ -55,7 +45,6 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	Vector3D * vp;
 	ARGBColor * ap;
 
-	
 	if( ( faces		  = ( Triangle  * )malloc( sizeof( Triangle   ) * nFaces                     ) ) == NULL
 	 || ( vertices	  = ( Vertex    * )malloc( sizeof( Vertex     ) * nVertices                  ) ) == NULL
 	 || ( m->faces	  = ( Triangle ** )malloc( sizeof( Triangle * ) * nFaces                     ) ) == NULL
@@ -117,10 +106,9 @@ Mesh * newMesh( int nVertices, int nFaces )
 	m->fogEnable		= FALSE;
 	m->useMipmap		= FALSE;
 	m->mip_dist			= 0;
-	//m->animation        = NULL;
+	m->terrainTrace		= FALSE;
 	m->type				= 0;
 	m->octree_depth		= 0;
-	m->halfHeight		= 0;
 
 	m->nRenderList = m->nCullList = m->nClippList = 0;
 
@@ -340,12 +328,17 @@ void mesh_clear( Mesh * mesh )
 	if ( mesh->renderList )
 	{
 		free( mesh->renderList );
+		
+		memset( mesh->renderList, 0, sizeof( RenderList ) );
 
 		mesh->nRenderList = mesh->nCullList = mesh->nClippList = 0;
 	}
 
 	free( mesh->vertices );
 	free( mesh->faces );
+	
+	memset( mesh->vertices, 0, sizeof( Vertex * ) );
+	memset( mesh->faces, 0, sizeof( Triangle * ) );
 }
 
 Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )

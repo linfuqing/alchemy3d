@@ -89,6 +89,8 @@ Vector3D * newVector3D( float x, float y, float z, float w )
 INLINE void vector3D_dispose( Vector3D * v )
 {
 	free( v );
+	
+	memset( v, 0, sizeof( Vector3D ) );
 }
 
 INLINE void vector3D_copy( Vector3D * v, Vector3D * src )

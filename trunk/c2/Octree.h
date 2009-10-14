@@ -339,6 +339,15 @@ int buildOctree( Octree * root, int maxdepth )
 		free( f5 );
 		free( f6 );
 		free( f7 );
+		
+		memset( f0, 0, sizeof( Triangle * ) );
+		memset( f1, 0, sizeof( Triangle * ) );
+		memset( f2, 0, sizeof( Triangle * ) );
+		memset( f3, 0, sizeof( Triangle * ) );
+		memset( f4, 0, sizeof( Triangle * ) );
+		memset( f5, 0, sizeof( Triangle * ) );
+		memset( f6, 0, sizeof( Triangle * ) );
+		memset( f7, 0, sizeof( Triangle * ) );
 
 		buildOctree( root->tlb, maxdepth );
 		buildOctree( root->trb, maxdepth );

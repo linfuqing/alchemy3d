@@ -186,7 +186,8 @@ void entity_dispose( Entity * entity )
 	matrix3D_dispose( entity->worldInvert );
 	matrix3D_dispose( entity->view );
 	matrix3D_dispose( entity->projection );
-	free( entity );
+
+	memset( entity, 0, sizeof(Entity));
 }
 
 INLINE void entity_setMesh( Entity * entity, Mesh * m )
@@ -200,6 +201,7 @@ INLINE void entity_updateAfterRender( Entity * entity )
 {
 	if ( entity->mesh )
 	{
+		entity->transformDirty = FALSE;
 		entity->mesh->v_dirty = FALSE;
 		entity->mesh->nRenderList = entity->mesh->nCullList = entity->mesh->nClippList = 0;
 	}
