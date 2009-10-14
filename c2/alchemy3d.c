@@ -351,7 +351,7 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 	node -> next   = NULL;
 
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->mesh, &entity->transformDirty, node );
+		entity, entity->position, entity->direction, entity->scale, entity->w_pos, & entity->mesh, & entity->transformDirty, node );
 }
 
 AS3_Val addEntity( void* self, AS3_Val args )

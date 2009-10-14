@@ -924,15 +924,23 @@ void viewport_project( Viewport * viewport, int time )
 	if ( TRUE == camera->fnfDirty || TRUE == viewport->dirty )
 		getPerspectiveFovLH( camera->projectionMatrix, camera, viewport->aspect );
 
-	//遍历实体
+	//动画
 	sceneNode = scene->nodes;
 
 	while( sceneNode )
 	{
 		entity = sceneNode->entity;
 
-		if( entity->animation )
-			animation_update( entity->animation, time );
+		if( entity->animation ) animation_update( entity->animation, time );
+
+		sceneNode = sceneNode->next;
+	}
+	
+	sceneNode = scene->nodes;
+
+	while( sceneNode )
+	{
+		entity = sceneNode->entity;
 
 		entity_updateTransform(entity);
 
