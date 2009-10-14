@@ -558,7 +558,7 @@ INLINE Matrix3D * matrix3D_clone( Matrix3D * src )
 void matrix3D_dispose( Matrix3D * m )
 {
 	free( m );
-	m = NULL;
+	memset( m, 0, sizeof( Matrix3D ) );
 }
 
 INLINE void sinCos(float *returnSin, float *returnCos, float theta)

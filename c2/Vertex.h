@@ -102,6 +102,8 @@ INLINE void vertex_dispose( Vertex * v )
 		cf = cf->next;
 
 		free( cf2 );
+		
+		memset( cf2, 0, sizeof( Vertex ) );
 
 		cf2 =NULL;
 	}

@@ -427,10 +427,14 @@ void scene_updateAfterRender( Scene * scene )
 	while( NULL != sceneNode )
 	{
 		scene->nNodes ++;
-		scene->nFaces += sceneNode->entity->mesh->nFaces;
-		scene->nRenderList += sceneNode->entity->mesh->nRenderList;
-		scene->nClippList += sceneNode->entity->mesh->nClippList;
-		scene->nCullList += sceneNode->entity->mesh->nCullList;
+
+		if ( sceneNode->entity->mesh )
+		{
+			scene->nFaces += sceneNode->entity->mesh->nFaces;
+			scene->nRenderList += sceneNode->entity->mesh->nRenderList;
+			scene->nClippList += sceneNode->entity->mesh->nClippList;
+			scene->nCullList += sceneNode->entity->mesh->nCullList;
+		}
 
 		entity_updateAfterRender( sceneNode->entity );
 

@@ -46,8 +46,18 @@ void viewport_resize( Viewport * viewport, int width, int height )
 	viewport->zpitch = width * sizeof( DWORD );
 	viewport->dirty = TRUE;
 
-	if ( NULL != viewport->videoBuffer )	free( viewport->videoBuffer );
-	if ( NULL != viewport->zBuffer )		free( viewport->zBuffer );
+	if ( NULL != viewport->videoBuffer )
+	{
+		free( viewport->videoBuffer );
+
+		memset( viewport->videoBuffer, 0, sizeof( BYTE ) );
+	}
+	if ( NULL != viewport->zBuffer )
+	{
+		free( viewport->zBuffer );
+	
+		memset( viewport->zBuffer, 0, sizeof( BYTE ) );
+	}
 
 	//初始化缓冲区
 	if( ( viewport->videoBuffer		= ( LPBYTE )calloc( wh * sizeof( DWORD ), sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
@@ -920,23 +930,14 @@ void viewport_project( Viewport * viewport, int time )
 	while( sceneNode )
 	{
 		entity = sceneNode->entity;
-		rl = entity->mesh->renderList->next;
-		cl = entity->mesh->clippedList->next;
 
 		if( entity -> animation )
-		{
-			animation_update( entity -> animation, time );
-		}
+			animation_update( entity->animation, time );
 
 		entity_updateTransform(entity);
 
 		if ( entity->mesh && entity -> mesh -> nFaces && entity -> mesh -> nVertices )
 		{
-			/*if( entity -> mesh -> animation && entity -> mesh -> animation -> length > 1 )
-			{
-				animation_update( entity -> mesh -> animation, time );
-			}*/
-
 			//重新计算法向量以及构造八叉树（如果顶点是静态的只会执行一次）
 			mesh_updateMesh( entity->mesh );
 
@@ -947,6 +948,9 @@ void viewport_project( Viewport * viewport, int time )
 
 			//计算视点在实体的局部坐标
 			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
+
+			rl = entity->mesh->renderList->next;
+			cl = entity->mesh->clippedList->next;
 
 			//八叉
 			if ( ! octree_culling( camera, entity, entity->mesh->octree, & rl, & cl ) )

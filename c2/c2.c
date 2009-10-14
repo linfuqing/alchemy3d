@@ -126,7 +126,9 @@ int main()
 	do3d = newEntity();
 	mesh4 = newPlane( NULL, material, texture, 200.0f, 200.0f, 2, 2, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
 	//mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
-	entity_setMesh( do3d, mesh4 );
+	//entity_setMesh( do3d, mesh4 );
+	entity_setX(do3d, 300.0f);
+	entity_setZ(do3d, -300.0f);
 
 	scene_addEntity(scene, do3d, NULL);
 	scene_addEntity(scene, do3d3, NULL);

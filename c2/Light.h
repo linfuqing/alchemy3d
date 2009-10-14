@@ -76,6 +76,8 @@ Light * newPointLight( int type, Entity * source )
 void light_dispose( Light * light )
 {
 	free( light );
+
+	memset( light, 0, sizeof( Light ) );
 }
 
 INLINE void setLightOnOff( Light * light, int OnOff )

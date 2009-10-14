@@ -126,11 +126,14 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	return dest;
 }
 
-INLINE void triangle_dispose( Triangle * p)
+INLINE void triangle_dispose( Triangle * p )
 {
 	free( p->normal );
 	free( p->t_uv );
+	free( p );
 
+	memset( p->normal, 0, sizeof( Vector3D ) );
+	memset( p->t_uv, 0, sizeof( Vector ) );
 	memset( p, 0, sizeof( Triangle ) );
 }
 
