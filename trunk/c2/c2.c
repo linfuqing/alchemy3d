@@ -49,7 +49,7 @@ int main()
 	//Light * light;
 	Texture * texture;
 	Bitmap * bitmap, * bitmap2;
-	Mesh * mesh4;
+	//Mesh * mesh4;
 	Fog * fog;
 
 	int i = 0;
@@ -57,10 +57,12 @@ int main()
 
 	LPDWORD bitmapData;
 
-	//MD2 * md2;
+	MD2 * md2;
 
 	//A3DS * a3ds;
-	//FILE *fp;
+	FILE *fp;
+	UCHAR * buffer;
+	long length=0;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -124,12 +126,13 @@ int main()
 	entity_setY(do3d3, 30.0f);
 
 	do3d = newEntity();
-	mesh4 = newPlane( NULL, material, texture, 200.0f, 200.0f, 2, 2, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
+	do3d->name = "md2";
+	//mesh4 = newPlane( NULL, material, texture, 200.0f, 200.0f, 2, 2, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
 	//mesh4 = newPlane( NULL, material, texture, 150.0f, 150.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	//mesh4->terrainTrace = TRUE;
-	entity_setMesh( do3d, mesh4 );
-	entity_setX(do3d, 300.0f);
-	entity_setZ(do3d, -300.0f);
+	//entity_setMesh( do3d, mesh4 );
+	//entity_setX(do3d, 300.0f);
+	entity_setY(do3d, 1000.0f);
 
 	scene_addEntity(scene, do3d, NULL);
 	scene_addEntity(scene, do3d3, NULL);
@@ -148,9 +151,15 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	/*fopen_s( & fp, "D:\\3Dmodel\\3ds\\scene.jpg","rb");
+	fopen_s( & fp, "D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\md2\\tris.MD2","rb");
 
-	a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
+	length = GetFileSize(fp);
+
+	buffer = (UCHAR * )malloc(length * sizeof(UCHAR));
+
+	fread(buffer,1,length,fp);
+
+	/*a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 
 	A3DS_Dispose( a3ds );
 
@@ -159,9 +168,11 @@ int main()
 		do3d3->children->entity->mesh->faces[i].texture = texture;
 	}*/
 
-	/*md2 = newMD2( do3d3 );
+	md2 = newMD2( do3d );
 
-	md2_read( & buffer, md2, material, texture, 1 );*/
+	md2_read( & buffer, md2, material, texture, 1, 24 );
+
+	md2->entity->mesh->terrainTrace = TRUE;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
