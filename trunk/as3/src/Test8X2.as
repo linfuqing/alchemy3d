@@ -80,10 +80,6 @@ package
 			terrain = new MeshTerrain(null, m2, null, RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32);
 			terrain.buildOn(10000, 10000, 3000);
 			terrain.mesh.lightEnable = true;
-			terrain.mesh.octreeDepth = 1;
-			terrain.mesh.useMipmap = true;
-			terrain.mesh.mipDist = 5000;
-			terrain.mesh.fogEnable = true;
 			terrain.z = 0;
 			terrain.y = -30;
 			
