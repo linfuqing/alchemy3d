@@ -105,7 +105,7 @@ package cn.alchemy3d.external
 			loader.data.clear();
 			loader.data = null;
 			
-			var ps:Array = Library.alchemy3DLib.initializeMD2( _pointer, mesh.pointer, fileBuffer, _material ? _material.pointer : NULL, _texture ? _texture.pointer : NULL, renderMode, fps );
+			var ps:Array = Library.alchemy3DLib.initializeMD2( _pointer, fileBuffer, _material ? _material.pointer : NULL, _texture ? _texture.pointer : NULL, renderMode, fps );
 			
 			this.isPlayPointer           = ps[0];
 			this.loopPointer             = ps[1];
