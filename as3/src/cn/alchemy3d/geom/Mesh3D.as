@@ -8,9 +8,24 @@ package cn.alchemy3d.geom
 	
 	public class Mesh3D extends Pointer
 	{
-		//protected static const sizeOfInt:int = 4;
+		public static const MATERIAL_KEY:uint		= 0x01;
+		public static const TEXTURE_KEY:uint		= 0x02;
+		public static const FOG_KEY:uint			= 0x04;
+		public static const LIGHT_KEY:uint		= 0x08;
+		public static const RENDERMODE_KEY:uint	= 0x10;
+		
 		private var vertices:Vector.<Vertex3D>;
 		private var faces:Vector.<Triangle3D>;
+		
+		private var lightEnablePointer:uint;
+		private var fogEnablePointer:uint;
+		private var useMipmapPointer:uint;
+		private var terrainTracePointer:uint;
+		private var mipDistPointer:uint;
+		private var vDirtyPointer:uint;
+		private var octreeDepthPointer:uint;
+		
+		private var _lightEnable:Boolean;
 		
 		public function Mesh3D( vertices:Vector.<Vertex3D> = null, faces:Vector.<Triangle3D> = null )
 		{	
@@ -31,16 +46,6 @@ package cn.alchemy3d.geom
 		{
 			return faces ? faces.length : 0;
 		}
-		
-		private var lightEnablePointer:uint;
-		private var fogEnablePointer:uint;
-		private var useMipmapPointer:uint;
-		private var terrainTracePointer:uint;
-		private var mipDistPointer:uint;
-		private var vDirtyPointer:uint;
-		private var octreeDepthPointer:uint;
-		
-		private var _lightEnable:Boolean;
 		
 		private function setVertices( vs:Vector.<Vertex3D> ):uint
 		{
@@ -136,61 +141,6 @@ package cn.alchemy3d.geom
 			return Vector.<uint>( [fp, uvp, mp, tp, rmp] );
 		}
 		
-		/*public function get material():Material
-		{
-			return _material;
-		}
-		
-		public function set material(material:Material):void
-		{
-			for (var i:int = 0; i < faces.length; i ++)
-			{
-				Library.memory.position = meshBuffPointer + (vSize * vertices.length + 10 + i * fSize) * sizeOfInt;
-				
-				if (material)
-					Library.memory.writeUnsignedInt(material.pointer);
-				else
-					Library.memory.writeUnsignedInt(0);
-			}
-				
-			Library.memory.position = fDirtyPointer;
-			Library.memory.writeUnsignedInt(1);
-		}
-		
-		public function get texture():Texture
-		{
-			return _texture;
-		}
-		
-		public function set texture(texture:Texture):void
-		{
-			for (var i:int = 0; i < faces.length; i ++)
-			{
-				Library.memory.position = meshBuffPointer + (vSize * vertices.length + 11 + i * fSize) * sizeOfInt;
-				
-				if (texture)
-					Library.memory.writeUnsignedInt(texture.pointer);
-				else
-					Library.memory.writeUnsignedInt(0);
-			}
-				
-			Library.memory.position = fDirtyPointer;
-			Library.memory.writeUnsignedInt(1);
-		}*/
-		
-		/*
-		public function set renderMode(mode:uint):void
-		{
-			for (var i:int = 0; i < faces.length; i ++)
-			{
-				Library.memory.position = meshBuffPointer + (vSize * vertices.length + 9 + i * fSize) * sizeOfInt;
-				Library.memory.writeUnsignedInt(mode);
-			}
-			
-			Library.memory.position = fDirtyPointer;
-			Library.memory.writeUnsignedInt(1);
-		}*/
-		
 		public function get useMipmap():Boolean
 		{
 			Library.memory.position = useMipmapPointer;
@@ -233,16 +183,16 @@ package cn.alchemy3d.geom
 			Library.memory.writeInt(value);
 		}
 		
-		public function get fogEnable():Number
+		public function get fogEnable():Boolean
 		{
 			Library.memory.position = fogEnablePointer;
-			return Library.memory.readFloat();
+			return Library.memory.readBoolean();
 		}
 		
-		public function set fogEnable(value:Number):void
+		public function set fogEnable(bool:Boolean):void
 		{
 			Library.memory.position = fogEnablePointer;
-			Library.memory.writeFloat(value);
+			Library.memory.writeBoolean(bool);
 		}
 		
 		public function get lightEnable():Boolean
@@ -257,106 +207,6 @@ package cn.alchemy3d.geom
 			Library.memory.position = lightEnablePointer;
 			Library.memory.writeBoolean(bool);
 		}
-		
-		/*public function setVertices(index:int, v:Vector3D):void
-		{
-			vertices[index].x = v.x;
-			vertices[index].y = v.y;
-			vertices[index].z = v.z;
-			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize;
-			Library.memory.writeFloat(v.x);
-			Library.memory.writeFloat(v.y);
-			Library.memory.writeFloat(v.z);
-			
-			Library.memory.position = vDirtyPointer;
-			Library.memory.writeUnsignedInt(1);
-		}
-		
-		public function setVerticesX(index:int, value:Number):void
-		{
-			vertices[index].x = value;
-			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize;
-			Library.memory.writeFloat(value);
-			
-			Library.memory.position = vDirtyPointer;
-			Library.memory.writeUnsignedInt(1);
-		}
-		
-		public function setVerticesY(index:int, value:Number):void
-		{
-			vertices[index].y = value;
-			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt;
-			Library.memory.writeFloat(value);
-			
-			Library.memory.position = vDirtyPointer;
-			Library.memory.writeUnsignedInt(1);
-		}
-		
-		public function setVerticesZ(index:int, value:Number):void
-		{
-			vertices[index].z = value;
-			//获得顶点缓冲区的起始指针
-			Library.memory.position = meshBuffPointer + index * sizeOfInt * vSize + sizeOfInt * 2;
-			//写入数据
-			Library.memory.writeFloat(value);
-			
-			Library.memory.position = vDirtyPointer;
-			Library.memory.writeUnsignedInt(1);
-		}
-		
-		public function fillVerticesToBuffer():void
-		{
-			Library.memory.position = meshBuffPointer;
-			
-			var v:Vertex3D;
-			
-			for each (v in vertices)
-			{
-				v.pointer = Library.memory.position + 4 * sizeOfInt;	//4代表保存指针的偏移量
-				
-				Library.memory.writeFloat(v.x);
-				Library.memory.writeFloat(v.y);
-				Library.memory.writeFloat(v.z);
-				Library.memory.writeFloat(v.w);
-				Library.memory.writeUnsignedInt(0);	//for saving pointer
-			}
-		}
-		
-		public function fillFacesToBuffer():void
-		{
-			Library.memory.position = meshBuffPointer + vertices.length * vSize * sizeOfInt;
-			
-			var f:Triangle3D;
-			
-			for each (f in faces)
-			{
-				Library.memory.writeUnsignedInt(f.v0.pointer);
-				Library.memory.writeUnsignedInt(f.v1.pointer);
-				Library.memory.writeUnsignedInt(f.v2.pointer);
-				Library.memory.writeFloat(f.uv0.x);
-				Library.memory.writeFloat(f.uv0.y);
-				Library.memory.writeFloat(f.uv1.x);
-				Library.memory.writeFloat(f.uv1.y);
-				Library.memory.writeFloat(f.uv2.x);
-				Library.memory.writeFloat(f.uv2.y);
-				Library.memory.writeUnsignedInt(0);
-				
-				if (_material)
-					Library.memory.writeUnsignedInt(_material.pointer);
-				else
-					Library.memory.writeUnsignedInt(0);
-				
-				if (_texture)
-					Library.memory.writeUnsignedInt(_texture.pointer);
-				else
-					Library.memory.writeUnsignedInt(0);
-			}
-		}
-		
-		protected function applyForMeshBuffer():void
-		{
-			meshBuffPointer = Library.alchemy3DLib.applyForTmpBuffer((vertices.length * vSize + faces.length * fSize) * sizeOfInt);
-		}*/
 		
 		override protected function initialize():void
 		{
@@ -392,6 +242,11 @@ package cn.alchemy3d.geom
 				
 				Library.alchemy3DLib.freeTmpBuffer( ps[8] );
 			}
+		}
+		
+		public function setAttribute(key:uint, value:*):void
+		{
+			Library.alchemy3DLib.setMeshAttribute( _pointer, key, value );
 		}
 	}
 }
