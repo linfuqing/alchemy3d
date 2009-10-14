@@ -327,11 +327,60 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth, & vp );
 }
 
+AS3_Val setMeshAttribute( void* self, AS3_Val args )
+{
+	Mesh * mesh;
+
+	int key;
+
+	void * value;
+
+	AS3_ArrayValue( args, "PtrType, IntType, PtrType", & mesh, & key, & value );
+
+	switch ( key )
+	{
+		case MATERIAL_KEY:
+
+			mesh_setMaterial( mesh, ( Material * )value );
+
+			break;
+			
+		case TEXTURE_KEY:
+
+			mesh_setTexture( mesh, ( Texture * )value );
+
+			break;
+			
+		case RENDERMODE_KEY:
+
+			mesh_setRenderMode( mesh, ( DWORD )value );
+
+			break;
+			
+		case FOG_KEY:
+
+			mesh->fogEnable = ( DWORD )value;
+
+			break;
+			
+		case LIGHT_KEY:
+
+			mesh->lightEnable = ( DWORD )value;
+
+			break;
+	}
+
+	return 0;
+}
+
 AS3_Val initializeEntity( void* self, AS3_Val args )
 {
 	Entity * entity;
+
 	SceneNode * node;
+
 	Mesh * mesh;
+
 	char * name;
 
 	AS3_ArrayValue( args, "StrType, PtrType",  &name, &mesh );
@@ -658,6 +707,7 @@ int main()
 	AS3_Val initializePrimitivesMethod = AS3_Function( NULL, initializePrimitives );
 	AS3_Val initializeTerrainMethod = AS3_Function( NULL, initializeTerrain );
 	AS3_Val initializeMeshMethod = AS3_Function( NULL, initializeMesh );
+	AS3_Val setMeshAttributeMethod = AS3_Function( NULL, setMeshAttribute );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
 	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
 	AS3_Val removeEntityMethod = AS3_Function( NULL, removeEntity );
@@ -690,6 +740,7 @@ int main()
 								 initializePrimitives:AS3ValType,\
 								 initializeTerrain:AS3ValType,\
 								 initializeMesh:AS3ValType,\
+								 setMeshAttribute:AS3ValType,\
 								 initializeEntity:AS3ValType,\
 								 addEntity:AS3ValType,\
 								 removeEntity:AS3ValType,\
@@ -719,6 +770,7 @@ int main()
 								initializePrimitivesMethod,
 								initializeTerrainMethod,
 								initializeMeshMethod,
+								setMeshAttributeMethod,
 								initializeEntityMethod,
 								addEntityMethod,
 								removeEntityMethod,
@@ -750,6 +802,7 @@ int main()
 	AS3_Release( initializePrimitivesMethod );
 	AS3_Release( initializeTerrainMethod );
 	AS3_Release( initializeMeshMethod );
+	AS3_Release( setMeshAttributeMethod );
 	AS3_Release( initializeEntityMethod );
 	AS3_Release( addEntityMethod );
 	AS3_Release( removeEntityMethod );

@@ -9,8 +9,14 @@
 #include "Texture.h"
 #include "RenderList.h"
 
-#define OCTREE_NOT_READY	0
-#define OCTREE_READY		1
+#define OCTREE_NOT_READY	FALSE
+#define OCTREE_READY		TRUE
+
+#define MATERIAL_KEY		0x01
+#define TEXTURE_KEY			0x02
+#define FOG_KEY				0x04
+#define LIGHT_KEY			0x08
+#define RENDERMODE_KEY		0x10
 
 typedef struct Mesh
 {
