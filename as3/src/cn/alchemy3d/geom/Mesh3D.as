@@ -35,6 +35,7 @@ package cn.alchemy3d.geom
 		private var lightEnablePointer:uint;
 		private var fogEnablePointer:uint;
 		private var useMipmapPointer:uint;
+		private var terrainTracePointer:uint;
 		private var mipDistPointer:uint;
 		private var vDirtyPointer:uint;
 		private var octreeDepthPointer:uint;
@@ -202,6 +203,18 @@ package cn.alchemy3d.geom
 			Library.memory.writeBoolean(bool);
 		}
 		
+		public function get terrainTrace():Boolean
+		{
+			Library.memory.position = terrainTracePointer;
+			return Library.memory.readBoolean();
+		}
+		
+		public function set terrainTrace(bool:Boolean):void
+		{
+			Library.memory.position = terrainTracePointer;
+			Library.memory.writeBoolean(bool);
+		}
+		
 		public function get mipDist():Number
 		{
 			Library.memory.position = mipDistPointer;
@@ -363,20 +376,21 @@ package cn.alchemy3d.geom
 			lightEnablePointer	= ps[1];
 			fogEnablePointer	= ps[2];
 			useMipmapPointer	= ps[3];
-			mipDistPointer		= ps[4];
-			vDirtyPointer		= ps[5];
-			octreeDepthPointer	= ps[6];
+			terrainTracePointer	= ps[4];
+			mipDistPointer		= ps[5];
+			vDirtyPointer		= ps[6];
+			octreeDepthPointer	= ps[7];
 
-			if( ps[7] && vertices )
+			if( ps[8] && vertices )
 			{
-				Library.memory.position = ps[7];
+				Library.memory.position = ps[8];
 			
 				for( var i:uint = 0; i < vertices.length; i ++ )
 				{
 					vertices[i].setPointer( Library.memory.readUnsignedInt() );
 				}
 				
-				Library.alchemy3DLib.freeTmpBuffer( ps[7] );
+				Library.alchemy3DLib.freeTmpBuffer( ps[8] );
 			}
 		}
 	}
