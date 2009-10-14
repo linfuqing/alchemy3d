@@ -245,8 +245,15 @@ void animation_terrainTrace_update( Animation * animation )
 
 		SceneNode * ep = animation->container->scene->nodes;
 
-		while( ep && ep->entity->mesh && ep->entity->mesh->terrainTrace && ep->entity->mesh->type != ENTITY_TYPE_MESH_TERRAIN )
+		while( ep )
 		{
+			if(	! ep->entity->mesh || ! ep->entity->mesh->terrainTrace || ep->entity->mesh->type == ENTITY_TYPE_MESH_TERRAIN )
+			{
+				ep = ep -> next;
+
+				continue;
+			}
+
 			//把实体位置变换到地形的私有坐标系
 			matrix3D_transformVector( & local, animation->container->worldInvert, ep->entity->w_pos );
 

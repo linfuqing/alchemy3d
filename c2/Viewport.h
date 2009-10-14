@@ -931,7 +931,7 @@ void viewport_project( Viewport * viewport, int time )
 	{
 		entity = sceneNode->entity;
 
-		if( entity -> animation )
+		if( entity->animation )
 			animation_update( entity->animation, time );
 
 		entity_updateTransform(entity);
