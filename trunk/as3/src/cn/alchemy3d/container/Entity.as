@@ -3,11 +3,8 @@
 package cn.alchemy3d.container
 {
 
-	import __AS3__.vec.Vector;
-	
 	import cn.alchemy3d.base.Library;
 	import cn.alchemy3d.geom.Mesh3D;
-	import cn.alchemy3d.lights.Light3D;
 	
 	import flash.geom.Vector3D;
 	
@@ -43,6 +40,7 @@ package cn.alchemy3d.container
 		private var scalePtr:uint;
 		private var worldPositionPtr:uint;
 		private var meshPtr:uint;
+		private var transformDirtyPtr:uint;
 		
 		public var name:String;
 		public var visible:Boolean;
@@ -111,6 +109,7 @@ package cn.alchemy3d.container
 			Library.memory.writeFloat(direction.x);
 			Library.memory.writeFloat(direction.y);
 			Library.memory.writeFloat(direction.z);
+			transformDirty(true);
 		}
 		
 		public function get position():Vector3D
@@ -126,6 +125,7 @@ package cn.alchemy3d.container
 			Library.memory.writeFloat(position.x);
 			Library.memory.writeFloat(position.y);
 			Library.memory.writeFloat(position.z);
+			transformDirty(true);
 		}
 		
 		public function get worldPosition():Vector3D
@@ -153,6 +153,7 @@ package cn.alchemy3d.container
 			Library.memory.writeFloat(value);
 			Library.memory.writeFloat(value);
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function get x():Number
@@ -166,6 +167,7 @@ package cn.alchemy3d.container
 			_position.x = value;
 			Library.memory.position = positionPtr;
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function get y():Number
@@ -179,6 +181,7 @@ package cn.alchemy3d.container
 			_position.y = value;
 			Library.memory.position = positionPtr + Library.intTypeSize;
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function get z():Number
@@ -192,6 +195,7 @@ package cn.alchemy3d.container
 			_position.z = value;
 			Library.memory.position = positionPtr + Library.intTypeSize * 2;
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function get scaleX():Number
@@ -204,6 +208,7 @@ package cn.alchemy3d.container
 			_scale.x = value;
 			Library.memory.position = scalePtr;
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function get scaleY():Number
@@ -216,6 +221,7 @@ package cn.alchemy3d.container
 			_scale.y = value;
 			Library.memory.position = scalePtr + Library.intTypeSize;
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function get scaleZ():Number
@@ -228,6 +234,7 @@ package cn.alchemy3d.container
 			_scale.z = value;
 			Library.memory.position = scalePtr + Library.intTypeSize * 2;
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function set rotationX(value:Number):void
@@ -235,6 +242,7 @@ package cn.alchemy3d.container
 			_direction.x = value;
 			Library.memory.position = directionPtr;
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function get rotationX():Number
@@ -247,6 +255,7 @@ package cn.alchemy3d.container
 			_direction.y = value;
 			Library.memory.position = directionPtr + Library.intTypeSize;
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function get rotationY():Number
@@ -259,6 +268,7 @@ package cn.alchemy3d.container
 			_direction.z = value;
 			Library.memory.position = directionPtr + Library.intTypeSize * 2;
 			Library.memory.writeFloat(value);
+			transformDirty(true);
 		}
 		
 		public function get rotationZ():Number
@@ -266,9 +276,15 @@ package cn.alchemy3d.container
 			return _direction.z;
 		}
 		
+		protected function transformDirty(bool:Boolean):void
+		{
+			Library.memory.position = transformDirtyPtr;
+			Library.memory.writeBoolean(bool);
+		}
+		
 		override protected function initialize():void
 		{
-			var ps:Array = Library.alchemy3DLib.initializeEntity(name,_mesh ? _mesh.pointer : NULL);
+			var ps:Array = Library.alchemy3DLib.initializeEntity(name, _mesh ? _mesh.pointer : NULL);
 
 			_pointer		    = ps[0];
 			positionPtr			= ps[1];
@@ -276,7 +292,8 @@ package cn.alchemy3d.container
 			scalePtr			= ps[3];
 			worldPositionPtr	= ps[4];
 			meshPtr             = ps[5];
-			_node               = ps[6];
+			transformDirtyPtr   = ps[6];
+			_node               = ps[7];
 		}
 	}
 }
