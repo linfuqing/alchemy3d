@@ -646,7 +646,7 @@ void viewport_lightting( Viewport * viewport )
 	Lights * lights;
 	Light * light;
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
-	FloatColor fColor, lastColor, outPutColor;
+	ColorValue fColor, lastColor, outPutColor;
 	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
 	DWORD l = 0, j = 0, i = 0;
 	//如果有光源
@@ -713,16 +713,16 @@ void viewport_lightting( Viewport * viewport )
 					//光源索引为零
 					l = 0;
 
-					floatColor_identity( & lastColor);
+					colorValue_identity( & lastColor);
 
 					if ( NULL != material )
 					{
 						//基于在效率和真实感之间取得一个平衡，不考虑全局环境光的贡献，直接使用材质的环境光反射系数作为最终颜色
 						//复制材质颜色到最终颜色
-						floatColor_copy( & lastColor, material->ambient );
+						colorValue_copy( & lastColor, material->ambient );
 
 						//临时颜色清零
-						floatColor_zero( & fColor );
+						colorValue_zero( & fColor );
 
 						lights = viewport->scene->lights;
 
@@ -806,7 +806,7 @@ void viewport_lightting( Viewport * viewport )
 							// 计算来自光源的贡献(现在已经有足够的条件了)
 
 							//加入环境反射部分:
-							floatColor_append( & fColor, material->ambient, light->ambient );
+							colorValue_append( & fColor, material->ambient, light->ambient );
 
 							//其次, 计算漫反射部分
 
@@ -832,7 +832,7 @@ void viewport_lightting( Viewport * viewport )
 							if ( dot > 0.0f )
 							{
 								//加入漫反射部分的贡献
-								floatColor_add_self( & fColor, floatColor_scaleBy_self( floatColor_append( & outPutColor, material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
+								colorValue_add_self( & fColor, colorValue_scaleBy_self( colorValue_append( & outPutColor, material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
 
 								//计算高光部分
 								if ( light->mode == HIGH_MODE )
@@ -850,7 +850,7 @@ void viewport_lightting( Viewport * viewport )
 										fShineFactor = powf(fShine, material->power);
 
 										//加入高光部分的贡献
-										floatColor_add_self( & fColor, floatColor_scaleBy_self( floatColor_append( & outPutColor, material->specular, light->specular ), fShineFactor, fShineFactor, fShineFactor, 1 ) );
+										colorValue_add_self( & fColor, colorValue_scaleBy_self( colorValue_append( & outPutColor, material->specular, light->specular ), fShineFactor, fShineFactor, fShineFactor, 1 ) );
 									}
 								}
 							}
@@ -858,10 +858,10 @@ void viewport_lightting( Viewport * viewport )
 							//最后乘以衰减和聚光因子，第 j 个光对物体的第个顶点的照射:
 							fSpotFactor *= fAttenuCoef;
 
-							floatColor_scaleBy_self( & fColor, fSpotFactor, fSpotFactor, fSpotFactor, 1.0f );
+							colorValue_scaleBy_self( & fColor, fSpotFactor, fSpotFactor, fSpotFactor, 1.0f );
 
 							//累加至最后颜色:
-							floatColor_add_self( & lastColor, & fColor );
+							colorValue_add_self( & lastColor, & fColor );
 
 							lights = lights->next;
 
@@ -874,16 +874,16 @@ void viewport_lightting( Viewport * viewport )
 
 						//	AS3_Trace(AS3_Number(vs->v_pos->w));
 
-						//	floatColor_add( & fColor, fog->global, & lastColor );
-						//	floatColor_copy( & fColor, fog->global );
+						//	colorValue_add( & fColor, fog->global, & lastColor );
+						//	colorValue_copy( & fColor, fog->global );
 
-						//	floatColor_scaleBy_self( & fColor, f_concentration, f_concentration, f_concentration, 1.0f );
+						//	colorValue_scaleBy_self( & fColor, f_concentration, f_concentration, f_concentration, 1.0f );
 
-						//	floatColor_add_self( & lastColor, & fColor );
+						//	colorValue_add_self( & lastColor, & fColor );
 						//}
 
 						//作颜色归一化处理
-						floatColor_normalize( & lastColor );
+						colorValue_normalize( & lastColor );
 
 						//对于alpha, 这里简单地用材质漫反射属性来代替
 						lastColor.alpha = material->diffuse->alpha;

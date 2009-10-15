@@ -1,9 +1,10 @@
-#ifndef __FLOATCOLOR_H
-#define __FLOATCOLOR_H
+#ifndef __COLORVALUE_H
+#define __COLORVALUE_H
 
 #include <malloc.h>
 
-#include "ARGBColor.h"
+#include "Color565.h"
+#include "Color888.h"
 
 #define DARK	0xff000000
 #define WHITE	0xffffffff
@@ -13,7 +14,7 @@
 
 #define RGBTo16(r, g, b) ( ( ( r >> 3 ) << 11 ) | ( ( g >> 2 ) << 5 ) | ( b >> 3 ) )
 
-typedef struct FloatColor
+typedef struct ColorValue
 {
 	union
 	{
@@ -27,9 +28,9 @@ typedef struct FloatColor
 
 		float color[4];
 	};
-}FloatColor;
+}ColorValue;
 
-INLINE void floatColor_normalize( FloatColor * c )
+INLINE void colorValue_normalize( ColorValue * c )
 {
 	c->red = MAX( c->red, 0.0f );
 	c->green = MAX( c->green, 0.0f );
@@ -42,21 +43,21 @@ INLINE void floatColor_normalize( FloatColor * c )
 	c->alpha = MIN( c->alpha, 1.0f );
 }
 
-INLINE void floatColor_zero( FloatColor * c )
+INLINE void colorValue_zero( ColorValue * c )
 {
 	c->red = c->green = c->blue = c->alpha = 0.0f;
 }
 
-INLINE void floatColor_identity( FloatColor * c )
+INLINE void colorValue_identity( ColorValue * c )
 {
 	c->red = c->green = c->blue = c->alpha = 1.0f;
 }
 
-FloatColor * newFloatColor( float r, float g, float b, float a )
+ColorValue * newColorValue( float r, float g, float b, float a )
 {
-	FloatColor * c;
+	ColorValue * c;
 
-	if( ( c = ( FloatColor * )malloc( sizeof( FloatColor ) ) ) == NULL )
+	if( ( c = ( ColorValue * )malloc( sizeof( ColorValue ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
@@ -66,34 +67,29 @@ FloatColor * newFloatColor( float r, float g, float b, float a )
 	c->blue = b;
 	c->alpha = a;
 
-	floatColor_normalize( c );
+	colorValue_normalize( c );
 
 	return c;
 }
 
-INLINE void floatColor_dispose( FloatColor * color )
+INLINE void colorValue_dispose( ColorValue * color )
 {
 	free( color );
+
+	memset( color, 0, sizeof( ColorValue ) );
 }
 
-INLINE FloatColor * argbColor_toFloatColor( ARGBColor * c )
+INLINE Color565 * colorValueTo565( ColorValue * c )
 {
-	float d = 1.0f / 255.0f;
-
-	return newFloatColor( c->alpha * d, c->red * d, c->green * d, c->blue * d );
+	return newColor565( (int)(c->red * 31), (int)(c->green * 63), (int)(c->blue * 31 ) );
 }
 
-INLINE ARGBColor * floatColor_toARGBColor( FloatColor * c )
+INLINE Color888 * colorValueTo888( ColorValue * c )
 {
-	return newARGBColor( (int)(c->alpha * 255), (int)(c->red * 255), (int)(c->green * 255), (int)(c->blue * 255 ) );
+	return newColor888( (int)(c->alpha * 255), (int)(c->red * 255), (int)(c->green * 255), (int)(c->blue * 255 ) );
 }
 
-INLINE DWORD floatColor_toUint32( FloatColor * c )
-{
-	return ( (int)(c->alpha * 255) << 24 ) + ( (int)(c->red * 255) << 16 ) + ( (int)(c->green * 255) << 8 ) + (int)(c->blue * 255);
-}
-
-INLINE void floatColor_copy( FloatColor * c, FloatColor * src )
+INLINE void colorValue_copy( ColorValue * c, ColorValue * src )
 {
 	c->red = src->red;
 	c->green = src->green;
@@ -101,7 +97,7 @@ INLINE void floatColor_copy( FloatColor * c, FloatColor * src )
 	c->alpha = src->alpha;
 }
 
-INLINE FloatColor * floatColor_add( FloatColor * output, FloatColor * c1, FloatColor * c2 )
+INLINE ColorValue * colorValue_add( ColorValue * output, ColorValue * c1, ColorValue * c2 )
 {
 	output->alpha = c1->alpha + c2->alpha;
 	output->red = c1->red + c2->red;
@@ -111,7 +107,7 @@ INLINE FloatColor * floatColor_add( FloatColor * output, FloatColor * c1, FloatC
 	return output;
 }
 
-INLINE FloatColor * floatColor_subtract( FloatColor * output, FloatColor * c1, FloatColor * c2 )
+INLINE ColorValue * colorValue_subtract( ColorValue * output, ColorValue * c1, ColorValue * c2 )
 {
 	output->alpha = c1->alpha - c2->alpha;
 	output->red = c1->red - c2->red;
@@ -121,7 +117,7 @@ INLINE FloatColor * floatColor_subtract( FloatColor * output, FloatColor * c1, F
 	return output;
 }
 
-INLINE FloatColor * floatColor_scaleBy( FloatColor * output, FloatColor * c, float r, float g, float b, float a )
+INLINE ColorValue * colorValue_scaleBy( ColorValue * output, ColorValue * c, float r, float g, float b, float a )
 {
 	output->alpha = c->alpha * a;
 	output->red = c->red * r;
@@ -131,7 +127,7 @@ INLINE FloatColor * floatColor_scaleBy( FloatColor * output, FloatColor * c, flo
 	return output;
 }
 
-INLINE FloatColor * floatColor_append( FloatColor * output, FloatColor * c1, FloatColor * c2 )
+INLINE ColorValue * colorValue_append( ColorValue * output, ColorValue * c1, ColorValue * c2 )
 {
 	output->alpha = c1->alpha * c2->alpha;
 	output->red = c1->red * c2->red;
@@ -143,7 +139,7 @@ INLINE FloatColor * floatColor_append( FloatColor * output, FloatColor * c1, Flo
 
 //================================================================================================
 
-INLINE FloatColor * floatColor_add_self( FloatColor * c1, FloatColor * c2 )
+INLINE ColorValue * colorValue_add_self( ColorValue * c1, ColorValue * c2 )
 {
 	c1->alpha += c2->alpha;
 	c1->red += c2->red;
@@ -153,7 +149,7 @@ INLINE FloatColor * floatColor_add_self( FloatColor * c1, FloatColor * c2 )
 	return c1;
 }
 
-INLINE FloatColor * floatColor_subtract_self( FloatColor * c1, FloatColor * c2 )
+INLINE ColorValue * colorValue_subtract_self( ColorValue * c1, ColorValue * c2 )
 {
 	c1->alpha -= c2->alpha;
 	c1->red -= c2->red;
@@ -163,7 +159,7 @@ INLINE FloatColor * floatColor_subtract_self( FloatColor * c1, FloatColor * c2 )
 	return c1;
 }
 
-INLINE FloatColor * floatColor_scaleBy_self( FloatColor * c, float r, float g, float b, float a )
+INLINE ColorValue * colorValue_scaleBy_self( ColorValue * c, float r, float g, float b, float a )
 {
 	c->alpha *= a;
 	c->red *= r;
@@ -173,7 +169,7 @@ INLINE FloatColor * floatColor_scaleBy_self( FloatColor * c, float r, float g, f
 	return c;
 }
 
-INLINE FloatColor * floatColor_append_self( FloatColor * c1, FloatColor * c2 )
+INLINE ColorValue * colorValue_append_self( ColorValue * c1, ColorValue * c2 )
 {
 	c1->alpha *= c2->alpha;
 	c1->red *= c2->red;

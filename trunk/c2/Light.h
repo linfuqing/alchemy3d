@@ -5,7 +5,7 @@
 
 #include "Entity.h"
 #include "Vector3D.h"
-#include "FloatColor.h"
+#include "ColorValue.h"
 
 #define POINT_LIGHT			0
 #define DIRECTIONAL_LIGHT	1
@@ -24,9 +24,9 @@ typedef struct Light
 	int type;			//定义灯光类型，我们能够使用下面三种类型之一：POINT_LIGHT, SPOT_LIGHT, DIRECTIONAL_LIGHT
 	int bOnOff;			//灯光是否开启
 
-	FloatColor * ambient;	//此光源发出的环境光颜色
-	FloatColor * diffuse;	//此光源发出的漫射光颜色
-	FloatColor * specular;	//此光源发出的镜面光颜色
+	ColorValue * ambient;	//此光源发出的环境光颜色
+	ColorValue * diffuse;	//此光源发出的漫射光颜色
+	ColorValue * specular;	//此光源发出的镜面光颜色
 
 	float range;		//灯光能够传播的最大范围
 	float falloff;		//这个值只能用在聚光灯上。它定义灯光在从内圆锥到外圆锥之间的强度衰减。它的值通常设置为1.0f
@@ -59,9 +59,9 @@ Light * newPointLight( int type, Entity * source )
 	light->mode = HIGH_MODE;
 	light->type = type;
 	light->bOnOff = FALSE;
-	light->ambient = newFloatColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	light->diffuse = newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f );
-	light->specular = newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f );
+	light->ambient = newColorValue( 0.0f, 0.0f, 0.0f, 1.0f );
+	light->diffuse = newColorValue( 1.0f, 1.0f, 1.0f, 1.0f );
+	light->specular = newColorValue( 1.0f, 1.0f, 1.0f, 1.0f );
 
 	light->attenuation0 = 1.0f;
 	light->attenuation1 = light->attenuation2 = 0.0f;
@@ -85,7 +85,7 @@ INLINE void setLightOnOff( Light * light, int OnOff )
 	light->bOnOff = OnOff;
 }
 
-//Light * newDirectionalLight( Vector3D * direction, FloatColor * color )
+//Light * newDirectionalLight( Vector3D * direction, ColorValue * color )
 //{
 //	Light * light;
 //
@@ -103,7 +103,7 @@ INLINE void setLightOnOff( Light * light, int OnOff )
 //	return light;
 //}
 //
-//Light * newSpotLight( Vector3D * position, Vector3D * direction, FloatColor * color )
+//Light * newSpotLight( Vector3D * position, Vector3D * direction, ColorValue * color )
 //{
 //	Light * light;
 //

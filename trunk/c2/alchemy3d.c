@@ -200,7 +200,7 @@ AS3_Val initializeFog( void* self, AS3_Val args )
 	b = AS3_NumberValue( AS3_GetS( color, "blueMultiplier" ) );
 	a = AS3_NumberValue( AS3_GetS( color, "alphaMultiplier" ) );
 
-	fog = newFog( newFloatColor( (float)r, (float)g, (float)b, (float)a ), (float)distance, (float)depth );
+	fog = newFog( newColorValue( (float)r, (float)g, (float)b, (float)a ), (float)distance, (float)depth );
 
 	AS3_Release( color );
 
@@ -558,10 +558,10 @@ AS3_Val initializeMaterial( void* self, AS3_Val args )
 	e_b = AS3_NumberValue( AS3_GetS( emissive, "blueMultiplier" ) );
 	e_a = AS3_NumberValue( AS3_GetS( emissive, "alphaMultiplier" ) );
 
-	material = newMaterial( newFloatColor( (float)a_r, (float)a_g, (float)a_b, (float)a_a ),
-							newFloatColor( (float)d_r, (float)d_g, (float)d_b, (float)d_a ),
-							newFloatColor( (float)s_r, (float)s_g, (float)s_b, (float)s_a ),
-							newFloatColor( (float)e_r, (float)e_g, (float)e_b, (float)e_a ),
+	material = newMaterial( newColorValue( (float)a_r, (float)a_g, (float)a_b, (float)a_a ),
+							newColorValue( (float)d_r, (float)d_g, (float)d_b, (float)d_a ),
+							newColorValue( (float)s_r, (float)s_g, (float)s_b, (float)s_a ),
+							newColorValue( (float)e_r, (float)e_g, (float)e_b, (float)e_a ),
 							power );
 
 	AS3_Release( ambient );

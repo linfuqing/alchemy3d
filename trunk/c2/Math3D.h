@@ -106,7 +106,9 @@ BYTE logbase2ofx[513] =
 #define RGB24BIT(r, g, b) ((b) + ((g) << 8) + ((r) << 16) )
 #define RGB32BIT(a, r, g, b) ((b) + ((g) << 8) + ((r) << 16) + ((a) << 24))
 
-#define ARGBFROM32BIT(ARGB, a, r, g, b) { *a = ( ((ARGB) >> 24) & 0xff ); *r = ( ((ARGB) >> 16) & 0xff); *g = (((ARGB) >> 8) & 0xff); *b = ((ARGB) & 0xff); }
+#define RGB555FROM16BIT(RGB, r, g, b) { *r = ( ((RGB) >> 10) & 0x1f); *g = (((RGB) >> 5) & 0x1f); *b = ( (RGB) & 0x1f); }
+#define RGB565FROM16BIT(RGB, r, g, b) { *r = ( ((RGB) >> 11) & 0x1f); *g = (((RGB) >> 5) & 0x3f); *b = ((RGB) & 0x1f); }
+#define RGB888FROM32BIT(ARGB, a, r, g, b) { *a = ( ((ARGB) >> 24) & 0xff ); *r = ( ((ARGB) >> 16) & 0xff); *g = (((ARGB) >> 8) & 0xff); *b = ((ARGB) & 0xff); }
 
 #define FCMP(a,b) ( (fabs(a-b) < EPSILON_E3) ? 1 : 0)
 #define ABS(x)	(((x) < 0) ? -(x) : (((x) > 0) ? (x) : 0))

@@ -95,10 +95,10 @@ int bitmap_generateMipmaps( Bitmap * source, Bitmap *** mipmaps, float gamma )
 				dest_buffer = (DWORD *)tmipmaps[mip_level]->pRGBABuffer;
 
 				//拆分argb到byte
-				ARGBFROM32BIT( src_buffer[(x*2+0) + (y*2+0)*mip_width*2] , &a0, &r0, &g0, &b0);
-				ARGBFROM32BIT( src_buffer[(x*2+1) + (y*2+0)*mip_width*2] , &a1, &r1, &g1, &b1);
-				ARGBFROM32BIT( src_buffer[(x*2+0) + (y*2+1)*mip_width*2] , &a2, &r2, &g2, &b2);
-				ARGBFROM32BIT( src_buffer[(x*2+1) + (y*2+1)*mip_width*2] , &a3, &r3, &g3, &b3);
+				RGB888FROM32BIT( src_buffer[(x*2+0) + (y*2+0)*mip_width*2] , &a0, &r0, &g0, &b0);
+				RGB888FROM32BIT( src_buffer[(x*2+1) + (y*2+0)*mip_width*2] , &a1, &r1, &g1, &b1);
+				RGB888FROM32BIT( src_buffer[(x*2+0) + (y*2+1)*mip_width*2] , &a2, &r2, &g2, &b2);
+				RGB888FROM32BIT( src_buffer[(x*2+1) + (y*2+1)*mip_width*2] , &a3, &r3, &g3, &b3);
 
 				//考虑gamma值，计算平均值
 				a_avg = (WORD)(0.5f + gamma*(a0+a1+a2+a3)/4);
