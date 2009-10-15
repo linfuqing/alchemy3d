@@ -330,15 +330,6 @@ int buildOctree( Octree * root, int maxdepth )
 				aabb_add_3D( root->brf->data->aabb, f7[i]->vertex[2]->position );
 			}
 		}
-
-		free( f0 );
-		free( f1 );
-		free( f2 );
-		free( f3 );
-		free( f4 );
-		free( f5 );
-		free( f6 );
-		free( f7 );
 		
 		memset( f0, 0, sizeof( Triangle * ) );
 		memset( f1, 0, sizeof( Triangle * ) );
@@ -348,6 +339,15 @@ int buildOctree( Octree * root, int maxdepth )
 		memset( f5, 0, sizeof( Triangle * ) );
 		memset( f6, 0, sizeof( Triangle * ) );
 		memset( f7, 0, sizeof( Triangle * ) );
+
+		free( f0 );
+		free( f1 );
+		free( f2 );
+		free( f3 );
+		free( f4 );
+		free( f5 );
+		free( f6 );
+		free( f7 );
 
 		buildOctree( root->tlb, maxdepth );
 		buildOctree( root->trb, maxdepth );

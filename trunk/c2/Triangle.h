@@ -128,13 +128,13 @@ INLINE Triangle * triangle_clone( Triangle * src )
 
 INLINE void triangle_dispose( Triangle * p )
 {
-	free( p->normal );
-	free( p->t_uv );
-	free( p );
-
 	memset( p->normal, 0, sizeof( Vector3D ) );
 	memset( p->t_uv, 0, sizeof( Vector ) );
 	memset( p, 0, sizeof( Triangle ) );
+	
+	free( p->normal );
+	free( p->t_uv );
+	free( p );
 }
 
 INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangle * face )

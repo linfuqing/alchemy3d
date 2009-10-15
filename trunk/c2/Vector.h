@@ -74,10 +74,10 @@ INLINE void vector_copy( Vector * dest, Vector * src )
 }
 
 INLINE void vector_dispose( Vector * v )
-{
-	free( v );
-	
+{	
 	memset( v, 0, sizeof( Vector ) );
+	
+	free( v );
 }
 
 #endif

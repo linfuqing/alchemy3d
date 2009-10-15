@@ -74,9 +74,9 @@ ColorValue * newColorValue( float r, float g, float b, float a )
 
 INLINE void colorValue_dispose( ColorValue * color )
 {
-	free( color );
-
 	memset( color, 0, sizeof( ColorValue ) );
+	
+	free( color );
 }
 
 INLINE Color565 * colorValueTo565( ColorValue * c )

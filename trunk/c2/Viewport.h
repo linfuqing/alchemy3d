@@ -48,15 +48,15 @@ void viewport_resize( Viewport * viewport, int width, int height )
 
 	if ( NULL != viewport->videoBuffer )
 	{
-		free( viewport->videoBuffer );
-
 		memset( viewport->videoBuffer, 0, sizeof( BYTE ) );
+
+		free( viewport->videoBuffer );
 	}
 	if ( NULL != viewport->zBuffer )
-	{
-		free( viewport->zBuffer );
-	
+	{	
 		memset( viewport->zBuffer, 0, sizeof( BYTE ) );
+
+		free( viewport->zBuffer );
 	}
 
 	//³õÊ¼»¯»º³åÇø
@@ -889,10 +889,16 @@ void viewport_lightting( Viewport * viewport )
 						lastColor.alpha = material->diffuse->alpha;
 					}
 
+#ifdef RGB565
+					vs->color->red = (BYTE)(lastColor.red * 31.0f);
+					vs->color->green = (BYTE)(lastColor.green * 63.0f);
+					vs->color->blue = (BYTE)(lastColor.blue * 31.0f);
+#else
 					vs->color->red = (BYTE)(lastColor.red * 255.0f);
 					vs->color->green = (BYTE)(lastColor.green * 255.0f);
 					vs->color->blue = (BYTE)(lastColor.blue * 255.0f);
 					vs->color->alpha = (BYTE)(lastColor.alpha * 255.0f);
+#endif
 
 					vs->transformed = 2;
 				}
@@ -1048,82 +1054,169 @@ void viewport_render( Viewport * viewport )
 					switch ( face->render_mode )
 					{
 						case RENDER_WIREFRAME_TRIANGLE_32:
+#ifdef RGB565
+							//Draw_Wireframe_Triangle_16( face, viewport );
+#else
 							Draw_Wireframe_Triangle_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
+#ifdef RGB565
+							Draw_Textured_Triangle_INVZB_16( face, viewport );
+#else
 							Draw_Textured_Triangle_INVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
+#ifdef RGB565
+							Draw_Textured_Bilerp_Triangle_INVZB_16( face, viewport );
+#else
 							Draw_Textured_Bilerp_Triangle_INVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
+#ifdef RGB565
+							Draw_Textured_Triangle_FSINVZB_16( face, viewport );
+#else
 							Draw_Textured_Triangle_FSINVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:
+#ifdef RGB565
+							Draw_Textured_Triangle_GSINVZB_16( face, viewport );
+#else
 							Draw_Textured_Triangle_GSINVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
+#ifdef RGB565
+							if ( minZ < face->texture->perspective_dist )
+								Draw_Textured_Perspective_Triangle_FSINVZB_16( face, viewport );
+							else
+								Draw_Textured_Triangle_FSINVZB_16( face, viewport );
+#else
 
 							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_FSINVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
+#ifdef RGB565
+							if ( minZ < face->texture->perspective_dist )
+								Draw_Textured_PerspectiveLP_Triangle_FSINVZB_16( face, viewport );
+							else
+								Draw_Textured_Triangle_FSINVZB_16( face, viewport );
+#else
 
 							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_FSINVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32:
+#ifdef RGB565
+							if ( minZ < face->texture->perspective_dist )
+								Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
+							else
+								Draw_Textured_Triangle_GSINVZB_16( face, viewport );
+#else
 
 							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_GSINVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
+#ifdef RGB565
+							if ( minZ < face->texture->perspective_dist )
+								Draw_Textured_Perspective_Triangle_INVZB_16( face, viewport );
+							else
+								Draw_Textured_Triangle_INVZB_16( face, viewport );
+#else
 
 							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_INVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
+#ifdef RGB565
+							if ( minZ < face->texture->perspective_dist )
+								Draw_Textured_PerspectiveLP_Triangle_INVZB_16( face, viewport );
+							else
+								Draw_Textured_Triangle_INVZB_16( face, viewport );
+#else
 
 							if ( minZ < face->texture->perspective_dist )
 								Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
 							else
 								Draw_Textured_Triangle_INVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_FLAT_TRIANGLE_32 :
+#ifdef RGB565
+							//Draw_Flat_Triangle_16( face, viewport );
+#else
 							Draw_Flat_Triangle_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_FLAT_TRIANGLEFP_32 :
+#ifdef RGB565
+							//Draw_Flat_TriangleFP_16( face, viewport );
+#else
 							Draw_Flat_TriangleFP_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_FLAT_TRIANGLE_INVZB_32:
+#ifdef RGB565
+							Draw_Flat_Triangle_INVZB_16( face, viewport );
+#else
 							Draw_Flat_Triangle_INVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_GOURAUD_TRIANGLE_INVZB_32:
+#ifdef RGB565
+							Draw_Gouraud_Triangle_INVZB_16( face, viewport );
+#else
 							Draw_Gouraud_Triangle_INVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32:
+#ifdef RGB565
+							if ( viewport->scene->fog && mesh->fogEnable )
+							{
+								if ( minZ < face->texture->perspective_dist )
+									Draw_Textured_Perspective_Triangle_FOG_GSINVZB_16( face, viewport );
+								else
+									Draw_Textured_Triangle_FOG_GSINVZB_16( face, viewport );
+							}
+							else
+							{
+								if ( minZ < face->texture->perspective_dist )
+									Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
+								else
+									Draw_Textured_Triangle_GSINVZB_16( face, viewport );
+							}
+#else
 
 							if ( viewport->scene->fog && mesh->fogEnable )
 							{
@@ -1139,6 +1232,7 @@ void viewport_render( Viewport * viewport )
 								else
 									Draw_Textured_Triangle_GSINVZB_32( face, viewport );
 							}
+#endif
 							break;
 					}
 				}
@@ -1147,23 +1241,43 @@ void viewport_render( Viewport * viewport )
 					switch ( face->render_mode )
 					{
 						case RENDER_WIREFRAME_TRIANGLE_32:
+#ifdef RGB565
+							//Draw_Wireframe_Triangle_16( face, viewport );
+#else
 							Draw_Wireframe_Triangle_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_FLAT_TRIANGLE_32 :
+#ifdef RGB565
+							//Draw_Flat_Triangle_16( face, viewport );
+#else
 							Draw_Flat_Triangle_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_FLAT_TRIANGLEFP_32 :
+#ifdef RGB565
+							//Draw_Flat_TriangleFP_16( face, viewport );
+#else
 							Draw_Flat_TriangleFP_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_FLAT_TRIANGLE_INVZB_32:
+#ifdef RGB565
+							Draw_Flat_Triangle_INVZB_16( face, viewport );
+#else
 							Draw_Flat_Triangle_INVZB_32( face, viewport );
+#endif
 							break;
 
 						case RENDER_GOURAUD_TRIANGLE_INVZB_32:
+#ifdef RGB565
+							Draw_Gouraud_Triangle_INVZB_16( face, viewport );
+#else
 							Draw_Gouraud_Triangle_INVZB_32( face, viewport );
+#endif
 							break;
 					}
 				}

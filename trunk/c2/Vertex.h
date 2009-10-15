@@ -6,6 +6,7 @@
 #include "Vector.h"
 #include "Vector3D.h"
 #include "Triangle.h"
+#include "Color565.h"
 #include "Color888.h"
 
 typedef struct ContectedFaces
@@ -25,7 +26,11 @@ typedef struct Vertex
 
 	Vector3D * position, * w_pos, * v_pos, * s_pos, * normal;
 
+#ifdef RGB565
+	Color565 * color;
+#else
 	Color888 * color;
+#endif
 
 	struct ContectedFaces * contectedFaces;
 
@@ -42,7 +47,11 @@ Vertex * newVertex( float x, float y, float z )
 	v->v_pos = newVector3D(x, y, z, 1.0f);
 	v->s_pos = newVector3D(x, y, z, 1.0f);
 	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
+#ifdef RGB565
+	v->color = newColor565( 31, 63, 31 );
+#else
 	v->color = newColor888( 255, 255, 255, 255 );
+#endif
 	v->contectedFaces = NULL;
 	v->nContectedFaces = 0;
 	v->transformed = FALSE;
@@ -59,7 +68,11 @@ INLINE void vertex_copy( Vertex * dest, Vertex * src )
 	vector3D_copy( dest->s_pos, src->s_pos );
 
 	vector3D_copy( dest->normal, src->normal );
+#ifdef RGB565
+	color565_copy( dest->color, src->color );
+#else
 	color888_copy( dest->color, src->color );
+#endif
 	dest->fix_inv_z = src->fix_inv_z;
 	dest->contectedFaces = NULL;
 	dest->nContectedFaces = 0;
@@ -78,7 +91,11 @@ INLINE Vertex * vertex_clone( Vertex * src )
 	dest->s_pos	= vector3D_clone( src->s_pos );
 
 	dest->normal		= vector3D_clone( src->normal );
+#ifdef RGB565
+	dest->color			= color565_clone( src->color );
+#else
 	dest->color			= color888_clone( src->color );
+#endif
 	dest->fix_inv_z = src->fix_inv_z;
 	dest->contectedFaces = NULL;
 	dest->nContectedFaces = 0;
@@ -100,10 +117,10 @@ INLINE void vertex_dispose( Vertex * v )
 		cf->face = NULL;
 
 		cf = cf->next;
-
-		free( cf2 );
 		
 		memset( cf2, 0, sizeof( Vertex ) );
+
+		free( cf2 );
 
 		cf2 =NULL;
 	}
@@ -113,7 +130,11 @@ INLINE void vertex_dispose( Vertex * v )
 	vector3D_dispose( v->w_pos );
 	vector3D_dispose( v->v_pos );
 	vector3D_dispose( v->s_pos );
+#ifdef RGB565
+	color565_dispose( v->color );
+#else
 	color888_dispose( v->color );
+#endif
 
 	v->contectedFaces = NULL;
 	v->normal = NULL;

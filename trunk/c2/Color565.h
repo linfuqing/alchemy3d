@@ -58,9 +58,9 @@ Color565 * newColor565( BYTE r, BYTE g, BYTE b )
 
 INLINE void color565_dispose( Color565 * color )
 {
-	free( color );
-
 	memset( color, 0, sizeof( Color565 ) );
+	
+	free( color );
 }
 
 INLINE void color565_copy( Color565 * c, Color565 * src )

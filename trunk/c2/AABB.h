@@ -86,6 +86,7 @@ void aabb_dispose( AABB * aabb )
 {
 	vector3D_dispose( aabb->min );
 	vector3D_dispose( aabb->max );
+	memset( aabb, 0, sizeof(AABB) );
 	free( aabb );
 }
 
