@@ -191,20 +191,20 @@ AS3_Val initializeFog( void* self, AS3_Val args )
 
 	AS3_Val color;
 
-	double a, r, g, b, min_dist, max_dist;
+	double a, r, g, b, distance, depth;
 
-	AS3_ArrayValue( args, "AS3ValType, DoubleType, DoubleType", & color, & min_dist, & max_dist );
+	AS3_ArrayValue( args, "AS3ValType, DoubleType, DoubleType", & color, & distance, & depth );
 
 	r = AS3_NumberValue( AS3_GetS( color, "redMultiplier" ) );
 	g = AS3_NumberValue( AS3_GetS( color, "greenMultiplier" ) );
 	b = AS3_NumberValue( AS3_GetS( color, "blueMultiplier" ) );
 	a = AS3_NumberValue( AS3_GetS( color, "alphaMultiplier" ) );
 
-	fog = newFog( newFloatColor( (float)r, (float)g, (float)b, (float)a ), (float)min_dist, (float)max_dist );
+	fog = newFog( newFloatColor( (float)r, (float)g, (float)b, (float)a ), (float)distance, (float)depth );
 
 	AS3_Release( color );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", fog, fog->global, & fog->min_dist, & fog->max_dist );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", fog, fog->global, & fog->distance, & fog->depth );
 }
 
 AS3_Val addFog( void * self, AS3_Val args )

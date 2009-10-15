@@ -5,11 +5,13 @@
 
 #include "ARGBColor.h"
 
+#define EXTEND_SCENE_LENGTH 10
+
 typedef struct Fog
 {
-	float min_dist, max_dist;
+	float depth, distance;
 
-	int ready;
+	int ready, length;
 
 	float * fog_table;
 
@@ -17,21 +19,14 @@ typedef struct Fog
 
 }Fog;
 
-Fog * newFog( FloatColor * color, float min_d, float max_d )
+Fog * newFog( FloatColor * color, float distance, float depth )
 {
 	Fog * f;
 
 	if( ( f = ( Fog * )malloc( sizeof( Fog ) ) ) == NULL ) exit( TRUE );
 
-	if ( min_d > max_d )
-	{
-		float tmp;
-
-		SWAP( min_d, max_d, tmp );
-	}
-
-	f->min_dist = min_d < 0.0f ? 0.0f : min_d;
-	f->max_dist = max_d < 0.0f ? 0.0f : max_d;
+	f->depth = depth < 0.0f ? 0.0f : depth;
+	f->distance = distance < 0.0f ? 0.0f : distance;
 
 	f->ready = FALSE;
 
@@ -42,37 +37,44 @@ Fog * newFog( FloatColor * color, float min_d, float max_d )
 	return f;
 }
 
-int buildFogTable( Fog * f, float distance )
+int buildFogTable( Fog * f, float sceneDepth )
 {
-	if ( FCMP( f->min_dist, f->max_dist ) )
+	if ( f->distance < EPSILON_E3 )
 		return 0;
 	else
 	{
 		int i, j, end, len;
 
-		int d = (int)( distance + 0.5f ) + 1;
-		int nd = (int)( f->min_dist + 0.0f );
-		int md = (int)( f->max_dist + 0.5f );
-		
-		if ( f->fog_table ) free( f->fog_table );
+		int sd = (int)( sceneDepth + 0.5f ) + EXTEND_SCENE_LENGTH;
+		int distance = (int)( f->distance + 0.0f );
+		int depth = (int)( f->depth + 0.5f );
 
-		if( ( f->fog_table = ( float * )calloc( d, sizeof( float ) ) ) == NULL ) exit( TRUE );
+		if ( f->fog_table )
+		{
+			free( f->fog_table );
 
-		end = MIN( md, d );
+			memset( f->fog_table, 0, sizeof(float) * f->length );
+		}
 
-		len = end - nd;
+		if( ( f->fog_table = ( float * )calloc( sd, sizeof( float ) ) ) == NULL ) exit( TRUE );
+
+		end = MIN( distance + depth, sd );
+
+		len = end - distance;
 
 		j = 0;
 
-		for ( i = nd; i < end; i ++, j ++ )
+		for ( i = distance; i <= end; i ++, j ++ )
 		{
 			f->fog_table[i] = (float)j / len;
 		}
 
-		for ( ; i <= d; i ++ )
+		for ( ; i <= sd; i ++, j ++ )
 		{
-			f->fog_table[i] = 1.0f;
+			f->fog_table[i] = (float)j / len;
 		}
+
+		f->length = sd;
 	}
 
 	return 1;
