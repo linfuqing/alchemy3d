@@ -54,8 +54,8 @@ void material_dispose( Material * m )
 	m->diffuse	= NULL;
 	m->emissive	= NULL;
 	m->specular	= NULL;
-	free( m );
 	memset( m, 0, sizeof( Material ) );
+	free( m );
 }
 
 MaterialList * newMaterialList()

@@ -49,15 +49,24 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	Vertex * vertices;
 	Vector   * uvp;
 	Vector3D * vp;
+#ifdef RGB565
+	Color565 * ap;
+#else
 	Color888 * ap;
+#endif
 
 	if( ( faces		  = ( Triangle  * )malloc( sizeof( Triangle   ) * nFaces                     ) ) == NULL
 	 || ( vertices	  = ( Vertex    * )malloc( sizeof( Vertex     ) * nVertices                  ) ) == NULL
 	 || ( m->faces	  = ( Triangle ** )malloc( sizeof( Triangle * ) * nFaces                     ) ) == NULL
 	 || ( m->vertices = ( Vertex   ** )malloc( sizeof( Vertex   * ) * nVertices                  ) ) == NULL
 	 || ( vp	      = ( Vector3D  * )malloc( sizeof( Vector3D   ) * ( nVertices * 5 + nFaces ) ) ) == NULL
-	 || ( ap	      = ( Color888 * )malloc( sizeof( Color888  ) * nVertices                  ) ) == NULL
-	 || ( uvp	      = ( Vector    * )malloc( sizeof( Vector     ) * nFaces    * 3              ) ) == NULL ) 
+	 || ( uvp	      = ( Vector    * )malloc( sizeof( Vector     ) * nFaces    * 3              ) ) == NULL
+#ifdef RGB565
+	 || ( ap	      = ( Color565 *  )malloc( sizeof( Color565   ) * nVertices                  ) ) == NULL
+#else
+	 || ( ap	      = ( Color888 *  )malloc( sizeof( Color888   ) * nVertices                  ) ) == NULL
+#endif
+	 ) 
 	{
 		exit( TRUE );
 	}
@@ -125,12 +134,12 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 {
 	Vertex * v = m->vertices[m->nVertices];
 
-	vector3D_set( v->position, x, y, z, 1.0f );// = newVector3D(x, y, z, 1.0f);
-	//vector3D_set( v->w_pos   , 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D(x, y, z, 1.0f);
-	//vector3D_set( v->v_pos   , 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D(x, y, z, 1.0f);
-	//vector3D_set( v->s_pos   , 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D(x, y, z, 1.0f);
-
+	vector3D_set( v->position, x, y, z, 1.0f );
+#ifdef RGB565
+	color565_identity( v->color );
+#else
 	color888_identity( v->color );// = newColor888( 255, 255, 255, 255 );
+#endif
 
 	vector3D_set( v->normal, x, y, z, 1.0f );// = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 
@@ -332,19 +341,19 @@ void mesh_clear( Mesh * mesh )
 	}
 
 	if ( mesh->renderList )
-	{
-		free( mesh->renderList );
-		
+	{		
 		memset( mesh->renderList, 0, sizeof( RenderList ) );
+		
+		free( mesh->renderList );
 
 		mesh->nRenderList = mesh->nCullList = mesh->nClippList = 0;
 	}
-
-	free( mesh->vertices );
-	free( mesh->faces );
 	
 	memset( mesh->vertices, 0, sizeof( Vertex * ) );
 	memset( mesh->faces, 0, sizeof( Triangle * ) );
+
+	free( mesh->vertices );
+	free( mesh->faces );
 }
 
 Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )

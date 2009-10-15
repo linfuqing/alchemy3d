@@ -1,6 +1,8 @@
 #ifndef __RENDERFWF_H
 #define __RENDERFWF_H
 
+#ifdef RGB565
+#else
 int Draw_Line32(int x0, int y0, int x1, int y1, DWORD color, BYTE * vb_start, int lpitch)
 {
 	int dx,
@@ -936,4 +938,5 @@ void Draw_Flat_TriangleFP_32(Triangle * face, struct Viewport * viewport )
 	}
 }
 
+#endif
 #endif

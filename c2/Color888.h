@@ -63,9 +63,9 @@ Color888 * newColor888( BYTE r, BYTE g, BYTE b, BYTE a )
 
 INLINE void color888_dispose( Color888 * color )
 {
-	free( color );
-
 	memset( color, 0, sizeof( Color888 ) );
+	
+	free( color );
 }
 
 INLINE DWORD color888_toUint32( Color888 * c )

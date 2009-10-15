@@ -48,6 +48,9 @@ Camera * newCamera( float fov, float near, float far, Entity * eye )
 void camera_dispose( Camera * camera )
 {
 	matrix3D_dispose( camera->projectionMatrix );
+	
+	memset( camera, 0, sizeof( Camera ) );
+	
 	free( camera );
 }
 
@@ -59,7 +62,12 @@ INLINE void camera_setTarget( Camera * camera, Vector3D * target )
 
 INLINE void camera_setNullTarget( Camera * camera, int setFree )
 {
-	if ( TRUE == setFree ) free( camera->target );
+	if ( TRUE == setFree )
+	{
+		memset( camera->target, 0, sizeof( Vector3D ) );
+
+		free( camera->target );
+	}
 
 	camera->isUVN = FALSE;
 }

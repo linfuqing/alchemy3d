@@ -15,7 +15,11 @@ typedef struct Fog
 
 	float * fog_table;
 
+#ifdef RGB565
+	Color565 * global;
+#else
 	Color888 * global;
+#endif
 
 }Fog;
 
@@ -30,7 +34,11 @@ Fog * newFog( ColorValue * color, float distance, float depth )
 
 	f->ready = FALSE;
 
+#ifdef RGB565
+	f->global = colorValueTo565( color );
+#else
 	f->global = colorValueTo888( color );
+#endif
 
 	f->fog_table = NULL;
 
@@ -51,9 +59,9 @@ int buildFogTable( Fog * f, float sceneDepth )
 
 		if ( f->fog_table )
 		{
-			free( f->fog_table );
-
 			memset( f->fog_table, 0, sizeof(float) * f->length );
+			
+			free( f->fog_table );
 		}
 
 		if( ( f->fog_table = ( float * )calloc( sd, sizeof( float ) ) ) == NULL ) exit( TRUE );
