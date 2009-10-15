@@ -81,12 +81,12 @@ INLINE void colorValue_dispose( ColorValue * color )
 
 INLINE Color565 * colorValueTo565( ColorValue * c )
 {
-	return newColor565( (int)(c->red * 31), (int)(c->green * 63), (int)(c->blue * 31 ) );
+	return newColor565( (BYTE)(c->red * 31.0f), (BYTE)(c->green * 63.0f), (BYTE)(c->blue * 31.0f ) );
 }
 
 INLINE Color888 * colorValueTo888( ColorValue * c )
 {
-	return newColor888( (int)(c->alpha * 255), (int)(c->red * 255), (int)(c->green * 255), (int)(c->blue * 255 ) );
+	return newColor888( (BYTE)(c->alpha * 255.0f), (BYTE)(c->red * 255.0f), (BYTE)(c->green * 255.0f), (BYTE)(c->blue * 255.0f) );
 }
 
 INLINE void colorValue_copy( ColorValue * c, ColorValue * src )
