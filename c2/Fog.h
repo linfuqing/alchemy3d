@@ -47,11 +47,13 @@ Fog * newFog( ColorValue * color, float distance, float depth )
 
 int buildFogTable( Fog * f, float sceneDepth )
 {
-	if ( f->distance < EPSILON_E3 )
+	if ( f->distance > sceneDepth )
 		return 0;
 	else
 	{
-		int i, j, end, len;
+		float len;
+
+		int i, j, end;
 
 		int sd = (int)( sceneDepth + 0.5f ) + EXTEND_SCENE_LENGTH;
 		int distance = (int)( f->distance + 0.0f );
@@ -68,18 +70,18 @@ int buildFogTable( Fog * f, float sceneDepth )
 
 		end = MIN( distance + depth, sd );
 
-		len = end - distance;
+		len = 1.0f / ( end - distance );
 
-		j = 0;
+		j = 1;
 
 		for ( i = distance; i <= end; i ++, j ++ )
 		{
-			f->fog_table[i] = (float)j / len;
+			f->fog_table[i] = (float)j * len;
 		}
 
-		for ( ; i <= sd; i ++, j ++ )
+		for ( ; i <= sd; i ++ )
 		{
-			f->fog_table[i] = (float)j / len;
+			f->fog_table[i] = 1.0f;
 		}
 
 		f->length = sd;

@@ -108,7 +108,8 @@ int main()
 	texture->perspective_dist = 5000.0f;
 	texture->addressMode = 1;
 
-	fog = newFog( newColorValue( 1.0f, 1.0f, 1.0f, 1.0f ), 0.0f, 4800.0f );
+	fog = newFog( newColorValue( 0.0f, 0.0f, 0.0f, 1.0f ), 1000.0f, 4800.0f );
+	fog->ready = TRUE;
 	
 	scene = newScene();
 
@@ -144,7 +145,7 @@ int main()
 	do3d3->mesh->octree_depth = 0;
 	//do3d3->mesh->useMipmap = TRUE;
 	//do3d3->mesh->mip_dist = 2000.0f;
-	//do3d3->mesh->fogEnable = TRUE;
+	do3d3->mesh->fogEnable = TRUE;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
