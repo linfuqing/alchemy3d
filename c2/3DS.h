@@ -325,9 +325,9 @@ void A3DS_Material_Chunk_Handler( FILE * file, lpA3DS a3ds, DWORD dwLength )
 
 	float		r, g, b;
 	char		* name;
-	FloatColor	* ambient = NULL;
-	FloatColor	* diffuse = NULL;
-	FloatColor	* specular = NULL;
+	ColorValue	* ambient = NULL;
+	ColorValue	* diffuse = NULL;
+	ColorValue	* specular = NULL;
 	Texture		* texture = NULL;
 
 	A3DS_MaterialList * a3ds_m = newA3D_MaterialList();
@@ -359,7 +359,7 @@ void A3DS_Material_Chunk_Handler( FILE * file, lpA3DS a3ds, DWORD dwLength )
 
 					A3DS_Color_Chunk_Handler( file, wID1, &r, &g, &b );
 
-					ambient = newFloatColor( r, g, b, 1.0f );
+					ambient = newColorValue( r, g, b, 1.0f );
 				}
 				break;
 			case CHUNK_DIFFUSE:
@@ -369,7 +369,7 @@ void A3DS_Material_Chunk_Handler( FILE * file, lpA3DS a3ds, DWORD dwLength )
 
 					A3DS_Color_Chunk_Handler( file, wID1, &r, &g, &b );
 
-					diffuse = newFloatColor( r, g, b, 1.0f );
+					diffuse = newColorValue( r, g, b, 1.0f );
 				}
 				break;
 			case CHUNK_SPECULAR:
@@ -379,7 +379,7 @@ void A3DS_Material_Chunk_Handler( FILE * file, lpA3DS a3ds, DWORD dwLength )
 
 					A3DS_Color_Chunk_Handler( file, wID1, &r, &g, &b );
 
-					specular = newFloatColor( r, g, b, 1.0f );
+					specular = newColorValue( r, g, b, 1.0f );
 				}
 				break;
 			case CHUNK_TEXTURE:

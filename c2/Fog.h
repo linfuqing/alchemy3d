@@ -3,7 +3,7 @@
 
 #include <malloc.h>
 
-#include "ARGBColor.h"
+#include "Color888.h"
 
 #define EXTEND_SCENE_LENGTH 10
 
@@ -15,11 +15,11 @@ typedef struct Fog
 
 	float * fog_table;
 
-	ARGBColor * global;
+	Color888 * global;
 
 }Fog;
 
-Fog * newFog( FloatColor * color, float distance, float depth )
+Fog * newFog( ColorValue * color, float distance, float depth )
 {
 	Fog * f;
 
@@ -30,7 +30,7 @@ Fog * newFog( FloatColor * color, float distance, float depth )
 
 	f->ready = FALSE;
 
-	f->global = floatColor_toARGBColor( color );
+	f->global = colorValueTo888( color );
 
 	f->fog_table = NULL;
 

@@ -6,7 +6,7 @@
 #include "Vector.h"
 #include "Vector3D.h"
 #include "Triangle.h"
-#include "ARGBColor.h"
+#include "Color888.h"
 
 typedef struct ContectedFaces
 {
@@ -25,7 +25,7 @@ typedef struct Vertex
 
 	Vector3D * position, * w_pos, * v_pos, * s_pos, * normal;
 
-	ARGBColor * color;
+	Color888 * color;
 
 	struct ContectedFaces * contectedFaces;
 
@@ -42,7 +42,7 @@ Vertex * newVertex( float x, float y, float z )
 	v->v_pos = newVector3D(x, y, z, 1.0f);
 	v->s_pos = newVector3D(x, y, z, 1.0f);
 	v->normal = newVector3D( 0.0f, 0.0f, 0.0f, 0.0f );
-	v->color = newARGBColor( 255, 255, 255, 255 );
+	v->color = newColor888( 255, 255, 255, 255 );
 	v->contectedFaces = NULL;
 	v->nContectedFaces = 0;
 	v->transformed = FALSE;
@@ -59,7 +59,7 @@ INLINE void vertex_copy( Vertex * dest, Vertex * src )
 	vector3D_copy( dest->s_pos, src->s_pos );
 
 	vector3D_copy( dest->normal, src->normal );
-	argbColor_copy( dest->color, src->color );
+	color888_copy( dest->color, src->color );
 	dest->fix_inv_z = src->fix_inv_z;
 	dest->contectedFaces = NULL;
 	dest->nContectedFaces = 0;
@@ -78,7 +78,7 @@ INLINE Vertex * vertex_clone( Vertex * src )
 	dest->s_pos	= vector3D_clone( src->s_pos );
 
 	dest->normal		= vector3D_clone( src->normal );
-	dest->color			= argbColor_clone( src->color );
+	dest->color			= color888_clone( src->color );
 	dest->fix_inv_z = src->fix_inv_z;
 	dest->contectedFaces = NULL;
 	dest->nContectedFaces = 0;
@@ -113,7 +113,7 @@ INLINE void vertex_dispose( Vertex * v )
 	vector3D_dispose( v->w_pos );
 	vector3D_dispose( v->v_pos );
 	vector3D_dispose( v->s_pos );
-	argbColor_dispose( v->color );
+	color888_dispose( v->color );
 
 	v->contectedFaces = NULL;
 	v->normal = NULL;

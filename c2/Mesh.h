@@ -49,14 +49,14 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	Vertex * vertices;
 	Vector   * uvp;
 	Vector3D * vp;
-	ARGBColor * ap;
+	Color888 * ap;
 
 	if( ( faces		  = ( Triangle  * )malloc( sizeof( Triangle   ) * nFaces                     ) ) == NULL
 	 || ( vertices	  = ( Vertex    * )malloc( sizeof( Vertex     ) * nVertices                  ) ) == NULL
 	 || ( m->faces	  = ( Triangle ** )malloc( sizeof( Triangle * ) * nFaces                     ) ) == NULL
 	 || ( m->vertices = ( Vertex   ** )malloc( sizeof( Vertex   * ) * nVertices                  ) ) == NULL
 	 || ( vp	      = ( Vector3D  * )malloc( sizeof( Vector3D   ) * ( nVertices * 5 + nFaces ) ) ) == NULL
-	 || ( ap	      = ( ARGBColor * )malloc( sizeof( ARGBColor  ) * nVertices                  ) ) == NULL
+	 || ( ap	      = ( Color888 * )malloc( sizeof( Color888  ) * nVertices                  ) ) == NULL
 	 || ( uvp	      = ( Vector    * )malloc( sizeof( Vector     ) * nFaces    * 3              ) ) == NULL ) 
 	{
 		exit( TRUE );
@@ -130,7 +130,7 @@ Vertex * mesh_push_vertex( Mesh * m, float x, float y, float z )
 	//vector3D_set( v->v_pos   , 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D(x, y, z, 1.0f);
 	//vector3D_set( v->s_pos   , 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D(x, y, z, 1.0f);
 
-	argbColor_identity( v->color );// = newARGBColor( 255, 255, 255, 255 );
+	color888_identity( v->color );// = newColor888( 255, 255, 255, 255 );
 
 	vector3D_set( v->normal, x, y, z, 1.0f );// = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
 

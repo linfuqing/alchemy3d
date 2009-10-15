@@ -1,9 +1,9 @@
-#ifndef __ARGBCOLOR_H
-#define __ARGBCOLOR_H
+#ifndef __COLOR888_H
+#define __COLOR888_H
 
 #include <malloc.h>
 
-typedef struct ARGBColor
+typedef struct Color888
 {
 	union
 	{
@@ -17,9 +17,9 @@ typedef struct ARGBColor
 
 		BYTE color[4];
 	};
-}ARGBColor;
+}Color888;
 
-INLINE void argbColor_normalize( ARGBColor * c )
+INLINE void color888_normalize( Color888 * c )
 {
 	c->red = MAX( c->red, 0 );
 	c->green = MAX( c->green, 0 );
@@ -32,21 +32,21 @@ INLINE void argbColor_normalize( ARGBColor * c )
 	c->alpha = MIN( c->alpha, 255 );
 }
 
-INLINE void argbColor_zero( ARGBColor * c )
+INLINE void color888_zero( Color888 * c )
 {
 	c->red = c->green = c->blue = c->alpha = 0;
 }
 
-INLINE void argbColor_identity( ARGBColor * c )
+INLINE void color888_identity( Color888 * c )
 {
 	c->red = c->green = c->blue = c->alpha = 255;
 }
 
-ARGBColor * newARGBColor( BYTE r, BYTE g, BYTE b, BYTE a )
+Color888 * newColor888( BYTE r, BYTE g, BYTE b, BYTE a )
 {
-	ARGBColor * c;
+	Color888 * c;
 
-	if( ( c = ( ARGBColor * )malloc( sizeof( ARGBColor ) ) ) == NULL )
+	if( ( c = ( Color888 * )malloc( sizeof( Color888 ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
@@ -56,22 +56,24 @@ ARGBColor * newARGBColor( BYTE r, BYTE g, BYTE b, BYTE a )
 	c->blue = b;
 	c->alpha = a;
 
-	argbColor_normalize( c );
+	color888_normalize( c );
 
 	return c;
 }
 
-INLINE void argbColor_dispose( ARGBColor * color )
+INLINE void color888_dispose( Color888 * color )
 {
 	free( color );
+
+	memset( color, 0, sizeof( Color888 ) );
 }
 
-INLINE DWORD argbColor_toUint32( ARGBColor * c )
+INLINE DWORD color888_toUint32( Color888 * c )
 {
 	return ( ( (int)(c->alpha) << 24 ) + ( (int)(c->red) << 16 ) + ( (int)(c->green) << 8 ) + (int)(c->blue) );
 }
 
-INLINE void argbColor_copy( ARGBColor * c, ARGBColor * src )
+INLINE void color888_copy( Color888 * c, Color888 * src )
 {
 	c->red = src->red;
 	c->green = src->green;
@@ -79,9 +81,9 @@ INLINE void argbColor_copy( ARGBColor * c, ARGBColor * src )
 	c->alpha = src->alpha;
 }
 
-INLINE ARGBColor * argbColor_clone( ARGBColor * src )
+INLINE Color888 * color888_clone( Color888 * src )
 {
-	return newARGBColor( src->red, src->green, src->blue, src->alpha );
+	return newColor888( src->red, src->green, src->blue, src->alpha );
 }
 
 #endif

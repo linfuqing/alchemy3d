@@ -14,7 +14,7 @@
 #include "Vector3D.h"
 #include "Matrix3D.h"
 #include "AABB.h"
-#include "ARGBColor.h"
+#include "Color888.h"
 #include "Material.h"
 #include "Texture.h"
 #include "Light.h"

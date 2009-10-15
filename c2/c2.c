@@ -13,7 +13,7 @@
 #include "Mesh.h"
 #include "Vector3D.h"
 #include "Matrix3D.h"
-#include "FloatColor.h"
+#include "ColorValue.h"
 #include "Material.h"
 #include "Texture.h"
 #include "Light.h"
@@ -66,16 +66,16 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	material = newMaterial( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ),
-							newFloatColor( 0.3f, 0.8f, 0.6f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+	material = newMaterial( newColorValue( 1.0f, 1.0f, 1.0f, 1.0f ),
+							newColorValue( 0.3f, 0.8f, 0.6f, 1.0f ),
+							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
 							4.0f );
 
-	material2 = newMaterial( newFloatColor( 0.0f, 1.0f, 0.0f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newFloatColor( 1.0f, 0.0f, 0.0f, 1.0f ),
+	material2 = newMaterial( newColorValue( 0.0f, 1.0f, 0.0f, 1.0f ),
+							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
+							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
 							4.0f );
 	if( ( bitmapData = ( LPDWORD )calloc( 3 * 3, sizeof( DWORD ) ) ) == NULL )
 	{
@@ -107,7 +107,7 @@ int main()
 	texture->perspective_dist = 5000.0f;
 	texture->addressMode = 1;
 
-	fog = newFog( newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f ), 0.0f, 4800.0f );
+	fog = newFog( newColorValue( 1.0f, 1.0f, 1.0f, 1.0f ), 0.0f, 4800.0f );
 	
 	scene = newScene();
 
@@ -181,8 +181,8 @@ int main()
 	//light = newPointLight( POINT_LIGHT, lightSource );
 	//setLightOnOff( light, TRUE );
 	//light->mode = HIGH_MODE;
-	//light->ambient = newFloatColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	//light->diffuse = newFloatColor( 1.0f, 1.0f, 1.0f, 1.0f );
+	//light->ambient = newColorValue( 0.0f, 0.0f, 0.0f, 1.0f );
+	//light->diffuse = newColorValue( 1.0f, 1.0f, 1.0f, 1.0f );
 	//light->attenuation1 = .001f;
 	//light->attenuation2 = .0000001f;
 	//scene_addLight(scene, light);
