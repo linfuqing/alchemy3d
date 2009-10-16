@@ -70,7 +70,7 @@ int buildFogTable( Fog * f, float sceneDepth )
 
 		end = MIN( distance + depth, sd );
 
-		len = 1.0f / ( end - distance );
+		len = 1.0f / ( end - distance + 1 );
 
 		j = 1;
 

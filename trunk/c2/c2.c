@@ -99,7 +99,7 @@ int main()
 
 	for ( i = 0; i < 4 * 4; i ++ )
 	{
-		bitmapData[i] = 0xffff0000;
+		bitmapData[i] = 0xffffffff;
 	}
 
 	bitmap = newBitmap( 4, 4, (LPBYTE)bitmapData );
@@ -141,7 +141,7 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	do3d3 = newTerrain( do3d3, bitmap2, 600, 600, 0, material, texture, RENDER_TEXTRUED_TRIANGLE_INVZB_32, 1 );
+	do3d3 = newTerrain( do3d3, bitmap2, 600, 600, 0, material, texture, RENDER_TEXTRUED_TRIANGLE_FSINVZB_32, 1 );
 	do3d3->mesh->octree_depth = 0;
 	//do3d3->mesh->useMipmap = TRUE;
 	//do3d3->mesh->mip_dist = 2000.0f;
