@@ -13,7 +13,17 @@
 
 Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, float maxHeight,  Material * material, Texture * texture, DWORD render_mode, int addressMode )
 {
-	DWORD i, * buffer = ( DWORD * )map->pRGBABuffer, wh, widthSegments = map -> width - 1, heightSegments = map->height - 1;
+	DWORD i;
+	
+#ifdef RGB565
+
+	USHORT * buffer = ( USHORT * )map->pRGBABuffer, wh, widthSegments = map -> width - 1, heightSegments = map->height - 1;
+
+#else
+
+	DWORD * buffer = ( DWORD * )map->pRGBABuffer, wh, widthSegments = map -> width - 1, heightSegments = map->height - 1;
+
+#endif
 
 	float tmp;
 
@@ -25,7 +35,16 @@ Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, flo
 
 	for( i = 0; i < wh; i ++ )
 	{
+
+#ifdef RGB565
+
+		base -> mesh ->vertices[i]->position->z = ( (int)( ( RGB565TOARGB888( map->alpha[i], ((buffer[i]) >> 11) & 0x1f, ((buffer[i]) >> 5) & 0x3f, (buffer[i]) & 0x1f ) & 0x0000FF ) * maxHeight ) >> 8 ) - maxHeight * .5f;
+
+#else
+
 		base -> mesh ->vertices[i]->position->z = ( (int)( ( buffer[i] & 0x0000FF ) * maxHeight ) >> 8 ) - maxHeight * .5f;
+
+#endif
 
 		SWAP( base ->mesh->vertices[i]->position->y, base->mesh->vertices[i]->position->z, tmp );
 
