@@ -29,6 +29,8 @@ package cn.alchemy3d.view
 		protected var videoBuffer:BitmapData;
 		protected var wh:int;
 		
+		private var _bgColor:int;
+		
 		public function get scene():Scene3D
 		{
 			return _scene;
@@ -51,17 +53,12 @@ package cn.alchemy3d.view
 		
 		public function set backgroundColor(color:uint):void
 		{
-			if( !this._container )
-			{
-				return;
-			}
+			_bgColor = color;
 			
-			with ( this._container.graphics )
-			{
-				beginFill( color, 1 );
-				drawRect( 0, 0, this.viewWidth, this.viewHeight );
-				endFill();
-			}
+			clearVB.position = 0;
+			
+			for (var i:int = 0; i < viewWidth * viewHeight; i ++ )
+				clearVB.writeUnsignedInt(_bgColor);
 		}
 		
 		public function set backgroundImage(bitmapData:BitmapData):void
@@ -82,11 +79,13 @@ package cn.alchemy3d.view
 			}
 		}
 		
-		private var clearBA:ByteArray;
+		private var clearVB:ByteArray;
+		private var clearZB:ByteArray;
 		
 		public function Viewport3D(container:Sprite, width:int, height:int, camera:Camera3D, scene:Scene3D)
 		{
 			_container = container;
+			_bgColor = 0;
 			
 			_camera = camera;
 			_scene = scene;
@@ -95,13 +94,18 @@ package cn.alchemy3d.view
 			viewHeight = height;
 			wh = width * height;
 			
-			videoBuffer = new BitmapData(width, height, true, 0);
+			videoBuffer = new BitmapData(width, height, false);
 			video = new Bitmap(videoBuffer, "never", false);
 			container.addChild(video);
 			
-			clearBA = new ByteArray();
-			for (var i:int = 0; i < width * height * 4; i ++ )
-				clearBA.writeByte(0);
+			clearVB = new ByteArray();	
+			clearZB = new ByteArray();
+			
+			for (var i:int = 0; i < width * height; i ++ )
+				clearVB.writeUnsignedInt(_bgColor);
+		
+			for (i = 0; i < width * height * 4; i ++ )
+				clearZB.writeByte(0);
 			
 			super();
 		}
@@ -112,20 +116,20 @@ package cn.alchemy3d.view
 
 			_pointer			= ps[0];
 			videoBufferPointer	= ps[1];
-			zBufferPointer		= ps[2]
+			zBufferPointer		= ps[2];
 			cameraPointer		= ps[3];
 			scenePointer		= ps[4];
 		}
 		
 		public function render():void
 		{
-			//清空像素缓存
+			//清空位图缓存
 			Library.memory.position = videoBufferPointer;
-			Library.memory.writeBytes(clearBA, 0, clearBA.length);
+			Library.memory.writeBytes(clearVB, 0, clearVB.length);
 			
 			//清空ZBuffer
 			Library.memory.position = zBufferPointer;
-			Library.memory.writeBytes(clearBA, 0, clearBA.length);
+			Library.memory.writeBytes(clearZB, 0, clearZB.length);
 			
 			Library.alchemy3DLib.render(pointer, getTimer());
 			

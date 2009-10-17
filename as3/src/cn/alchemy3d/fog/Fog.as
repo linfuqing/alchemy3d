@@ -8,30 +8,30 @@ package cn.alchemy3d.fog
 	public class Fog extends Pointer
 	{
 		private var _colorPointer:uint;
-		private var _minDistPointer:uint;
-		private var _maxDistPointer:uint;
+		private var _distancePointer:uint;
+		private var _depthPointer:uint;
 		
 		private var _color:ColorTransform;
-		private var _minDist:Number;
-		private var _maxDist:Number;
+		private var _distance:Number;
+		private var _depth:Number;
 		
-		public function Fog( color:ColorTransform = null, minDist:Number = 100, maxDist:Number = 5000)
+		public function Fog( color:ColorTransform = null, distance:Number = 100, depth:Number = 5000)
 		{
 			this._color = color;
-			this._minDist = minDist;
-			this._maxDist = maxDist;
+			this._distance = distance;
+			this._depth = depth;
 			
 			super();
 		}
 		
 		override protected function initialize():void
 		{
-			var ps:Array = Library.alchemy3DLib.initializeFog( _color, _minDist, _maxDist );
+			var ps:Array = Library.alchemy3DLib.initializeFog( _color, _distance, _depth );
 			
-			_pointer		= ps[0];
-			_colorPointer	= ps[1];
-			_minDistPointer	= ps[2];
-			_maxDistPointer	= ps[3];
+			_pointer			= ps[0];
+			_colorPointer		= ps[1];
+			_distancePointer	= ps[2];
+			_depthPointer		= ps[3];
 		}
 	}
 }

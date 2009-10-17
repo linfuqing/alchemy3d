@@ -29,7 +29,7 @@ package cn.alchemy3d.render
 		/**
 		 * 32位模式 + 1/z深度缓冲 + Gouraud光照模型 + 纹理映射
 		 */
-		//public static const RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:uint						= 0x000010;
+		public static const RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:uint						= 0x000010;
 		
 		/**
 		 * 32位模式 + 1/z深度缓冲 + 透视矫正纹理映射
