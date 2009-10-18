@@ -1,6 +1,6 @@
 #define INLINE inline
 #define __AS3__
-//#define RGB565
+#define RGB565
 
 #include <stdlib.h>
 #include <AS3.h>

@@ -11,11 +11,12 @@
 #include "Matrix3D.h"
 #include "Vector3D.h"
 #include "Terrain.h"
+#include "RenderList.h"
 
 typedef struct Viewport
 {
 	//高宽积，是否更改属性，渲染数，裁剪数，剔除数
-	int wh, dirty, nClippList, nCullList;
+	int wh, dirty, nClippList, nCullList, nRenderList;
 
 	//视口宽高和宽高比
 	int width, height, mempitch, zpitch;
@@ -31,6 +32,8 @@ typedef struct Viewport
 	struct Scene * scene;
 
 	struct Camera * camera;
+
+	RenderList * renderList;
 
 }Viewport;
 
@@ -78,6 +81,10 @@ Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 	viewport->camera = camera;
 	viewport->scene = scene;
 
+	viewport->renderList = initializeRenderList( scene->nFaces + 2 );
+
+	viewport->nRenderList = 0;
+
 	return viewport;
 }
 
@@ -105,13 +112,13 @@ void viewport_updateBeforeRender( Viewport * viewport )
 
 		viewport->scene->fog->ready = TRUE;
 	}
-
-	//terrain_sceneTrace( viewport -> scene -> nodes );
 }
 
 INLINE void viewport_updateAfterRender( Viewport * viewport )
 {
 	viewport->camera->fnfDirty = viewport->dirty = FALSE;
+
+	viewport->nRenderList = 0;
 
 	scene_updateAfterRender( viewport->scene );
 }
@@ -123,7 +130,7 @@ INLINE void viewport_updateAfterRender( Viewport * viewport )
 //octreeData	八叉树
 //rl_ptr		当前渲染列表的指针
 //cl_ptr		当前裁剪列表的指针
-void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr )
+void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr )
 {
 	int j, zCode0, zCode1, zCode2, verts_out, v0, v1, v2;
 	float t1, t2,  xi, yi, ui, vi, x01i, x02i, y01i, y02i, u01i, u02i, v01i, v02i, dx, dy, dz, near = camera->near, far = camera->far;
@@ -510,6 +517,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 		if ( NULL == face1 && NULL == face2 )
 		{
 			renderList_push( rl_ptr, face );
+			renderList_push( vl_ptr, face );
 
 			mesh->nRenderList ++;
 		}
@@ -519,6 +527,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 			if ( NULL != face1 )
 			{
 				renderList_push( rl_ptr, face1 );
+				renderList_push( vl_ptr, face1 );
 
 				mesh->nRenderList ++;
 			}
@@ -526,6 +535,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 			if ( NULL != face2 )
 			{
 				renderList_push( rl_ptr, face2 );
+				renderList_push( vl_ptr, face2 );
 
 				mesh->nRenderList ++;
 			}
@@ -533,7 +543,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 	}
 }
 
-int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr )
+int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr )
 {
 	int code = 0, noChild = 0;
 
@@ -590,7 +600,8 @@ int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderLis
 
 				triangle_transform( entity->world, entity->projection, face );
 
-				renderList_push( rl_ptr, face );
+				renderList_push( rl_ptr, face );				
+				renderList_push( vl_ptr, face );
 
 				entity->mesh->nRenderList ++;
 			}
@@ -602,31 +613,31 @@ int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderLis
 		else
 		{
 			//如果有子结点则继续递归
-			if ( octree->tlb )	code = octree_culling( camera, entity, octree->tlb, rl_ptr, cl_ptr );
+			if ( octree->tlb )	code = octree_culling( camera, entity, octree->tlb, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x01;
 
-			if ( octree->tlf )	code = octree_culling( camera, entity, octree->tlf, rl_ptr, cl_ptr );
+			if ( octree->tlf )	code = octree_culling( camera, entity, octree->tlf, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x02;
 
-			if ( octree->trb )	code = octree_culling( camera, entity, octree->trb, rl_ptr, cl_ptr );
+			if ( octree->trb )	code = octree_culling( camera, entity, octree->trb, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x04;
 
-			if ( octree->trf )	code = octree_culling( camera, entity, octree->trf, rl_ptr, cl_ptr );
+			if ( octree->trf )	code = octree_culling( camera, entity, octree->trf, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x08;
 
-			if ( octree->blb )	code = octree_culling( camera, entity, octree->blb, rl_ptr, cl_ptr );
+			if ( octree->blb )	code = octree_culling( camera, entity, octree->blb, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x10;
 
-			if ( octree->blf )	code = octree_culling( camera, entity, octree->blf, rl_ptr, cl_ptr );
+			if ( octree->blf )	code = octree_culling( camera, entity, octree->blf, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x20;
 
-			if ( octree->brb )	code = octree_culling( camera, entity, octree->brb, rl_ptr, cl_ptr );
+			if ( octree->brb )	code = octree_culling( camera, entity, octree->brb, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x40;
 
-			if ( octree->brf )	code = octree_culling( camera, entity, octree->brf, rl_ptr, cl_ptr );
+			if ( octree->brf )	code = octree_culling( camera, entity, octree->brf, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x80;
 
-			if ( noChild == 0xff ) frustumClipping( camera, entity, octree->data, rl_ptr, cl_ptr );
+			if ( noChild == 0xff ) frustumClipping( camera, entity, octree->data, rl_ptr, cl_ptr, vl_ptr );
 		}
 	}
 
@@ -648,7 +659,10 @@ void viewport_lightting( Viewport * viewport )
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
 	ColorValue fColor, lastColor, outPutColor;
 	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
-	DWORD l = 0, j = 0, i = 0;
+	DWORD l = 0, j = 0, i = 0, tmiplevels, miplevel;
+	//
+	Triangle * face;
+	Bitmap * bitmap;
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
 	Vector3D vLightsToObject[MAX_LIGHTS];
@@ -692,12 +706,17 @@ void viewport_lightting( Viewport * viewport )
 
 			for ( i = 0; i < mesh->nRenderList; i ++ )
 			{
-				material = renderList->polygon->material;
+				face = renderList->polygon;
+
+				face->fogEnable = mesh->fogEnable;
+				face->lightEnable = mesh->lightEnable;
+
+				material = face->material;
 
 				//遍历顶点
 				for ( j = 0; j < 3; j ++)
 				{
-					vs = renderList->polygon->vertex[j];
+					vs = face->vertex[j];
 
 					//如果顶点已经变换或计算，则直接进入下一个顶点
 					if ( vs->transformed == 2 ) continue;
@@ -902,7 +921,44 @@ void viewport_lightting( Viewport * viewport )
 
 					vs->transformed = 2;
 				}
+				//光照处理结束
 
+				//mipmap处理
+				if ( face->texture && face->texture->mipmaps )
+				{
+					if ( mesh->useMipmap && mesh->mip_dist )
+					{
+						tmiplevels = logbase2ofx[face->texture->mipmaps[0]->width];
+
+						miplevel = (int)(tmiplevels * face->vertex[0]->v_pos->w / mesh->mip_dist);
+
+						if ( miplevel > tmiplevels ) miplevel = tmiplevels;
+
+						bitmap = face->texture->mipmaps[miplevel];
+
+						if ( miplevel != face->miplevel || ! face->uvTransformed )
+						{
+							triangle_setUV( face, bitmap->width, bitmap->height, face->texture->addressMode );
+
+							face->miplevel = miplevel;
+
+							face->uvTransformed = TRUE;
+						}
+					}
+					else
+					{
+						bitmap = face->texture->mipmaps[0];
+
+						if ( ! face->uvTransformed )
+						{
+							triangle_setUV( face, bitmap->width, bitmap->height, face->texture->addressMode );
+
+							face->uvTransformed = TRUE;
+						}
+					}
+				}
+
+				viewport->nRenderList ++ ;
 				renderList = renderList->next;
 			}
 		}
@@ -917,7 +973,7 @@ void viewport_project( Viewport * viewport, int time )
 	SceneNode * sceneNode;
 	Camera * camera;
 	Entity * entity;
-	RenderList * rl, * cl;
+	RenderList * rl, * cl, * vl;
 
 	scene = viewport->scene;
 	camera = viewport->camera;
@@ -941,6 +997,8 @@ void viewport_project( Viewport * viewport, int time )
 
 		sceneNode = sceneNode->next;
 	}
+
+	vl = viewport->renderList->next;
 	
 	sceneNode = scene->nodes;
 
@@ -967,7 +1025,7 @@ void viewport_project( Viewport * viewport, int time )
 			cl = entity->mesh->clippedList->next;
 
 			//八叉
-			if ( ! octree_culling( camera, entity, entity->mesh->octree, & rl, & cl ) )
+			if ( ! octree_culling( camera, entity, entity->mesh->octree, & rl, & cl, & vl ) )
 			{
 				sceneNode = sceneNode->next;
 
@@ -981,318 +1039,292 @@ void viewport_project( Viewport * viewport, int time )
 	viewport_lightting( viewport );
 }
 
+int compare_z( const void * arg1, const void * arg2 )
+{
+	float min1, min2;
+
+	Triangle * face1, * face2;
+
+	face1 = *( ( Triangle ** )arg1 );
+	face2 = *( ( Triangle ** )arg2 );
+
+	min1 = face1->vertex[0]->v_pos->w;
+	min1 = MIN( min1, face1->vertex[1]->v_pos->w );
+	min1 = MIN( min1, face1->vertex[2]->v_pos->w );
+
+	min2 = face2->vertex[0]->v_pos->w;
+	min2 = MIN( min2, face2->vertex[1]->v_pos->w );
+	min2 = MIN( min2, face2->vertex[2]->v_pos->w );
+
+	if ( min1 > min2 )
+		return -1;
+	else if ( min1 < min2 )
+		return 1;
+	else
+		return 0;
+}
+
 #include "RenderFGTINVZB.h"
 #include "RenderWF.h"
 
 void viewport_render( Viewport * viewport )
 {
-	DWORD tmiplevels, miplevel, i;
-	Entity * entity;
 	RenderList * rl;
-	SceneNode * sceneNode;
-	Mesh * mesh;
 	Triangle * face;
-	Bitmap * bitmap;
 	float minZ;
 
-	//遍历实体
-	sceneNode = viewport->scene->nodes;
+	//qsort( ( void * )viewport->renderList, 10, sizeof( RenderList ), compare_z );
 
-	while( sceneNode )
+	rl = viewport->renderList->next;
+
+	while( rl && rl->polygon )
 	{
-		entity = sceneNode->entity;
-		mesh = entity->mesh;
+		face = rl->polygon;
 
-		if ( mesh && mesh->nFaces && mesh->nVertices )
+		minZ = face->vertex[0]->v_pos->w;
+		minZ = MIN( minZ, face->vertex[1]->v_pos->w );
+		minZ = MIN( minZ, face->vertex[2]->v_pos->w );
+
+		if ( face->texture && face->texture->mipmaps )
 		{
-			//遍历渲染列表
-			rl = mesh->renderList->next;
-
-			for ( i = 0; i < mesh->nRenderList; i ++ )
+			switch ( face->render_mode )
 			{
-				face = rl->polygon;
+			case RENDER_WIREFRAME_TRIANGLE_32:
+#ifdef RGB565
+				//Draw_Wireframe_Triangle_16( face, viewport );
+#else
+				Draw_Wireframe_Triangle_32( face, viewport );
+#endif
+				break;
 
-				minZ = face->vertex[0]->v_pos->w;
-				minZ = MIN( minZ, face->vertex[1]->v_pos->w );
-				minZ = MIN( minZ, face->vertex[2]->v_pos->w );
+			case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
+#ifdef RGB565
+				Draw_Textured_Triangle_INVZB_16( face, viewport );
+#else
+				Draw_Textured_Triangle_INVZB_32( face, viewport );
+#endif
+				break;
 
-				//AS3_Trace(AS3_Number(face->texture->perspective_dist));
+			case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
+#ifdef RGB565
+				Draw_Textured_Bilerp_Triangle_INVZB_16( face, viewport );
+#else
+				Draw_Textured_Bilerp_Triangle_INVZB_32( face, viewport );
+#endif
+				break;
 
-				if ( face->texture && face->texture->mipmaps )
+			case RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
+#ifdef RGB565
+				Draw_Textured_Triangle_FSINVZB_16( face, viewport );
+#else
+				Draw_Textured_Triangle_FSINVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:
+#ifdef RGB565
+				Draw_Textured_Triangle_GSINVZB_16( face, viewport );
+#else
+				Draw_Textured_Triangle_GSINVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
+#ifdef RGB565
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_Perspective_Triangle_FSINVZB_16( face, viewport );
+				else
+					Draw_Textured_Triangle_FSINVZB_16( face, viewport );
+#else
+
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
+				else
+					Draw_Textured_Triangle_FSINVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
+#ifdef RGB565
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_PerspectiveLP_Triangle_FSINVZB_16( face, viewport );
+				else
+					Draw_Textured_Triangle_FSINVZB_16( face, viewport );
+#else
+
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
+				else
+					Draw_Textured_Triangle_FSINVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32:
+#ifdef RGB565
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
+				else
+					Draw_Textured_Triangle_GSINVZB_16( face, viewport );
+#else
+
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
+				else
+					Draw_Textured_Triangle_GSINVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
+#ifdef RGB565
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_Perspective_Triangle_INVZB_16( face, viewport );
+				else
+					Draw_Textured_Triangle_INVZB_16( face, viewport );
+#else
+
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
+				else
+					Draw_Textured_Triangle_INVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
+#ifdef RGB565
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_PerspectiveLP_Triangle_INVZB_16( face, viewport );
+				else
+					Draw_Textured_Triangle_INVZB_16( face, viewport );
+#else
+
+				if ( minZ < face->texture->perspective_dist )
+					Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
+				else
+					Draw_Textured_Triangle_INVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_FLAT_TRIANGLE_32 :
+#ifdef RGB565
+				//Draw_Flat_Triangle_16( face, viewport );
+#else
+				Draw_Flat_Triangle_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_FLAT_TRIANGLEFP_32 :
+#ifdef RGB565
+				//Draw_Flat_TriangleFP_16( face, viewport );
+#else
+				Draw_Flat_TriangleFP_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_FLAT_TRIANGLE_INVZB_32:
+#ifdef RGB565
+				Draw_Flat_Triangle_INVZB_16( face, viewport );
+#else
+				Draw_Flat_Triangle_INVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_GOURAUD_TRIANGLE_INVZB_32:
+#ifdef RGB565
+				Draw_Gouraud_Triangle_INVZB_16( face, viewport );
+#else
+				Draw_Gouraud_Triangle_INVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32:
+#ifdef RGB565
+				if ( viewport->scene->fog && face->fogEnable )
 				{
-					if ( mesh->useMipmap && mesh->mip_dist )
-					{
-						tmiplevels = logbase2ofx[face->texture->mipmaps[0]->width];
-
-						miplevel = (int)(tmiplevels * minZ / mesh->mip_dist);
-
-						if ( miplevel > tmiplevels ) miplevel = tmiplevels;
-
-						bitmap = face->texture->mipmaps[miplevel];
-
-						if ( miplevel != face->miplevel || ! face->uvTransformed )
-						{
-							triangle_setUV( face, bitmap->width, bitmap->height, face->texture->addressMode );
-
-							face->miplevel = miplevel;
-
-							face->uvTransformed = TRUE;
-						}
-					}
+					if ( minZ < face->texture->perspective_dist )
+						Draw_Textured_Perspective_Triangle_FOG_GSINVZB_16( face, viewport );
 					else
-					{
-						bitmap = face->texture->mipmaps[0];
-
-						if ( ! face->uvTransformed )
-						{
-							triangle_setUV( face, bitmap->width, bitmap->height, face->texture->addressMode );
-
-							face->uvTransformed = TRUE;
-						}
-					}
-
-					switch ( face->render_mode )
-					{
-						case RENDER_WIREFRAME_TRIANGLE_32:
-#ifdef RGB565
-							//Draw_Wireframe_Triangle_16( face, viewport );
-#else
-							Draw_Wireframe_Triangle_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
-#ifdef RGB565
-							Draw_Textured_Triangle_INVZB_16( face, viewport );
-#else
-							Draw_Textured_Triangle_INVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
-#ifdef RGB565
-							Draw_Textured_Bilerp_Triangle_INVZB_16( face, viewport );
-#else
-							Draw_Textured_Bilerp_Triangle_INVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
-#ifdef RGB565
-							Draw_Textured_Triangle_FSINVZB_16( face, viewport );
-#else
-							Draw_Textured_Triangle_FSINVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:
-#ifdef RGB565
-							Draw_Textured_Triangle_GSINVZB_16( face, viewport );
-#else
-							Draw_Textured_Triangle_GSINVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
-#ifdef RGB565
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_Perspective_Triangle_FSINVZB_16( face, viewport );
-							else
-								Draw_Textured_Triangle_FSINVZB_16( face, viewport );
-#else
-
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
-							else
-								Draw_Textured_Triangle_FSINVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
-#ifdef RGB565
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_PerspectiveLP_Triangle_FSINVZB_16( face, viewport );
-							else
-								Draw_Textured_Triangle_FSINVZB_16( face, viewport );
-#else
-
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
-							else
-								Draw_Textured_Triangle_FSINVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32:
-#ifdef RGB565
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
-							else
-								Draw_Textured_Triangle_GSINVZB_16( face, viewport );
-#else
-
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
-							else
-								Draw_Textured_Triangle_GSINVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
-#ifdef RGB565
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_Perspective_Triangle_INVZB_16( face, viewport );
-							else
-								Draw_Textured_Triangle_INVZB_16( face, viewport );
-#else
-
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
-							else
-								Draw_Textured_Triangle_INVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
-#ifdef RGB565
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_PerspectiveLP_Triangle_INVZB_16( face, viewport );
-							else
-								Draw_Textured_Triangle_INVZB_16( face, viewport );
-#else
-
-							if ( minZ < face->texture->perspective_dist )
-								Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
-							else
-								Draw_Textured_Triangle_INVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_FLAT_TRIANGLE_32 :
-#ifdef RGB565
-							//Draw_Flat_Triangle_16( face, viewport );
-#else
-							Draw_Flat_Triangle_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_FLAT_TRIANGLEFP_32 :
-#ifdef RGB565
-							//Draw_Flat_TriangleFP_16( face, viewport );
-#else
-							Draw_Flat_TriangleFP_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_FLAT_TRIANGLE_INVZB_32:
-#ifdef RGB565
-							Draw_Flat_Triangle_INVZB_16( face, viewport );
-#else
-							Draw_Flat_Triangle_INVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_GOURAUD_TRIANGLE_INVZB_32:
-#ifdef RGB565
-							Draw_Gouraud_Triangle_INVZB_16( face, viewport );
-#else
-							Draw_Gouraud_Triangle_INVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32:
-#ifdef RGB565
-							if ( viewport->scene->fog && mesh->fogEnable )
-							{
-								if ( minZ < face->texture->perspective_dist )
-									Draw_Textured_Perspective_Triangle_FOG_GSINVZB_16( face, viewport );
-								else
-									Draw_Textured_Triangle_FOG_GSINVZB_16( face, viewport );
-							}
-							else
-							{
-								if ( minZ < face->texture->perspective_dist )
-									Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
-								else
-									Draw_Textured_Triangle_GSINVZB_16( face, viewport );
-							}
-#else
-
-							if ( viewport->scene->fog && mesh->fogEnable )
-							{
-								if ( minZ < face->texture->perspective_dist )
-									Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( face, viewport );
-								else
-									Draw_Textured_Triangle_FOG_GSINVZB_32( face, viewport );
-							}
-							else
-							{
-								if ( minZ < face->texture->perspective_dist )
-									Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
-								else
-									Draw_Textured_Triangle_GSINVZB_32( face, viewport );
-							}
-#endif
-							break;
-					}
+						Draw_Textured_Triangle_FOG_GSINVZB_16( face, viewport );
 				}
 				else
 				{
-					switch ( face->render_mode )
-					{
-						case RENDER_WIREFRAME_TRIANGLE_32:
-#ifdef RGB565
-							//Draw_Wireframe_Triangle_16( face, viewport );
-#else
-							Draw_Wireframe_Triangle_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_FLAT_TRIANGLE_32 :
-#ifdef RGB565
-							//Draw_Flat_Triangle_16( face, viewport );
-#else
-							Draw_Flat_Triangle_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_FLAT_TRIANGLEFP_32 :
-#ifdef RGB565
-							//Draw_Flat_TriangleFP_16( face, viewport );
-#else
-							Draw_Flat_TriangleFP_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_FLAT_TRIANGLE_INVZB_32:
-#ifdef RGB565
-							Draw_Flat_Triangle_INVZB_16( face, viewport );
-#else
-							Draw_Flat_Triangle_INVZB_32( face, viewport );
-#endif
-							break;
-
-						case RENDER_GOURAUD_TRIANGLE_INVZB_32:
-#ifdef RGB565
-							Draw_Gouraud_Triangle_INVZB_16( face, viewport );
-#else
-							Draw_Gouraud_Triangle_INVZB_32( face, viewport );
-#endif
-							break;
-					}
+					if ( minZ < face->texture->perspective_dist )
+						Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
+					else
+						Draw_Textured_Triangle_GSINVZB_16( face, viewport );
 				}
+#else
 
-				face->vertex[0]->transformed = FALSE;
-				face->vertex[1]->transformed = FALSE;
-				face->vertex[2]->transformed = FALSE;
+				if ( viewport->scene->fog && face->fogEnable )
+				{
+					if ( minZ < face->texture->perspective_dist )
+						Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( face, viewport );
+					else
+						Draw_Textured_Triangle_FOG_GSINVZB_32( face, viewport );
+				}
+				else
+				{
+					if ( minZ < face->texture->perspective_dist )
+						Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
+					else
+						Draw_Textured_Triangle_GSINVZB_32( face, viewport );
+				}
+#endif
+				break;
+			}
+		}
+		else
+		{
+			switch ( face->render_mode )
+			{
+			case RENDER_WIREFRAME_TRIANGLE_32:
+#ifdef RGB565
+				//Draw_Wireframe_Triangle_16( face, viewport );
+#else
+				Draw_Wireframe_Triangle_32( face, viewport );
+#endif
+				break;
 
-				rl->polygon = NULL;
+			case RENDER_FLAT_TRIANGLE_32 :
+#ifdef RGB565
+				//Draw_Flat_Triangle_16( face, viewport );
+#else
+				Draw_Flat_Triangle_32( face, viewport );
+#endif
+				break;
 
-				rl = rl->next;
+			case RENDER_FLAT_TRIANGLEFP_32 :
+#ifdef RGB565
+				//Draw_Flat_TriangleFP_16( face, viewport );
+#else
+				Draw_Flat_TriangleFP_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_FLAT_TRIANGLE_INVZB_32:
+#ifdef RGB565
+				Draw_Flat_Triangle_INVZB_16( face, viewport );
+#else
+				Draw_Flat_Triangle_INVZB_32( face, viewport );
+#endif
+				break;
+
+			case RENDER_GOURAUD_TRIANGLE_INVZB_32:
+#ifdef RGB565
+				Draw_Gouraud_Triangle_INVZB_16( face, viewport );
+#else
+				Draw_Gouraud_Triangle_INVZB_32( face, viewport );
+#endif
+				break;
 			}
 		}
 
-		sceneNode = sceneNode->next;
+		face->vertex[0]->transformed = FALSE;
+		face->vertex[1]->transformed = FALSE;
+		face->vertex[2]->transformed = FALSE;
+
+		rl->polygon = NULL;
+
+		rl = rl->next;
 	}
 }
 

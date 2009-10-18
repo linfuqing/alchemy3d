@@ -9,7 +9,7 @@
 //R
 typedef struct Triangle
 {
-	int miplevel;
+	int miplevel, fogEnable, lightEnable;
 
 	DWORD render_mode;
 
@@ -66,6 +66,8 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->miplevel = 0;
 	p->render_mode = RENDER_NONE;
 	p->uvTransformed = FALSE;
+	p->fogEnable = FALSE;
+	p->lightEnable = FALSE;
 
 	return p;
 }
