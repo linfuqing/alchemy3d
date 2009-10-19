@@ -7,6 +7,7 @@ package
 	import cn.alchemy3d.external.MD2;
 	import cn.alchemy3d.external.Primitives;
 	import cn.alchemy3d.fog.Fog;
+	import cn.alchemy3d.geom.Mesh3D;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
 	import cn.alchemy3d.render.Material;
@@ -26,7 +27,7 @@ package
 	
 	import gs.TweenLite;
 
-	[SWF(width="600",height="400",backgroundColor="#ffffff",frameRate="60")]
+	[SWF(width="640",height="400",backgroundColor="#ffffff",frameRate="60")]
 	public class Test8X extends Basic
 	{
 		protected var bl:BulkLoader;
@@ -41,7 +42,7 @@ package
 		protected var t0:Texture;
 		protected var t1:Texture;
 		
-		protected var lightObj:Entity;
+		protected var lightObj:Primitives;
 		protected var lightObj2:Primitives;;
 		protected var lightObj3:Entity;
 		
@@ -51,15 +52,22 @@ package
 		
 		protected var center:Entity;
 		
+		private var _fogState:Boolean = true;
+		private var _textureState:Boolean = true;
+		private var _materialState:Boolean = true;
+		private var _renderModeState:int = 1;
+		private var _lightState:Boolean = true;
+		
 		public function Test8X()
 		{
-			super(600, 400, 90, 20, 12000);
+			super(640, 400, 90, 15, 4500);
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
 			bl.add("asset/sky_beiz.jp_L04899.jpg", {id:"0"});
 			bl.add("asset/texture.jpg", {id:"1"});
-			bl.add("asset/md2/blograde.jpg", {id:"2"});
+			bl.add("asset/md2/blade_black.jpg", {id:"2"});
+			bl.add("asset/map32.jpg", {id:"3"});
 			bl.start();
 		}
 		
@@ -72,7 +80,7 @@ package
 			var tf:TextField = new TextField();
 			tf.defaultTextFormat = tformat;
 			tf.autoSize = "left";
-			tf.text = "MD2加载器Demo";
+			tf.text = "Terrain Demo";
 			tf.x = 280;
 			tf.y = 20;
 			addChild(tf);
@@ -84,64 +92,65 @@ package
 			
 			t0 = new Texture(bl.getBitmapData("2"));
 			t1 = new Texture(bl.getBitmapData("1"));
-			t0.perspectiveDist = 1000;
-			t1.perspectiveDist = 1000;
+			t0.perspectiveDist = 800;
+			t1.perspectiveDist = 800;
 			t1.addressMode = Texture.ADDRESS_MODE_WRAP;
 			
-			//viewport.backgroundImage = bl.getBitmapData("0");
+			viewport.backgroundColor = 0xffffffff;
 			
-//			camera.z = -2000;
+			camera.z = -1200;
 			
-			center = new Entity();
-			center.z = 0;
+			center = new Entity("center");
+			center.z = 1000;
+			center.y = 400;
 			viewport.scene.addChild(center);
 			
-			var fog:Fog = new Fog(new ColorTransform(1, 1, 1, 1), 50, 60000);
+			var fog:Fog = new Fog(new ColorTransform(1, 1, 1, 1), 2000, 3300);
 			scene.addFog(fog);
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(1, 1, 1, 1);
-			m.diffuse = new ColorTransform(.4, .4, .4, 1);
+			m.ambient = new ColorTransform(.2, .2, .2, 1);
+			m.diffuse = new ColorTransform(.6, .6, .6, .5);
 			m.specular = new ColorTransform(0, 0, 0, 1);
 			
 			var m2:Material = new Material();
-			m2.ambient = new ColorTransform(0, .2, 0, 1);
-			m2.diffuse = new ColorTransform(0, 1, 0, 1);
+			m2.ambient = new ColorTransform(.1, .1, .1, 1);
+			m2.diffuse = new ColorTransform(1, 0.6, 0, 0.5);
 			m2.specular = new ColorTransform(0, 0, 0, 1);
 			m2.power = 0;
 			
-			lightObj = new Entity();
-			lightObj.y = 40000;
+			lightObj = new Primitives(m, null, RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32);
+			lightObj.toPlane(50, 50, 1, 1);
+			lightObj.y = 1500;
 			lightObj.x = 0;
-			lightObj.z = 300;
+			lightObj.z = 0;
 			viewport.scene.addChild( lightObj );
 			
-			lightObj2 = new Primitives(m, null, RenderMode.RENDER_WIREFRAME_TRIANGLE_32);
-			lightObj2.toPlane(150, 150, 1, 1);
-			lightObj2.y = 5000;
+			lightObj2 = new Primitives(m, null, RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32);
+			lightObj2.toPlane(50, 50, 1, 1);
+			lightObj2.y = 1500;
 			lightObj2.x = 0;
-			lightObj2.z = 2000;
+			lightObj2.z = 0;
 			viewport.scene.addChild(lightObj2);
-			
-			lightObj3 = new Entity();
-			lightObj3.y = 40000;
-			lightObj3.x = 0;
-			lightObj3.z = 0;
-			viewport.scene.addChild(lightObj3);
+//			
+//			lightObj3 = new Entity();
+//			lightObj3.y = 40000;
+//			lightObj3.x = 0;
+//			lightObj3.z = 0;
+//			viewport.scene.addChild(lightObj3);
 
 			md2 = new MD2(m, t0, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
 			md2.lightEnable = true;
 			md2.mesh.useMipmap = true;
 			md2.mesh.mipDist = 10000;
 			md2.mesh.fogEnable = true;
+			md2.mesh.terrainTrace = true;
 			md2.load("asset/md2/tris.jpg");
 			viewport.scene.addChild( md2 );
 			
 			md2.rotationX = -90;
 			md2.rotationY = -90;
-			md2.x = 0;
-			md2.z = 500;
-			md2.scale = 6;
+			md2.scale = 7;
 			
 //			var p:Primitives = new Primitives(m2, null, RenderMode.RENDER_WIREFRAME_TRIANGLE_32);
 //			p.toPlane(150, 150, 1, 1);
@@ -151,13 +160,14 @@ package
 //			p.rotationX = 45;
 //			this.viewport.scene.addChild(p);
 			
-			terrain = new MeshTerrain(null, m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
-			terrain.buildOn(60000, 60000, 40000);
+			terrain = new MeshTerrain(bl.getBitmapData("3"), m2, t1, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32);
+			terrain.buildOn(8000, 8000, 3000);
 			terrain.mesh.lightEnable = true;
-			terrain.mesh.octreeDepth = 3;
+			terrain.mesh.octreeDepth = 2;
 			terrain.mesh.useMipmap = true;
-			terrain.mesh.mipDist = 12000;
+			terrain.mesh.mipDist = 4000;
 			terrain.mesh.fogEnable = true;
+//			terrain.mesh.setAttribute(Mesh3D.ALPHA_KEY, 127);
 			terrain.z = 0;
 			
 			viewport.scene.addChild(terrain);
@@ -165,11 +175,11 @@ package
 			light = new Light3D(lightObj);
 			viewport.scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
-			light.mode = LightType.HIGH_MODE;
+			light.mode = LightType.MID_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
 			light.ambient = new ColorTransform(0, 0, 0, 1);
 			light.diffuse = new ColorTransform(1, 0, 0, 1);
-			light.specular = new ColorTransform(1, 0, 0, 1);
+			light.specular = new ColorTransform(0, 0, 0, 1);
 			light.attenuation1 = 0.0001;
 			light.attenuation2 = 0;
 			
@@ -181,25 +191,25 @@ package
 			light2.ambient = new ColorTransform(0, 0, 0, 1);
 			light2.diffuse = new ColorTransform(0, 1, 0, 1);
 			light2.specular = new ColorTransform(0, 0, 0, 1);
-			light2.attenuation1 = 0.0002;
+			light2.attenuation1 = 0.0001;
 			light2.attenuation2 = 0;
-			
-			light3 = new Light3D(lightObj3);
-			viewport.scene.addLight(light3);
-			light3.type = LightType.POINT_LIGHT;
-			light3.mode = LightType.HIGH_MODE;
-			light3.bOnOff = LightType.LIGHT_ON;
-			light3.ambient = new ColorTransform(0, 0, 0, 1);
-			light3.diffuse = new ColorTransform(0, 0, 1, 1);
-			light3.specular = new ColorTransform(0, 0, 1, 1);
-			light3.attenuation1 = 0.0001;
-			light3.attenuation2 = 0;
+//			
+//			light3 = new Light3D(lightObj3);
+//			viewport.scene.addLight(light3);
+//			light3.type = LightType.POINT_LIGHT;
+//			light3.mode = LightType.HIGH_MODE;
+//			light3.bOnOff = LightType.LIGHT_ON;
+//			light3.ambient = new ColorTransform(0, 0, 0, 1);
+//			light3.diffuse = new ColorTransform(0, 0, 1, 1);
+//			light3.specular = new ColorTransform(0, 0, 1, 1);
+//			light3.attenuation1 = 0.0001;
+//			light3.attenuation2 = 0;
 
 			startRendering();
 			
 			showInfo();
 			
-//			moveLight1(1);
+			moveLight1(1);
 			moveLight2(1);
 //			moveLight3(1);
 			
@@ -209,33 +219,105 @@ package
 		protected function onKeyDown(e:KeyboardEvent):void
 		{
 			if ( e.keyCode == Keyboard.UP )
+			{
+				md2.z += 10;
+				center.z += 10;
 				camera.z += 10;
+			}
 				
 			if ( e.keyCode == Keyboard.DOWN )
-				camera.z -= 10;
-				
-			if ( e.keyCode == Keyboard.LEFT )
 			{
-				md2.mesh.fogEnable = false;
-				terrain.mesh.fogEnable = false;
+				md2.z -= 10;
+				center.z -= 10;
+				camera.z -= 10;
+			}
+				
+			if ( e.keyCode == 70 )
+			{
+				if (_fogState)
+				{
+					md2.mesh.setAttribute(Mesh3D.FOG_KEY, 0);
+					terrain.mesh.setAttribute(Mesh3D.FOG_KEY, 0);
+				}
+				else
+				{
+					md2.mesh.setAttribute(Mesh3D.FOG_KEY, 1);
+					terrain.mesh.setAttribute(Mesh3D.FOG_KEY, 1);
+				}
+				
+				_fogState = ! _fogState;
 			}
 			
-			if ( e.keyCode == Keyboard.RIGHT )
+			if ( e.keyCode == 84 )
 			{
-				md2.mesh.fogEnable = true;
-				terrain.mesh.fogEnable = true;
+				if (_textureState)
+				{
+					md2.mesh.setAttribute(Mesh3D.TEXTURE_KEY, 0);
+					terrain.mesh.setAttribute(Mesh3D.TEXTURE_KEY, 0);
+				}
+				else
+				{
+					md2.mesh.setAttribute(Mesh3D.TEXTURE_KEY, t0.pointer);
+					terrain.mesh.setAttribute(Mesh3D.TEXTURE_KEY, t1.pointer);
+				}
+				
+				_textureState = ! _textureState;
+			}
+			
+			if ( e.keyCode == 76 )
+			{
+				if (_lightState)
+				{
+					md2.mesh.setAttribute(Mesh3D.LIGHT_KEY, 0);
+					terrain.mesh.setAttribute(Mesh3D.LIGHT_KEY, 0);
+				}
+				else
+				{
+					md2.mesh.setAttribute(Mesh3D.LIGHT_KEY, 1);
+					terrain.mesh.setAttribute(Mesh3D.LIGHT_KEY, 1);
+				}
+				
+				_lightState = ! _lightState;
+			}
+			
+			if ( e.keyCode == 82 )
+			{
+				_renderModeState ++;
+				
+				if (_renderModeState == 1)
+				{
+					md2.mesh.setAttribute(Mesh3D.RENDERMODE_KEY, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
+					terrain.mesh.setAttribute(Mesh3D.RENDERMODE_KEY, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
+				}
+				else if (_renderModeState == 2)
+				{
+					md2.mesh.setAttribute(Mesh3D.RENDERMODE_KEY, RenderMode.RENDER_WIREFRAME_TRIANGLE_32);
+					terrain.mesh.setAttribute(Mesh3D.RENDERMODE_KEY, RenderMode.RENDER_WIREFRAME_TRIANGLE_32);
+				}
+				else if (_renderModeState == 3)
+				{
+					md2.mesh.setAttribute(Mesh3D.RENDERMODE_KEY, RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32);
+					terrain.mesh.setAttribute(Mesh3D.RENDERMODE_KEY, RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32);
+				}
+				else if (_renderModeState == 4)
+				{
+					md2.mesh.setAttribute(Mesh3D.RENDERMODE_KEY, RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32);
+					terrain.mesh.setAttribute(Mesh3D.RENDERMODE_KEY, RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32);
+				}
+				
+				_renderModeState = _renderModeState >= 4 ? 0 : _renderModeState;
 			}
 		}
 		
 		protected function moveLight1(dir:int = 1):void
 		{
-			var target:int = 200 * dir + 100;
-			TweenLite.to(lightObj, 3, { z:target, onComplete:moveLight1, onCompleteParams:[dir * -1]});
+			var target:int = 2000 * dir + 100;
+			TweenLite.to(lightObj, 5, { z:target, onComplete:moveLight1, onCompleteParams:[dir * -1]});
 		}
 		
 		protected function moveLight2(dir:int = 1):void
 		{
-			var target:int = 10000 * dir;
+			var target:int = 3000 * dir;
 			TweenLite.to(lightObj2, 5, { x:target, onComplete:moveLight2, onCompleteParams:[dir * -1]});
 		}
 		
@@ -249,16 +331,12 @@ package
 		{
 			super.onRenderTick(e);
 			
-			md2.z += 5;
-//			camera.z += 5;
+//			md2.z += 0;
 			
-			//center.z ++;
-//			center.rotationY ++;
-			
-//			camera.target = center.worldPosition;
-			
-			var mx:Number = viewport.mouseX / 30;
-			var my:Number = - viewport.mouseY / 30;
+			camera.target = center.worldPosition;
+
+			var mx:Number = viewport.mouseX / 100;
+			var my:Number = - viewport.mouseY / 250;
 			
 			camera.hover(mx, my, 10);
 		}
