@@ -5,6 +5,8 @@
 
 typedef struct RenderList
 {
+	int k;
+
 	Triangle * polygon;
 
 	struct RenderList * next;
@@ -27,6 +29,8 @@ RenderList * initializeRenderList( int number )
 	{
 		lastRenderList->polygon = NULL;
 
+		lastRenderList->k = 0;
+
 		lastRenderList->next = lastRenderList + 1;
 
 		lastRenderList->pre = lastRenderList - 1;
@@ -43,9 +47,7 @@ RenderList * initializeRenderList( int number )
 	return renderList;
 }
 
-
-
-INLINE void extendRenderList( RenderList ** rl_ptr, int length )
+INLINE void renderList_extendRenderList( RenderList ** rl_ptr, int length )
 {
 	RenderList * newRL;
 
@@ -59,11 +61,62 @@ INLINE void extendRenderList( RenderList ** rl_ptr, int length )
 INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face)
 {
 	//如果到达渲染列表尾部，则插入NUM_PER_RL_INIT个新的结点(注意保留表尾)
-	if ( NULL == (* rl_ptr)->next )
-		extendRenderList( rl_ptr, NUM_PER_RL_INIT );
+	if ( NULL == (* rl_ptr)->next ) renderList_extendRenderList( rl_ptr, NUM_PER_RL_INIT );
 
+	( * rl_ptr )->k = ( * rl_ptr )->pre->k + 1;
 	( * rl_ptr )->polygon = face;
 	( * rl_ptr ) = ( * rl_ptr )->next;
+}
+
+//Partition
+RenderList * renderList_qPartition( RenderList ** L, RenderList * p , RenderList * q )
+{
+	float min1, min2;
+
+	min1 = p->polygon->vertex[0]->v_pos->w;
+	min1 = MIN( min1, p->polygon->vertex[1]->v_pos->w );
+	min1 = MIN( min1, p->polygon->vertex[2]->v_pos->w );
+
+	(*L)->polygon = p->polygon;
+
+	while ( p->k < q->k )
+	{
+		min2 = q->polygon->vertex[0]->v_pos->w;
+		min2 = MIN( min2, q->polygon->vertex[1]->v_pos->w );
+		min2 = MIN( min2, q->polygon->vertex[2]->v_pos->w );
+
+		while ((p->k < q->k) && min2 <= min1 )  q=q->pre;//从后向前找，找到大于基准记录
+		p->polygon = q->polygon;
+		while ( (p->k < q->k) && min2 >= min1 )  p=p->next;//从前向后找，找到小于基准记录的元素
+		q->polygon = p->polygon;                              //上述两元素交换
+	}
+
+	p->polygon=(*L)->polygon;                         //将基准记录存到找到的位置
+
+	return p;
+}
+
+//QSort函数
+void renderList_qSort( RenderList ** L, RenderList * p, RenderList * q )
+{
+	RenderList * pivotloc;
+
+	if ( p->k && q->k && p->k < q->k )
+	{
+		pivotloc = renderList_qPartition(L, p, q) ;   //Partition函数 找到基准记录 的指针
+		renderList_qSort (L, p, pivotloc->pre) ;               //依次对基准记录前的记录快速排序
+		renderList_qSort (L, pivotloc->next, q);               //依次对基准记录后的记录排序
+	}
+}
+
+//快速排序函数
+void renderList_quickSort( RenderList ** L, RenderList ** tail )
+{
+	RenderList * p , * q;
+	p=(*L)->next;
+	q=(*tail);
+
+	renderList_qSort(L, p ,q );
 }
 
 #endif

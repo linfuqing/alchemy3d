@@ -68,4 +68,6 @@ typedef unsigned long		ULONG;
 #define RENDER_FLAT_TRIANGLE_INVZB_32						0x000800	//32位模式 + 1/z深度缓冲 + Flat光照模型
 #define RENDER_GOURAUD_TRIANGLE_INVZB_32					0x001000	//32位模式 + 1/z深度缓冲 + Gouraud光照模型
 
+#define RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32			0x010000
+
 #endif

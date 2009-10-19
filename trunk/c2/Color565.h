@@ -10,6 +10,7 @@ typedef struct Color565
 			BYTE red;
 			BYTE green;
 			BYTE blue;
+			BYTE alpha;
 		};
 
 		BYTE color[3];
@@ -50,6 +51,7 @@ Color565 * newColor565( BYTE r, BYTE g, BYTE b )
 	c->red = r;
 	c->green = g;
 	c->blue = b;
+	c->alpha = 0;
 
 	color565_normalize( c );
 

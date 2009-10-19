@@ -162,4 +162,78 @@ INLINE float invSqrt( float x )
 	return x;
 }
 
+#define NUM_ALPHA_LEVELS 256
+
+int rgb565_Alpha_Table_Builder( int num_alpha_levels, USHORT rgb_alpha_table[NUM_ALPHA_LEVELS][65536] )
+{
+	int r,g,b;
+	int alpha_level;
+	int rgbindex;
+	float alpha;
+	float delta_alpha;
+
+	if (!rgb_alpha_table)
+		return(-1);
+
+	alpha = 0;
+	delta_alpha = EPSILON_E6 + 1/((float)(num_alpha_levels-1));
+
+	// we need num_alpha_level_rows
+	for ( alpha_level = 0; alpha_level < num_alpha_levels; alpha_level ++ )
+	{
+		// there are 65536 RGB values we need to compute, assuming that we are in RGB: 4.4.4 format
+		for ( rgbindex = 0; rgbindex < 65536; rgbindex ++ )
+		{
+			// extract r,g,b from rgbindex, assuming an encoding of 5.6.5
+			RGB565FROM16BIT(rgbindex, &r, &g, &b);
+
+			// scale
+			r = (int)( (float)r * (float)alpha );
+			g = (int)( (float)g * (float)alpha );
+			b = (int)( (float)b * (float)alpha );
+
+			// build pixel back up and store
+			rgb_alpha_table[alpha_level][rgbindex] = RGB16BIT565(r,g,b);
+
+		} // end for rgbindex
+
+		// decrease alpha level
+		alpha+=delta_alpha;
+
+	} // end for row
+
+	// return success
+	return(1);
+
+} // end RGB_Alpha_Table_Builder
+
+int alpha_Table_Builder( int num_alpha_levels, BYTE alpha_table[NUM_ALPHA_LEVELS][256])
+{
+	int t;
+	int alpha_level;
+	int index;
+	float alpha;
+	float delta_alpha;
+
+	if ( !alpha_table )
+		return(-1);
+
+	alpha = 0;
+	delta_alpha = EPSILON_E6 + 1/((float)(num_alpha_levels-1));
+
+	for ( alpha_level = 0; alpha_level < num_alpha_levels; alpha_level ++ )
+	{
+		for ( index = 0; index < 256; index ++ )
+		{
+			t = (int)( (float)index * (float)alpha );
+
+			alpha_table[alpha_level][index] = t;
+		}
+
+		alpha += delta_alpha;
+	}
+
+	return(1);
+}
+
 #endif

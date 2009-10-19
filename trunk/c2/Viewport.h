@@ -33,7 +33,9 @@ typedef struct Viewport
 
 	struct Camera * camera;
 
-	RenderList * renderList;
+	RenderList * renderList, * tailList;
+
+	//RenderList * renderList2;
 
 }Viewport;
 
@@ -82,6 +84,7 @@ Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 	viewport->scene = scene;
 
 	viewport->renderList = initializeRenderList( scene->nFaces + 2 );
+	//viewport->renderList2 = NULL;
 
 	viewport->nRenderList = 0;
 
@@ -912,6 +915,7 @@ void viewport_lightting( Viewport * viewport )
 					vs->color->red = (BYTE)(lastColor.red * 31.0f);
 					vs->color->green = (BYTE)(lastColor.green * 63.0f);
 					vs->color->blue = (BYTE)(lastColor.blue * 31.0f);
+					vs->color->alpha = (BYTE)(lastColor.blue * 255.0f);
 #else
 					vs->color->red = (BYTE)(lastColor.red * 255.0f);
 					vs->color->green = (BYTE)(lastColor.green * 255.0f);
@@ -957,6 +961,9 @@ void viewport_lightting( Viewport * viewport )
 						}
 					}
 				}
+
+				//viewport->renderList2 = renderList;
+				//viewport->renderList2++;
 
 				viewport->nRenderList ++ ;
 				renderList = renderList->next;
@@ -1033,36 +1040,44 @@ void viewport_project( Viewport * viewport, int time )
 			}
 		}
 
+		viewport->tailList = vl->pre;
+
 		sceneNode = sceneNode->next;
 	}
 
+	//if ( viewport->renderList2 ) free ( viewport->renderList2 );
+
+	//if( ( viewport->renderList2 = ( RenderList * )malloc( sizeof( RenderList ) * viewport->nRenderList ) ) == NULL ) exit( TRUE );
+
 	viewport_lightting( viewport );
+
+	//viewport->renderList2 -= viewport->nRenderList;
 }
 
-int compare_z( const void * arg1, const void * arg2 )
-{
-	float min1, min2;
-
-	Triangle * face1, * face2;
-
-	face1 = *( ( Triangle ** )arg1 );
-	face2 = *( ( Triangle ** )arg2 );
-
-	min1 = face1->vertex[0]->v_pos->w;
-	min1 = MIN( min1, face1->vertex[1]->v_pos->w );
-	min1 = MIN( min1, face1->vertex[2]->v_pos->w );
-
-	min2 = face2->vertex[0]->v_pos->w;
-	min2 = MIN( min2, face2->vertex[1]->v_pos->w );
-	min2 = MIN( min2, face2->vertex[2]->v_pos->w );
-
-	if ( min1 > min2 )
-		return -1;
-	else if ( min1 < min2 )
-		return 1;
-	else
-		return 0;
-}
+//int compare_z( const void * arg1, const void * arg2 )
+//{
+//	float min1, min2;
+//
+//	Triangle * face1, * face2;
+//
+//	face1 = ( ( RenderList * )arg1 )->polygon;
+//	face2 = ( ( RenderList * )arg2 )->polygon;
+//
+//	min1 = face1->vertex[0]->v_pos->w;
+//	min1 = MIN( min1, face1->vertex[1]->v_pos->w );
+//	min1 = MIN( min1, face1->vertex[2]->v_pos->w );
+//
+//	min2 = face2->vertex[0]->v_pos->w;
+//	min2 = MIN( min2, face2->vertex[1]->v_pos->w );
+//	min2 = MIN( min2, face2->vertex[2]->v_pos->w );
+//
+//	if ( min1 > min2 )
+//		return -1;
+//	else if ( min1 < min2 )
+//		return 1;
+//	else
+//		return 0;
+//}
 
 #include "RenderFGTINVZB.h"
 #include "RenderWF.h"
@@ -1073,7 +1088,8 @@ void viewport_render( Viewport * viewport )
 	Triangle * face;
 	float minZ;
 
-	//qsort( ( void * )viewport->renderList, 10, sizeof( RenderList ), compare_z );
+	//qsort( viewport->renderList2, viewport->nRenderList, sizeof( RenderList ), compare_z );
+	renderList_quickSort( & viewport->renderList, & viewport->tailList );
 
 	rl = viewport->renderList->next;
 
@@ -1270,6 +1286,12 @@ void viewport_render( Viewport * viewport )
 				}
 #endif
 				break;
+
+			case RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32:
+
+				Draw_Gouraud_Triangle_INVZB_Alpha_32( face, viewport );
+
+				break;
 			}
 		}
 		else
@@ -1315,6 +1337,12 @@ void viewport_render( Viewport * viewport )
 				Draw_Gouraud_Triangle_INVZB_32( face, viewport );
 #endif
 				break;
+
+			case RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32:
+
+				Draw_Gouraud_Triangle_INVZB_Alpha_32( face, viewport );
+
+				break;
 			}
 		}
 
@@ -1323,6 +1351,7 @@ void viewport_render( Viewport * viewport )
 		face->vertex[2]->transformed = FALSE;
 
 		rl->polygon = NULL;
+		rl->k = 0;
 
 		rl = rl->next;
 	}

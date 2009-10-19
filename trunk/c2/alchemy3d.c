@@ -1,12 +1,15 @@
 #define INLINE inline
 #define __AS3__
-#define RGB565
+//#define RGB565
 
 #include <stdlib.h>
 #include <AS3.h>
 
 #include "Base.h"
 #include "Math3D.h"
+
+BYTE alpha_table[NUM_ALPHA_LEVELS][256];
+
 #include "Entity.h"
 #include "Material.h"
 #include "Texture.h"
@@ -21,8 +24,6 @@
 #include "Primitives.h"
 #include "AS3File.h"
 #include "Terrain.h"
-
-UCHAR * testBuff;
 
 AS3_Val initializeCamera( void* self, AS3_Val args )
 {
@@ -369,6 +370,12 @@ AS3_Val setMeshAttribute( void* self, AS3_Val args )
 			mesh->lightEnable = ( DWORD )value;
 
 			break;
+			
+		case ALPHA_KEY:
+
+			mesh_setAlpha( mesh, ( int )value );
+
+			break;
 	}
 
 	return 0;
@@ -690,6 +697,8 @@ AS3_Val test2( void* self, AS3_Val args )
 //Èë¿Ú
 int main()
 {
+	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
+
 	AS3_Val initializeCameraMethod = AS3_Function( NULL, initializeCamera );
 	AS3_Val attachCameraMethod = AS3_Function( NULL, attachCamera );
 	AS3_Val initializeSceneMethod = AS3_Function( NULL, initializeScene );
