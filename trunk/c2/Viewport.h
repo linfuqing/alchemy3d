@@ -1086,7 +1086,7 @@ void viewport_render( Viewport * viewport )
 {
 	RenderList * rl;
 	Triangle * face;
-	float minZ;
+	float minZ, maxZ;
 
 	//qsort( viewport->renderList2, viewport->nRenderList, sizeof( RenderList ), compare_z );
 	renderList_quickSort( & viewport->renderList, & viewport->tailList );
@@ -1097,9 +1097,17 @@ void viewport_render( Viewport * viewport )
 	{
 		face = rl->polygon;
 
+		AS3_Trace(AS3_Int(rl->k));
+
 		minZ = face->vertex[0]->v_pos->w;
 		minZ = MIN( minZ, face->vertex[1]->v_pos->w );
 		minZ = MIN( minZ, face->vertex[2]->v_pos->w );
+
+		maxZ = face->vertex[0]->v_pos->w;
+		maxZ = MAX( maxZ, face->vertex[1]->v_pos->w );
+		maxZ = MAX( maxZ, face->vertex[2]->v_pos->w );
+
+		AS3_Trace(AS3_Number(maxZ));
 
 		if ( face->texture && face->texture->mipmaps )
 		{
