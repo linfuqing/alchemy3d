@@ -55,15 +55,18 @@ INLINE void renderList_extendRenderList( RenderList ** rl_ptr, int length )
 
 	newRL->pre = * rl_ptr;
 
+	newRL->k = (* rl_ptr)->k + 1;
+
 	(* rl_ptr)->next = newRL;
 }
 
 INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face)
 {
+	( * rl_ptr )->k = ( * rl_ptr )->pre->k + 1;
+
 	//如果到达渲染列表尾部，则插入NUM_PER_RL_INIT个新的结点(注意保留表尾)
 	if ( NULL == (* rl_ptr)->next ) renderList_extendRenderList( rl_ptr, NUM_PER_RL_INIT );
 
-	( * rl_ptr )->k = ( * rl_ptr )->pre->k + 1;
 	( * rl_ptr )->polygon = face;
 	( * rl_ptr ) = ( * rl_ptr )->next;
 }
@@ -71,23 +74,23 @@ INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face)
 //Partition
 RenderList * renderList_qPartition( RenderList ** L, RenderList * p , RenderList * q )
 {
-	float min1, min2;
+	float max1, max2;
 
-	min1 = p->polygon->vertex[0]->v_pos->w;
-	min1 = MIN( min1, p->polygon->vertex[1]->v_pos->w );
-	min1 = MIN( min1, p->polygon->vertex[2]->v_pos->w );
+	max1 = p->polygon->vertex[0]->v_pos->w;
+	max1 = MAX( max1, p->polygon->vertex[1]->v_pos->w );
+	max1 = MAX( max1, p->polygon->vertex[2]->v_pos->w );
 
 	(*L)->polygon = p->polygon;
 
 	while ( p->k < q->k )
 	{
-		min2 = q->polygon->vertex[0]->v_pos->w;
-		min2 = MIN( min2, q->polygon->vertex[1]->v_pos->w );
-		min2 = MIN( min2, q->polygon->vertex[2]->v_pos->w );
+		max2 = q->polygon->vertex[0]->v_pos->w;
+		max2 = MAX( max2, q->polygon->vertex[1]->v_pos->w );
+		max2 = MAX( max2, q->polygon->vertex[2]->v_pos->w );
 
-		while ((p->k < q->k) && min2 <= min1 )  q=q->pre;//从后向前找，找到大于基准记录
+		while ((p->k < q->k) && max2 <= max1 )  q=q->pre;//从后向前找，找到大于基准记录
 		p->polygon = q->polygon;
-		while ( (p->k < q->k) && min2 >= min1 )  p=p->next;//从前向后找，找到小于基准记录的元素
+		while ( (p->k < q->k) && max2 >= max1 )  p=p->next;//从前向后找，找到小于基准记录的元素
 		q->polygon = p->polygon;                              //上述两元素交换
 	}
 
