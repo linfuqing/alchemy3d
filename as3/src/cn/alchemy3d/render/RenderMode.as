@@ -85,5 +85,10 @@ package cn.alchemy3d.render
 		 * 32位模式 + 1/z深度缓冲 + Gouraud光照模型
 		 */
 		public static const RENDER_GOURAUD_TRIANGLE_INVZB_32:uint							= 0x001000;
+		
+		/**
+		 * 
+		 */
+		public static const RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32:uint					= 0x010000;
 	}
 }

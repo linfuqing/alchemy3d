@@ -6,13 +6,12 @@ package
 	import cn.alchemy3d.container.Entity;
 	import cn.alchemy3d.external.MD2;
 	import cn.alchemy3d.external.Primitives;
+	import cn.alchemy3d.geom.Mesh3D;
 	import cn.alchemy3d.lights.Light3D;
 	import cn.alchemy3d.lights.LightType;
 	import cn.alchemy3d.render.Material;
 	import cn.alchemy3d.render.RenderMode;
 	import cn.alchemy3d.render.Texture;
-	import cn.alchemy3d.terrain.MeshTerrain;
-	import cn.alchemy3d.terrain.TerrainAddressMode;
 	import cn.alchemy3d.tools.Basic;
 	import cn.alchemy3d.tools.FPS;
 	
@@ -37,6 +36,7 @@ package
 		
 		protected var md2:MD2;
 		protected var p:Primitives;
+		protected var p2:Primitives;
 		
 		protected var t0:Texture;
 		protected var t1:Texture;
@@ -84,20 +84,20 @@ package
 			
 			t0 = new Texture(bl.getBitmapData("2"));
 			t1 = new Texture(bl.getBitmapData("1"));
-			
-			camera.z = -1000;
+			t0.perspectiveDist = 1000;
+			t0.addressMode = Texture.ADDRESS_MODE_WRAP;
 			
 			center = new Entity();
 			center.z = 0;
 			viewport.scene.addChild(center);
 			
 			var m:Material = new Material();
-			m.ambient = new ColorTransform(0, 0, 0, 1);
-			m.diffuse = new ColorTransform(.4, .4, .4, 1);
+			m.ambient = new ColorTransform(1, 0, 0, 1);
+			m.diffuse = new ColorTransform(.4, .4, .4, .1);
 			m.specular = new ColorTransform(0, 0, 0, 1);
 			
 			var m2:Material = new Material();
-			m2.ambient = new ColorTransform(0, .1, 0, 1);
+			m2.ambient = new ColorTransform(1, 1, 1, 1);
 			m2.diffuse = new ColorTransform(0, 1, 0, 1);
 			m2.specular = new ColorTransform(0, 0, 0, 1);
 			m2.power = 0;
@@ -132,14 +132,29 @@ package
 //			md2.z = -500;
 //			md2.scale = 4;
 			
-			p = new Primitives(m2, t0, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32);
-			p.toPlane(350, 350, 20, 20);
+			p2 = new Primitives(m, t0, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32);
+			p2.toPlane(250, 250, 2, 2);
+			p2.mesh.octreeDepth = 0;
+			p2.mesh.useMipmap = true;
+			p2.mesh.mipDist = 4000;
+//			p.mesh.fogEnable = true;
+			p2.z = 300;
+			p2.y = -50;
+			p2.rotationX = 45;
+			p2.rotationY = 45;
+//			p.rotationY = 180;
+			this.viewport.scene.addChild(p2);
+			
+			p = new Primitives(m2, t0, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32);
+			p.toPlane(250, 250, 2, 2);
 			p.mesh.octreeDepth = 0;
 			p.mesh.useMipmap = true;
-			p.mesh.mipDist = 5000;
-			p.z = -600;
-			p.y = -30;
-//			p.rotationX = 90;
+			p.mesh.mipDist = 4000;
+//			p.mesh.fogEnable = true;
+			p.z = 300;
+			p.y = -50;
+			p.rotationX = 45;
+//			p.rotationY = 180;
 			this.viewport.scene.addChild(p);
 			
 //			var terrain:MeshTerrain = new MeshTerrain(m2, null, RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32);
@@ -223,6 +238,8 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
+//			p.rotationY ++;
+//			p.y++
 			super.onRenderTick(e);
 			
 //			md2.z += 5;

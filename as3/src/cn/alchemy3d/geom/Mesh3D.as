@@ -11,8 +11,9 @@ package cn.alchemy3d.geom
 		public static const MATERIAL_KEY:uint		= 0x01;
 		public static const TEXTURE_KEY:uint		= 0x02;
 		public static const FOG_KEY:uint			= 0x04;
-		public static const LIGHT_KEY:uint		= 0x08;
-		public static const RENDERMODE_KEY:uint	= 0x10;
+		public static const LIGHT_KEY:uint			= 0x08;
+		public static const RENDERMODE_KEY:uint		= 0x10;
+		public static const ALPHA_KEY:uint			= 0x20;
 		
 		private var vertices:Vector.<Vertex3D>;
 		private var faces:Vector.<Triangle3D>;
