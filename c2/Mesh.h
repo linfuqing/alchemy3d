@@ -17,6 +17,7 @@
 #define FOG_KEY				0x04
 #define LIGHT_KEY			0x08
 #define RENDERMODE_KEY		0x10
+#define ALPHA_KEY			0x20
 
 typedef struct Mesh
 {
@@ -297,6 +298,16 @@ void mesh_setTexture( Mesh * m, Texture * t )
 	for( ; i < m->nFaces; i ++ )
 	{
 		m->faces[i]->texture = t;
+	}
+}
+
+void mesh_setAlpha( Mesh * m, int alpha )
+{
+	DWORD i = 0;
+
+	for( ; i < m->nFaces; i ++ )
+	{
+		m->faces[i]->vertex[0]->color->alpha = m->faces[i]->vertex[1]->color->alpha = m->faces[i]->vertex[2]->color->alpha = alpha;
 	}
 }
 

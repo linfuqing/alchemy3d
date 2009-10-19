@@ -3,10 +3,13 @@
 
 #define INLINE
 #define __NOT_AS3__
-#define RGB565
+//#define RGB565
 
 #include "Base.h"
 #include "Math3D.h"
+
+BYTE alpha_table[NUM_ALPHA_LEVELS][256];
+
 #include "Scene.h"
 #include "Entity.h"
 #include "Viewport.h"
@@ -65,10 +68,12 @@ int main()
 	//UCHAR * buffer;
 	//long length=0;
 
+	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
+
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	material = newMaterial( newColorValue( 1.0f, 1.0f, 1.0f, 1.0f ),
-							newColorValue( 0.3f, 0.8f, 0.6f, 1.0f ),
+							newColorValue( 0.3f, 0.8f, 0.6f, 0.5f ),
 							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
 							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
 							4.0f );
@@ -141,7 +146,7 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	do3d3 = newTerrain( do3d3, bitmap2, 600, 600, 0, material, texture, RENDER_TEXTRUED_TRIANGLE_FSINVZB_32, 1 );
+	do3d3 = newTerrain( do3d3, bitmap2, 600, 600, 0, material, texture, RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32, 1 );
 	do3d3->mesh->octree_depth = 0;
 	//do3d3->mesh->useMipmap = TRUE;
 	//do3d3->mesh->mip_dist = 2000.0f;
@@ -190,7 +195,7 @@ int main()
 	//scene_addLight(scene, light);
 	//scene_addEntity(scene, lightSource, NULL);
 
-	for ( i = 0; i < 20; i ++ )
+	for ( i = 0; i < 1; i ++ )
 	{
 		viewport_updateBeforeRender( view );
 
