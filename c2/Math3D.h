@@ -164,6 +164,7 @@ INLINE float invSqrt( float x )
 
 #define NUM_ALPHA_LEVELS 256
 
+#ifdef RGB565
 int rgb565_Alpha_Table_Builder( int num_alpha_levels, USHORT rgb_alpha_table[NUM_ALPHA_LEVELS][65536] )
 {
 	int r,g,b;
@@ -206,6 +207,7 @@ int rgb565_Alpha_Table_Builder( int num_alpha_levels, USHORT rgb_alpha_table[NUM
 	return(1);
 
 } // end RGB_Alpha_Table_Builder
+#endif
 
 int alpha_Table_Builder( int num_alpha_levels, BYTE alpha_table[NUM_ALPHA_LEVELS][256])
 {
@@ -231,6 +233,28 @@ int alpha_Table_Builder( int num_alpha_levels, BYTE alpha_table[NUM_ALPHA_LEVELS
 		}
 
 		alpha += delta_alpha;
+	}
+
+	return(1);
+}
+
+int multiply256_Table_Builder( DWORD multiply256_table[256][256] )
+{
+	int index, alpha_level, alpha;
+
+	if ( !multiply256_table )
+		return(-1);
+
+	alpha = 0;
+
+	for ( alpha_level = 0; alpha_level < 256; alpha_level ++ )
+	{
+		for ( index = 0; index < 256; index ++ )
+		{
+			multiply256_table[alpha_level][index] = alpha * index;
+		}
+
+		alpha ++;
 	}
 
 	return(1);

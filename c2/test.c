@@ -97,7 +97,7 @@ main()
      QuickSort(&L,&tail);
 
      Display(&L);
-     DestoryBilist(&L);
+     //DestoryBilist(&L);
      system("pause");
      return 0;
 }     //Ö÷º¯Êý

@@ -33,8 +33,6 @@ typedef struct Mesh
 
 	Vertex ** vertices;
 
-	//struct Animation * animation;
-
 	RenderList * renderList, * clippedList;
 
 	struct Octree * octree;
@@ -99,6 +97,10 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	//构造渲染列表和裁剪列表
 	m->renderList = initializeRenderList( nFaces + 2 );
 	m->clippedList = initializeRenderList( nFaces + 2 );
+
+	m->octree			= newOctree();
+
+	m->nRenderList = m->nCullList = m->nClippList = 0;
 }
 
 Mesh * newMesh( int nVertices, int nFaces )
@@ -115,7 +117,6 @@ Mesh * newMesh( int nVertices, int nFaces )
 		mesh_build( m, nVertices, nFaces );
 	}
 
-	m->octree			= newOctree();
 	m->octreeState		= OCTREE_NOT_READY;
 	m->v_dirty			= FALSE;
 	m->lightEnable		= FALSE;
@@ -125,8 +126,6 @@ Mesh * newMesh( int nVertices, int nFaces )
 	m->terrainTrace		= FALSE;
 	m->type				= 0;
 	m->octree_depth		= 0;
-
-	m->nRenderList = m->nCullList = m->nClippList = 0;
 
 	return m;
 }
@@ -182,6 +181,7 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	p->uvTransformed = FALSE;	
 	p->fogEnable = FALSE;
 	p->lightEnable = FALSE;
+	p->depth = 0.0f;
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );
@@ -343,15 +343,8 @@ void mesh_clear( Mesh * mesh )
 {
 	DWORD i = 0;
 
-	for ( ; i < mesh->nVertices; i ++ )
-	{
-		vertex_dispose( mesh->vertices[i] );
-	}
-
-	for ( i = 0; i < mesh->nFaces; i ++ )
-	{
-		triangle_dispose( mesh->faces[i] );
-	}
+	free( memset( mesh->vertices[0], 0, sizeof( Vertex ) * mesh->nVertices ) );
+	free( memset( mesh->faces[0], 0, sizeof( Triangle ) * mesh->nFaces ) );
 
 	if ( mesh->renderList )
 	{		
@@ -367,6 +360,10 @@ void mesh_clear( Mesh * mesh )
 
 	free( mesh->vertices );
 	free( mesh->faces );
+
+	destoryOctree( mesh->octree );
+
+	memset( mesh, 0, sizeof( Mesh ) );
 }
 
 Mesh * mesh_reBuild(  Mesh * m, int nVertices, int nFaces )

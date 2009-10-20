@@ -106,25 +106,6 @@ INLINE Vertex * vertex_clone( Vertex * src )
 
 INLINE void vertex_dispose( Vertex * v )
 {
-	ContectedFaces * cf, * cf2;
-
-	cf = v->contectedFaces;
-
-	while ( NULL != cf)
-	{
-		cf2 = cf;
-
-		cf->face = NULL;
-
-		cf = cf->next;
-		
-		memset( cf2, 0, sizeof( Vertex ) );
-
-		free( cf2 );
-
-		cf2 =NULL;
-	}
-
 	vector3D_dispose( v->normal );
 	vector3D_dispose( v->position );
 	vector3D_dispose( v->w_pos );

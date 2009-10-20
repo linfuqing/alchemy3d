@@ -13,7 +13,7 @@ typedef struct Fog
 
 	int ready, length;
 
-	float * fog_table;
+	BYTE * fog_table;
 
 #ifdef RGB565
 	Color565 * global;
@@ -51,9 +51,7 @@ int buildFogTable( Fog * f, float sceneDepth )
 		return 0;
 	else
 	{
-		float len;
-
-		int i, j, end;
+		int i, j, end, len;
 
 		int sd = (int)( sceneDepth + 0.5f ) + EXTEND_SCENE_LENGTH;
 		int distance = (int)( f->distance + 0.0f );
@@ -66,22 +64,22 @@ int buildFogTable( Fog * f, float sceneDepth )
 			free( f->fog_table );
 		}
 
-		if( ( f->fog_table = ( float * )calloc( sd, sizeof( float ) ) ) == NULL ) exit( TRUE );
+		if( ( f->fog_table = ( BYTE * )calloc( sd, sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
 
-		end = MIN( distance + depth, sd );
+		end = MIN( depth, sd );
 
-		len = 1.0f / ( end - distance + 1 );
+		len = end - distance;
 
 		j = 1;
 
 		for ( i = distance; i <= end; i ++, j ++ )
 		{
-			f->fog_table[i] = (float)j * len;
+			f->fog_table[i] = j * 255 / len;
 		}
 
 		for ( ; i <= sd; i ++ )
 		{
-			f->fog_table[i] = 1.0f;
+			f->fog_table[i] = 255;
 		}
 
 		f->length = sd;

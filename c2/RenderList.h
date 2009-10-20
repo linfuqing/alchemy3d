@@ -74,23 +74,15 @@ INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face)
 //Partition
 RenderList * renderList_qPartition( RenderList ** L, RenderList * p , RenderList * q )
 {
-	float max1, max2;
-
-	max1 = p->polygon->vertex[0]->v_pos->w;
-	max1 = MAX( max1, p->polygon->vertex[1]->v_pos->w );
-	max1 = MAX( max1, p->polygon->vertex[2]->v_pos->w );
+	float pivotkey = p->polygon->depth;
 
 	(*L)->polygon = p->polygon;
 
 	while ( p->k < q->k )
 	{
-		max2 = q->polygon->vertex[0]->v_pos->w;
-		max2 = MAX( max2, q->polygon->vertex[1]->v_pos->w );
-		max2 = MAX( max2, q->polygon->vertex[2]->v_pos->w );
-
-		while ((p->k < q->k) && max2 <= max1 )  q=q->pre;//从后向前找，找到大于基准记录
+		while ((p->k < q->k) && q->polygon->depth <= pivotkey )  q=q->pre;//从后向前找，找到大于基准记录
 		p->polygon = q->polygon;
-		while ( (p->k < q->k) && max2 >= max1 )  p=p->next;//从前向后找，找到小于基准记录的元素
+		while ( (p->k < q->k) && q->polygon->depth >= pivotkey )  p=p->next;//从前向后找，找到小于基准记录的元素
 		q->polygon = p->polygon;                              //上述两元素交换
 	}
 

@@ -362,4 +362,63 @@ int buildOctree( Octree * root, int maxdepth )
 	return TRUE;
 }
 
+int disposeOctreeData( OctreeData * data )
+{
+	if ( ! data ) return 0;
+
+	aabb_dispose( data->aabb );
+	aabb_dispose( data->worldAABB );
+	aabb_dispose( data->CVVAABB );
+
+	free( memset( data, 0, sizeof( OctreeData ) ) );
+
+	return 1;
+}
+
+int disposeOctree( Octree * node )
+{
+	if ( ! node ) return 0;
+
+	disposeOctreeData( node->data );
+
+	free( memset( node, 0, sizeof( Octree ) ) );
+
+	return 1;
+}
+
+int destoryOctree( Octree * root )
+{
+	int noChild = 0;
+
+	if ( ! root ) return 0;
+
+	if ( root->blb ) destoryOctree( root->blb );
+	else noChild |= 0x01;
+
+	if ( root->blf ) destoryOctree( root->blf );
+	else noChild |= 0x02;
+
+	if ( root->brb ) destoryOctree( root->brb );
+	else noChild |= 0x04;
+
+	if ( root->brf ) destoryOctree( root->brf );
+	else noChild |= 0x08;
+
+	if ( root->tlb ) destoryOctree( root->tlb );
+	else noChild |= 0x10;
+
+	if ( root->tlf ) destoryOctree( root->tlf );
+	else noChild |= 0x20;
+
+	if ( root->trb ) destoryOctree( root->trb );
+	else noChild |= 0x40;
+
+	if ( root->trf ) destoryOctree( root->trf );
+	else noChild |= 0x80;
+
+	if ( noChild == 0xff ) disposeOctree( root );
+
+	return 1;
+}
+
 #endif
