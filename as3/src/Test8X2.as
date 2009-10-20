@@ -39,7 +39,7 @@ package
 		
 		public function Test8X2()
 		{
-			super(600, 400, 90, 20, 8000);
+			super(600, 400, 90, 20, 10000);
 			
 			init();
 		}
@@ -52,10 +52,10 @@ package
 		
 		protected function init(e:Event = null):void
 		{
-			camera.x = -810;
+			camera.x = -1210;
 			
 //			center = new Entity();
-//			center.z = 0;
+////			center.x = 300;
 //			viewport.scene.addChild(center);
 			
 			var m:Material = new Material();
@@ -78,13 +78,11 @@ package
 			viewport.scene.addChild(lightObj2);
 			
 			terrain = new MeshTerrain(null, m2, null, RenderMode.RENDER_GOURAUD_TRIANGLE_INVZB_32);
-			terrain.buildOn(10000, 10000, 3000);
+			terrain.buildOn(15000, 15000, 10000);
 			terrain.mesh.lightEnable = true;
 			terrain.z = 0;
-			terrain.y = -30;
 			
 			viewport.scene.addChild(terrain);
-
 			
 			light2 = new Light3D(lightObj2);
 			viewport.scene.addLight(light2);

@@ -14,10 +14,12 @@ package cn.alchemy3d.external
 
 	public class MD2 extends Entity
 	{
-		private var loader:URLLoader;
+		private var _loader:URLLoader;
 		private var _material:Material;
 		private var _texture:Texture;
-		private var renderMode:uint;
+		private var _renderMode:uint;
+		private var _autoPlay:Boolean;
+		private var _loop:Boolean;
 		
 		private var fps:uint;
 		
@@ -36,12 +38,14 @@ package cn.alchemy3d.external
 			this.mesh.lightEnable = bool;
 		}
 		
-		public function MD2(material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32 )
+		public function MD2(material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32, autoPlay:Boolean = false, loop:Boolean = false )
 		{
 			_material = material;
 			_texture  = texture;
+			_autoPlay = autoPlay;
+			_loop = loop;
 			
-			this.renderMode = renderMode;
+			this._renderMode = renderMode;
 			
 			super( "MD2_scene",new Mesh3D() );
 		}
@@ -50,10 +54,10 @@ package cn.alchemy3d.external
 		{
 			this.fps = fps;
 			
-			loader = new URLLoader();
-			loader.dataFormat = URLLoaderDataFormat.BINARY;
-			loader.addEventListener(Event.COMPLETE, onLoadComplete);
-			loader.load(new URLRequest(url));
+			_loader = new URLLoader();
+			_loader.dataFormat = URLLoaderDataFormat.BINARY;
+			_loader.addEventListener(Event.COMPLETE, onLoadComplete);
+			_loader.load(new URLRequest(url));
 		}
 		
 		public function play( loop:Boolean = true, animation:String = null ):void
@@ -95,25 +99,27 @@ package cn.alchemy3d.external
 		
 		private function onLoadComplete(e:Event):void
 		{
-			var length:uint = loader.data.length;
+			var length:uint = _loader.data.length;
 			
 			var fileBuffer:uint = Library.alchemy3DLib.applyForTmpBuffer(length);
 			
 			Library.memory.position = fileBuffer;
-			Library.memory.writeBytes(loader.data, 0, length);
+			Library.memory.writeBytes(_loader.data, 0, length);
 			
-			loader.data.clear();
-			loader.data = null;
+			_loader.data.clear();
+			_loader.data = null;
 			
-			var ps:Array = Library.alchemy3DLib.initializeMD2( _pointer, fileBuffer, _material ? _material.pointer : NULL, _texture ? _texture.pointer : NULL, renderMode, fps );
+			var ps:Array = Library.alchemy3DLib.initializeMD2( _pointer, fileBuffer, _material ? _material.pointer : NULL, _texture ? _texture.pointer : NULL, _renderMode, fps );
 			
 			this.isPlayPointer           = ps[0];
 			this.loopPointer             = ps[1];
 			this.dirtyPointer            = ps[2];
 			this.currentFrameNamePointer = ps[3];
 			
-			//stop();
-			play(true,"wstnd");
+			stop();
+			
+			if (_autoPlay)
+				play(_loop);
 		}
 		
 		private var isPlayPointer:uint = NULL;

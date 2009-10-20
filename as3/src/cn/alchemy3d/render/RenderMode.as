@@ -24,7 +24,7 @@ package cn.alchemy3d.render
 		/**
 		 * 32位模式 + 1/z深度缓冲 + Flat光照模型 + 纹理映射
 		 */
-		//public static const RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:uint						= 0x000008;
+		public static const RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:uint						= 0x000008;
 		
 		/**
 		 * 32位模式 + 1/z深度缓冲 + Gouraud光照模型 + 纹理映射
