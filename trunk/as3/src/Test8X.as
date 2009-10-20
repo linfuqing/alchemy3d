@@ -58,16 +58,19 @@ package
 		private var _renderModeState:int = 1;
 		private var _lightState:Boolean = true;
 		
+		private var action1:Array = new Array(40);
+		private var action2:Array = new Array(40);
+		
 		public function Test8X()
 		{
-			super(640, 400, 90, 15, 4500);
+			super(640, 400, 90, 15, 4000);
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
 			bl.add("asset/sky_beiz.jp_L04899.jpg", {id:"0"});
 			bl.add("asset/texture.jpg", {id:"1"});
 			bl.add("asset/md2/blade_black.jpg", {id:"2"});
-			bl.add("asset/map32.jpg", {id:"3"});
+			bl.add("asset/HighMap.jpg", {id:"3"});
 			bl.start();
 		}
 		
@@ -88,6 +91,18 @@ package
 		
 		protected function init(e:Event = null):void
 		{
+			//start actions
+			for (var i:int = 0; i < 40; i ++ )
+			{
+				action1[i] = "stand" + (i).toString();
+			}
+			
+			for (i = 0; i < 40; i ++ )
+			{
+				action2[i] = "run" + (i).toString();
+			}
+			//end actions
+			
 			bl.removeEventListener(BulkProgressEvent.COMPLETE, init);
 			
 			t0 = new Texture(bl.getBitmapData("2"));
@@ -105,7 +120,7 @@ package
 			center.y = 400;
 			viewport.scene.addChild(center);
 			
-			var fog:Fog = new Fog(new ColorTransform(1, 1, 1, 1), 2000, 3300);
+			var fog:Fog = new Fog(new ColorTransform(1, 1, 1, 1), 800, 3000);
 			scene.addFog(fog);
 			
 			var m:Material = new Material();
@@ -151,6 +166,7 @@ package
 			md2.rotationX = -90;
 			md2.rotationY = -90;
 			md2.scale = 7;
+			//md2.play(false, "stand0");
 			
 //			var p:Primitives = new Primitives(m2, null, RenderMode.RENDER_WIREFRAME_TRIANGLE_32);
 //			p.toPlane(150, 150, 1, 1);
@@ -160,8 +176,8 @@ package
 //			p.rotationX = 45;
 //			this.viewport.scene.addChild(p);
 			
-			terrain = new MeshTerrain(bl.getBitmapData("3"), m2, t1, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32);
-			terrain.buildOn(8000, 8000, 3000);
+			terrain = new MeshTerrain(bl.getBitmapData("3"), m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
+			terrain.buildOn(10000, 10000, 2700);
 			terrain.mesh.lightEnable = true;
 			terrain.mesh.octreeDepth = 2;
 			terrain.mesh.useMipmap = true;
@@ -268,11 +284,13 @@ package
 			{
 				if (_lightState)
 				{
+					md2.mesh.lightEnable = false;
 					md2.mesh.setAttribute(Mesh3D.LIGHT_KEY, 0);
 					terrain.mesh.setAttribute(Mesh3D.LIGHT_KEY, 0);
 				}
 				else
 				{
+					md2.mesh.lightEnable = true;
 					md2.mesh.setAttribute(Mesh3D.LIGHT_KEY, 1);
 					terrain.mesh.setAttribute(Mesh3D.LIGHT_KEY, 1);
 				}
@@ -327,11 +345,22 @@ package
 			TweenLite.to(lightObj3, 4, { y:target, onComplete:moveLight3, onCompleteParams:[dir * -1]});
 		}
 		
+		private var currAction1:int = 0;
+		private var currAction2:int = 0;
+		private var frame:uint = 2;
+		private var currFrame:uint = 0;
+		
 		override protected function onRenderTick(e:Event = null):void
 		{
-			super.onRenderTick(e);
+//			if ( currFrame % frame == 0 )
+//			{
+//				md2.play(false, action1[currAction1]);
+//				currAction1 ++;
+//				currAction1 = currAction1 == action1.length ? 0 : currAction1;
+//			}
+//			currFrame ++;
 			
-//			md2.z += 0;
+			super.onRenderTick(e);
 			
 			camera.target = center.worldPosition;
 
