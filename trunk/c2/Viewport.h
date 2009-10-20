@@ -721,6 +721,9 @@ void viewport_lightting( Viewport * viewport )
 				{
 					vs = face->vertex[j];
 
+					//把三个顶点的深度相加，后面求面的平均深度
+					face->depth += vs->v_pos->w;
+
 					//如果顶点已经变换或计算，则直接进入下一个顶点
 					if ( vs->transformed == 2 ) continue;
 
@@ -924,8 +927,10 @@ void viewport_lightting( Viewport * viewport )
 #endif
 
 					vs->transformed = 2;
-				}
-				//光照处理结束
+				}//光照处理结束
+
+				//平均深度
+				face->depth *= .333333333333f;
 
 				//mipmap处理
 				if ( face->texture && face->texture->mipmaps )
@@ -1086,10 +1091,9 @@ void viewport_render( Viewport * viewport )
 {
 	RenderList * rl;
 	Triangle * face;
-	float minZ, maxZ;
 
 	//qsort( viewport->renderList2, viewport->nRenderList, sizeof( RenderList ), compare_z );
-	renderList_quickSort( & viewport->renderList, & viewport->tailList );
+	//renderList_quickSort( & viewport->renderList, & viewport->tailList );
 
 	rl = viewport->renderList->next;
 
@@ -1097,17 +1101,8 @@ void viewport_render( Viewport * viewport )
 	{
 		face = rl->polygon;
 
-		AS3_Trace(AS3_Int(rl->k));
-
-		minZ = face->vertex[0]->v_pos->w;
-		minZ = MIN( minZ, face->vertex[1]->v_pos->w );
-		minZ = MIN( minZ, face->vertex[2]->v_pos->w );
-
-		maxZ = face->vertex[0]->v_pos->w;
-		maxZ = MAX( maxZ, face->vertex[1]->v_pos->w );
-		maxZ = MAX( maxZ, face->vertex[2]->v_pos->w );
-
-		AS3_Trace(AS3_Number(maxZ));
+		//printf("%d\n", rl->k);
+		//printf("%f\n", face->depth);
 
 		if ( face->texture && face->texture->mipmaps )
 		{
@@ -1155,13 +1150,13 @@ void viewport_render( Viewport * viewport )
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
 #ifdef RGB565
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_Perspective_Triangle_FSINVZB_16( face, viewport );
 				else
 					Draw_Textured_Triangle_FSINVZB_16( face, viewport );
 #else
 
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_FSINVZB_32( face, viewport );
@@ -1170,13 +1165,13 @@ void viewport_render( Viewport * viewport )
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
 #ifdef RGB565
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_PerspectiveLP_Triangle_FSINVZB_16( face, viewport );
 				else
 					Draw_Textured_Triangle_FSINVZB_16( face, viewport );
 #else
 
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_FSINVZB_32( face, viewport );
@@ -1185,13 +1180,13 @@ void viewport_render( Viewport * viewport )
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32:
 #ifdef RGB565
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
 				else
 					Draw_Textured_Triangle_GSINVZB_16( face, viewport );
 #else
 
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_GSINVZB_32( face, viewport );
@@ -1200,13 +1195,13 @@ void viewport_render( Viewport * viewport )
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
 #ifdef RGB565
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_Perspective_Triangle_INVZB_16( face, viewport );
 				else
 					Draw_Textured_Triangle_INVZB_16( face, viewport );
 #else
 
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_INVZB_32( face, viewport );
@@ -1215,13 +1210,13 @@ void viewport_render( Viewport * viewport )
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
 #ifdef RGB565
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_PerspectiveLP_Triangle_INVZB_16( face, viewport );
 				else
 					Draw_Textured_Triangle_INVZB_16( face, viewport );
 #else
 
-				if ( minZ < face->texture->perspective_dist )
+				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_INVZB_32( face, viewport );
@@ -1264,14 +1259,14 @@ void viewport_render( Viewport * viewport )
 #ifdef RGB565
 				if ( viewport->scene->fog && face->fogEnable )
 				{
-					if ( minZ < face->texture->perspective_dist )
+					if ( face->depth < face->texture->perspective_dist )
 						Draw_Textured_Perspective_Triangle_FOG_GSINVZB_16( face, viewport );
 					else
 						Draw_Textured_Triangle_FOG_GSINVZB_16( face, viewport );
 				}
 				else
 				{
-					if ( minZ < face->texture->perspective_dist )
+					if ( face->depth < face->texture->perspective_dist )
 						Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
 					else
 						Draw_Textured_Triangle_GSINVZB_16( face, viewport );
@@ -1280,14 +1275,14 @@ void viewport_render( Viewport * viewport )
 
 				if ( viewport->scene->fog && face->fogEnable )
 				{
-					if ( minZ < face->texture->perspective_dist )
+					if ( face->depth < face->texture->perspective_dist )
 						Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( face, viewport );
 					else
 						Draw_Textured_Triangle_FOG_GSINVZB_32( face, viewport );
 				}
 				else
 				{
-					if ( minZ < face->texture->perspective_dist )
+					if ( face->depth < face->texture->perspective_dist )
 						Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
 					else
 						Draw_Textured_Triangle_GSINVZB_32( face, viewport );

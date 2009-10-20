@@ -9,6 +9,7 @@
 #include "Math3D.h"
 
 BYTE alpha_table[NUM_ALPHA_LEVELS][256];
+DWORD multiply256_table[256][256];
 
 #include "Entity.h"
 #include "Material.h"
@@ -698,6 +699,7 @@ AS3_Val test2( void* self, AS3_Val args )
 int main()
 {
 	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
+	multiply256_Table_Builder(multiply256_table);
 
 	AS3_Val initializeCameraMethod = AS3_Function( NULL, initializeCamera );
 	AS3_Val attachCameraMethod = AS3_Function( NULL, attachCamera );

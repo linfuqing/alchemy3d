@@ -10112,7 +10112,7 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_16( Triangle * face, struct 
 						g_textel >>= (FIXP16_SHIFT + 6);
 						b_textel >>= (FIXP16_SHIFT + 5);
 
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
 							r_textel += (DWORD)((f_r - r_textel) * f_concentration);
 							g_textel += (DWORD)((f_g - g_textel) * f_concentration);
@@ -10216,7 +10216,7 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_16( Triangle * face, struct 
 						g_textel >>= (FIXP16_SHIFT + 6);
 						b_textel >>= (FIXP16_SHIFT + 5);
 
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
 							r_textel += (DWORD)((f_r - r_textel) * f_concentration);
 							g_textel += (DWORD)((f_g - g_textel) * f_concentration);
@@ -10585,7 +10585,7 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_16( Triangle * face, struct 
 						g_textel >>= (FIXP16_SHIFT + 6);
 						b_textel >>= (FIXP16_SHIFT + 5);
 
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
 							r_textel += (DWORD)((f_r - r_textel) * f_concentration);
 							g_textel += (DWORD)((f_g - g_textel) * f_concentration);
@@ -10755,7 +10755,7 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_16( Triangle * face, struct 
 						g_textel >>= (FIXP16_SHIFT + 6);
 						b_textel >>= (FIXP16_SHIFT + 5);
 
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
 							r_textel += (DWORD)((f_r - r_textel) * f_concentration);
 							g_textel += (DWORD)((f_g - g_textel) * f_concentration);
@@ -11318,7 +11318,7 @@ void Draw_Textured_Triangle_FOG_GSINVZB_16( Triangle * face, struct Viewport * v
 						g_textel >>= (FIXP16_SHIFT + 6);
 						b_textel >>= (FIXP16_SHIFT + 5);
 
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
 							r_textel += (DWORD)((f_r - r_textel) * f_concentration);
 							g_textel += (DWORD)((f_g - g_textel) * f_concentration);
@@ -11425,7 +11425,7 @@ void Draw_Textured_Triangle_FOG_GSINVZB_16( Triangle * face, struct Viewport * v
 						g_textel >>= (FIXP16_SHIFT + 6);
 						b_textel >>= (FIXP16_SHIFT + 5);
 
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
 							r_textel += (DWORD)((f_r - r_textel) * f_concentration);
 							g_textel += (DWORD)((f_g - g_textel) * f_concentration);
@@ -11804,7 +11804,7 @@ void Draw_Textured_Triangle_FOG_GSINVZB_16( Triangle * face, struct Viewport * v
 						g_textel >>= (FIXP16_SHIFT + 6);
 						b_textel >>= (FIXP16_SHIFT + 5);
 
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
 							r_textel += (DWORD)((f_r - r_textel) * f_concentration);
 							g_textel += (DWORD)((f_g - g_textel) * f_concentration);
@@ -11978,7 +11978,7 @@ void Draw_Textured_Triangle_FOG_GSINVZB_16( Triangle * face, struct Viewport * v
 						g_textel >>= (FIXP16_SHIFT + 6);
 						b_textel >>= (FIXP16_SHIFT + 5);
 
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
 							r_textel += (DWORD)((f_r - r_textel) * f_concentration);
 							g_textel += (DWORD)((f_g - g_textel) * f_concentration);
@@ -15668,11 +15668,10 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >>  8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -15735,11 +15734,10 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >>  8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -15979,11 +15977,10 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >>  8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -16090,11 +16087,10 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >>  8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -16591,11 +16587,10 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=ri;
-						g_textel*=gi;
-						b_textel*=bi;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -16685,11 +16680,10 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=ri;
-						g_textel*=gi;
-						b_textel*=bi;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -17051,11 +17045,10 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=ri;
-						g_textel*=gi;
-						b_textel*=bi;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -17212,11 +17205,10 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=ri;
-						g_textel*=gi;
-						b_textel*=bi;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -17628,7 +17620,6 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 					if (zi > z_ptr[xi])
 					{
 						screen_ptr[xi] = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
-						//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -19209,12 +19200,10 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						//screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >>  8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -19279,11 +19268,10 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >>  8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -19523,11 +19511,10 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >>  8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -19632,11 +19619,10 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >>  8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -20036,11 +20022,10 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >> 8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -20111,11 +20096,10 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >> 8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -20361,11 +20345,10 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >> 8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -20476,11 +20459,10 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=r_base;
-						g_textel*=g_base;
-						b_textel*=b_base;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> 8, g_textel >> 8, b_textel >> 8 );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][r_base]) >> 8,
+													(multiply256_table[g_textel][g_base]) >> 8,
+													(multiply256_table[b_textel][b_base]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -20963,12 +20945,10 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=ri;
-						g_textel*=gi;
-						b_textel*=bi;
-
-						//screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -21055,11 +21035,10 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=ri;
-						g_textel*=gi;
-						b_textel*=bi;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -21411,11 +21390,10 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=ri;
-						g_textel*=gi;
-						b_textel*=bi;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -21568,11 +21546,10 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel*=ri;
-						g_textel*=gi;
-						b_textel*=bi;
-
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel >> (FIXP16_SHIFT + 8), g_textel >> (FIXP16_SHIFT + 8), b_textel >> (FIXP16_SHIFT + 8) );
+						screen_ptr[xi] = RGB32BIT( 0xff000000,
+													(multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8,
+													(multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8 );
 
 						z_ptr[xi] = zi;
 					}
@@ -21748,12 +21725,14 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 		*textmap = NULL,
 		*dest_buffer = (DWORD *)_dest_buffer;
 
-	DWORD r_textel, g_textel, b_textel, textel;
+	DWORD textel;
+
+	int r_textel, g_textel, b_textel;
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
 
-	float f_concentration;
+	BYTE f_concentration;
 
 	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
@@ -22087,22 +22066,18 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel *= ri;
-						g_textel *= gi;
-						b_textel *= bi;
+						r_textel = (multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8;
+						g_textel = (multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8;
+						b_textel = (multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8;
 
-						r_textel >>= (FIXP16_SHIFT + 8);
-						g_textel >>= (FIXP16_SHIFT + 8);
-						b_textel >>= (FIXP16_SHIFT + 8);
-
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
-							r_textel += (DWORD)((f_r - (int)r_textel) * f_concentration);
-							g_textel += (DWORD)((f_g - (int)g_textel) * f_concentration);
-							b_textel += (DWORD)((f_b - (int)b_textel) * f_concentration);
+							r_textel += f_r > r_textel ? multiply256_table[f_r - r_textel][f_concentration] >> 8 : - (int)( multiply256_table[r_textel - f_r][f_concentration] >> 8 );
+							g_textel += f_g > g_textel ? multiply256_table[f_g - g_textel][f_concentration] >> 8 : - (int)( multiply256_table[g_textel - f_g][f_concentration] >> 8 );
+							b_textel += f_b > b_textel ? multiply256_table[f_b - b_textel][f_concentration] >> 8 : - (int)( multiply256_table[b_textel - f_b][f_concentration] >> 8 );
 						}
 
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel, g_textel, b_textel );
+						screen_ptr[xi] = RGB32BIT( 0xff000000, r_textel, g_textel, b_textel );
 
 						z_ptr[xi] = zi;
 					}
@@ -22189,22 +22164,18 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel *= ri;
-						g_textel *= gi;
-						b_textel *= bi;
+						r_textel = (multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8;
+						g_textel = (multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8;
+						b_textel = (multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8;
 
-						r_textel >>= (FIXP16_SHIFT + 8);
-						g_textel >>= (FIXP16_SHIFT + 8);
-						b_textel >>= (FIXP16_SHIFT + 8);
-
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
-							r_textel += (DWORD)((f_r - (int)r_textel) * f_concentration);
-							g_textel += (DWORD)((f_g - (int)g_textel) * f_concentration);
-							b_textel += (DWORD)((f_b - (int)b_textel) * f_concentration);
+							r_textel += f_r > r_textel ? multiply256_table[f_r - r_textel][f_concentration] >> 8 : - (int)( multiply256_table[r_textel - f_r][f_concentration] >> 8 );
+							g_textel += f_g > g_textel ? multiply256_table[f_g - g_textel][f_concentration] >> 8 : - (int)( multiply256_table[g_textel - f_g][f_concentration] >> 8 );
+							b_textel += f_b > b_textel ? multiply256_table[f_b - b_textel][f_concentration] >> 8 : - (int)( multiply256_table[b_textel - f_b][f_concentration] >> 8 );
 						}
 
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel, g_textel, b_textel );
+						screen_ptr[xi] = RGB32BIT( 0xff000000, r_textel, g_textel, b_textel );
 
 						z_ptr[xi] = zi;
 					}
@@ -22556,22 +22527,18 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel *= ri;
-						g_textel *= gi;
-						b_textel *= bi;
+						r_textel = (multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8;
+						g_textel = (multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8;
+						b_textel = (multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8;
 
-						r_textel >>= (FIXP16_SHIFT + 8);
-						g_textel >>= (FIXP16_SHIFT + 8);
-						b_textel >>= (FIXP16_SHIFT + 8);
-
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
-							r_textel += (DWORD)((f_r - (int)r_textel) * f_concentration);
-							g_textel += (DWORD)((f_g - (int)g_textel) * f_concentration);
-							b_textel += (DWORD)((f_b - (int)b_textel) * f_concentration);
+							r_textel += f_r > r_textel ? multiply256_table[f_r - r_textel][f_concentration] >> 8 : - (int)( multiply256_table[r_textel - f_r][f_concentration] >> 8 );
+							g_textel += f_g > g_textel ? multiply256_table[f_g - g_textel][f_concentration] >> 8 : - (int)( multiply256_table[g_textel - f_g][f_concentration] >> 8 );
+							b_textel += f_b > b_textel ? multiply256_table[f_b - b_textel][f_concentration] >> 8 : - (int)( multiply256_table[b_textel - f_b][f_concentration] >> 8 );
 						}
 
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel, g_textel, b_textel );
+						screen_ptr[xi] = RGB32BIT( 0xff000000, r_textel, g_textel, b_textel );
 
 						z_ptr[xi] = zi;
 					}
@@ -22724,22 +22691,18 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel *= ri;
-						g_textel *= gi;
-						b_textel *= bi;
+						r_textel = (multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8;
+						g_textel = (multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8;
+						b_textel = (multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8;
 
-						r_textel >>= (FIXP16_SHIFT + 8);
-						g_textel >>= (FIXP16_SHIFT + 8);
-						b_textel >>= (FIXP16_SHIFT + 8);
-
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
-							r_textel += (DWORD)((f_r - (int)r_textel) * f_concentration);
-							g_textel += (DWORD)((f_g - (int)g_textel) * f_concentration);
-							b_textel += (DWORD)((f_b - (int)b_textel) * f_concentration);
+							r_textel += f_r > r_textel ? multiply256_table[f_r - r_textel][f_concentration] >> 8 : - (int)( multiply256_table[r_textel - f_r][f_concentration] >> 8 );
+							g_textel += f_g > g_textel ? multiply256_table[f_g - g_textel][f_concentration] >> 8 : - (int)( multiply256_table[g_textel - f_g][f_concentration] >> 8 );
+							b_textel += f_b > b_textel ? multiply256_table[f_b - b_textel][f_concentration] >> 8 : - (int)( multiply256_table[b_textel - f_b][f_concentration] >> 8 );
 						}
 
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel, g_textel, b_textel );
+						screen_ptr[xi] = RGB32BIT( 0xff000000, r_textel, g_textel, b_textel );
 
 						z_ptr[xi] = zi;
 					}
@@ -22913,7 +22876,9 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 
 	int texture_shift2;
 
-	DWORD r_textel, g_textel, b_textel, textel;
+	DWORD textel;
+
+	int r_textel, g_textel, b_textel;
 
 	DWORD	*screen_ptr = NULL,
 			*textmap = NULL,
@@ -22922,7 +22887,7 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 	DWORD	*z_ptr = NULL,
 			*zbuffer = (DWORD *)_zbuffer;
 	
-	float f_concentration;
+	BYTE f_concentration;
 
 	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
 
@@ -23266,25 +23231,22 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel *= ri;
-						g_textel *= gi;
-						b_textel *= bi;
+						r_textel = (multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8;
+						g_textel = (multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8;
+						b_textel = (multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8;
 
-						r_textel >>= (FIXP16_SHIFT + 8);
-						g_textel >>= (FIXP16_SHIFT + 8);
-						b_textel >>= (FIXP16_SHIFT + 8);
-
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
-							r_textel += (DWORD)((f_r - (int)r_textel) * f_concentration);
-							g_textel += (DWORD)((f_g - (int)g_textel) * f_concentration);
-							b_textel += (DWORD)((f_b - (int)b_textel) * f_concentration);
+							r_textel += f_r > r_textel ? multiply256_table[f_r - r_textel][f_concentration] >> 8 : - (int)( multiply256_table[r_textel - f_r][f_concentration] >> 8 );
+							g_textel += f_g > g_textel ? multiply256_table[f_g - g_textel][f_concentration] >> 8 : - (int)( multiply256_table[g_textel - f_g][f_concentration] >> 8 );
+							b_textel += f_b > b_textel ? multiply256_table[f_b - b_textel][f_concentration] >> 8 : - (int)( multiply256_table[b_textel - f_b][f_concentration] >> 8 );
 						}
 
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel, g_textel, b_textel );
+						screen_ptr[xi] = RGB32BIT( 0xff000000, r_textel, g_textel, b_textel );
 
 						z_ptr[xi] = zi;
 					}
+
 					ri+=dr;
 					gi+=dg;
 					bi+=db;
@@ -23329,7 +23291,6 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
 				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
 
-				// compute starting points for u,v,w interpolants
 				ri = rl + FIXP16_ROUND_UP;
 				gi = gl + FIXP16_ROUND_UP;
 				bi = bl + FIXP16_ROUND_UP;
@@ -23371,22 +23332,18 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel *= ri;
-						g_textel *= gi;
-						b_textel *= bi;
+						r_textel = (multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8;
+						g_textel = (multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8;
+						b_textel = (multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8;
 
-						r_textel >>= (FIXP16_SHIFT + 8);
-						g_textel >>= (FIXP16_SHIFT + 8);
-						b_textel >>= (FIXP16_SHIFT + 8);
-
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
-							r_textel += (DWORD)((f_r - (int)r_textel) * f_concentration);
-							g_textel += (DWORD)((f_g - (int)g_textel) * f_concentration);
-							b_textel += (DWORD)((f_b - (int)b_textel) * f_concentration);
+							r_textel += f_r > r_textel ? multiply256_table[f_r - r_textel][f_concentration] >> 8 : - (int)( multiply256_table[r_textel - f_r][f_concentration] >> 8 );
+							g_textel += f_g > g_textel ? multiply256_table[f_g - g_textel][f_concentration] >> 8 : - (int)( multiply256_table[g_textel - f_g][f_concentration] >> 8 );
+							b_textel += f_b > b_textel ? multiply256_table[f_b - b_textel][f_concentration] >> 8 : - (int)( multiply256_table[b_textel - f_b][f_concentration] >> 8 );
 						}
 
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel, g_textel, b_textel );
+						screen_ptr[xi] = RGB32BIT( 0xff000000, r_textel, g_textel, b_textel );
 
 						z_ptr[xi] = zi;
 					}
@@ -23683,7 +23640,6 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
 				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
 
-				// compute starting points for u,v,w interpolants
 				ri = rl + FIXP16_ROUND_UP;
 				gi = gl + FIXP16_ROUND_UP;
 				bi = bl + FIXP16_ROUND_UP;
@@ -23748,25 +23704,22 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel *= ri;
-						g_textel *= gi;
-						b_textel *= bi;
+						r_textel = (multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8;
+						g_textel = (multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8;
+						b_textel = (multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8;
 
-						r_textel >>= (FIXP16_SHIFT + 8);
-						g_textel >>= (FIXP16_SHIFT + 8);
-						b_textel >>= (FIXP16_SHIFT + 8);
-
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
-							r_textel += (DWORD)((f_r - (int)r_textel) * f_concentration);
-							g_textel += (DWORD)((f_g - (int)g_textel) * f_concentration);
-							b_textel += (DWORD)((f_b - (int)b_textel) * f_concentration);
+							r_textel += f_r > r_textel ? multiply256_table[f_r - r_textel][f_concentration] >> 8 : - (int)( multiply256_table[r_textel - f_r][f_concentration] >> 8 );
+							g_textel += f_g > g_textel ? multiply256_table[f_g - g_textel][f_concentration] >> 8 : - (int)( multiply256_table[g_textel - f_g][f_concentration] >> 8 );
+							b_textel += f_b > b_textel ? multiply256_table[f_b - b_textel][f_concentration] >> 8 : - (int)( multiply256_table[b_textel - f_b][f_concentration] >> 8 );
 						}
 
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel, g_textel, b_textel );
+						screen_ptr[xi] = RGB32BIT( 0xff000000, r_textel, g_textel, b_textel );
 
 						z_ptr[xi] = zi;
 					}
+
 					ri+=dr;
 					gi+=dg;
 					bi+=db;
@@ -23878,7 +23831,6 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
 				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
 
-				// compute starting points for u,v,w interpolants
 				ri = rl + FIXP16_ROUND_UP;
 				gi = gl + FIXP16_ROUND_UP;
 				bi = bl + FIXP16_ROUND_UP;
@@ -23920,25 +23872,22 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 						g_textel = ((textel >> 8) & 0xff);
 						b_textel = (textel & 0xff);
 
-						r_textel *= ri;
-						g_textel *= gi;
-						b_textel *= bi;
+						r_textel = (multiply256_table[r_textel][ri >> FIXP16_SHIFT]) >> 8;
+						g_textel = (multiply256_table[g_textel][gi >> FIXP16_SHIFT]) >> 8;
+						b_textel = (multiply256_table[b_textel][bi >> FIXP16_SHIFT]) >> 8;
 
-						r_textel >>= (FIXP16_SHIFT + 8);
-						g_textel >>= (FIXP16_SHIFT + 8);
-						b_textel >>= (FIXP16_SHIFT + 8);
-
-						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0.0f )
+						if ( ( f_concentration = fog->fog_table[( 1 << FIXP28_SHIFT ) / zi] ) > 0 )
 						{
-							r_textel += (DWORD)((f_r - (int)r_textel) * f_concentration);
-							g_textel += (DWORD)((f_g - (int)g_textel) * f_concentration);
-							b_textel += (DWORD)((f_b - (int)b_textel) * f_concentration);
+							r_textel += f_r > r_textel ? multiply256_table[f_r - r_textel][f_concentration] >> 8 : - (int)( multiply256_table[r_textel - f_r][f_concentration] >> 8 );
+							g_textel += f_g > g_textel ? multiply256_table[f_g - g_textel][f_concentration] >> 8 : - (int)( multiply256_table[g_textel - f_g][f_concentration] >> 8 );
+							b_textel += f_b > b_textel ? multiply256_table[f_b - b_textel][f_concentration] >> 8 : - (int)( multiply256_table[b_textel - f_b][f_concentration] >> 8 );
 						}
 
-						screen_ptr[xi] = RGB32BIT( (textel >> FIXP24_SHIFT) & 0xff, r_textel, g_textel, b_textel );
+						screen_ptr[xi] = RGB32BIT( 0xff000000, r_textel, g_textel, b_textel );
 
 						z_ptr[xi] = zi;
 					}
+
 					ri+=dr;
 					gi+=dg;
 					bi+=db;

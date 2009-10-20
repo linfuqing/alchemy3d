@@ -11,6 +11,8 @@ typedef struct Triangle
 {
 	int miplevel, fogEnable, lightEnable;
 
+	float depth;
+
 	DWORD render_mode;
 
 	int uvTransformed;
@@ -68,6 +70,7 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->uvTransformed = FALSE;
 	p->fogEnable = FALSE;
 	p->lightEnable = FALSE;
+	p->depth = 0.0f;
 
 	return p;
 }
