@@ -10,6 +10,7 @@
 
 BYTE alpha_table[NUM_ALPHA_LEVELS][256];
 DWORD multiply256_table[256][256];
+DWORD multiply256Fix8_table[256][256];
 
 #include "Scene.h"
 #include "Entity.h"
@@ -62,15 +63,16 @@ int main()
 
 	LPDWORD bitmapData;
 
-	MD2 * md2;
+	//MD2 * md2;
 
 	//A3DS * a3ds;
-	FILE *fp;
-	UCHAR * buffer;
-	long length=0;
+	//FILE *fp;
+	//UCHAR * buffer;
+	//long length=0;
 
 	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
 	multiply256_Table_Builder(multiply256_table);
+	multiply256Fix8_Table_Builder(multiply256Fix8_table);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -115,7 +117,7 @@ int main()
 	texture->perspective_dist = 100.0f;
 	texture->addressMode = 1;
 
-	fog = newFog( newColorValue( 0.0f, 0.0f, 0.0f, 1.0f ), 0.0f, 4800.0f );
+	fog = newFog( newColorValue( 0.0f, 0.0f, 0.0f, 1.0f ), 1000.0f, 4000.0f, 1.0f, FOG_EXP2 );
 	fog->ready = TRUE;
 	
 	scene = newScene();
@@ -168,13 +170,13 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	fopen_s( & fp, "D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\md2\\tris.jpg","rb");
+	//fopen_s( & fp, "D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\md2\\tris.jpg","rb");
 
-	length = GetFileSize(fp);
+	//length = GetFileSize(fp);
 
-	buffer = (UCHAR * )malloc(length * sizeof(UCHAR));
+	//buffer = (UCHAR * )malloc(length * sizeof(UCHAR));
 
-	fread(buffer,1,length,fp);
+	//fread(buffer,1,length,fp);
 
 	/*a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 
@@ -185,11 +187,11 @@ int main()
 		do3d3->children->entity->mesh->faces[i].texture = texture;
 	}*/
 
-	md2 = newMD2( do3d );
+	//md2 = newMD2( do3d );
 
-	md2_read( & buffer, md2, material, texture, 1, 24 );
+	//md2_read( & buffer, md2, material, texture, 1, 24 );
 
-	md2->entity->mesh->terrainTrace = TRUE;
+	//md2->entity->mesh->terrainTrace = TRUE;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 

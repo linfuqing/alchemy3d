@@ -341,8 +341,6 @@ INLINE void mesh_updateMesh( Mesh * m )
 
 void mesh_clear( Mesh * mesh )
 {
-	DWORD i = 0;
-
 	free( memset( mesh->vertices[0], 0, sizeof( Vertex ) * mesh->nVertices ) );
 	free( memset( mesh->faces[0], 0, sizeof( Triangle ) * mesh->nFaces ) );
 

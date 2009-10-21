@@ -10,6 +10,7 @@
 
 BYTE alpha_table[NUM_ALPHA_LEVELS][256];
 DWORD multiply256_table[256][256];
+DWORD multiply256Fix8_table[256][256];
 
 #include "Entity.h"
 #include "Material.h"
@@ -194,20 +195,22 @@ AS3_Val initializeFog( void* self, AS3_Val args )
 
 	AS3_Val color;
 
-	double a, r, g, b, distance, depth;
+	double a, r, g, b, density, start, end;
 
-	AS3_ArrayValue( args, "AS3ValType, DoubleType, DoubleType", & color, & distance, & depth );
+	int mode;
+
+	AS3_ArrayValue( args, "AS3ValType, DoubleType, DoubleType, DoubleType, IntType", & color, & start, & end, & density, & mode );
 
 	r = AS3_NumberValue( AS3_GetS( color, "redMultiplier" ) );
 	g = AS3_NumberValue( AS3_GetS( color, "greenMultiplier" ) );
 	b = AS3_NumberValue( AS3_GetS( color, "blueMultiplier" ) );
 	a = AS3_NumberValue( AS3_GetS( color, "alphaMultiplier" ) );
 
-	fog = newFog( newColorValue( (float)r, (float)g, (float)b, (float)a ), (float)distance, (float)depth );
+	fog = newFog( newColorValue( (float)r, (float)g, (float)b, (float)a ), (float)start, (float)end, (float)density, mode );
 
 	AS3_Release( color );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", fog, fog->global, & fog->distance, & fog->depth );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", fog, fog->global, & fog->start, & fog->end, & fog->density, & fog->mode );
 }
 
 AS3_Val addFog( void * self, AS3_Val args )
@@ -700,6 +703,7 @@ int main()
 {
 	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
 	multiply256_Table_Builder(multiply256_table);
+	multiply256Fix8_Table_Builder(multiply256Fix8_table);
 
 	AS3_Val initializeCameraMethod = AS3_Function( NULL, initializeCamera );
 	AS3_Val attachCameraMethod = AS3_Function( NULL, attachCamera );
