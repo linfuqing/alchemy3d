@@ -120,6 +120,8 @@ package cn.alchemy3d.external
 			
 			if (_autoPlay)
 				play(_loop);
+				
+			dispatchEvent(new Event(Event.COMPLETE));
 		}
 		
 		private var isPlayPointer:uint = NULL;

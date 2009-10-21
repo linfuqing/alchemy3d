@@ -57,13 +57,11 @@ package
 		private var _materialState:Boolean = true;
 		private var _renderModeState:int = 1;
 		private var _lightState:Boolean = true;
-		
-		private var action1:Array = new Array(40);
-		private var action2:Array = new Array(40);
+		private var isTarget:Boolean = false;
 		
 		public function Test8X()
 		{
-			super(640, 400, 90, 15, 4000);
+			super(640, 400, 100, 20, 6000);
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
@@ -74,53 +72,27 @@ package
 			bl.start();
 		}
 		
-		private function showInfo():void
+		protected function init(e:Event):void
 		{
-			var fps:FPS = new FPS(scene);
-			addChild(fps);
-			
-			var tformat:TextFormat = new TextFormat("宋体", 16, 0xffffff, true);
-			var tf:TextField = new TextField();
-			tf.defaultTextFormat = tformat;
-			tf.autoSize = "left";
-			tf.text = "Terrain Demo";
-			tf.x = 280;
-			tf.y = 20;
-			addChild(tf);
-		}
-		
-		protected function init(e:Event = null):void
-		{
-			//start actions
-			for (var i:int = 0; i < 40; i ++ )
-			{
-				action1[i] = "stand" + (i).toString();
-			}
-			
-			for (i = 0; i < 40; i ++ )
-			{
-				action2[i] = "run" + (i).toString();
-			}
-			//end actions
-			
 			bl.removeEventListener(BulkProgressEvent.COMPLETE, init);
 			
 			t0 = new Texture(bl.getBitmapData("2"));
 			t1 = new Texture(bl.getBitmapData("1"));
-			t0.perspectiveDist = 800;
-			t1.perspectiveDist = 800;
+			t0.perspectiveDist = 1000;
+			t1.perspectiveDist = 1000;
 			t1.addressMode = Texture.ADDRESS_MODE_WRAP;
 			
 			viewport.backgroundColor = 0xffffffff;
 			
-			camera.z = -1200;
+			camera.z = -1000;
+			camera.y = 500;
 			
 			center = new Entity("center");
-			center.z = 1000;
-			center.y = 400;
+			center.z = 500;
+			center.y = 100;
 			viewport.scene.addChild(center);
 			
-			var fog:Fog = new Fog(new ColorTransform(1, 1, 1, 1), 800, 3000);
+			var fog:Fog = new Fog(new ColorTransform(1, 1, 1, 1), 2000, 5000, 1, Fog.FOG_LINEAR);
 			scene.addFog(fog);
 			
 			var m:Material = new Material();
@@ -155,18 +127,17 @@ package
 //			viewport.scene.addChild(lightObj3);
 
 			md2 = new MD2(m, t0, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
+			md2.addEventListener(Event.COMPLETE, MD2LoadComplete);
+			md2.load("asset/md2/tris.jpg", 5);
 			md2.lightEnable = true;
 			md2.mesh.useMipmap = true;
-			md2.mesh.mipDist = 10000;
+			md2.mesh.mipDist = 3000;
 			md2.mesh.fogEnable = true;
 			md2.mesh.terrainTrace = true;
-			md2.load("asset/md2/tris.jpg");
-			viewport.scene.addChild( md2 );
 			
 			md2.rotationX = -90;
 			md2.rotationY = -90;
-			md2.scale = 7;
-			//md2.play(false, "stand0");
+			md2.scale = 8;
 			
 //			var p:Primitives = new Primitives(m2, null, RenderMode.RENDER_WIREFRAME_TRIANGLE_32);
 //			p.toPlane(150, 150, 1, 1);
@@ -177,14 +148,14 @@ package
 //			this.viewport.scene.addChild(p);
 			
 			terrain = new MeshTerrain(bl.getBitmapData("3"), m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
-			terrain.buildOn(10000, 10000, 2700);
+			terrain.buildOn(15000, 15000, 3000);
 			terrain.mesh.lightEnable = true;
 			terrain.mesh.octreeDepth = 2;
 			terrain.mesh.useMipmap = true;
 			terrain.mesh.mipDist = 4000;
 			terrain.mesh.fogEnable = true;
 //			terrain.mesh.setAttribute(Mesh3D.ALPHA_KEY, 127);
-			terrain.z = 0;
+			terrain.z = 3000;
 			
 			viewport.scene.addChild(terrain);
 
@@ -220,7 +191,13 @@ package
 //			light3.specular = new ColorTransform(0, 0, 1, 1);
 //			light3.attenuation1 = 0.0001;
 //			light3.attenuation2 = 0;
-
+		}
+		
+		protected function MD2LoadComplete(e:Event = null):void
+		{
+			viewport.scene.addChild( md2 );
+//			md2.play(false, "stand");
+			
 			startRendering();
 			
 			showInfo();
@@ -234,18 +211,43 @@ package
 		
 		protected function onKeyDown(e:KeyboardEvent):void
 		{
+			if ( e.keyCode == 67 )
+			{
+				isTarget = ! isTarget;
+			}
+			
 			if ( e.keyCode == Keyboard.UP )
 			{
-				md2.z += 10;
-				center.z += 10;
-				camera.z += 10;
+				md2.play(false, "run");
+				md2.rotationY = -90;
+				md2.z += 25;
+				center.z += 25;
+				camera.z += 25;
 			}
 				
 			if ( e.keyCode == Keyboard.DOWN )
 			{
-				md2.z -= 10;
-				center.z -= 10;
-				camera.z -= 10;
+				md2.play(false, "run");
+				md2.rotationY = 90;
+				md2.z -= 25;
+				center.z -= 25;
+				camera.z -= 25;
+			}
+			
+			if ( e.keyCode == Keyboard.LEFT )
+			{
+				md2.play(false, "run");
+				md2.rotationY = 180;
+				md2.x -= 25;
+				camera.x -= 25;
+			}
+			
+			if ( e.keyCode == Keyboard.RIGHT )
+			{
+				md2.play(false, "run");
+				md2.rotationY = 0;
+				md2.x += 25;
+				camera.x += 25;
 			}
 				
 			if ( e.keyCode == 70 )
@@ -329,13 +331,13 @@ package
 		
 		protected function moveLight1(dir:int = 1):void
 		{
-			var target:int = 2000 * dir + 100;
+			var target:int = 8000 * dir + 100;
 			TweenLite.to(lightObj, 5, { z:target, onComplete:moveLight1, onCompleteParams:[dir * -1]});
 		}
 		
 		protected function moveLight2(dir:int = 1):void
 		{
-			var target:int = 3000 * dir;
+			var target:int = 8000 * dir;
 			TweenLite.to(lightObj2, 5, { x:target, onComplete:moveLight2, onCompleteParams:[dir * -1]});
 		}
 		
@@ -345,29 +347,100 @@ package
 			TweenLite.to(lightObj3, 4, { y:target, onComplete:moveLight3, onCompleteParams:[dir * -1]});
 		}
 		
-		private var currAction1:int = 0;
-		private var currAction2:int = 0;
-		private var frame:uint = 2;
-		private var currFrame:uint = 0;
+		private var k:Number;
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
-//			if ( currFrame % frame == 0 )
-//			{
-//				md2.play(false, action1[currAction1]);
-//				currAction1 ++;
-//				currAction1 = currAction1 == action1.length ? 0 : currAction1;
-//			}
-//			currFrame ++;
+			k = md2.worldPosition.y;
 			
 			super.onRenderTick(e);
 			
-			camera.target = center.worldPosition;
-
-			var mx:Number = viewport.mouseX / 100;
-			var my:Number = - viewport.mouseY / 250;
+			k = md2.worldPosition.y - k;
 			
-			camera.hover(mx, my, 10);
+			if ( isTarget )
+			{
+				camera.target = md2.worldPosition;
+				
+				var mx:Number = viewport.mouseX / 100;
+				var my:Number = - viewport.mouseY / 350;
+				
+				camera.hover(mx, my, 10);
+			}
+			else
+				camera.target = null;
+				
+			camera.y += k;
+		}
+		
+		private function showInfo():void
+		{
+			var fps:FPS = new FPS(scene);
+			addChild(fps);
+			
+			var tformat:TextFormat = new TextFormat("宋体", 14, 0, true);
+			var tf:TextField = new TextField();
+			tf.defaultTextFormat = tformat;
+			tf.autoSize = "left";
+			tf.selectable = false;
+			tf.text = "Terrain Demo";
+			tf.x = 280;
+			tf.y = 20;
+			addChild(tf);
+			
+			var tformat1:TextFormat = new TextFormat("宋体", 12, 0, false, false, false, null, null, "right");
+			var tf1:TextField = new TextField();
+			tf1.defaultTextFormat = tformat1;
+			tf1.autoSize = "right";
+			tf.selectable = false;
+			tf1.text = "\"R\":change render mode";
+			tf1.x = 500;
+			tf1.y = 40;
+			addChild(tf1);
+			
+			var tf2:TextField = new TextField();
+			tf2.defaultTextFormat = tformat1;
+			tf2.autoSize = "right";
+			tf2.selectable = false;
+			tf2.text = "\"T\":change texture";
+			tf2.x = 500;
+			tf2.y = 60;
+			addChild(tf2);
+			
+			var tf3:TextField = new TextField();
+			tf3.defaultTextFormat = tformat1;
+			tf3.autoSize = "right";
+			tf3.selectable = false;
+			tf3.text = "\"C\":change camera mode";
+			tf3.x = 500;
+			tf3.y = 80;
+			addChild(tf3);
+			
+			var tf4:TextField = new TextField();
+			tf4.defaultTextFormat = tformat1;
+			tf4.autoSize = "right";
+			tf4.selectable = false;
+			tf4.text = "\"L\":enable light";
+			tf4.x = 500;
+			tf4.y = 100;
+			addChild(tf4);
+			
+			var tf5:TextField = new TextField();
+			tf5.defaultTextFormat = tformat1;
+			tf5.autoSize = "right";
+			tf5.selectable = false;
+			tf5.text = "\"F\":enable fog effect";
+			tf5.x = 500;
+			tf5.y = 120;
+			addChild(tf5);
+			
+			var tf6:TextField = new TextField();
+			tf6.defaultTextFormat = tformat1;
+			tf6.autoSize = "right";
+			tf6.selectable = false;
+			tf6.text = "\"Arrow\":move the model";
+			tf6.x = 500;
+			tf6.y = 140;
+			addChild(tf6);
 		}
 	}
 }
