@@ -111,7 +111,7 @@ void viewport_updateBeforeRender( Viewport * viewport )
 
 	if ( viewport->scene->fog && ( ! viewport->scene->fog->ready || viewport->camera->fnfDirty ) )
 	{
-		buildFogTable( viewport->scene->fog, viewport->camera->far - viewport->camera->near );
+		buildFogTable( viewport->scene->fog, viewport->camera->far );
 
 		viewport->scene->fog->ready = TRUE;
 	}

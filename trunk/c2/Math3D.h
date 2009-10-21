@@ -209,6 +209,7 @@ int rgb565_Alpha_Table_Builder( int num_alpha_levels, USHORT rgb_alpha_table[NUM
 } // end RGB_Alpha_Table_Builder
 #endif
 
+//[0,1]*256乘法表
 int alpha_Table_Builder( int num_alpha_levels, BYTE alpha_table[NUM_ALPHA_LEVELS][256])
 {
 	int t;
@@ -238,6 +239,7 @@ int alpha_Table_Builder( int num_alpha_levels, BYTE alpha_table[NUM_ALPHA_LEVELS
 	return(1);
 }
 
+//256*256乘法表
 int multiply256_Table_Builder( DWORD multiply256_table[256][256] )
 {
 	int index, alpha_level, alpha;
@@ -252,6 +254,29 @@ int multiply256_Table_Builder( DWORD multiply256_table[256][256] )
 		for ( index = 0; index < 256; index ++ )
 		{
 			multiply256_table[alpha_level][index] = alpha * index;
+		}
+
+		alpha ++;
+	}
+
+	return(1);
+}
+
+//256*256 >> 8乘法表
+int multiply256Fix8_Table_Builder( DWORD multiply256Fix8_table[256][256] )
+{
+	int index, alpha_level, alpha;
+
+	if ( !multiply256Fix8_table )
+		return(-1);
+
+	alpha = 0;
+
+	for ( alpha_level = 0; alpha_level < 256; alpha_level ++ )
+	{
+		for ( index = 0; index < 256; index ++ )
+		{
+			multiply256Fix8_table[alpha_level][index] = ( alpha * index ) >> 8;
 		}
 
 		alpha ++;

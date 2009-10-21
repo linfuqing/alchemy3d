@@ -5,13 +5,16 @@
 
 #include "Color888.h"
 
-#define EXTEND_SCENE_LENGTH 10
+#define EXTEND_SCENE_LENGTH 100
+#define FOG_EXP				1
+#define FOG_EXP2			2
+#define FOG_LINEAR			3
 
 typedef struct Fog
 {
-	float depth, distance;
+	float density, start, end;
 
-	int ready, length;
+	int ready, mode;
 
 	BYTE * fog_table;
 
@@ -23,14 +26,81 @@ typedef struct Fog
 
 }Fog;
 
-Fog * newFog( ColorValue * color, float distance, float depth )
+void buildFogTable( Fog * f, float screenDepth )
+{
+	float ex;
+
+	int i, j;
+
+	int sd = (int)( screenDepth + 0.5f ) + 1;
+	int _start = (int)( f->start + 0.5f );
+	int _end = (int)( f->end > screenDepth ? screenDepth : f->end + 0.5f );
+	int _len = _end - _start + 1;
+
+	if ( f->fog_table ) free( memset( f->fog_table, 0, sizeof(BYTE) * sd ) );
+
+	if( ( f->fog_table = ( BYTE * )malloc( sizeof( BYTE ) * sd ) ) == NULL ) exit( TRUE );
+
+	i = 0, j = 0;
+
+	for ( i = 0; i < _start; i ++ )
+	{
+		f->fog_table[i] = 255;
+	}
+
+	switch ( f->mode )
+	{
+		case FOG_EXP:
+
+			for ( ; i <= _end; i ++, j ++ )
+			{
+				ex = j * f->density / _len;
+
+				f->fog_table[i] = (BYTE)( 255.0f / powf( 2.71828, ex ) );
+			}
+
+			break;
+
+		case FOG_EXP2:
+
+			for ( ; i <= _end; i ++, j ++ )
+			{
+				ex = j * f->density / _len;
+
+				f->fog_table[i] = (BYTE)( 255.0f / powf( 2.71828, ex * ex ) );
+			}
+
+			break;
+
+		case FOG_LINEAR:
+
+			for ( ; i <= _end; i ++ )
+			{
+				f->fog_table[i] = ( _end - i ) * 255 / _len;
+			}
+
+			break;
+	}
+
+	for ( ; i < sd; i ++ )
+	{
+		f->fog_table[i] = f->fog_table[i-1];
+	}
+}
+
+Fog * newFog( ColorValue * color, float start, float end, float density, int mode )
 {
 	Fog * f;
 
 	if( ( f = ( Fog * )malloc( sizeof( Fog ) ) ) == NULL ) exit( TRUE );
 
-	f->depth = depth < 0.0f ? 0.0f : depth;
-	f->distance = distance < 0.0f ? 0.0f : distance;
+	f->start = start < 0.0f ? 0.0f : start;
+	f->end = end < start ? start : end;
+
+	f->density = density < 0.0f ? 0.0f : density;
+	f->density = f->density > 1.0f ? 1.0f : f->density;
+
+	f->mode = mode;
 
 	f->ready = FALSE;
 
@@ -43,49 +113,6 @@ Fog * newFog( ColorValue * color, float distance, float depth )
 	f->fog_table = NULL;
 
 	return f;
-}
-
-int buildFogTable( Fog * f, float sceneDepth )
-{
-	if ( f->distance > sceneDepth )
-		return 0;
-	else
-	{
-		int i, j, end, len;
-
-		int sd = (int)( sceneDepth + 0.5f ) + EXTEND_SCENE_LENGTH;
-		int distance = (int)( f->distance + 0.0f );
-		int depth = (int)( f->depth + 0.5f );
-
-		if ( f->fog_table )
-		{
-			memset( f->fog_table, 0, sizeof(float) * f->length );
-			
-			free( f->fog_table );
-		}
-
-		if( ( f->fog_table = ( BYTE * )calloc( sd, sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
-
-		end = MIN( depth, sd );
-
-		len = end - distance;
-
-		j = 1;
-
-		for ( i = distance; i <= end; i ++, j ++ )
-		{
-			f->fog_table[i] = j * 255 / len;
-		}
-
-		for ( ; i <= sd; i ++ )
-		{
-			f->fog_table[i] = 255;
-		}
-
-		f->length = sd;
-	}
-
-	return 1;
 }
 
 #endif
