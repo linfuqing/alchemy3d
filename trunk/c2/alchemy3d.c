@@ -530,8 +530,8 @@ AS3_Val initializeMD2( void* self, AS3_Val args )
 
 	//return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
 	//	& entity->mesh->render_mode, & entity->mesh->dirty, & entity->mesh->material, & entity->mesh->texture );
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType", 
-		& md2 -> entity -> animation -> isPlay, & md2 -> entity -> animation -> loop, & md2 -> entity -> animation -> dirty, md2 -> entity -> animation -> currentFrameName );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType", 
+		& md2 -> entity -> animation -> isPlay, & md2 -> entity -> animation -> loop, & md2 -> entity -> animation -> dirty, md2 -> entity -> animation -> currentFrameName, & md2 -> entity -> animation -> nameLength );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
