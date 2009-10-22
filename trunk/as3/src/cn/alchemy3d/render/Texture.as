@@ -12,6 +12,7 @@ package cn.alchemy3d.render
 	import flash.events.ProgressEvent;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	
 	public class Texture extends Pointer
 	{	
@@ -145,7 +146,10 @@ package cn.alchemy3d.render
 		
 		static public function initializeBitmap(bitmapdata:BitmapData):uint
 		{
-			var byte:ByteArray = new ByteArray();
+			var byte:ByteArray, byte2:ByteArray = new ByteArray();
+			
+			byte2.endian = Endian.LITTLE_ENDIAN;
+			
 			byte = bitmapdata.getPixels(bitmapdata.rect);
 			byte.position = 0;
 			
@@ -154,7 +158,9 @@ package cn.alchemy3d.render
 			Library.memory.position = bitmapDataPtr;
 			
 			for (; i < j; i ++)
-				Library.memory.writeUnsignedInt(byte.readUnsignedInt());
+				byte2.writeUnsignedInt(byte.readUnsignedInt());
+				
+			Library.memory.writeBytes(byte2, 0, byte2.length);
 			
 			var bmPointer:uint = Library.alchemy3DLib.initializeBitmap(bitmapdata.width, bitmapdata.height, bitmapDataPtr);
 			
