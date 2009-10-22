@@ -196,7 +196,7 @@ package
 		protected function MD2LoadComplete(e:Event = null):void
 		{
 			viewport.scene.addChild( md2 );
-//			md2.play(false, "stand");
+			md2.play(true, "stand");
 			
 			startRendering();
 			
