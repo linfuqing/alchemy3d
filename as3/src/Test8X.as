@@ -65,10 +65,10 @@ package
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
-			bl.add("asset/sky_beiz.jp_L04899.jpg", {id:"0"});
-			bl.add("asset/texture.jpg", {id:"1"});
+			bl.add("asset/earth.jpg", {id:"0"});
+			bl.add("asset/grass1-dry.jpg", {id:"1"});
 			bl.add("asset/md2/blade_black.jpg", {id:"2"});
-			bl.add("asset/HighMap.jpg", {id:"3"});
+			//bl.add("asset/HighMap.jpg", {id:"3"});
 			bl.start();
 		}
 		
@@ -147,7 +147,7 @@ package
 //			p.rotationX = 45;
 //			this.viewport.scene.addChild(p);
 			
-			terrain = new MeshTerrain(bl.getBitmapData("3"), m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
+			terrain = new MeshTerrain(null, m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
 			terrain.buildOn(15000, 15000, 3000);
 			terrain.mesh.lightEnable = true;
 			terrain.mesh.octreeDepth = 2;
@@ -207,6 +207,25 @@ package
 //			moveLight3(1);
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp );
+		}
+		
+		private function onKeyUp( e:KeyboardEvent ):void
+		{
+			switch( e.keyCode )
+			{
+				case Keyboard.UP:
+				case Keyboard.DOWN:
+				case Keyboard.LEFT:
+				case Keyboard.RIGHT:
+				
+				md2.stop( "stand" );
+				
+				break;
+				
+				default:
+				break;
+			}
 		}
 		
 		protected function onKeyDown(e:KeyboardEvent):void
@@ -218,36 +237,36 @@ package
 			
 			if ( e.keyCode == Keyboard.UP )
 			{
-				md2.play(false, "run");
+				md2.play(true, "run");
 				md2.rotationY = -90;
-				md2.z += 25;
-				center.z += 25;
-				camera.z += 25;
+				md2.z += speed;
+				center.z += speed;
+				camera.z += speed;
 			}
 				
 			if ( e.keyCode == Keyboard.DOWN )
 			{
-				md2.play(false, "run");
+				md2.play(true, "run");
 				md2.rotationY = 90;
-				md2.z -= 25;
-				center.z -= 25;
-				camera.z -= 25;
+				md2.z -= speed;
+				center.z -= speed;
+				camera.z -= speed;
 			}
 			
 			if ( e.keyCode == Keyboard.LEFT )
 			{
-				md2.play(false, "run");
+				md2.play(true, "run");
 				md2.rotationY = 180;
-				md2.x -= 25;
-				camera.x -= 25;
+				md2.x -= speed;
+				camera.x -= speed;
 			}
 			
 			if ( e.keyCode == Keyboard.RIGHT )
 			{
-				md2.play(false, "run");
+				md2.play(true, "run");
 				md2.rotationY = 0;
-				md2.x += 25;
-				camera.x += 25;
+				md2.x += speed;
+				camera.x += speed;
 			}
 				
 			if ( e.keyCode == 70 )
@@ -442,5 +461,7 @@ package
 			tf6.y = 140;
 			addChild(tf6);
 		}
+		
+		private var speed:Number = 50;
 	}
 }

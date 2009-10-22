@@ -47,6 +47,7 @@ typedef struct Animation
 		{
 			Frame        * frames;
 			char           currentFrameName[FRAME_NAME_LENGTH];
+			int            nameLength;
 			int            dirty;
 			int            maxTime;
 			int            minTime;
@@ -92,6 +93,7 @@ Animation   * newMorphAnimation( Mesh * parent, Frame * frames, unsigned int len
 	a -> startTime           = 0;
 	a -> durationTime        = duration;
 	a -> next                = NULL;
+	a -> nameLength          = 0;
 	//a -> currentFrameIndex = 0;
 
 	return a;
@@ -198,10 +200,10 @@ int animation_morph_updateToName( Animation * animation, char name[FRAME_NAME_LE
 		animation -> minTime = animation -> frames[min].time;
 		animation -> maxTime = animation -> frames[max].time;
 
-		return TRUE;
+		return min;
 	}
 
-	return FALSE;
+	return OFF;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -406,6 +408,8 @@ void animation_textureCoordinates_update( Animation * animation )
 
 void animation_update( Animation * animation, int time )
 {
+	int currentFrame = OFF;
+
 	Animation * ap = animation;
 
 	while( ap != NULL )
@@ -418,7 +422,9 @@ void animation_update( Animation * animation, int time )
 			{
 				ap -> dirty = FALSE;
 
-				animation_morph_updateToName( ap, ap -> currentFrameName );
+				ap ->currentFrameName[ap -> nameLength] = '\0';
+
+				currentFrame = animation_morph_updateToName( ap, ap -> currentFrameName );
 			}
 
 			if( ap -> isPlay )
@@ -441,6 +447,10 @@ void animation_update( Animation * animation, int time )
 				}
 
 				animation_morph_updateToTime( animation, elapsed * 1.0f / animation -> durationTime );
+			}
+			else if( currentFrame != OFF )
+			{
+				animation_morph_updateToFrame( animation, currentFrame );
 			}
 
 			break;

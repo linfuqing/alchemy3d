@@ -75,17 +75,10 @@ package cn.alchemy3d.external
 			
 			Library.memory.writeInt( TRUE );
 			
-			if( animation )
-			{
-				Library.memory.position = this.currentFrameNamePointer;
-				Library.memory.writeUTFBytes( animation );
-				
-				Library.memory.position = this.dirtyPointer;
-				Library.memory.writeInt( TRUE );
-			}
+			writeAnimation( animation );
 		}
 		
-		public function stop():void
+		public function stop( animation:String = null ):void
 		{
 			if( !this.isPlayPointer )
 			{
@@ -95,6 +88,23 @@ package cn.alchemy3d.external
 			Library.memory.position = this.isPlayPointer;
 			
 			Library.memory.writeInt( FALSE );
+			
+			writeAnimation( animation );
+		}
+		
+		private function writeAnimation( animation:String ):void
+		{
+			if( animation )
+			{
+				Library.memory.position = this.currentFrameNamePointer;
+				Library.memory.writeUTFBytes( animation );
+				
+				Library.memory.position = this.dirtyPointer;
+				Library.memory.writeInt( TRUE );
+				
+				Library.memory.position = this.nameLengthPointer;
+				Library.memory.writeInt( animation.length );
+			}
 		}
 		
 		private function onLoadComplete(e:Event):void
@@ -115,6 +125,7 @@ package cn.alchemy3d.external
 			this.loopPointer             = ps[1];
 			this.dirtyPointer            = ps[2];
 			this.currentFrameNamePointer = ps[3];
+			this.nameLengthPointer       = ps[4];
 			
 			stop();
 			
@@ -128,5 +139,6 @@ package cn.alchemy3d.external
 		private var loopPointer:uint = NULL;
 		private var dirtyPointer:uint = NULL;
 		private var currentFrameNamePointer:uint = NULL;
+		private var nameLengthPointer:uint       = NULL;
 	}
 }
