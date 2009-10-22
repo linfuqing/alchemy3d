@@ -45,5 +45,6 @@ package cn.alchemy3d.fog
 			_densityPointer		= ps[4];
 			_modePointer		= ps[5];
 		}
+		
 	}
 }
