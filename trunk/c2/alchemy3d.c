@@ -77,6 +77,8 @@ AS3_Val attachScene( void* self, AS3_Val args )
 
 	Lights * lights;
 
+	int ID = 0;
+
 	AS3_ArrayValue( args, "PtrType, PtrType, PtrType", & scene, & entityList, & lights );
 
 	//viewport->scene = scene;
@@ -86,6 +88,7 @@ AS3_Val attachScene( void* self, AS3_Val args )
 
 	while( ep != NULL )
 	{
+		ep -> ID = ++ ID;
 		ep->entity->scene = scene;
 		ep = ep->next;
 	}
@@ -173,14 +176,21 @@ AS3_Val removeLight( void * self, AS3_Val args )
 
 	AS3_ArrayValue( args, "PtrType, PtrType, IntType", & lights, & node, & single );
 
+	if( lights == node )
+	{
+		node -> next = NULL;
+
+		return 0;
+	}
+
 	lp = lights;
 
-	while( lp != NULL && lp -> next == node )
+	while( lp != NULL && lp -> next != node )
 	{
 		lp = lp -> next;
 	}
 
-	if( lp -> next != NULL )
+	if( lp != NULL )
 	{
 		lp   -> next = single ? node -> next : NULL;
 		node -> next = single ? NULL : node -> next;
@@ -409,6 +419,7 @@ AS3_Val initializeEntity( void* self, AS3_Val args )
 	}
 
 	node -> entity = entity;
+	node -> ID     = 0;
 	node -> next   = NULL;
 
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
@@ -450,12 +461,22 @@ AS3_Val addEntity( void* self, AS3_Val args )
 		node -> entity -> parent = parent -> entity;
 
 		( parent -> entity -> nChildren ) ++;
+
+		node -> ID = parent -> entity -> nChildren + parent -> ID;
 	}
 	else
 	{
+		int ID = ep -> ID;
+
 		ep   -> next             = node;
 
 		node -> entity -> parent = NULL;
+
+		while( ep != NULL )
+		{
+			ep -> ID = ID ++;
+			ep       = ep -> next;
+		}
 	}
 
 	node -> entity -> scene = parent -> entity -> scene;
@@ -469,6 +490,27 @@ AS3_Val removeEntity(  void* self, AS3_Val args )
 
 	AS3_ArrayValue( args, "PtrType, PtrType", & parent, & node );
 
+	if( node == NULL )
+	{
+		return 0;
+	}
+
+	if( node == parent )
+	{
+		while( node -> next != NULL && node -> next -> entity -> parent == parent -> entity )
+		{
+			node = node -> next;
+		}
+
+		//ep = node -> next;
+
+		node -> next = NULL;
+
+		return 0;
+	}
+
+	ep = parent;
+
 	while( ep != NULL && ep -> next != node )
 	{
 		ep = ep -> next;
@@ -476,7 +518,21 @@ AS3_Val removeEntity(  void* self, AS3_Val args )
 
 	if( ep != NULL )
 	{
+		int ID = ep -> ID;
+
+		while( node -> next != NULL && node -> next -> entity -> parent == ep -> next -> entity )
+		{
+			node = node -> next;
+		}
+
 		ep -> next   = node -> next;
+
+		while( ep != NULL )
+		{
+			ep -> ID = ID ++;
+			ep       = ep -> next;
+		}
+
 		node -> next = NULL;
 	}
 
@@ -661,7 +717,9 @@ AS3_Val render( void* self, AS3_Val args )
 
 	int time;
 
-	AS3_ArrayValue( args, "PtrType, IntType", &viewport, &time );
+	double mouseX, mouseY;
+
+	AS3_ArrayValue( args, "PtrType, IntType, DoubleType, DoubleType", &viewport, &time, & mouseX, & mouseY );
 
 	viewport_updateBeforeRender( viewport );
 
@@ -671,7 +729,7 @@ AS3_Val render( void* self, AS3_Val args )
 
 	viewport_updateAfterRender( viewport );
 
-	return 0;
+	return AS3_Int( viewport_mouseOn( viewport, ( float )mouseX, ( float )mouseY ) );
 }
 
 //²âÊÔº¯Êý

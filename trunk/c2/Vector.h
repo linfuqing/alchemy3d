@@ -62,6 +62,11 @@ Vector * newVector( float x, float y)
 	return vector_set( v, x, y );
 }
 
+INLINE float vector_crossProduct( Vector * v1, Vector * v2 )
+{
+	return v1 -> x * v2 -> y - v1 -> y * v2 -> x;
+}
+
 INLINE Vector * vector_clone( Vector * src )
 {
 	return newVector( src->x, src->y );

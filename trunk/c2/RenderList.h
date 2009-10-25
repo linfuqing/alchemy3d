@@ -1,6 +1,9 @@
 #ifndef __RENDERLIST_H
 #define __RENDERLIST_H
 
+# include "Triangle.h"
+# include "Entity.h"
+
 #define NUM_PER_RL_INIT 200
 
 typedef struct RenderList
@@ -8,6 +11,7 @@ typedef struct RenderList
 	int k;
 
 	Triangle * polygon;
+	struct SceneNode  * parent;
 
 	struct RenderList * next;
 	struct RenderList * pre;
@@ -28,6 +32,8 @@ RenderList * initializeRenderList( int number )
 	for ( ; i < number - 1; i ++ )
 	{
 		lastRenderList->polygon = NULL;
+
+		lastRenderList->parent  = NULL;
 
 		lastRenderList->k = 0;
 
@@ -60,7 +66,7 @@ INLINE void renderList_extendRenderList( RenderList ** rl_ptr, int length )
 	(* rl_ptr)->next = newRL;
 }
 
-INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face)
+INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face, struct SceneNode * parent )
 {
 	( * rl_ptr )->k = ( * rl_ptr )->pre->k + 1;
 
@@ -68,6 +74,7 @@ INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face)
 	if ( NULL == (* rl_ptr)->next ) renderList_extendRenderList( rl_ptr, NUM_PER_RL_INIT );
 
 	( * rl_ptr )->polygon = face;
+	( * rl_ptr )->parent  = parent;
 	( * rl_ptr ) = ( * rl_ptr )->next;
 }
 

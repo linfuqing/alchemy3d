@@ -133,14 +133,14 @@ INLINE void viewport_updateAfterRender( Viewport * viewport )
 //octreeData	八叉树
 //rl_ptr		当前渲染列表的指针
 //cl_ptr		当前裁剪列表的指针
-void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr )
+void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr )
 {
 	int j, zCode0, zCode1, zCode2, verts_out, v0, v1, v2;
 	float t1, t2,  xi, yi, ui, vi, x01i, x02i, y01i, y02i, u01i, u02i, v01i, v02i, dx, dy, dz, near = camera->near, far = camera->far;
 	Vector3D viewerToLocal;
 	Triangle * face, * face1, * face2;
 	Vertex * tmpVert1, * tmpVert2, * ver1_0, * ver1_1, * ver1_2, * ver2_0, * ver2_1, * ver2_2;
-	Mesh * mesh = entity->mesh;
+	Mesh * mesh = sceneNode -> entity->mesh;
 
 	//遍历面
 	for ( j = 0; j < octreeData->nFaces; j ++)
@@ -161,7 +161,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 		if ( face->render_mode != RENDER_WIREFRAME_TRIANGLE_32 )
 		{
 			//如果夹角大于90或小于-90时，即背向摄像机
-			if ( triangle_backFaceCulling( face, & viewerToLocal, entity->viewerToLocal ) )
+			if ( triangle_backFaceCulling( face, & viewerToLocal, sceneNode -> entity->viewerToLocal ) )
 			{
 				mesh->nCullList ++;
 
@@ -169,7 +169,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 			}
 		}
 
-		triangle_transform( entity->world, entity->projection, face );
+		triangle_transform( sceneNode -> entity->world, sceneNode -> entity->projection, face );
 
 		if (face->vertex[0]->v_pos->x < - face->vertex[0]->v_pos->w &&
 			face->vertex[1]->v_pos->x < - face->vertex[1]->v_pos->w &&
@@ -292,7 +292,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 				face1 = triangle_clone( face );
 
 				//插入裁剪列表
-				renderList_push( cl_ptr, face1 );
+				renderList_push( cl_ptr, face1,sceneNode );
 			}
 
 			//找出位于内侧的顶点
@@ -398,7 +398,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 				face1 = triangle_clone( face );
 
 				//插入裁剪列表
-				renderList_push( cl_ptr, face1 );
+				renderList_push( cl_ptr, face1, sceneNode );
 			}
 
 			if ( ( * cl_ptr )->polygon )
@@ -416,7 +416,7 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 				face2 = triangle_clone( face );
 
 				//插入裁剪列表
-				renderList_push( cl_ptr, face2 );
+				renderList_push( cl_ptr, face2, sceneNode );
 			}
 
 			//找出位于外侧的顶点
@@ -519,8 +519,8 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 		//如果没有新面，则插入原来的面
 		if ( NULL == face1 && NULL == face2 )
 		{
-			renderList_push( rl_ptr, face );
-			renderList_push( vl_ptr, face );
+			renderList_push( rl_ptr, face, sceneNode );
+			renderList_push( vl_ptr, face, sceneNode );
 
 			mesh->nRenderList ++;
 		}
@@ -529,16 +529,16 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 		{
 			if ( NULL != face1 )
 			{
-				renderList_push( rl_ptr, face1 );
-				renderList_push( vl_ptr, face1 );
+				renderList_push( rl_ptr, face1, sceneNode );
+				renderList_push( vl_ptr, face1, sceneNode );
 
 				mesh->nRenderList ++;
 			}
 
 			if ( NULL != face2 )
 			{
-				renderList_push( rl_ptr, face2 );
-				renderList_push( vl_ptr, face2 );
+				renderList_push( rl_ptr, face2, sceneNode );
+				renderList_push( vl_ptr, face2, sceneNode );
 
 				mesh->nRenderList ++;
 			}
@@ -546,14 +546,14 @@ void frustumClipping( Camera * camera, Entity * entity, OctreeData * octreeData,
 	}
 }
 
-int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr )
+int octree_culling( Camera * camera, SceneNode * sceneNode, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr )
 {
 	int code = 0, noChild = 0;
 
 	AABB * aabb;
 	
-	aabb_setToTransformedBox( octree->data->worldAABB, octree->data->aabb, entity->world );
-	aabb_setToTransformedBox_CVV( octree->data->CVVAABB, octree->data->aabb, entity->projection );
+	aabb_setToTransformedBox( octree->data->worldAABB, octree->data->aabb, sceneNode -> entity->world );
+	aabb_setToTransformedBox_CVV( octree->data->CVVAABB, octree->data->aabb, sceneNode -> entity->projection );
 
 	aabb = octree->data->CVVAABB;
 
@@ -567,7 +567,7 @@ int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderLis
 	//输出码为非零侧包围盒离屏
 	if ( code > 0 )
 	{
-		entity->mesh->nCullList += octree->data->nFaces;
+		sceneNode -> entity->mesh->nCullList += octree->data->nFaces;
 
 		return 0;
 	}
@@ -594,19 +594,19 @@ int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderLis
 			{
 				face = octree->data->faces[code];
 
-				if ( triangle_backFaceCulling( face, & viewerToLocal, entity->viewerToLocal ) )
+				if ( triangle_backFaceCulling( face, & viewerToLocal, sceneNode -> entity->viewerToLocal ) )
 				{
-					entity->mesh->nCullList ++;
+					sceneNode -> entity->mesh->nCullList ++;
 
 					continue;
 				}
 
-				triangle_transform( entity->world, entity->projection, face );
+				triangle_transform( sceneNode -> entity->world, sceneNode -> entity->projection, face );
 
-				renderList_push( rl_ptr, face );				
-				renderList_push( vl_ptr, face );
+				renderList_push( rl_ptr, face, sceneNode );				
+				renderList_push( vl_ptr, face, sceneNode );
 
-				entity->mesh->nRenderList ++;
+				sceneNode -> entity->mesh->nRenderList ++;
 			}
 
 			return 2;
@@ -616,31 +616,31 @@ int octree_culling( Camera * camera, Entity * entity, Octree * octree, RenderLis
 		else
 		{
 			//如果有子结点则继续递归
-			if ( octree->tlb )	code = octree_culling( camera, entity, octree->tlb, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->tlb )	code = octree_culling( camera, sceneNode, octree->tlb, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x01;
 
-			if ( octree->tlf )	code = octree_culling( camera, entity, octree->tlf, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->tlf )	code = octree_culling( camera, sceneNode, octree->tlf, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x02;
 
-			if ( octree->trb )	code = octree_culling( camera, entity, octree->trb, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->trb )	code = octree_culling( camera, sceneNode, octree->trb, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x04;
 
-			if ( octree->trf )	code = octree_culling( camera, entity, octree->trf, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->trf )	code = octree_culling( camera, sceneNode, octree->trf, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x08;
 
-			if ( octree->blb )	code = octree_culling( camera, entity, octree->blb, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->blb )	code = octree_culling( camera, sceneNode, octree->blb, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x10;
 
-			if ( octree->blf )	code = octree_culling( camera, entity, octree->blf, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->blf )	code = octree_culling( camera, sceneNode, octree->blf, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x20;
 
-			if ( octree->brb )	code = octree_culling( camera, entity, octree->brb, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->brb )	code = octree_culling( camera, sceneNode, octree->brb, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x40;
 
-			if ( octree->brf )	code = octree_culling( camera, entity, octree->brf, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->brf )	code = octree_culling( camera, sceneNode, octree->brf, rl_ptr, cl_ptr, vl_ptr );
 			else				noChild |= 0x80;
 
-			if ( noChild == 0xff ) frustumClipping( camera, entity, octree->data, rl_ptr, cl_ptr, vl_ptr );
+			if ( noChild == 0xff ) frustumClipping( camera, sceneNode, octree->data, rl_ptr, cl_ptr, vl_ptr );
 		}
 	}
 
@@ -1037,7 +1037,7 @@ void viewport_project( Viewport * viewport, int time )
 			cl = entity->mesh->clippedList->next;
 
 			//八叉
-			if ( ! octree_culling( camera, entity, entity->mesh->octree, & rl, & cl, & vl ) )
+			if ( ! octree_culling( camera, sceneNode, entity->mesh->octree, & rl, & cl, & vl ) )
 			{
 				sceneNode = sceneNode->next;
 
@@ -1358,6 +1358,25 @@ void viewport_render( Viewport * viewport )
 
 		rl = rl->next;
 	}
+}
+
+int viewport_mouseOn( Viewport * viewport, float mouseX, float mouseY )
+{
+	int hitEntity = OFF;
+
+	RenderList * rl;
+
+	rl = viewport->renderList->next;
+
+	while( rl && rl->polygon )
+	{
+		if( triangle_hitTestPoint2D( rl -> polygon, mouseX, mouseY ) )
+		{
+			hitEntity = rl -> parent -> ID;
+		}
+	}
+
+	return hitEntity;
 }
 
 #endif
