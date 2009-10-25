@@ -131,7 +131,10 @@ package cn.alchemy3d.view
 			Library.memory.position = zBufferPointer;
 			Library.memory.writeBytes(clearZB, 0, clearZB.length);
 			
-			Library.alchemy3DLib.render(pointer, getTimer());
+			if( Library.alchemy3DLib.render(pointer, getTimer(), mouseX, mouseY ) != - 1 )
+			{
+				trace( "hit!" );
+			}
 			
 			Library.memory.position = videoBufferPointer;
 			//videoBuffer.lock();

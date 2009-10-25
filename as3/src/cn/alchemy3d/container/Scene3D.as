@@ -77,8 +77,26 @@ package cn.alchemy3d.container
 
 			if( numChildren == 1 )
 			{
-				Library.alchemy3DLib.attachScene( _pointer, _node, getLightsPointerOn( this ) );
+				Library.alchemy3DLib.attachScene( _pointer, _node, lightsPtr );
 			}
+		}
+			
+		override public function removeChild(child:Entity, all:Boolean):Entity
+		{
+			var entity:Entity = super.removeChild( child, all );
+
+			if( child.node == _node )
+			{
+				var shift:Entity = children.shift();
+				
+				_node = shift.node;
+				
+				children.unshift( shift );
+				
+				Library.alchemy3DLib.attachScene( _pointer, _node, lightsPtr );
+			}
+			
+			return entity;
 		}
 		
 		override public function addLight( light:Light3D ):void
@@ -87,8 +105,26 @@ package cn.alchemy3d.container
 			
 			if( numLights == 1 )
 			{
-				Library.alchemy3DLib.attachScene( _pointer, _node, getLightsPointerOn( this ) );
+				Library.alchemy3DLib.attachScene( _pointer, _node, lightsPtr );
 			}
+		}
+		
+		override public function removeLight(light:Light3D):Light3D
+		{
+			var light:Light3D = super.removeLight( light );
+			
+			if( light.node == lightsPtr )
+			{
+				var shift:Light3D = lights.shift();
+				
+				lightsPtr = shift.node;
+				
+				lights.unshift( shift );
+				
+				Library.alchemy3DLib.attachScene( _pointer, _node, lightsPtr );
+			}
+			
+			return light;
 		}
 	}
 }
