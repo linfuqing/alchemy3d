@@ -51,6 +51,8 @@ typedef struct SceneNode
 {
 	Entity * entity;
 
+	int ID;
+
 	struct SceneNode * next;
 
 }SceneNode;

@@ -142,6 +142,50 @@ INLINE void triangle_dispose( Triangle * p )
 	free( p );
 }
 
+INLINE int triangle_isOnSameSide( float pX, float pY, float pAX, float pAY, float pBX, float pBY, float pCX, float pCY )
+{
+	Vector ba, pa, ca;
+
+	ba.x = pBX - pAX;
+	ba.y = pBY - pAY;
+
+	pa.x = pX  - pAX;
+	pa.y = pY  - pAY;
+
+	ca.x = pCX - pAX;
+	ca.y = pCY - pAY;
+
+	return vector_crossProduct( & ba, & pa ) * vector_crossProduct( & ca, & pa ) > 0;
+}
+
+INLINE int triangle_hitTestPoint2D( Triangle * triangle, float x, float y )
+{
+	return ! ( triangle_isOnSameSide( 
+		x, y, 
+		triangle -> vertex[0] -> v_pos -> x, 
+		triangle -> vertex[0] -> v_pos -> y, 
+		triangle -> vertex[1] -> v_pos -> x,
+		triangle -> vertex[1] -> v_pos -> y,
+		triangle -> vertex[2] -> v_pos -> x,
+		triangle -> vertex[2] -> v_pos -> y )
+		||     triangle_isOnSameSide( 
+		x, y, 
+		triangle -> vertex[1] -> v_pos -> x, 
+		triangle -> vertex[1] -> v_pos -> y, 
+		triangle -> vertex[2] -> v_pos -> x,
+		triangle -> vertex[2] -> v_pos -> y,
+		triangle -> vertex[0] -> v_pos -> x,
+		triangle -> vertex[0] -> v_pos -> y )
+		||     triangle_isOnSameSide( 
+		x, y, 
+		triangle -> vertex[2] -> v_pos -> x, 
+		triangle -> vertex[2] -> v_pos -> y, 
+		triangle -> vertex[0] -> v_pos -> x,
+		triangle -> vertex[0] -> v_pos -> y,
+		triangle -> vertex[1] -> v_pos -> x,
+		triangle -> vertex[1] -> v_pos -> y ) );
+}
+
 INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangle * face )
 {
 	Vertex * vert;
