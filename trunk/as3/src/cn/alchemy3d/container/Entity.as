@@ -63,10 +63,10 @@ package cn.alchemy3d.container
 			return this._parent;
 		}
 		
-		public function set parent(parent:Entity):void
+		/*public function set parent(parent:Entity):void
 		{
 			this._parent = parent;
-		}
+		}*/
 		
 		/*public function get children():Vector.<Entity>
 		{

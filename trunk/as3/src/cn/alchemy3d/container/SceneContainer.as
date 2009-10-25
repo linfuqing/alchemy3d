@@ -9,8 +9,9 @@ package cn.alchemy3d.container
 
 	public class SceneContainer extends Node
 	{
-		private var children:Vector.<Entity>;
-		private var lights:Vector.<Light3D>;
+		protected var children:Vector.<Entity>;
+		protected var lights:Vector.<Light3D>;
+		
 		private var fog:Fog;
 		
 		public function get numChildren():uint
@@ -51,7 +52,7 @@ package cn.alchemy3d.container
 		}
 		
 		public function removeChild( child:Entity, all:Boolean ):Entity
-		{
+		{	
 			for( var i:uint = 0; i < children.length; i ++ )
 			{
 				if( child === children[i] )
@@ -113,7 +114,7 @@ package cn.alchemy3d.container
 		}
 		
 				
-		private var lightsPtr:uint = NULL;
+		protected var lightsPtr:uint = NULL;
 		
 		public function addFog( fog:Fog ):void
 		{

@@ -146,21 +146,18 @@ package cn.alchemy3d.render
 		
 		static public function initializeBitmap(bitmapdata:BitmapData):uint
 		{
-			var byte:ByteArray, byte2:ByteArray = new ByteArray();
-			
-			byte2.endian = Endian.LITTLE_ENDIAN;
-			
+			var byte:ByteArray = new ByteArray();
 			byte = bitmapdata.getPixels(bitmapdata.rect);
 			byte.position = 0;
+			//byte.endian = Endian.BIG_ENDIAN;
 			
 			var i:int = 0, j:int = bitmapdata.width * bitmapdata.height;
-			var bitmapDataPtr:uint = Library.alchemy3DLib.applyForTmpBuffer(j * 4);
+			var bitmapDataPtr:uint = Library.alchemy3DLib.applyForTmpBuffer(j * Library.intTypeSize);
 			Library.memory.position = bitmapDataPtr;
 			
 			for (; i < j; i ++)
-				byte2.writeUnsignedInt(byte.readUnsignedInt());
-				
-			Library.memory.writeBytes(byte2, 0, byte2.length);
+			Library.memory.writeUnsignedInt(byte.readUnsignedInt());
+			//Library.memory.writeBytes( byte );
 			
 			var bmPointer:uint = Library.alchemy3DLib.initializeBitmap(bitmapdata.width, bitmapdata.height, bitmapDataPtr);
 			
