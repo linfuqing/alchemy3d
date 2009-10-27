@@ -138,22 +138,20 @@ int main()
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
-	//entity_setRotationX( do3d3, 20.0f);
-	//entity_setRotationY( do3d3, 45.0f);
+	entity_setRotationX( do3d3, 20.0f);
+	entity_setRotationY( do3d3, 45.0f);
 	entity_setZ(do3d3, 100.0f);
-	//entity_setY(do3d3, 200.0f);
-	//entity_setX(do3d3, -100.0f);
+	entity_setY(do3d3, 200.0f);
+	entity_setX(do3d3, -100.0f);
 
-	//do3d = newEntity();
-	//do3d->name = "md2";
 	mesh4 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
 	mesh5 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
 	//mesh4->terrainTrace = TRUE;
-	mesh5->fogEnable = TRUE;
+	//mesh5->fogEnable = TRUE;
 	entity_setMesh( do3d, mesh4 );
 	entity_setMesh( do3d3, mesh5 );
 
-	//scene_addEntity(scene, do3d, NULL);
+	scene_addEntity(scene, do3d, NULL);
 	scene_addEntity(scene, do3d3, NULL);
 
 	/////////////////////////////////////////////////////////////////////////////////////

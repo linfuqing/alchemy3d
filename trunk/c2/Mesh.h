@@ -181,7 +181,7 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	p->uvTransformed = FALSE;	
 	p->fogEnable = FALSE;
 	p->lightEnable = FALSE;
-	p->depth = 0.0f;
+	p->depth = 0;
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );
