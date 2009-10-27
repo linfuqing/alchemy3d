@@ -9,9 +9,7 @@
 //R
 typedef struct Triangle
 {
-	int miplevel, fogEnable, lightEnable;
-
-	float depth;
+	int miplevel, fogEnable, lightEnable, depth;
 
 	DWORD render_mode;
 
@@ -70,7 +68,7 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->uvTransformed = FALSE;
 	p->fogEnable = FALSE;
 	p->lightEnable = FALSE;
-	p->depth = 0.0f;
+	p->depth = 0;
 
 	return p;
 }
@@ -96,6 +94,7 @@ INLINE void triangle_copy( Triangle * dest, Triangle * src )
 	dest->render_mode = src->render_mode;
 	dest->miplevel = src->miplevel;
 	dest->uvTransformed = src->uvTransformed;
+	dest->depth = 0;
 }
 
 INLINE Triangle * triangle_clone( Triangle * src )
@@ -125,6 +124,7 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	dest->render_mode = src->render_mode;
 	dest->miplevel = src->miplevel;
 	dest->uvTransformed = src->uvTransformed;
+	dest->depth = 0;
 
 	dest->normal = vector3D_clone( src->normal );
 

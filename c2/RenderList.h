@@ -79,46 +79,67 @@ INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face, struct Scene
 }
 
 //Partition
-RenderList * renderList_qPartition( RenderList ** L, RenderList * p , RenderList * q )
+RenderList * renderList_qPartition( RenderList * pstHead, RenderList * pstLow, RenderList * pstHigh )
 {
-	float pivotkey = p->polygon->depth;
+	Triangle * iTmp;
+	int pivot = 0;
 
-	(*L)->polygon = p->polygon;
-
-	while ( p->k < q->k )
+	if ( !pstHead )
 	{
-		while ((p->k < q->k) && q->polygon->depth <= pivotkey )  q=q->pre;//从后向前找，找到大于基准记录
-		p->polygon = q->polygon;
-		while ( (p->k < q->k) && q->polygon->depth >= pivotkey )  p=p->next;//从前向后找，找到小于基准记录的元素
-		q->polygon = p->polygon;                              //上述两元素交换
+		exit(1);
+	}
+	if ( !pstHead->next )
+	{
+		return pstHead->next;//就一个元素
 	}
 
-	p->polygon=(*L)->polygon;                         //将基准记录存到找到的位置
+	pivot = pstLow->polygon->depth;
 
-	return p;
+	while ( pstLow != pstHigh )
+	{
+		//从后面往前换
+		while ( pstLow != pstHigh && pstHigh->polygon->depth <= pivot )
+		{
+			pstHigh = pstHigh->pre;
+		}
+		//交换high low
+		iTmp = pstLow->polygon;
+		pstLow->polygon = pstHigh->polygon;
+		pstHigh->polygon = iTmp;
+		//从前往后换
+		while ( pstLow != pstHigh && pstLow->polygon->depth >= pivot )
+		{
+			pstLow = pstLow->next;
+		}
+		//交换high low
+		iTmp = pstLow->polygon;
+		pstLow->polygon = pstHigh->polygon;
+		pstHigh->polygon = iTmp;
+	}
+	return pstLow;
 }
 
 //QSort函数
-void renderList_qSort( RenderList ** L, RenderList * p, RenderList * q )
+void renderList_qSort( RenderList * pstHead, RenderList * pstLow, RenderList * pstHigh )
 {
-	RenderList * pivotloc;
+	RenderList * pstTmp = NULL;
 
-	if ( p->k && q->k && p->k < q->k )
+	pstTmp = renderList_qPartition(pstHead, pstLow, pstHigh);
+
+	if ( pstLow != pstTmp )
 	{
-		pivotloc = renderList_qPartition(L, p, q) ;   //Partition函数 找到基准记录 的指针
-		renderList_qSort (L, p, pivotloc->pre) ;               //依次对基准记录前的记录快速排序
-		renderList_qSort (L, pivotloc->next, q);               //依次对基准记录后的记录排序
+		renderList_qSort(pstHead, pstLow, pstTmp->pre);
+	}
+	if ( pstHigh != pstTmp )
+	{
+		renderList_qSort(pstHead, pstTmp->next, pstHigh);
 	}
 }
 
 //快速排序函数
-void renderList_quickSort( RenderList ** L, RenderList ** tail )
+void renderList_quickSort( RenderList * pstHead, RenderList * pstHigh )
 {
-	RenderList * p , * q;
-	p=(*L)->next;
-	q=(*tail);
-
-	renderList_qSort(L, p ,q );
+	renderList_qSort( pstHead, pstHead->next, pstHigh );
 }
 
 #endif

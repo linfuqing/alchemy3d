@@ -1,103 +1,198 @@
-//01-01-09 14:14
-# include <stdio.h>
-# include <stdlib.h>
-# define status int
-# define OK 1
-# define FALSE 0
-# define OVERFLOW -2
+/********************************************************************
+* File Name : quick_sort.c *
+* Created : 2007/05/08 *
+* Author : SunYonggao *
+* Description : 对双向链表进行快速排序
+*********************************************************************/
 
-typedef struct node{
-        int data , k;  //data存数据，k标记数据元素在链表中的相对位置
-        struct node* pre;  //指向前结点
-        struct node* next;  //指向后结点
-}Node ,* NodePtr;    //结点定义
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
+//定义类型 所有的排序例子中都是用的int作为data
+typedef int elemType;
 
-status CreateBiList(NodePtr* L,NodePtr* tail){
-       int n  , e ,i;
-       NodePtr p1 , p2 ;
-       printf("Total Num\n") ;
-             scanf("%d" , &n) ;
-       (*L)=(NodePtr)malloc(sizeof(Node));    (*L)->next=NULL ;
-       (*L)->data=n ;  (*L)->k=0;                             //头结点在建立双向链表时记录数据个数   ，在快速排序时用于记录基准记录
+//返回值
+#define RET_SUCCESS ( 1 )
+#define RET_FAILED ( 0 )
 
-       p1=p2=(NodePtr)malloc(sizeof(Node));
-       p1->pre=(*L);
-       (*L)->next=p1;
-       printf("Enter Num\n");
-       scanf("%d",&e);     p1->data=e; p1->k=1   ;      //建立除头结点外第一个结点
-          for( i=2 ; i<n+1 ; i++){
-              p1=(NodePtr)malloc(sizeof(Node));   //依次建立结点
-              scanf("%d",&e);   p1->data=e; p1->k=i;
-              p2->next=p1;                //双向的建立
-              p1->pre=p2;
-              p2=p1;
-              p1->next=NULL;
-          }//for循环建立双向链表
-          (*tail)=p1; //if(!L)printf("OK");
-       return  OK;
-}         //建立双向链表函数
+//定义链表的长度
+#define LIST_MAX_SIZE (6)
 
-status DestoryBilist(NodePtr* L){
-       NodePtr p;
-       int i;
-       for(i=0 ; p!=NULL ;i++){
-           p=(*L)->next;
-           free(*L);            //销毁函数
-           *L=p;
-       }
-       return OK;
-}       //销毁双向链表
+//定义链表申请内存不够时报错信息
+#define NO_MEMORY printf("Error! Not enough memory!\n");exit(1)
 
-NodePtr Partition(NodePtr*L,NodePtr p , NodePtr q) {
-   int pivotkey = p->data ;
-   (*L)->data = p->data;
-    while  (p->k < q->k) {
-        while ( (p->k < q->k) && q->data >= pivotkey )  q=q->pre;//从后向前找，找到小于基准记录
-        p->data = q->data;
-        while ( (p->k < q->k) && p->data <= pivotkey )  p=p->next;//从前向后找，找到大于基准记录的元素
-        q->data = p->data;                              //上述两元素交换
-    }
-    p->data=(*L)->data;                         //将基准记录存到找到的位置
-    return p;            //本程序最关键部分，寻找基准记录
-}//Partition
-
-void QSort(NodePtr*L , NodePtr p,  NodePtr q ){
-      if (p->k < q->k){
-             NodePtr  pivotloc = Partition(L,p, q) ;   //Partition函数 找到基准记录 的指针
-             QSort (L,p, pivotloc->pre) ;               //依次对基准记录前的记录快速排序
-             QSort (L,pivotloc->next, q);               //依次对基准记录后的记录排序
-      }
-}  //QSort函数
-
-
-
-
-void QuickSort(NodePtr*L,NodePtr* tail){
-       NodePtr p , q  ;//if(!L)printf("Sorry");system("pause");
-       p=(*L)->next;   //printf("%d",L);
-       q=(*tail);
-
-       QSort(L,p ,q );  //这里L->data 是待排数据元素的个数
-
-} //快速排序函数
-
-void Display(NodePtr* L){
-     NodePtr p=*L;
-     while(p->next){
-          p=p->next;
-          printf("%d ",p->data);
-     }
-}         //打印函数
-
-main()
+//双向链表结构体定义
+typedef struct tagDuNode_t
 {
-     NodePtr  L  , tail;
-     CreateBiList(&L,&tail);//if(!L)printf("ZL");
-     QuickSort(&L,&tail);
+	elemType data;
+	struct tagDuNode_t * pstNext;
+	struct tagDuNode_t * pstPrior;
+}duNode_t;
 
-     Display(&L);
-     //DestoryBilist(&L);
-     system("pause");
-     return 0;
-}     //主函数
+//初始化双向链表
+int initDuList(duNode_t ** pstHead)
+{
+	int iRet = RET_SUCCESS;
+	int iCir = 0;
+	duNode_t * pstTmp1 = NULL;
+	duNode_t * pstTmp2 = NULL;
+
+	int num[6] = {749,749,449,599,599,449};
+
+	//初始化头节点
+	* pstHead = (duNode_t *)malloc(sizeof(duNode_t));
+	(* pstHead)->pstPrior = NULL;
+	(* pstHead)->pstNext = NULL;
+	if ( !pstHead )
+	{
+		NO_MEMORY;
+	}
+	pstTmp1 = * pstHead;
+	//链表初始化
+	srand( time(NULL) );//随机数
+	for( iCir = 0; iCir < LIST_MAX_SIZE; iCir++ )
+	{
+		pstTmp2 = (duNode_t *)malloc(sizeof(duNode_t));
+		if ( !pstTmp2 )
+		{
+			NO_MEMORY;
+		}
+		//赋初值
+		pstTmp2->data = num[iCir];
+		pstTmp2->pstNext = NULL;
+		pstTmp1->pstNext = pstTmp2;
+		pstTmp2->pstPrior = pstTmp1;
+		pstTmp1 = pstTmp2;
+	}
+	return iRet;
+}
+
+// 打印链表 链表的data元素是可打印的整形
+int showDuList(duNode_t * pstHead)
+{
+	int iRet = RET_SUCCESS;
+	duNode_t * pstTmp = pstHead->pstNext;
+	if ( NULL == pstHead )
+	{
+		printf("链表的头节点是空\n");
+		iRet = RET_FAILED;
+	}
+	else
+	{
+		while ( pstTmp )
+		{
+			printf("%d ", pstTmp->data);
+			pstTmp = pstTmp->pstNext;
+		}
+		printf("\n");
+	}
+	return iRet;
+}
+
+/* 删除包括头节点在内的所有的节点. 07/04/28 */
+int destroyList(duNode_t * pstHead)
+{
+	duNode_t * pstTmp = NULL; /* Temp pointer for circle */
+	int iRet = RET_SUCCESS;
+	if ( !pstHead )
+	{
+		printf("Error! pstHead is null\n");
+		iRet = RET_FAILED;
+	}
+	else
+	{
+		while ( pstHead ) /* Free nodes */
+		{
+			pstTmp = pstHead;
+			pstHead = pstHead->pstNext;
+			free(pstTmp);
+		}
+		pstHead = NULL;
+	}
+	return iRet;
+}/* End of destroyList----------------------------------------------*/
+
+//正确的快速排序 2007/05/09
+/*
+一趟快速排序的具体做法是：附设两个指针low和high(即第一个和最后一个指针),
+他们的初值分别为low和high设枢轴(一般为low的值pivot)记录的关键字
+(即本例子中的整形data)为pivot，则首先从high所指位置
+起向前搜索到第一个关键字小于pivot的记录和枢轴记录交换，然后从low所指位置起
+向后搜索，找到第一个关键字大于pivot的记录和枢轴记录相互交换，重复这两步直
+至low = high为止。
+*/
+duNode_t * partion(duNode_t * pstHead, duNode_t * pstLow, duNode_t * pstHigh)
+{
+	elemType iTmp = 0;
+	elemType pivot = 0;
+	if ( !pstHead )
+	{
+		printf("错误，头节点为空！\n");
+		exit(1);
+	}
+	if ( !pstHead->pstNext )
+	{
+		return pstHead->pstNext;//就一个元素
+	}
+	pivot = pstLow->data;
+	while ( pstLow != pstHigh )
+	{
+		//从后面往前换
+		while ( pstLow != pstHigh && pstHigh->data <= pivot )
+		{
+			pstHigh = pstHigh->pstPrior;
+		}
+		//交换high low
+		iTmp = pstLow->data;
+		pstLow->data = pstHigh->data;
+		pstHigh->data = iTmp;
+		//从前往后换
+		while ( pstLow != pstHigh && pstLow->data >= pivot )
+		{
+			pstLow = pstLow->pstNext;
+		}
+		//交换high low
+		iTmp = pstLow->data;
+		pstLow->data = pstHigh->data;
+		pstHigh->data = iTmp;
+	}
+	return pstLow;
+}
+//快排
+void quick_sort(duNode_t * pstHead, duNode_t * pstLow, duNode_t * pstHigh)
+{
+	duNode_t * pstTmp = NULL;
+
+	pstTmp = partion(pstHead, pstLow, pstHigh);
+	if ( pstLow != pstTmp )
+	{
+		quick_sort(pstHead, pstLow, pstTmp->pstPrior);
+	}
+	if ( pstHigh != pstTmp )
+	{
+		quick_sort(pstHead, pstTmp->pstNext, pstHigh);
+	}
+
+}
+void main()
+{
+	duNode_t * pstHead = NULL;
+	duNode_t * pstHigh = NULL;
+	duNode_t * pstTmp = NULL;
+	initDuList(&pstHead); //初始化
+	printf("Before sorting:\n");
+	showDuList(pstHead); //打印
+	pstTmp = pstHead->pstNext;
+	while ( pstTmp->pstNext )
+	{
+		pstTmp = pstTmp->pstNext;
+	}
+	pstHigh = pstTmp;//找到最后一个节点的指针用于快排时
+	quick_sort(pstHead, pstHead->pstNext, pstHigh);//快排序
+	printf("After sorting:\n");
+	showDuList(pstHead);
+	destroyList(pstHead);
+	pstHead = NULL;
+}
+/* End of file ----------------------------------------------------*/

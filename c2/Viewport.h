@@ -35,8 +35,6 @@ typedef struct Viewport
 
 	RenderList * renderList, * tailList;
 
-	//RenderList * renderList2;
-
 }Viewport;
 
 void viewport_resize( Viewport * viewport, int width, int height )
@@ -722,7 +720,7 @@ void viewport_lightting( Viewport * viewport )
 					vs = face->vertex[j];
 
 					//把三个顶点的深度相加，后面求面的平均深度
-					face->depth += vs->v_pos->w;
+					face->depth += (int)(vs->v_pos->w);
 
 					//如果顶点已经变换或计算，则直接进入下一个顶点
 					if ( vs->transformed == 2 ) continue;
@@ -930,7 +928,7 @@ void viewport_lightting( Viewport * viewport )
 				}//光照处理结束
 
 				//平均深度
-				face->depth *= .333333333333f;
+				face->depth /= 3;
 
 				//mipmap处理
 				if ( face->texture && face->texture->mipmaps )
@@ -1050,39 +1048,8 @@ void viewport_project( Viewport * viewport, int time )
 		sceneNode = sceneNode->next;
 	}
 
-	//if ( viewport->renderList2 ) free ( viewport->renderList2 );
-
-	//if( ( viewport->renderList2 = ( RenderList * )malloc( sizeof( RenderList ) * viewport->nRenderList ) ) == NULL ) exit( TRUE );
-
 	viewport_lightting( viewport );
-
-	//viewport->renderList2 -= viewport->nRenderList;
 }
-
-//int compare_z( const void * arg1, const void * arg2 )
-//{
-//	float min1, min2;
-//
-//	Triangle * face1, * face2;
-//
-//	face1 = ( ( RenderList * )arg1 )->polygon;
-//	face2 = ( ( RenderList * )arg2 )->polygon;
-//
-//	min1 = face1->vertex[0]->v_pos->w;
-//	min1 = MIN( min1, face1->vertex[1]->v_pos->w );
-//	min1 = MIN( min1, face1->vertex[2]->v_pos->w );
-//
-//	min2 = face2->vertex[0]->v_pos->w;
-//	min2 = MIN( min2, face2->vertex[1]->v_pos->w );
-//	min2 = MIN( min2, face2->vertex[2]->v_pos->w );
-//
-//	if ( min1 > min2 )
-//		return -1;
-//	else if ( min1 < min2 )
-//		return 1;
-//	else
-//		return 0;
-//}
 
 #include "RenderFGTINVZB.h"
 #include "RenderWF.h"
@@ -1092,17 +1059,13 @@ void viewport_render( Viewport * viewport )
 	RenderList * rl;
 	Triangle * face;
 
-	//qsort( viewport->renderList2, viewport->nRenderList, sizeof( RenderList ), compare_z );
-	//renderList_quickSort( & viewport->renderList, & viewport->tailList );
+	renderList_qSort( viewport->renderList, viewport->renderList->next, viewport->tailList );
 
 	rl = viewport->renderList->next;
 
 	while( rl && rl->polygon )
 	{
 		face = rl->polygon;
-
-		//printf("%d\n", rl->k);
-		//printf("%f\n", face->depth);
 
 		if ( face->texture && face->texture->mipmaps )
 		{

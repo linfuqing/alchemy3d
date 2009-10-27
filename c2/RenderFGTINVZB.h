@@ -24140,7 +24140,7 @@ void Draw_Gouraud_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * vi
 	DWORD	*z_ptr = NULL,
 			*zbuffer = (DWORD *)_zbuffer;
 
-	BYTE * alpha_table_src1, * alpha_table_src2;
+	BYTE * alpha_table_src1, * alpha_table_src2, alpha;
 
 	mempitch >>= 2;
 
@@ -24210,8 +24210,10 @@ void Draw_Gouraud_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * vi
 		tri_type = TRI_TYPE_GENERAL;
 	}
 
-	alpha_table_src1 = (BYTE *)&alpha_table[(NUM_ALPHA_LEVELS-1) - face->vertex[v0]->color->alpha];
-	alpha_table_src2 = (BYTE *)&alpha_table[face->vertex[v0]->color->alpha];
+	alpha = face->vertex[v0]->color->alpha;
+
+	alpha_table_src1 = (BYTE *)&alpha_table[255 - alpha];
+	alpha_table_src2 = (BYTE *)&alpha_table[alpha];
 
 	r_base0 = face->vertex[v0]->color->red;
 	g_base0 = face->vertex[v0]->color->green;
@@ -24422,13 +24424,43 @@ void Draw_Gouraud_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * vi
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = 0xff000000 + 
+						screen_ptr[xi] = ( alpha << FIXP24_SHIFT ) + 
 						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[( ui >> FIXP16_SHIFT )] ) << 16 ) + 
 						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[( vi >> FIXP16_SHIFT )] ) << 8 ) + 
 						( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[( wi >> FIXP16_SHIFT )] );
 
 						z_ptr[xi] = zi;
 					}
+					//if (zi > z_ptr[xi])
+					//{
+					//	last_alpha = ( screen_ptr[xi] >> FIXP24_SHIFT ) & 0xff;
+					//	inv_alpha = curr_alpha + last_alpha - 255;
+
+					//	inv_alpha = MAX(0, inv_alpha);
+					//	inv_alpha = MIN(1, inv_alpha);
+
+					//	screen_ptr[xi] = ( inv_alpha << FIXP24_SHIFT ) + 
+					//	( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[( ui >> FIXP16_SHIFT )] ) << 16 ) + 
+					//	( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[( vi >> FIXP16_SHIFT )] ) << 8 ) + 
+					//	( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[( wi >> FIXP16_SHIFT )] );
+
+					//	z_ptr[xi] = zi;
+					//}
+					//else
+					//{
+					//	last_alpha = ( screen_ptr[xi] >> FIXP24_SHIFT ) & 0xff;
+					//	inv_alpha = curr_alpha + last_alpha - 255;
+
+					//	inv_alpha = MAX(0, inv_alpha);
+					//	inv_alpha = MIN(1, inv_alpha);
+
+					//	screen_ptr[xi] = ( inv_alpha << FIXP24_SHIFT )  + 
+					//	( ( alpha_table_src2[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table[last_alpha][( ui >> FIXP16_SHIFT )] ) << 16 ) + 
+					//	( ( alpha_table_src2[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table[last_alpha][( vi >> FIXP16_SHIFT )] ) << 8 ) + 
+					//	( alpha_table_src2[( screen_ptr[xi] ) & 0xff] + alpha_table[last_alpha][( wi >> FIXP16_SHIFT )] );
+
+					//	z_ptr[xi] = zi;
+					//}
 
 					ui+=du;
 					vi+=dv;
@@ -24490,14 +24522,43 @@ void Draw_Gouraud_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * vi
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = 0xff000000 + 
+						screen_ptr[xi] = ( alpha << FIXP24_SHIFT ) + 
 						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[( ui >> FIXP16_SHIFT )] ) << 16 ) + 
 						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[( vi >> FIXP16_SHIFT )] ) << 8 ) + 
 						( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[( wi >> FIXP16_SHIFT )] );
 
 						z_ptr[xi] = zi;
 					}
+					//if (zi > z_ptr[xi])
+					//{
+					//	last_alpha = ( screen_ptr[xi] >> FIXP24_SHIFT ) & 0xff;
+					//	inv_alpha = curr_alpha + last_alpha - 255;
 
+					//	inv_alpha = MAX(0, inv_alpha);
+					//	inv_alpha = MIN(1, inv_alpha);
+
+					//	screen_ptr[xi] = ( inv_alpha << FIXP24_SHIFT ) + 
+					//	( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[( ui >> FIXP16_SHIFT )] ) << 16 ) + 
+					//	( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[( vi >> FIXP16_SHIFT )] ) << 8 ) + 
+					//	( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[( wi >> FIXP16_SHIFT )] );
+
+					//	z_ptr[xi] = zi;
+					//}
+					//else
+					//{
+					//	last_alpha = ( screen_ptr[xi] >> FIXP24_SHIFT ) & 0xff;
+					//	inv_alpha = curr_alpha + last_alpha - 255;
+
+					//	inv_alpha = MAX(0, inv_alpha);
+					//	inv_alpha = MIN(1, inv_alpha);
+
+					//	screen_ptr[xi] = ( inv_alpha << FIXP24_SHIFT )  + 
+					//	( ( alpha_table_src2[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table[last_alpha][( ui >> FIXP16_SHIFT )] ) << 16 ) + 
+					//	( ( alpha_table_src2[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table[last_alpha][( vi >> FIXP16_SHIFT )] ) << 8 ) + 
+					//	( alpha_table_src2[( screen_ptr[xi] ) & 0xff] + alpha_table[last_alpha][( wi >> FIXP16_SHIFT )] );
+
+					//	z_ptr[xi] = zi;
+					//}
 
 					ui+=du;
 					vi+=dv;
@@ -24758,13 +24819,43 @@ void Draw_Gouraud_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * vi
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = 0xff000000 + 
+						screen_ptr[xi] = ( alpha << FIXP24_SHIFT ) + 
 						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[( ui >> FIXP16_SHIFT )] ) << 16 ) + 
 						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[( vi >> FIXP16_SHIFT )] ) << 8 ) + 
 						( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[( wi >> FIXP16_SHIFT )] );
 
 						z_ptr[xi] = zi;
 					}
+					//if (zi > z_ptr[xi])
+					//{
+					//	last_alpha = ( screen_ptr[xi] >> FIXP24_SHIFT ) & 0xff;
+					//	inv_alpha = curr_alpha + last_alpha - 255;
+
+					//	inv_alpha = MAX(0, inv_alpha);
+					//	inv_alpha = MIN(1, inv_alpha);
+
+					//	screen_ptr[xi] = ( inv_alpha << FIXP24_SHIFT ) + 
+					//	( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[( ui >> FIXP16_SHIFT )] ) << 16 ) + 
+					//	( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[( vi >> FIXP16_SHIFT )] ) << 8 ) + 
+					//	( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[( wi >> FIXP16_SHIFT )] );
+
+					//	z_ptr[xi] = zi;
+					//}
+					//else
+					//{
+					//	last_alpha = ( screen_ptr[xi] >> FIXP24_SHIFT ) & 0xff;
+					//	inv_alpha = curr_alpha + last_alpha - 255;
+
+					//	inv_alpha = MAX(0, inv_alpha);
+					//	inv_alpha = MIN(1, inv_alpha);
+
+					//	screen_ptr[xi] = ( inv_alpha << FIXP24_SHIFT )  + 
+					//	( ( alpha_table_src2[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table[last_alpha][( ui >> FIXP16_SHIFT )] ) << 16 ) + 
+					//	( ( alpha_table_src2[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table[last_alpha][( vi >> FIXP16_SHIFT )] ) << 8 ) + 
+					//	( alpha_table_src2[( screen_ptr[xi] ) & 0xff] + alpha_table[last_alpha][( wi >> FIXP16_SHIFT )] );
+
+					//	z_ptr[xi] = zi;
+					//}
 
 					ui+=du;
 					vi+=dv;
@@ -24873,13 +24964,43 @@ void Draw_Gouraud_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * vi
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = 0xff000000 + 
+						screen_ptr[xi] = ( alpha << FIXP24_SHIFT ) + 
 						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[( ui >> FIXP16_SHIFT )] ) << 16 ) + 
 						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[( vi >> FIXP16_SHIFT )] ) << 8 ) + 
 						( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[( wi >> FIXP16_SHIFT )] );
 
 						z_ptr[xi] = zi;
 					}
+					//if (zi > z_ptr[xi])
+					//{
+					//	last_alpha = ( screen_ptr[xi] >> FIXP24_SHIFT ) & 0xff;
+					//	inv_alpha = curr_alpha + last_alpha - 255;
+
+					//	inv_alpha = MAX(0, inv_alpha);
+					//	inv_alpha = MIN(1, inv_alpha);
+
+					//	screen_ptr[xi] = ( inv_alpha << FIXP24_SHIFT ) + 
+					//	( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[( ui >> FIXP16_SHIFT )] ) << 16 ) + 
+					//	( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[( vi >> FIXP16_SHIFT )] ) << 8 ) + 
+					//	( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[( wi >> FIXP16_SHIFT )] );
+
+					//	z_ptr[xi] = zi;
+					//}
+					//else
+					//{
+					//	last_alpha = ( screen_ptr[xi] >> FIXP24_SHIFT ) & 0xff;
+					//	inv_alpha = curr_alpha + last_alpha - 255;
+
+					//	inv_alpha = MAX(0, inv_alpha);
+					//	inv_alpha = MIN(1, inv_alpha);
+
+					//	screen_ptr[xi] = ( inv_alpha << FIXP24_SHIFT )  + 
+					//	( ( alpha_table_src2[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table[last_alpha][( ui >> FIXP16_SHIFT )] ) << 16 ) + 
+					//	( ( alpha_table_src2[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table[last_alpha][( vi >> FIXP16_SHIFT )] ) << 8 ) + 
+					//	( alpha_table_src2[( screen_ptr[xi] ) & 0xff] + alpha_table[last_alpha][( wi >> FIXP16_SHIFT )] );
+
+					//	z_ptr[xi] = zi;
+					//}
 
 					ui+=du;
 					vi+=dv;
