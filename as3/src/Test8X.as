@@ -66,7 +66,7 @@ package
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
 			bl.add("asset/earth.jpg", {id:"0"});
-			bl.add("asset/grass1-dry.jpg", {id:"1"});
+			bl.add("asset/texture.jpg", {id:"1"});
 			bl.add("asset/md2/blade_black.jpg", {id:"2"});
 			//bl.add("asset/HighMap.jpg", {id:"3"});
 			bl.start();
@@ -76,8 +76,8 @@ package
 		{
 			bl.removeEventListener(BulkProgressEvent.COMPLETE, init);
 			
-			t0 = new Texture(bl.getBitmapData("2"));
 			t1 = new Texture(bl.getBitmapData("1"));
+			t0 = new Texture(bl.getBitmapData("2"));
 			t0.perspectiveDist = 1000;
 			t1.perspectiveDist = 1000;
 			t1.addressMode = Texture.ADDRESS_MODE_WRAP;
@@ -105,6 +105,11 @@ package
 			m2.diffuse = new ColorTransform(1, 0.6, 0, 0.5);
 			m2.specular = new ColorTransform(0, 0, 0, 1);
 			m2.power = 0;
+			
+			var m3:Material = new Material();
+			m3.ambient = new ColorTransform(.1, .2, .533, 1);
+			m3.diffuse = new ColorTransform(0, 0, 0, 0.5);
+			m3.specular = new ColorTransform(0, 0, 0, 1);
 			
 			lightObj = new Primitives(m, null, RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32);
 			lightObj.toPlane(50, 50, 1, 1);
@@ -139,22 +144,20 @@ package
 			md2.rotationY = -90;
 			md2.scale = 8;
 			
-//			var p:Primitives = new Primitives(m2, null, RenderMode.RENDER_WIREFRAME_TRIANGLE_32);
-//			p.toPlane(150, 150, 1, 1);
-//			p.mesh.octreeDepth = 0;
-//			p.z = 0;
-//			p.y = -10;
-//			p.rotationX = 45;
-//			this.viewport.scene.addChild(p);
+			var p:Primitives = new Primitives(m3, null, RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32);
+			p.toPlane(15000, 15000, 20, 20);
+			p.mesh.octreeDepth = 0;
+			p.rotationX = 90;
+			p.y = -220;
+			this.viewport.scene.addChild(p);
 			
 			terrain = new MeshTerrain(null, m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32);
-			terrain.buildOn(15000, 15000, 3000);
+			terrain.buildOn(28000, 28000, 12000);
 			terrain.mesh.lightEnable = true;
-			terrain.mesh.octreeDepth = 2;
+			terrain.mesh.octreeDepth = 3;
 			terrain.mesh.useMipmap = true;
 			terrain.mesh.mipDist = 4000;
 			terrain.mesh.fogEnable = true;
-//			terrain.mesh.setAttribute(Mesh3D.ALPHA_KEY, 127);
 			terrain.z = 3000;
 			
 			viewport.scene.addChild(terrain);
@@ -219,7 +222,7 @@ package
 				case Keyboard.LEFT:
 				case Keyboard.RIGHT:
 				
-				md2.stop( "stand" );
+				md2.play(true, "stand");
 				
 				break;
 				
@@ -462,6 +465,6 @@ package
 			addChild(tf6);
 		}
 		
-		private var speed:Number = 50;
+		private var speed:Number = 20;
 	}
 }
