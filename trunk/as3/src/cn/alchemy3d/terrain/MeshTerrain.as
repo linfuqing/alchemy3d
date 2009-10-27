@@ -26,9 +26,9 @@ package cn.alchemy3d.terrain
 		
 		public function MeshTerrain( map:BitmapData = null, material:Material = null, texture:Texture = null, renderMode:uint = RenderMode.RENDER_WIREFRAME_TRIANGLE_32 )
 		{
-			var bitmap:BitmapData = map || new BitmapData( 32, 32 );
+			var bitmap:BitmapData = map || new BitmapData( 64, 64 );
 			
-			if ( ! map ) bitmap.perlinNoise(32, 32, 4, Math.random() * 1000, true, true, 7, true);
+			if ( ! map ) bitmap.perlinNoise(64, 64, 4, Math.random() * 1000, true, true, 7, true);
 			
 			_bmPointer = Texture.initializeBitmap(bitmap);
 			
