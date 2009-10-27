@@ -33,7 +33,9 @@ typedef struct Viewport
 
 	struct Camera * camera;
 
-	RenderList * renderList, * tailList;
+	RenderList * renderList;
+
+	RenderList * transList, * tailList;
 
 }Viewport;
 
@@ -82,7 +84,7 @@ Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 	viewport->scene = scene;
 
 	viewport->renderList = initializeRenderList( scene->nFaces + 2 );
-	//viewport->renderList2 = NULL;
+	viewport->transList = initializeRenderList( scene->nFaces + 2 );
 
 	viewport->nRenderList = 0;
 
@@ -92,6 +94,7 @@ Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 //渲染前更新
 void viewport_updateBeforeRender( Viewport * viewport )
 {
+
 #ifdef __NOT_AS3__
 
 	LPDWORD zBuf = ( LPDWORD )viewport->zBuffer;
@@ -131,7 +134,7 @@ INLINE void viewport_updateAfterRender( Viewport * viewport )
 //octreeData	八叉树
 //rl_ptr		当前渲染列表的指针
 //cl_ptr		当前裁剪列表的指针
-void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr )
+void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octreeData, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr, RenderList ** tl_ptr )
 {
 	int j, zCode0, zCode1, zCode2, verts_out, v0, v1, v2;
 	float t1, t2,  xi, yi, ui, vi, x01i, x02i, y01i, y02i, u01i, u02i, v01i, v02i, dx, dy, dz, near = camera->near, far = camera->far;
@@ -518,7 +521,11 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 		if ( NULL == face1 && NULL == face2 )
 		{
 			renderList_push( rl_ptr, face, sceneNode );
-			renderList_push( vl_ptr, face, sceneNode );
+
+			if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32 )
+				renderList_push( tl_ptr, face, sceneNode );
+			else
+				renderList_push( vl_ptr, face, sceneNode );
 
 			mesh->nRenderList ++;
 		}
@@ -528,7 +535,11 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 			if ( NULL != face1 )
 			{
 				renderList_push( rl_ptr, face1, sceneNode );
-				renderList_push( vl_ptr, face1, sceneNode );
+
+				if ( face1->render_mode == RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32 )
+					renderList_push( tl_ptr, face1, sceneNode );
+				else
+					renderList_push( vl_ptr, face1, sceneNode );
 
 				mesh->nRenderList ++;
 			}
@@ -536,7 +547,11 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 			if ( NULL != face2 )
 			{
 				renderList_push( rl_ptr, face2, sceneNode );
-				renderList_push( vl_ptr, face2, sceneNode );
+
+				if ( face2->render_mode == RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32 )
+					renderList_push( tl_ptr, face2, sceneNode );
+				else
+					renderList_push( vl_ptr, face2, sceneNode );
 
 				mesh->nRenderList ++;
 			}
@@ -544,7 +559,7 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 	}
 }
 
-int octree_culling( Camera * camera, SceneNode * sceneNode, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr )
+int octree_culling( Camera * camera, SceneNode * sceneNode, Octree * octree, RenderList ** rl_ptr, RenderList ** cl_ptr, RenderList ** vl_ptr, RenderList ** tl_ptr )
 {
 	int code = 0, noChild = 0;
 
@@ -601,8 +616,12 @@ int octree_culling( Camera * camera, SceneNode * sceneNode, Octree * octree, Ren
 
 				triangle_transform( sceneNode -> entity->world, sceneNode -> entity->projection, face );
 
-				renderList_push( rl_ptr, face, sceneNode );				
-				renderList_push( vl_ptr, face, sceneNode );
+				renderList_push( rl_ptr, face, sceneNode );
+
+				if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32 )
+					renderList_push( tl_ptr, face, sceneNode );
+				else
+					renderList_push( vl_ptr, face, sceneNode );
 
 				sceneNode -> entity->mesh->nRenderList ++;
 			}
@@ -614,31 +633,31 @@ int octree_culling( Camera * camera, SceneNode * sceneNode, Octree * octree, Ren
 		else
 		{
 			//如果有子结点则继续递归
-			if ( octree->tlb )	code = octree_culling( camera, sceneNode, octree->tlb, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->tlb )	code = octree_culling( camera, sceneNode, octree->tlb, rl_ptr, cl_ptr, vl_ptr, tl_ptr );
 			else				noChild |= 0x01;
 
-			if ( octree->tlf )	code = octree_culling( camera, sceneNode, octree->tlf, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->tlf )	code = octree_culling( camera, sceneNode, octree->tlf, rl_ptr, cl_ptr, vl_ptr, tl_ptr );
 			else				noChild |= 0x02;
 
-			if ( octree->trb )	code = octree_culling( camera, sceneNode, octree->trb, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->trb )	code = octree_culling( camera, sceneNode, octree->trb, rl_ptr, cl_ptr, vl_ptr, tl_ptr );
 			else				noChild |= 0x04;
 
-			if ( octree->trf )	code = octree_culling( camera, sceneNode, octree->trf, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->trf )	code = octree_culling( camera, sceneNode, octree->trf, rl_ptr, cl_ptr, vl_ptr, tl_ptr );
 			else				noChild |= 0x08;
 
-			if ( octree->blb )	code = octree_culling( camera, sceneNode, octree->blb, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->blb )	code = octree_culling( camera, sceneNode, octree->blb, rl_ptr, cl_ptr, vl_ptr, tl_ptr );
 			else				noChild |= 0x10;
 
-			if ( octree->blf )	code = octree_culling( camera, sceneNode, octree->blf, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->blf )	code = octree_culling( camera, sceneNode, octree->blf, rl_ptr, cl_ptr, vl_ptr, tl_ptr );
 			else				noChild |= 0x20;
 
-			if ( octree->brb )	code = octree_culling( camera, sceneNode, octree->brb, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->brb )	code = octree_culling( camera, sceneNode, octree->brb, rl_ptr, cl_ptr, vl_ptr, tl_ptr );
 			else				noChild |= 0x40;
 
-			if ( octree->brf )	code = octree_culling( camera, sceneNode, octree->brf, rl_ptr, cl_ptr, vl_ptr );
+			if ( octree->brf )	code = octree_culling( camera, sceneNode, octree->brf, rl_ptr, cl_ptr, vl_ptr, tl_ptr );
 			else				noChild |= 0x80;
 
-			if ( noChild == 0xff ) frustumClipping( camera, sceneNode, octree->data, rl_ptr, cl_ptr, vl_ptr );
+			if ( noChild == 0xff ) frustumClipping( camera, sceneNode, octree->data, rl_ptr, cl_ptr, vl_ptr, tl_ptr );
 		}
 	}
 
@@ -965,9 +984,6 @@ void viewport_lightting( Viewport * viewport )
 					}
 				}
 
-				//viewport->renderList2 = renderList;
-				//viewport->renderList2++;
-
 				viewport->nRenderList ++ ;
 				renderList = renderList->next;
 			}
@@ -983,7 +999,7 @@ void viewport_project( Viewport * viewport, int time )
 	SceneNode * sceneNode;
 	Camera * camera;
 	Entity * entity;
-	RenderList * rl, * cl, * vl;
+	RenderList * rl, * cl, * vl, * tl;
 
 	scene = viewport->scene;
 	camera = viewport->camera;
@@ -1009,6 +1025,7 @@ void viewport_project( Viewport * viewport, int time )
 	}
 
 	vl = viewport->renderList->next;
+	tl = viewport->transList->next;
 	
 	sceneNode = scene->nodes;
 
@@ -1018,7 +1035,7 @@ void viewport_project( Viewport * viewport, int time )
 
 		entity_updateTransform(entity);
 
-		if ( entity->mesh && entity -> mesh -> nFaces && entity -> mesh -> nVertices )
+		if ( entity->mesh && entity->mesh->nFaces && entity->mesh->nVertices )
 		{
 			//重新计算法向量以及构造八叉树（如果顶点是静态的只会执行一次）
 			mesh_updateMesh( entity->mesh );
@@ -1035,7 +1052,7 @@ void viewport_project( Viewport * viewport, int time )
 			cl = entity->mesh->clippedList->next;
 
 			//八叉
-			if ( ! octree_culling( camera, sceneNode, entity->mesh->octree, & rl, & cl, & vl ) )
+			if ( ! octree_culling( camera, sceneNode, entity->mesh->octree, & rl, & cl, & vl, &tl ) )
 			{
 				sceneNode = sceneNode->next;
 
@@ -1043,7 +1060,7 @@ void viewport_project( Viewport * viewport, int time )
 			}
 		}
 
-		viewport->tailList = vl->pre;
+		viewport->tailList = tl->pre;
 
 		sceneNode = sceneNode->next;
 	}
@@ -1059,7 +1076,7 @@ void viewport_render( Viewport * viewport )
 	RenderList * rl;
 	Triangle * face;
 
-	renderList_qSort( viewport->renderList, viewport->renderList->next, viewport->tailList );
+	//renderList_qSort( viewport->renderList, viewport->renderList->next, viewport->tailList );
 
 	rl = viewport->renderList->next;
 
@@ -1252,12 +1269,6 @@ void viewport_render( Viewport * viewport )
 				}
 #endif
 				break;
-
-			case RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32:
-
-				Draw_Gouraud_Triangle_INVZB_Alpha_32( face, viewport );
-
-				break;
 			}
 		}
 		else
@@ -1317,7 +1328,30 @@ void viewport_render( Viewport * viewport )
 		face->vertex[2]->transformed = FALSE;
 
 		rl->polygon = NULL;
-		rl->k = 0;
+
+		rl = rl->next;
+	}
+
+	rl = viewport->transList->next;
+
+	while( rl && rl->polygon )
+	{
+		face = rl->polygon;
+
+		switch ( face->render_mode )
+		{
+			case RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32:
+
+				Draw_Gouraud_Triangle_INVZB_Alpha_32( face, viewport );
+
+				break;
+		}
+
+		face->vertex[0]->transformed = FALSE;
+		face->vertex[1]->transformed = FALSE;
+		face->vertex[2]->transformed = FALSE;
+
+		rl->polygon = NULL;
 
 		rl = rl->next;
 	}

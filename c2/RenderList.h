@@ -8,8 +8,6 @@
 
 typedef struct RenderList
 {
-	int k;
-
 	Triangle * polygon;
 	struct SceneNode  * parent;
 
@@ -35,8 +33,6 @@ RenderList * initializeRenderList( int number )
 
 		lastRenderList->parent  = NULL;
 
-		lastRenderList->k = 0;
-
 		lastRenderList->next = lastRenderList + 1;
 
 		lastRenderList->pre = lastRenderList - 1;
@@ -61,15 +57,11 @@ INLINE void renderList_extendRenderList( RenderList ** rl_ptr, int length )
 
 	newRL->pre = * rl_ptr;
 
-	newRL->k = (* rl_ptr)->k + 1;
-
 	(* rl_ptr)->next = newRL;
 }
 
 INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face, struct SceneNode * parent )
 {
-	( * rl_ptr )->k = ( * rl_ptr )->pre->k + 1;
-
 	//如果到达渲染列表尾部，则插入NUM_PER_RL_INIT个新的结点(注意保留表尾)
 	if ( NULL == (* rl_ptr)->next ) renderList_extendRenderList( rl_ptr, NUM_PER_RL_INIT );
 
@@ -97,8 +89,9 @@ RenderList * renderList_qPartition( RenderList * pstHead, RenderList * pstLow, R
 
 	while ( pstLow != pstHigh )
 	{
+		//由近到远排序
 		//从后面往前换
-		while ( pstLow != pstHigh && pstHigh->polygon->depth <= pivot )
+		while ( pstLow != pstHigh && pstHigh->polygon->depth >= pivot )
 		{
 			pstHigh = pstHigh->pre;
 		}
@@ -107,7 +100,7 @@ RenderList * renderList_qPartition( RenderList * pstHead, RenderList * pstLow, R
 		pstLow->polygon = pstHigh->polygon;
 		pstHigh->polygon = iTmp;
 		//从前往后换
-		while ( pstLow != pstHigh && pstLow->polygon->depth >= pivot )
+		while ( pstLow != pstHigh && pstLow->polygon->depth <= pivot )
 		{
 			pstLow = pstLow->next;
 		}
