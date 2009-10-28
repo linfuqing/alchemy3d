@@ -522,7 +522,9 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 		{
 			renderList_push( rl_ptr, face, sceneNode );
 
-			if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32 )
+			if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32 ||
+				 face->render_mode == RENDER_TRIANGLE_FSINVZB_ALPHA_32 || 
+				 face->render_mode == RENDER_TRIANGLE_GSINVZB_ALPHA_32 )
 				renderList_push( tl_ptr, face, sceneNode );
 			else
 				renderList_push( vl_ptr, face, sceneNode );
@@ -536,7 +538,9 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 			{
 				renderList_push( rl_ptr, face1, sceneNode );
 
-				if ( face1->render_mode == RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32 )
+				if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32 ||
+					 face->render_mode == RENDER_TRIANGLE_FSINVZB_ALPHA_32 || 
+					 face->render_mode == RENDER_TRIANGLE_GSINVZB_ALPHA_32 )
 					renderList_push( tl_ptr, face1, sceneNode );
 				else
 					renderList_push( vl_ptr, face1, sceneNode );
@@ -548,7 +552,9 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 			{
 				renderList_push( rl_ptr, face2, sceneNode );
 
-				if ( face2->render_mode == RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32 )
+				if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32 ||
+					 face->render_mode == RENDER_TRIANGLE_FSINVZB_ALPHA_32 || 
+					 face->render_mode == RENDER_TRIANGLE_GSINVZB_ALPHA_32 )
 					renderList_push( tl_ptr, face2, sceneNode );
 				else
 					renderList_push( vl_ptr, face2, sceneNode );
@@ -618,7 +624,9 @@ int octree_culling( Camera * camera, SceneNode * sceneNode, Octree * octree, Ren
 
 				renderList_push( rl_ptr, face, sceneNode );
 
-				if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32 )
+				if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32 ||
+					 face->render_mode == RENDER_TRIANGLE_FSINVZB_ALPHA_32 || 
+					 face->render_mode == RENDER_TRIANGLE_GSINVZB_ALPHA_32 )
 					renderList_push( tl_ptr, face, sceneNode );
 				else
 					renderList_push( vl_ptr, face, sceneNode );
@@ -962,9 +970,9 @@ void viewport_lightting( Viewport * viewport )
 
 						bitmap = face->texture->mipmaps[miplevel];
 
-						if ( miplevel != face->miplevel || ! face->uvTransformed )
+						if ( miplevel != face->miplevel || ! face->uvTransformed || mesh->uvDirty )
 						{
-							triangle_setUV( face, bitmap->width, bitmap->height, face->texture->addressMode );
+							triangle_setUV( face, aabb_lengthX( mesh->octree->data->aabb ), aabb_lengthY( mesh->octree->data->aabb ), bitmap->width, bitmap->height, mesh->addressMode );
 
 							face->miplevel = miplevel;
 
@@ -975,9 +983,9 @@ void viewport_lightting( Viewport * viewport )
 					{
 						bitmap = face->texture->mipmaps[0];
 
-						if ( ! face->uvTransformed )
+						if ( ! face->uvTransformed || mesh->uvDirty )
 						{
-							triangle_setUV( face, bitmap->width, bitmap->height, face->texture->addressMode );
+							triangle_setUV( face, aabb_lengthX( mesh->octree->data->aabb ), aabb_lengthY( mesh->octree->data->aabb ), bitmap->width, bitmap->height, mesh->addressMode );
 
 							face->uvTransformed = TRUE;
 						}
@@ -1269,6 +1277,12 @@ void viewport_render( Viewport * viewport )
 				}
 #endif
 				break;
+
+			case RENDER_TEXTRUED_TRIANGLE_INVZB_ADDR_32:
+
+				Draw_Textured_Triangle_INVZB_ADDR_32( face, viewport );
+
+				break;
 			}
 		}
 		else
@@ -1314,12 +1328,6 @@ void viewport_render( Viewport * viewport )
 				Draw_Gouraud_Triangle_INVZB_32( face, viewport );
 #endif
 				break;
-
-			case RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32:
-
-				Draw_Gouraud_Triangle_INVZB_Alpha_32( face, viewport );
-
-				break;
 			}
 		}
 
@@ -1340,9 +1348,21 @@ void viewport_render( Viewport * viewport )
 
 		switch ( face->render_mode )
 		{
-			case RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32:
+			case RENDER_TRIANGLE_FSINVZB_ALPHA_32:
+
+				Draw_Flat_Triangle_INVZB_Alpha_32( face, viewport );
+
+				break;
+
+			case RENDER_TRIANGLE_GSINVZB_ALPHA_32:
 
 				Draw_Gouraud_Triangle_INVZB_Alpha_32( face, viewport );
+
+				break;
+
+			case RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32:
+
+				Draw_Textured_Triangle_INVZB_Alpha_32( face, viewport );
 
 				break;
 		}

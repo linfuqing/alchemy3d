@@ -7,10 +7,6 @@
 #include "Primitives.h"
 #include "Bitmap.h"
 
-#define TERRAIN_ADDRESS_MODE_NONE		0
-#define TERRAIN_ADDRESS_MODE_WRAP		1
-#define TERRAIN_ADDRESS_MODE_MIRROR		2
-
 Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, float maxHeight,  Material * material, Texture * texture, DWORD render_mode, int addressMode )
 {
 	DWORD i;
@@ -51,7 +47,7 @@ Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, flo
 		//base->vertices[i]->position->y = - base->vertices[i]->position->y;
 	}
 
-	if( addressMode == TERRAIN_ADDRESS_MODE_WRAP )
+	/*if( addressMode == TERRAIN_ADDRESS_MODE_WRAP )
 	{
 		for( i = 0; i < base -> mesh -> nFaces; i += 2 )
 		{
@@ -80,7 +76,7 @@ Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, flo
 			j, k = 0;
 
 		float vx0, vx1, vx2, vx3, 
-			  vy0, vy1, vy2, vy3;
+			vy0, vy1, vy2, vy3;
 
 		for(  i = 0; i < widthSegments; i ++ )
 		{
@@ -142,7 +138,7 @@ Entity * newTerrain( Entity * base, Bitmap * map, float width, float height, flo
 				k ++;
 			}
 		}
-	}
+	}*/
 
 	/*if( address )
 	{

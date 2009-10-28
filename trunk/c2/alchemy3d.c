@@ -332,7 +332,8 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 	if( ( vp = ( Vector3D * *   )malloc( sizeof( Vector3D * ) * mesh -> nVertices ) ) == NULL )
 	{
-		return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth );
+		return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+							mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->uvDirty, & mesh->octree_depth, & mesh->addressMode );
 	}
 
 	for( i = 0; i < mesh -> nVertices; i ++ )
@@ -340,7 +341,8 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 		vp[i] = mesh -> vertices[i]->position;
 	}
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth, & vp );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+						mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->uvDirty, & mesh->octree_depth, & mesh->addressMode, & vp );
 }
 
 AS3_Val setMeshAttribute( void* self, AS3_Val args )
@@ -669,7 +671,7 @@ AS3_Val initializeTexture( void* self, AS3_Val args )
 
 	texture = newTexture( name );
 
-	return AS3_Array( "PtrType, PtrType, PtrType", texture, & texture->perspective_dist, & texture -> addressMode );
+	return AS3_Array( "PtrType, PtrType", texture, & texture->perspective_dist );
 }
 
 AS3_Val setMipmap( void* self, AS3_Val args )

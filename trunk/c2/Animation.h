@@ -383,6 +383,7 @@ Animation * newTextureCoordinatesAnimation( Mesh * parent, float widthSegment, f
 
 	a -> type          = TextureCoordinates;
 	a -> parent        = parent;
+	a -> next			= NULL;
 
 	return a;
 }
