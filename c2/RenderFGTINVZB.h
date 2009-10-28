@@ -12091,7 +12091,7 @@ void Draw_Textured_Triangle_FOG_GSINVZB_16( Triangle * face, struct Viewport * v
 }
 
 #else
-void Draw_Flat_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )// bytes per line of zbuffer
+void Draw_Flat_Triangle_INVZB_32( Triangle * face, struct Viewport * viewport )
 {
 	BYTE * _dest_buffer = viewport->videoBuffer;
 	BYTE * _zbuffer = viewport->zBuffer;
@@ -13601,6 +13601,7 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
+		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -13888,7 +13889,13 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -13945,7 +13952,13 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -14178,7 +14191,13 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -14277,7 +14296,13 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -15371,6 +15396,7 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
+		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -15662,7 +15688,13 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[(ui >> (FIXP16_SHIFT)) + ((vi >> (FIXP16_SHIFT)) << texture_shift2)];
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -15728,7 +15760,13 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[(ui >> (FIXP16_SHIFT)) + ((vi >> (FIXP16_SHIFT)) << texture_shift2)];
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -15971,7 +16009,13 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[(ui >> (FIXP16_SHIFT)) + ((vi >> (FIXP16_SHIFT)) << texture_shift2)];
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -16081,7 +16125,13 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[(ui >> (FIXP16_SHIFT)) + ((vi >> (FIXP16_SHIFT)) << texture_shift2)];
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -16181,7 +16231,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	int dx,dy,dyl,dyr,
 		dr,dg,db,dz, ds, dt,
 		xi,yi,
-		ri,gi,bi,si,ti,
+		ri,gi,bi,si,ti,sii,tii,
 		xstart,
 		xend,
 		ystart,
@@ -16221,10 +16271,6 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	int x0,y0,tr0,tg0,tb0, tz0, ts0,tt0,
 		x1,y1,tr1,tg1,tb1, tz1, ts1,tt1,
 		x2,y2,tr2,tg2,tb2, tz2, ts2,tt2;
-
-	int r_base0, g_base0, b_base0,
-		r_base1, g_base1, b_base1,
-		r_base2, g_base2, b_base2;
 
 	int texture_shift2;
 
@@ -16310,28 +16356,12 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 		tri_type = TRI_TYPE_GENERAL;
 	}
 
-	r_base0 = face->vertex[v0]->color->red;
-	g_base0 = face->vertex[v0]->color->green;
-	b_base0 = face->vertex[v0]->color->blue;
-
-	r_base1 = face->vertex[v1]->color->red;
-	g_base1 = face->vertex[v1]->color->green;
-	b_base1 = face->vertex[v1]->color->blue;
-
-	r_base2 = face->vertex[v2]->color->red;
-	g_base2 = face->vertex[v2]->color->green;
-	b_base2 = face->vertex[v2]->color->blue;
-
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
 
 	tz0 = face->vertex[v0]->fix_inv_z;
 	ts0 = (int)(face->t_uv[v0]->u);
 	tt0 = (int)(face->t_uv[v0]->v);
-
-	tr0 = r_base0;
-	tg0 = g_base0;
-	tb0 = b_base0;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
@@ -16340,10 +16370,6 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	ts1 = (int)(face->t_uv[v1]->u);
 	tt1 = (int)(face->t_uv[v1]->v);
 
-	tr1 = r_base1;
-	tg1 = g_base1;
-	tb1 = b_base1;
-
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
 
@@ -16351,12 +16377,20 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 	ts2 = (int)(face->t_uv[v2]->u);
 	tt2 = (int)(face->t_uv[v2]->v);
 
-	tr2 = r_base2;
-	tg2 = g_base2;
-	tb2 = b_base2;
-
 	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
 		return;
+
+	tr0 = face->vertex[v0]->color->red;
+	tg0 = face->vertex[v0]->color->green;
+	tb0 = face->vertex[v0]->color->blue;
+
+	tr1 = face->vertex[v1]->color->red;
+	tg1 = face->vertex[v1]->color->green;
+	tb1 = face->vertex[v1]->color->blue;
+
+	tr2 = face->vertex[v2]->color->red;
+	tg2 = face->vertex[v2]->color->green;
+	tb2 = face->vertex[v2]->color->blue;
 
 	yrestart = y1;
 
@@ -16581,7 +16615,13 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
+						sii = si >> FIXP16_SHIFT;
+						tii = ti >> FIXP16_SHIFT;
+
+						sii -= (sii >> texture_shift2) << texture_shift2;
+						tii -= (tii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[sii + (tii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -16674,7 +16714,13 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
+						sii = si >> FIXP16_SHIFT;
+						tii = ti >> FIXP16_SHIFT;
+
+						sii -= (sii >> texture_shift2) << texture_shift2;
+						tii -= (tii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[sii + (tii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -16687,6 +16733,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 
 						z_ptr[xi] = zi;
 					}
+
 					ri+=dr;
 					gi+=dg;
 					bi+=db;
@@ -17039,7 +17086,13 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
+						sii = si >> FIXP16_SHIFT;
+						tii = ti >> FIXP16_SHIFT;
+
+						sii -= (sii >> texture_shift2) << texture_shift2;
+						tii -= (tii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[sii + (tii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -17052,6 +17105,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 
 						z_ptr[xi] = zi;
 					}
+
 					ri+=dr;
 					gi+=dg;
 					bi+=db;
@@ -17199,7 +17253,13 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
+						sii = si >> FIXP16_SHIFT;
+						tii = ti >> FIXP16_SHIFT;
+
+						sii -= (sii >> texture_shift2) << texture_shift2;
+						tii -= (tii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[sii + (tii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -17212,6 +17272,7 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 
 						z_ptr[xi] = zi;
 					}
+
 					ri+=dr;
 					gi+=dg;
 					bi+=db;
@@ -17335,6 +17396,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
+		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -17619,7 +17681,13 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -17677,8 +17745,13 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
-						//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -17912,8 +17985,13 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
-						//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -18012,8 +18090,13 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
-						//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -18106,6 +18189,7 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct View
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
+		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -18399,7 +18483,13 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[(ui >> FIXP22_SHIFT) + ((vi >> FIXP22_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP22_SHIFT;
+						vii = vi >> FIXP22_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -18463,7 +18553,13 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[(ui >> FIXP22_SHIFT) + ((vi >> FIXP22_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP22_SHIFT;
+						vii = vi >> FIXP22_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -18704,7 +18800,13 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[(ui >> FIXP22_SHIFT) + ((vi >> FIXP22_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP22_SHIFT;
+						vii = vi >> FIXP22_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -18809,7 +18911,13 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						screen_ptr[xi] = textmap[(ui >> FIXP22_SHIFT) + ((vi >> FIXP22_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP22_SHIFT;
+						vii = vi >> FIXP22_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
 
 						z_ptr[xi] = zi;
 					}
@@ -18902,6 +19010,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
+		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -19194,7 +19303,13 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -19262,7 +19377,13 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -19505,7 +19626,13 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -19613,7 +19740,13 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -19716,6 +19849,7 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
+		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -20016,7 +20150,13 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ (ui >> FIXP22_SHIFT) + ( (vi >> FIXP22_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP22_SHIFT;
+						vii = vi >> FIXP22_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -20090,7 +20230,13 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ (ui >> FIXP22_SHIFT) + ( (vi >> FIXP22_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP22_SHIFT;
+						vii = vi >> FIXP22_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -20339,7 +20485,13 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ (ui >> FIXP22_SHIFT) + ( (vi >> FIXP22_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP22_SHIFT;
+						vii = vi >> FIXP22_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -20453,7 +20605,13 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ (ui >> FIXP22_SHIFT) + ( (vi >> FIXP22_SHIFT) << texture_shift2)];
+						uii = ui >> FIXP22_SHIFT;
+						vii = vi >> FIXP22_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -20555,6 +20713,7 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
+		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -20593,10 +20752,6 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 	int x0,y0,tr0,tg0,tb0,tu0,tv0,tz0,
 		x1,y1,tr1,tg1,tb1,tu1,tv1,tz1,
 		x2,y2,tr2,tg2,tb2,tu2,tv2,tz2;
-
-	int r_base0, g_base0, b_base0,
-		r_base1, g_base1, b_base1,
-		r_base2, g_base2, b_base2;
 
 	int texture_shift2;
 
@@ -20681,47 +20836,38 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 		tri_type = TRI_TYPE_GENERAL;
 	}
 
-	r_base0 = face->vertex[v0]->color->red;
-	g_base0 = face->vertex[v0]->color->green;
-	b_base0 = face->vertex[v0]->color->blue;
-
-	r_base1 = face->vertex[v1]->color->red;
-	g_base1 = face->vertex[v1]->color->green;
-	b_base1 = face->vertex[v1]->color->blue;
-
-	r_base2 = face->vertex[v2]->color->red;
-	g_base2 = face->vertex[v2]->color->green;
-	b_base2 = face->vertex[v2]->color->blue;
-
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
 	tu0 = ((int)(face->t_uv[v0]->u + 0.5f) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
 	tv0 = ((int)(face->t_uv[v0]->v + 0.5f) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
 	tz0 = face->vertex[v0]->fix_inv_z;
-	tr0 = r_base0;
-	tg0 = g_base0;
-	tb0 = b_base0;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
 	tu1 = ((int)(face->t_uv[v1]->u + 0.5f) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
 	tv1 = ((int)(face->t_uv[v1]->v + 0.5f) << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
 	tz1 = face->vertex[v1]->fix_inv_z;
-	tr1 = r_base1;
-	tg1 = g_base1;
-	tb1 = b_base1;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
 	tu2 = ((int)(face->t_uv[v2]->u + 0.5f) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
 	tv2 = ((int)(face->t_uv[v2]->v + 0.5f) << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
 	tz2 = face->vertex[v2]->fix_inv_z;
-	tr2 = r_base2;
-	tg2 = g_base2;
-	tb2 = b_base2;
 
 	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
 		return;
+
+	tr0 = face->vertex[v0]->color->red;
+	tg0 = face->vertex[v0]->color->green;
+	tb0 = face->vertex[v0]->color->blue;
+
+	tr1 = face->vertex[v1]->color->red;
+	tg1 = face->vertex[v1]->color->green;
+	tb1 = face->vertex[v1]->color->blue;
+
+	tr2 = face->vertex[v2]->color->red;
+	tg2 = face->vertex[v2]->color->green;
+	tb2 = face->vertex[v2]->color->blue;
 
 	yrestart = y1;
 
@@ -20939,7 +21085,13 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -21029,7 +21181,13 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -21384,7 +21542,13 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -21540,7 +21704,13 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
 
 						r_textel = ((textel >> 16) & 0xff );
 						g_textel = ((textel >> 8) & 0xff);
@@ -21679,6 +21849,7 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 		du,dv,dz,
 		xi,yi,
 		ui,vi,
+		uii,vii,
 		xstart,
 		xend,
 		ystart,
@@ -21806,22 +21977,6 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 		tri_type = TRI_TYPE_GENERAL;
 	}
 
-	tr0 = face->vertex[v0]->color->red;
-	tg0 = face->vertex[v0]->color->green;
-	tb0 = face->vertex[v0]->color->blue;
-
-	tr1 = face->vertex[v1]->color->red;
-	tg1 = face->vertex[v1]->color->green;
-	tb1 = face->vertex[v1]->color->blue;
-
-	tr2 = face->vertex[v2]->color->red;
-	tg2 = face->vertex[v2]->color->green;
-	tb2 = face->vertex[v2]->color->blue;
-
-	f_r = fog->global->red;
-	f_g = fog->global->green;
-	f_b = fog->global->blue;
-
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
 	tu0 = ((int)(face->t_uv[v0]->u + 0.5f) << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
@@ -21842,6 +21997,22 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 
 	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
 		return;
+
+	tr0 = face->vertex[v0]->color->red;
+	tg0 = face->vertex[v0]->color->green;
+	tb0 = face->vertex[v0]->color->blue;
+
+	tr1 = face->vertex[v1]->color->red;
+	tg1 = face->vertex[v1]->color->green;
+	tb1 = face->vertex[v1]->color->blue;
+
+	tr2 = face->vertex[v2]->color->red;
+	tg2 = face->vertex[v2]->color->green;
+	tb2 = face->vertex[v2]->color->blue;
+
+	f_r = fog->global->red;
+	f_g = fog->global->green;
+	f_b = fog->global->blue;
 
 	yrestart = y1;
 
@@ -22069,7 +22240,13 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 						}
 						else
 						{
-							textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+							uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+							vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+							uii -= (uii >> texture_shift2) << texture_shift2;
+							vii -= (vii >> texture_shift2) << texture_shift2;
+
+							textel = textmap[uii + (vii << texture_shift2)];
 
 							r_textel = ((textel >> 16) & 0xff );
 							g_textel = ((textel >> 8) & 0xff);
@@ -22178,7 +22355,13 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 						}
 						else
 						{
-							textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+							uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+							vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+							uii -= (uii >> texture_shift2) << texture_shift2;
+							vii -= (vii >> texture_shift2) << texture_shift2;
+
+							textel = textmap[uii + (vii << texture_shift2)];
 
 							r_textel = ((textel >> 16) & 0xff );
 							g_textel = ((textel >> 8) & 0xff);
@@ -22552,7 +22735,13 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 						}
 						else
 						{
-							textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+							uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+							vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+							uii -= (uii >> texture_shift2) << texture_shift2;
+							vii -= (vii >> texture_shift2) << texture_shift2;
+
+							textel = textmap[uii + (vii << texture_shift2)];
 
 							r_textel = ((textel >> 16) & 0xff );
 							g_textel = ((textel >> 8) & 0xff);
@@ -22727,7 +22916,13 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 						}
 						else
 						{
-							textel = textmap[ ((ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) + ( ((vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi) << texture_shift2)];
+							uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+							vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+
+							uii -= (uii >> texture_shift2) << texture_shift2;
+							vii -= (vii >> texture_shift2) << texture_shift2;
+
+							textel = textmap[uii + (vii << texture_shift2)];
 
 							r_textel = ((textel >> 16) & 0xff );
 							g_textel = ((textel >> 8) & 0xff);
@@ -22875,7 +23070,7 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 	int dx,dy,dyl,dyr,
 		dr,dg,db,dz, ds, dt,
 		xi,yi,
-		ri,gi,bi,si,ti,
+		ri,gi,bi,si,ti,sii,tii,
 		xstart,
 		xend,
 		ystart,
@@ -23004,22 +23199,6 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 		tri_type = TRI_TYPE_GENERAL;
 	}
 
-	tr0 = face->vertex[v0]->color->red;
-	tg0 = face->vertex[v0]->color->green;
-	tb0 = face->vertex[v0]->color->blue;
-
-	tr1 = face->vertex[v1]->color->red;
-	tg1 = face->vertex[v1]->color->green;
-	tb1 = face->vertex[v1]->color->blue;
-
-	tr2 = face->vertex[v2]->color->red;
-	tg2 = face->vertex[v2]->color->green;
-	tb2 = face->vertex[v2]->color->blue;
-
-	f_r = fog->global->red;
-	f_g = fog->global->green;
-	f_b = fog->global->blue;
-
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
 
@@ -23043,6 +23222,22 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 
 	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
 		return;
+
+	tr0 = face->vertex[v0]->color->red;
+	tg0 = face->vertex[v0]->color->green;
+	tb0 = face->vertex[v0]->color->blue;
+
+	tr1 = face->vertex[v1]->color->red;
+	tg1 = face->vertex[v1]->color->green;
+	tb1 = face->vertex[v1]->color->blue;
+
+	tr2 = face->vertex[v2]->color->red;
+	tg2 = face->vertex[v2]->color->green;
+	tb2 = face->vertex[v2]->color->blue;
+
+	f_r = fog->global->red;
+	f_g = fog->global->green;
+	f_b = fog->global->blue;
 
 	yrestart = y1;
 
@@ -23277,7 +23472,13 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 						}
 						else
 						{
-							textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
+							sii = si >> FIXP16_SHIFT;
+							tii = ti >> FIXP16_SHIFT;
+
+							sii -= (sii >> texture_shift2) << texture_shift2;
+							tii -= (tii >> texture_shift2) << texture_shift2;
+
+							textel = textmap[sii + (tii << texture_shift2)];
 
 							r_textel = ((textel >> 16) & 0xff );
 							g_textel = ((textel >> 8) & 0xff);
@@ -23389,7 +23590,13 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 						}
 						else
 						{
-							textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
+							sii = si >> FIXP16_SHIFT;
+							tii = ti >> FIXP16_SHIFT;
+
+							sii -= (sii >> texture_shift2) << texture_shift2;
+							tii -= (tii >> texture_shift2) << texture_shift2;
+
+							textel = textmap[sii + (tii << texture_shift2)];
 
 							r_textel = ((textel >> 16) & 0xff );
 							g_textel = ((textel >> 8) & 0xff);
@@ -23772,7 +23979,13 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 						}
 						else
 						{
-							textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
+							sii = si >> FIXP16_SHIFT;
+							tii = ti >> FIXP16_SHIFT;
+
+							sii -= (sii >> texture_shift2) << texture_shift2;
+							tii -= (tii >> texture_shift2) << texture_shift2;
+
+							textel = textmap[sii + (tii << texture_shift2)];
 
 							r_textel = ((textel >> 16) & 0xff );
 							g_textel = ((textel >> 8) & 0xff);
@@ -23951,7 +24164,13 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 						}
 						else
 						{
-							textel = textmap[(si >> FIXP16_SHIFT) + ((ti >> FIXP16_SHIFT) << texture_shift2)];
+							sii = si >> FIXP16_SHIFT;
+							tii = ti >> FIXP16_SHIFT;
+
+							sii -= (sii >> texture_shift2) << texture_shift2;
+							tii -= (tii >> texture_shift2) << texture_shift2;
+
+							textel = textmap[sii + (tii << texture_shift2)];
 
 							r_textel = ((textel >> 16) & 0xff );
 							g_textel = ((textel >> 8) & 0xff);
@@ -24069,6 +24288,645 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 						sr+=dsdyr;
 						tr+=dtdyr;
 					}
+				}
+			}
+		}
+	}
+}
+
+
+void Draw_Flat_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * viewport )
+{
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height;
+
+	int temp=0,
+		v0=0,
+		v1=1,
+		v2=2,
+		tri_type = TRI_TYPE_NONE,
+		irestart = INTERP_LHS;
+
+	int dx,dy,dyl,dyr,
+		dz,
+		xi,yi,
+		xstart,
+		xend,
+		ystart,
+		yrestart,
+		yend,
+		xl,
+		dxdyl,
+		xr,
+		dxdyr,
+		dzdyl,
+		zl,
+		dzdyr,
+		zr;
+
+	DWORD zi;
+
+	int x0,y0,tz0,
+		x1,y1,tz1,
+		x2,y2,tz2;
+
+	DWORD *screen_ptr = NULL,
+		*dest_buffer = (DWORD *)_dest_buffer;
+
+	DWORD *z_ptr = NULL,
+		*zbuffer = (DWORD *)_zbuffer;
+
+	DWORD r, g, b;
+
+	BYTE * alpha_table_src1, * alpha_table_src2, alpha;
+
+	mempitch >>= 2;
+
+	zpitch >>= 2;
+
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.0f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.0f));
+
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.0f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.0f));
+
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.0f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.0f));
+
+	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
+		(face->vertex[1]->s_pos->y < min_clip_y) &&
+		(face->vertex[2]->s_pos->y < min_clip_y)) ||
+
+		((face->vertex[0]->s_pos->y > max_clip_y) &&
+		(face->vertex[1]->s_pos->y > max_clip_y) &&
+		(face->vertex[2]->s_pos->y > max_clip_y)) ||
+
+		((face->vertex[0]->s_pos->x < min_clip_x) &&
+		(face->vertex[1]->s_pos->x < min_clip_x) &&
+		(face->vertex[2]->s_pos->x < min_clip_x)) ||
+
+		((face->vertex[0]->s_pos->x > max_clip_x) &&
+		(face->vertex[1]->s_pos->x > max_clip_x) &&
+		(face->vertex[2]->s_pos->x > max_clip_x)))
+		return;
+
+	if ( face->vertex[v1]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v1,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v2,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v1]->s_pos->y )
+	{
+		SWAP(v1,v2,temp);
+	}
+
+	if (FCMP(face->vertex[v0]->s_pos->y, face->vertex[v1]->s_pos->y) )
+	{
+		tri_type = TRI_TYPE_FLAT_TOP;
+
+		if (face->vertex[v1]->s_pos->x < face->vertex[v0]->s_pos->x)
+		{
+			SWAP(v0,v1,temp);
+		}
+	}
+	else if (FCMP(face->vertex[v1]->s_pos->y ,face->vertex[v2]->s_pos->y))
+	{
+		tri_type = TRI_TYPE_FLAT_BOTTOM;
+
+		if (face->vertex[v2]->s_pos->x < face->vertex[v1]->s_pos->x)
+		{
+			SWAP(v1,v2,temp);
+		}
+	}
+	else
+	{
+		tri_type = TRI_TYPE_GENERAL;
+	}
+
+	x0 = (int)(face->vertex[v0]->s_pos->x);
+	y0 = (int)(face->vertex[v0]->s_pos->y);
+
+	tz0 = face->vertex[v0]->fix_inv_z;
+
+	x1 = (int)(face->vertex[v1]->s_pos->x);
+	y1 = (int)(face->vertex[v1]->s_pos->y);
+
+	tz1 = face->vertex[v1]->fix_inv_z;
+
+	x2 = (int)(face->vertex[v2]->s_pos->x);
+	y2 = (int)(face->vertex[v2]->s_pos->y);
+
+	tz2 = face->vertex[v2]->fix_inv_z;
+
+	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
+		return;
+
+	alpha = face->vertex[v0]->color->alpha;
+
+	alpha_table_src1 = (BYTE *)&alpha_table[255 - alpha];
+	alpha_table_src2 = (BYTE *)&alpha_table[alpha];
+
+	r = face->vertex[v0]->color->red;
+	g = face->vertex[v0]->color->green;
+	b = face->vertex[v0]->color->blue;
+
+	yrestart = y1;
+
+	if (tri_type & TRI_TYPE_FLAT_MASK)
+	{
+
+		if (tri_type == TRI_TYPE_FLAT_TOP)
+		{
+			dy = (y2 - y0);
+
+			dxdyl = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz2 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x1) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz1) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x1 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz1 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x1 << FIXP16_SHIFT);
+
+				zl = (tz0 << 0);
+				zr = (tz1 << 0);
+
+				ystart = y0;
+			}
+		}
+		else
+		{
+			dy = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz1 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz0) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz0 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x0 << FIXP16_SHIFT);
+
+				zl = (tz0 << 0);
+				zr = (tz0 << 0);
+
+				ystart = y0;
+			}
+		}
+
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v,w interpolants
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = ( alpha << FIXP24_SHIFT ) + 
+						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[r] ) << 16 ) + 
+						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[g] ) << 8 ) + 
+						( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[b] );
+
+						z_ptr[xi] = zi;
+					}
+
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v,w interpolants
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = ( alpha << FIXP24_SHIFT ) + 
+						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[r] ) << 16 ) + 
+						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[g] ) << 8 ) + 
+						( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[b] );
+
+						z_ptr[xi] = zi;
+					}
+
+					// interpolate z
+					zi+=dz;
+				}
+
+				// interpolate x,z along right and left edge
+				xl+=dxdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+
+	}
+	else if (tri_type==TRI_TYPE_GENERAL)
+	{
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if (y1 < min_clip_y)
+		{
+			dyl = (y2 - y1);
+
+			dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dyr = (min_clip_y - y0);
+			dyl = (min_clip_y - y1);
+
+			xl = dxdyl*dyl + (x1 << FIXP16_SHIFT);
+			zl = dzdyl*dyl + (tz1 << 0);
+
+			xr = dxdyr*dyr + (x0 << FIXP16_SHIFT);
+			zr = dzdyr*dyr + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr > dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else if (y0 < min_clip_y)
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dy = (min_clip_y - y0);
+
+			xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+			zl = dzdyl*dy + (tz0 << 0);
+
+			xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+			zr = dzdyr*dy + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			xl = (x0 << FIXP16_SHIFT);
+			xr = (x0 << FIXP16_SHIFT);
+
+			zl = (tz0 << 0);
+			zr = (tz0 << 0);
+
+			ystart = y0;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for z interpolants
+				zi = zl;
+
+				// compute z interpolants
+				if ((dx = (xend - xstart))>0)
+				{
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = ( alpha << FIXP24_SHIFT ) + 
+						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[r] ) << 16 ) + 
+						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[g] ) << 8 ) + 
+						( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[b] );
+
+						z_ptr[xi] = zi;
+					}
+
+					// interpolate z
+					zi+=dz;
+				}
+
+				// interpolate z,x along right and left edge
+				xl+=dxdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						zr+=dzdyr;
+					}
+				}
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				zi = zl; // + FIXP16_ROUND_UP;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						screen_ptr[xi] = ( alpha << FIXP24_SHIFT ) + 
+						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table_src2[r] ) << 16 ) + 
+						( ( alpha_table_src1[( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table_src2[g] ) << 8 ) + 
+						( alpha_table_src1[( screen_ptr[xi] ) & 0xff] + alpha_table_src2[b] );
+
+						z_ptr[xi] = zi;
+					}
+
+					// interpolate z
+					zi+=dz;
+				}
+
+				// interpolate x,z along right and left edge
+				xl+=dxdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						zr+=dzdyr;
+					}
+
 				}
 			}
 		}
@@ -25077,6 +25935,1648 @@ void Draw_Gouraud_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * vi
 	}
 }
 
+
+void Draw_Textured_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * viewport )
+{
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height;
+
+	int temp=0,
+		v0=0,
+		v1=1,
+		v2=2,
+		tri_type = TRI_TYPE_NONE,
+		irestart = INTERP_LHS;
+
+	int dx,dy,dyl,dyr,
+		du,dv,dz,
+		xi,yi,
+		ui,vi,
+		uii,vii,
+		xstart,
+		xend,
+		ystart,
+		yrestart,
+		yend,
+		xl,
+		dxdyl,
+		xr,
+		dxdyr,
+		dudyl,
+		ul,
+		dvdyl,
+		vl,
+		dzdyl,
+		zl,
+		dudyr,
+		ur,
+		dvdyr,
+		vr,
+		dzdyr,
+		zr;
+
+	DWORD zi;
+
+	int x0,y0,tu0,tv0,tz0,
+		x1,y1,tu1,tv1,tz1,
+		x2,y2,tu2,tv2,tz2;
+
+	int texture_shift2;
+
+	DWORD *screen_ptr = NULL,
+		*textmap = NULL,
+		*dest_buffer = (DWORD *)_dest_buffer;
+
+	DWORD *z_ptr = NULL,
+		*zbuffer = (DWORD *)_zbuffer;
+
+	DWORD textel;
+
+	BYTE a_textel, r_textel, g_textel, b_textel, alpha;
+
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+
+	mempitch >>= 2;
+
+	zpitch >>= 2;
+
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.0f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.0f));
+
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.0f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.0f));
+
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.0f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.0f));
+
+	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
+		(face->vertex[1]->s_pos->y < min_clip_y) &&
+		(face->vertex[2]->s_pos->y < min_clip_y)) ||
+
+		((face->vertex[0]->s_pos->y > max_clip_y) &&
+		(face->vertex[1]->s_pos->y > max_clip_y) &&
+		(face->vertex[2]->s_pos->y > max_clip_y)) ||
+
+		((face->vertex[0]->s_pos->x < min_clip_x) &&
+		(face->vertex[1]->s_pos->x < min_clip_x) &&
+		(face->vertex[2]->s_pos->x < min_clip_x)) ||
+
+		((face->vertex[0]->s_pos->x > max_clip_x) &&
+		(face->vertex[1]->s_pos->x > max_clip_x) &&
+		(face->vertex[2]->s_pos->x > max_clip_x)))
+		return;
+
+	if ( face->vertex[v1]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v1,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v2,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v1]->s_pos->y )
+	{
+		SWAP(v1,v2,temp);
+	}
+
+	if (FCMP(face->vertex[v0]->s_pos->y, face->vertex[v1]->s_pos->y) )
+	{
+		tri_type = TRI_TYPE_FLAT_TOP;
+
+		if (face->vertex[v1]->s_pos->x < face->vertex[v0]->s_pos->x)
+		{
+			SWAP(v0,v1,temp);
+		}
+	}
+	else if (FCMP(face->vertex[v1]->s_pos->y ,face->vertex[v2]->s_pos->y))
+	{
+		tri_type = TRI_TYPE_FLAT_BOTTOM;
+
+		if (face->vertex[v2]->s_pos->x < face->vertex[v1]->s_pos->x)
+		{
+			SWAP(v1,v2,temp);
+		}
+	}
+	else
+	{
+		tri_type = TRI_TYPE_GENERAL;
+	}
+
+	x0 = (int)( face->vertex[v0]->s_pos->x );
+	y0 = (int)( face->vertex[v0]->s_pos->y );
+	tu0 = (int)( face->t_uv[v0]->u );
+	tv0 = (int)( face->t_uv[v0]->v );
+
+	tz0 = face->vertex[v0]->fix_inv_z;
+
+	x1 = (int)( face->vertex[v1]->s_pos->x );
+	y1 = (int)( face->vertex[v1]->s_pos->y );
+	tu1 = (int)( face->t_uv[v1]->u );
+	tv1 = (int)( face->t_uv[v1]->v );
+
+	tz1 = face->vertex[v1]->fix_inv_z;
+
+	x2 = (int)( face->vertex[v2]->s_pos->x );
+	y2 = (int)( face->vertex[v2]->s_pos->y );
+	tu2 = (int)( face->t_uv[v2]->u );
+	tv2 = (int)( face->t_uv[v2]->v );
+
+	tz2 = face->vertex[v2]->fix_inv_z;
+
+
+	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
+		return;
+
+	yrestart = y1;
+
+	if (tri_type & TRI_TYPE_FLAT_MASK)
+	{
+		if (tri_type == TRI_TYPE_FLAT_TOP)
+		{
+			dy = y2 - y0;
+
+			dxdyl = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dudyl = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyl = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz2 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x1) << FIXP16_SHIFT)/dy;
+			dudyr = ((tu2 - tu1) << FIXP16_SHIFT)/dy;
+			dvdyr = ((tv2 - tv1) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz1) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x1 << FIXP16_SHIFT);
+				ur = dudyr*dy + (tu1 << FIXP16_SHIFT);
+				vr = dvdyr*dy + (tv1 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz1 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x1 << FIXP16_SHIFT);
+
+				ul = (tu0 << FIXP16_SHIFT);
+				vl = (tv0 << FIXP16_SHIFT);
+				zl = (tz0 << 0);
+
+				ur = (tu1 << FIXP16_SHIFT);
+				vr = (tv1 << FIXP16_SHIFT);
+				zr = (tz1 << 0);
+
+				ystart = y0;
+			}
+		}
+		else
+		{
+			dy = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dy;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz1 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz0) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+				ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
+				vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz0 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x0 << FIXP16_SHIFT);
+
+				ul = (tu0 << FIXP16_SHIFT);
+				vl = (tv0 << FIXP16_SHIFT);
+				zl = (tz0 << 0);
+
+				ur = (tu0 << FIXP16_SHIFT);
+				vr = (tv0 << FIXP16_SHIFT);
+				zr = (tz0 << 0);
+
+				ystart = y0;
+			}
+		}
+
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					ui+=dx*du;
+					vi+=dx*dv;
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
+
+						a_textel = ((textel >> 24) & 0xff );
+						r_textel = ((textel >> 16) & 0xff );
+						g_textel = ((textel >> 8) & 0xff);
+						b_textel = (textel & 0xff);
+
+						alpha = 255 - a_textel;
+
+						screen_ptr[xi] = ( a_textel << FIXP24_SHIFT ) + 
+						( ( alpha_table[alpha][( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table[a_textel][r_textel] ) << 16 ) + 
+						( ( alpha_table[alpha][( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table[a_textel][g_textel] ) << 8 ) + 
+						( alpha_table[alpha][( screen_ptr[xi] ) & 0xff] + alpha_table[a_textel][b_textel] );
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
+
+						a_textel = ((textel >> 24) & 0xff );
+						r_textel = ((textel >> 16) & 0xff );
+						g_textel = ((textel >> 8) & 0xff);
+						b_textel = (textel & 0xff);
+
+						alpha = 255 - a_textel;
+
+						screen_ptr[xi] = ( a_textel << FIXP24_SHIFT ) + 
+						( ( alpha_table[alpha][( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table[a_textel][r_textel] ) << 16 ) + 
+						( ( alpha_table[alpha][( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table[a_textel][g_textel] ) << 8 ) + 
+						( alpha_table[alpha][( screen_ptr[xi] ) & 0xff] + alpha_table[a_textel][b_textel] );
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+
+	}
+	else if (tri_type==TRI_TYPE_GENERAL)
+	{
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if (y1 < min_clip_y)
+		{
+			dyl = (y2 - y1);
+
+			dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dyr = (min_clip_y - y0);
+			dyl = (min_clip_y - y1);
+
+			xl = dxdyl*dyl + (x1 << FIXP16_SHIFT);
+			ul = dudyl*dyl + (tu1 << FIXP16_SHIFT);
+			vl = dvdyl*dyl + (tv1 << FIXP16_SHIFT);
+			zl = dzdyl*dyl + (tz1 << 0);
+
+			xr = dxdyr*dyr + (x0 << FIXP16_SHIFT);
+			ur = dudyr*dyr + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr*dyr + (tv0 << FIXP16_SHIFT);
+			zr = dzdyr*dyr + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr > dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else if (y0 < min_clip_y)
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dy = (min_clip_y - y0);
+
+			xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+			ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+			vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+			zl = dzdyl*dy + (tz0 << 0);
+
+			xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+			ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
+			zr = dzdyr*dy + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			xl = (x0 << FIXP16_SHIFT);
+			xr = (x0 << FIXP16_SHIFT);
+
+			ul = (tu0 << FIXP16_SHIFT);
+			vl = (tv0 << FIXP16_SHIFT);
+			zl = (tz0 << 0);
+
+			ur = (tu0 << FIXP16_SHIFT);
+			vr = (tv0 << FIXP16_SHIFT);
+			zr = (tz0 << 0);
+
+			ystart = y0;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					ui+=dx*du;
+					vi+=dx*dv;
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
+
+						a_textel = ((textel >> 24) & 0xff );
+						r_textel = ((textel >> 16) & 0xff );
+						g_textel = ((textel >> 8) & 0xff);
+						b_textel = (textel & 0xff);
+
+						alpha = 255 - a_textel;
+
+						screen_ptr[xi] = ( a_textel << FIXP24_SHIFT ) + 
+						( ( alpha_table[alpha][( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table[a_textel][r_textel] ) << 16 ) + 
+						( ( alpha_table[alpha][( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table[a_textel][g_textel] ) << 8 ) + 
+						( alpha_table[alpha][( screen_ptr[xi] ) & 0xff] + alpha_table[a_textel][b_textel] );
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						ul+=dudyl;
+						vl+=dvdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						ur+=dudyr;
+						vr+=dvdyr;
+						zr+=dzdyr;
+					}
+				}
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						textel = textmap[uii + (vii << texture_shift2)];
+
+						a_textel = ((textel >> 24) & 0xff );
+						r_textel = ((textel >> 16) & 0xff );
+						g_textel = ((textel >> 8) & 0xff);
+						b_textel = (textel & 0xff);
+
+						alpha = 255 - a_textel;
+
+						screen_ptr[xi] = ( a_textel << FIXP24_SHIFT ) + 
+						( ( alpha_table[alpha][( screen_ptr[xi] >> FIXP16_SHIFT ) & 0xff] + alpha_table[a_textel][r_textel] ) << 16 ) + 
+						( ( alpha_table[alpha][( screen_ptr[xi] >> FIXP8_SHIFT ) & 0xff] + alpha_table[a_textel][g_textel] ) << 8 ) + 
+						( alpha_table[alpha][( screen_ptr[xi] ) & 0xff] + alpha_table[a_textel][b_textel] );
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						ul+=dudyl;
+						vl+=dvdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						ur+=dudyr;
+						vr+=dvdyr;
+						zr+=dzdyr;
+					}
+				}
+			}
+		}
+	}
+}
+
+
+//��Ѱַģʽ
+void Draw_Textured_Triangle_INVZB_ADDR_32( Triangle * face, struct Viewport * viewport )
+{
+	BYTE * _dest_buffer = viewport->videoBuffer;
+	BYTE * _zbuffer = viewport->zBuffer;
+
+	int mempitch = viewport->mempitch;
+	int zpitch = viewport->zpitch;
+	int min_clip_x = 0;
+	int max_clip_x = viewport->width;
+	int min_clip_y = 0;
+	int max_clip_y = viewport->height;
+
+	int temp=0,
+		v0=0,
+		v1=1,
+		v2=2,
+		tri_type = TRI_TYPE_NONE,
+		irestart = INTERP_LHS;
+
+	int dx,dy,dyl,dyr,
+		du,dv,dz,
+		xi,yi,
+		ui,vi,
+		uii,vii,
+		xstart,
+		xend,
+		ystart,
+		yrestart,
+		yend,
+		xl,
+		dxdyl,
+		xr,
+		dxdyr,
+		dudyl,
+		ul,
+		dvdyl,
+		vl,
+		dzdyl,
+		zl,
+		dudyr,
+		ur,
+		dvdyr,
+		vr,
+		dzdyr,
+		zr;
+
+	DWORD zi;
+
+	int x0,y0,tu0,tv0,tz0,
+		x1,y1,tu1,tv1,tz1,
+		x2,y2,tu2,tv2,tz2;
+
+	int texture_shift2;
+
+	DWORD *screen_ptr = NULL,
+		*textmap = NULL,
+		*dest_buffer = (DWORD *)_dest_buffer;
+
+	DWORD *z_ptr = NULL,
+		*zbuffer = (DWORD *)_zbuffer;
+
+	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+
+	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+
+	mempitch >>= 2;
+
+	zpitch >>= 2;
+
+	face->vertex[0]->s_pos->x = (float)((int)(face->vertex[0]->s_pos->x + 0.0f));
+	face->vertex[0]->s_pos->y = (float)((int)(face->vertex[0]->s_pos->y + 0.0f));
+
+	face->vertex[1]->s_pos->x = (float)((int)(face->vertex[1]->s_pos->x + 0.0f));
+	face->vertex[1]->s_pos->y = (float)((int)(face->vertex[1]->s_pos->y + 0.0f));
+
+	face->vertex[2]->s_pos->x = (float)((int)(face->vertex[2]->s_pos->x + 0.0f));
+	face->vertex[2]->s_pos->y = (float)((int)(face->vertex[2]->s_pos->y + 0.0f));
+
+	if (((face->vertex[0]->s_pos->y < min_clip_y) &&
+		(face->vertex[1]->s_pos->y < min_clip_y) &&
+		(face->vertex[2]->s_pos->y < min_clip_y)) ||
+
+		((face->vertex[0]->s_pos->y > max_clip_y) &&
+		(face->vertex[1]->s_pos->y > max_clip_y) &&
+		(face->vertex[2]->s_pos->y > max_clip_y)) ||
+
+		((face->vertex[0]->s_pos->x < min_clip_x) &&
+		(face->vertex[1]->s_pos->x < min_clip_x) &&
+		(face->vertex[2]->s_pos->x < min_clip_x)) ||
+
+		((face->vertex[0]->s_pos->x > max_clip_x) &&
+		(face->vertex[1]->s_pos->x > max_clip_x) &&
+		(face->vertex[2]->s_pos->x > max_clip_x)))
+		return;
+
+	if ( face->vertex[v1]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v1,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v0]->s_pos->y )
+	{
+		SWAP(v0,v2,temp);
+	}
+
+	if ( face->vertex[v2]->s_pos->y < face->vertex[v1]->s_pos->y )
+	{
+		SWAP(v1,v2,temp);
+	}
+
+	if (FCMP(face->vertex[v0]->s_pos->y, face->vertex[v1]->s_pos->y) )
+	{
+		tri_type = TRI_TYPE_FLAT_TOP;
+
+		if (face->vertex[v1]->s_pos->x < face->vertex[v0]->s_pos->x)
+		{
+			SWAP(v0,v1,temp);
+		}
+	}
+	else if (FCMP(face->vertex[v1]->s_pos->y ,face->vertex[v2]->s_pos->y))
+	{
+		tri_type = TRI_TYPE_FLAT_BOTTOM;
+
+		if (face->vertex[v2]->s_pos->x < face->vertex[v1]->s_pos->x)
+		{
+			SWAP(v1,v2,temp);
+		}
+	}
+	else
+	{
+		tri_type = TRI_TYPE_GENERAL;
+	}
+
+	x0 = (int)( face->vertex[v0]->s_pos->x );
+	y0 = (int)( face->vertex[v0]->s_pos->y );
+	tu0 = (int)( face->t_uv[v0]->u );
+	tv0 = (int)( face->t_uv[v0]->v );
+
+	tz0 = face->vertex[v0]->fix_inv_z;
+
+	x1 = (int)( face->vertex[v1]->s_pos->x );
+	y1 = (int)( face->vertex[v1]->s_pos->y );
+	tu1 = (int)( face->t_uv[v1]->u );
+	tv1 = (int)( face->t_uv[v1]->v );
+
+	tz1 = face->vertex[v1]->fix_inv_z;
+
+	x2 = (int)( face->vertex[v2]->s_pos->x );
+	y2 = (int)( face->vertex[v2]->s_pos->y );
+	tu2 = (int)( face->t_uv[v2]->u );
+	tv2 = (int)( face->t_uv[v2]->v );
+
+	tz2 = face->vertex[v2]->fix_inv_z;
+
+
+	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
+		return;
+
+	yrestart = y1;
+
+	if (tri_type & TRI_TYPE_FLAT_MASK)
+	{
+		if (tri_type == TRI_TYPE_FLAT_TOP)
+		{
+			dy = y2 - y0;
+
+			dxdyl = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dudyl = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyl = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz2 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x1) << FIXP16_SHIFT)/dy;
+			dudyr = ((tu2 - tu1) << FIXP16_SHIFT)/dy;
+			dvdyr = ((tv2 - tv1) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz1) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x1 << FIXP16_SHIFT);
+				ur = dudyr*dy + (tu1 << FIXP16_SHIFT);
+				vr = dvdyr*dy + (tv1 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz1 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x1 << FIXP16_SHIFT);
+
+				ul = (tu0 << FIXP16_SHIFT);
+				vl = (tv0 << FIXP16_SHIFT);
+				zl = (tz0 << 0);
+
+				ur = (tu1 << FIXP16_SHIFT);
+				vr = (tv1 << FIXP16_SHIFT);
+				zr = (tz1 << 0);
+
+				ystart = y0;
+			}
+		}
+		else
+		{
+			dy = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dy;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dy;
+			dzdyl = ((tz1 - tz0) << 0)/dy;
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dy;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dy;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dy;
+			dzdyr = ((tz2 - tz0) << 0)/dy;
+
+			if (y0 < min_clip_y)
+			{
+				dy = (min_clip_y - y0);
+
+				xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+				ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+				vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+				zl = dzdyl*dy + (tz0 << 0);
+
+				xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+				ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
+				vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
+				zr = dzdyr*dy + (tz0 << 0);
+
+				ystart = min_clip_y;
+			}
+			else
+			{
+				xl = (x0 << FIXP16_SHIFT);
+				xr = (x0 << FIXP16_SHIFT);
+
+				ul = (tu0 << FIXP16_SHIFT);
+				vl = (tv0 << FIXP16_SHIFT);
+				zl = (tz0 << 0);
+
+				ur = (tu0 << FIXP16_SHIFT);
+				vr = (tv0 << FIXP16_SHIFT);
+				zr = (tz0 << 0);
+
+				ystart = y0;
+			}
+		}
+
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					ui+=dx*du;
+					vi+=dx*dv;
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+			}
+		}
+
+	}
+	else if (tri_type==TRI_TYPE_GENERAL)
+	{
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		if (y1 < min_clip_y)
+		{
+			dyl = (y2 - y1);
+
+			dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dyr = (min_clip_y - y0);
+			dyl = (min_clip_y - y1);
+
+			xl = dxdyl*dyl + (x1 << FIXP16_SHIFT);
+			ul = dudyl*dyl + (tu1 << FIXP16_SHIFT);
+			vl = dvdyl*dyl + (tv1 << FIXP16_SHIFT);
+			zl = dzdyl*dyl + (tz1 << 0);
+
+			xr = dxdyr*dyr + (x0 << FIXP16_SHIFT);
+			ur = dudyr*dyr + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr*dyr + (tv0 << FIXP16_SHIFT);
+			zr = dzdyr*dyr + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr > dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else if (y0 < min_clip_y)
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			dy = (min_clip_y - y0);
+
+			xl = dxdyl*dy + (x0 << FIXP16_SHIFT);
+			ul = dudyl*dy + (tu0 << FIXP16_SHIFT);
+			vl = dvdyl*dy + (tv0 << FIXP16_SHIFT);
+			zl = dzdyl*dy + (tz0 << 0);
+
+			xr = dxdyr*dy + (x0 << FIXP16_SHIFT);
+			ur = dudyr*dy + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr*dy + (tv0 << FIXP16_SHIFT);
+			zr = dzdyr*dy + (tz0 << 0);
+
+			ystart = min_clip_y;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+		else
+		{
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT)/dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT)/dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT)/dyl;
+			dzdyl = ((tz1 - tz0) << 0)/dyl;
+
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT)/dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT)/dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT)/dyr;
+			dzdyr = ((tz2 - tz0) << 0)/dyr;
+
+			xl = (x0 << FIXP16_SHIFT);
+			xr = (x0 << FIXP16_SHIFT);
+
+			ul = (tu0 << FIXP16_SHIFT);
+			vl = (tv0 << FIXP16_SHIFT);
+			zl = (tz0 << 0);
+
+			ur = (tu0 << FIXP16_SHIFT);
+			vr = (tv0 << FIXP16_SHIFT);
+			zr = (tz0 << 0);
+
+			ystart = y0;
+
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl,dxdyr,temp);
+				SWAP(dudyl,dudyr,temp);
+				SWAP(dvdyl,dvdyr,temp);
+				SWAP(dzdyl,dzdyr,temp);
+				SWAP(xl,xr,temp);
+				SWAP(ul,ur,temp);
+				SWAP(vl,vr,temp);
+				SWAP(zl,zr,temp);
+				SWAP(x1,x2,temp);
+				SWAP(y1,y2,temp);
+				SWAP(tu1,tu2,temp);
+				SWAP(tv1,tv2,temp);
+				SWAP(tz1,tz2,temp);
+
+				irestart = INTERP_RHS;
+			}
+		}
+
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				}
+
+				///////////////////////////////////////////////////////////////////////
+
+				if (xstart < min_clip_x)
+				{
+					dx = min_clip_x - xstart;
+
+					ui+=dx*du;
+					vi+=dx*dv;
+					zi+=dx*dz;
+
+					xstart = min_clip_x;
+
+				}
+
+				if (xend > max_clip_x)
+					xend = max_clip_x;
+
+				///////////////////////////////////////////////////////////////////////
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						ul+=dudyl;
+						vl+=dvdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						ur+=dudyr;
+						vr+=dvdyr;
+						zr+=dzdyr;
+					}
+				}
+			}
+		}
+		else
+		{
+			screen_ptr = dest_buffer + (ystart * mempitch);
+
+			z_ptr = zbuffer + (ystart * zpitch);
+
+			for (yi = ystart; yi < yend; yi++)
+			{
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+				zi = zl;
+
+				if ((dx = (xend - xstart))>0)
+				{
+					du = (ur - ul)/dx;
+					dv = (vr - vl)/dx;
+					dz = (zr - zl)/dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+					dz = (zr - zl);
+				}
+
+				for (xi=xstart; xi < xend; xi++)
+				{
+					if (zi > z_ptr[xi])
+					{
+						uii = ui >> FIXP16_SHIFT;
+						vii = vi >> FIXP16_SHIFT;
+
+						uii -= (uii >> texture_shift2) << texture_shift2;
+						vii -= (vii >> texture_shift2) << texture_shift2;
+
+						screen_ptr[xi] = textmap[uii + (vii << texture_shift2)];
+
+						z_ptr[xi] = zi;
+					}
+
+					ui+=du;
+					vi+=dv;
+					zi+=dz;
+				}
+
+				xl+=dxdyl;
+				ul+=dudyl;
+				vl+=dvdyl;
+				zl+=dzdyl;
+
+				xr+=dxdyr;
+				ur+=dudyr;
+				vr+=dvdyr;
+				zr+=dzdyr;
+
+				screen_ptr+=mempitch;
+
+				z_ptr+=zpitch;
+
+				if (yi==yrestart)
+				{
+					if (irestart == INTERP_LHS)
+					{
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT)/dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT)/dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT)/dyl;
+						dzdyl = ((tz2 - tz1) << 0)/dyl;
+
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
+						zl = (tz1 << 0);
+
+						xl+=dxdyl;
+						ul+=dudyl;
+						vl+=dvdyl;
+						zl+=dzdyl;
+					}
+					else
+					{
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT)/dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT)/dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT)/dyr;
+						dzdyr = ((tz1 - tz2) << 0)/dyr;
+
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
+						zr = (tz2 << 0);
+
+						xr+=dxdyr;
+						ur+=dudyr;
+						vr+=dvdyr;
+						zr+=dzdyr;
+					}
+				}
+			}
+		}
+	}
+}
 
 //void Draw_Textured_Triangle_GSINVZB_Alpha_32( Triangle * face, struct Viewport * viewport )
 //{

@@ -1,6 +1,9 @@
 #ifndef __OCTREE_H
 #define __OCTREE_H
 
+#define OCTREE_NOT_READY		FALSE
+#define OCTREE_READY			TRUE
+
 typedef struct OctreeData
 {
 	int nFaces;
@@ -192,9 +195,9 @@ int buildOctree( Octree * root, int maxdepth )
 			{
 				root->tlb->data->faces[i] = f0[i];
 
-				aabb_add_3D( root->tlb->data->aabb, f0[i]->vertex[0]->position );
-				aabb_add_3D( root->tlb->data->aabb, f0[i]->vertex[1]->position );
-				aabb_add_3D( root->tlb->data->aabb, f0[i]->vertex[2]->position );
+				aabb_add( root->tlb->data->aabb, f0[i]->vertex[0]->position );
+				aabb_add( root->tlb->data->aabb, f0[i]->vertex[1]->position );
+				aabb_add( root->tlb->data->aabb, f0[i]->vertex[2]->position );
 			}
 		}
 
@@ -211,9 +214,9 @@ int buildOctree( Octree * root, int maxdepth )
 			{
 				root->trb->data->faces[i] = f1[i];
 
-				aabb_add_3D( root->trb->data->aabb, f1[i]->vertex[0]->position );
-				aabb_add_3D( root->trb->data->aabb, f1[i]->vertex[1]->position );
-				aabb_add_3D( root->trb->data->aabb, f1[i]->vertex[2]->position );
+				aabb_add( root->trb->data->aabb, f1[i]->vertex[0]->position );
+				aabb_add( root->trb->data->aabb, f1[i]->vertex[1]->position );
+				aabb_add( root->trb->data->aabb, f1[i]->vertex[2]->position );
 			}
 		}
 
@@ -230,9 +233,9 @@ int buildOctree( Octree * root, int maxdepth )
 			{
 				root->tlf->data->faces[i] = f2[i];
 
-				aabb_add_3D( root->tlf->data->aabb, f2[i]->vertex[0]->position );
-				aabb_add_3D( root->tlf->data->aabb, f2[i]->vertex[1]->position );
-				aabb_add_3D( root->tlf->data->aabb, f2[i]->vertex[2]->position );
+				aabb_add( root->tlf->data->aabb, f2[i]->vertex[0]->position );
+				aabb_add( root->tlf->data->aabb, f2[i]->vertex[1]->position );
+				aabb_add( root->tlf->data->aabb, f2[i]->vertex[2]->position );
 			}
 		}
 
@@ -249,9 +252,9 @@ int buildOctree( Octree * root, int maxdepth )
 			{
 				root->trf->data->faces[i] = f3[i];
 
-				aabb_add_3D( root->trf->data->aabb, f3[i]->vertex[0]->position );
-				aabb_add_3D( root->trf->data->aabb, f3[i]->vertex[1]->position );
-				aabb_add_3D( root->trf->data->aabb, f3[i]->vertex[2]->position );
+				aabb_add( root->trf->data->aabb, f3[i]->vertex[0]->position );
+				aabb_add( root->trf->data->aabb, f3[i]->vertex[1]->position );
+				aabb_add( root->trf->data->aabb, f3[i]->vertex[2]->position );
 			}
 		}
 
@@ -268,9 +271,9 @@ int buildOctree( Octree * root, int maxdepth )
 			{
 				root->blb->data->faces[i] = f4[i];
 
-				aabb_add_3D( root->blb->data->aabb, f4[i]->vertex[0]->position );
-				aabb_add_3D( root->blb->data->aabb, f4[i]->vertex[1]->position );
-				aabb_add_3D( root->blb->data->aabb, f4[i]->vertex[2]->position );
+				aabb_add( root->blb->data->aabb, f4[i]->vertex[0]->position );
+				aabb_add( root->blb->data->aabb, f4[i]->vertex[1]->position );
+				aabb_add( root->blb->data->aabb, f4[i]->vertex[2]->position );
 			}
 		}
 
@@ -287,9 +290,9 @@ int buildOctree( Octree * root, int maxdepth )
 			{
 				root->brb->data->faces[i] = f5[i];
 
-				aabb_add_3D( root->brb->data->aabb, f5[i]->vertex[0]->position );
-				aabb_add_3D( root->brb->data->aabb, f5[i]->vertex[1]->position );
-				aabb_add_3D( root->brb->data->aabb, f5[i]->vertex[2]->position );
+				aabb_add( root->brb->data->aabb, f5[i]->vertex[0]->position );
+				aabb_add( root->brb->data->aabb, f5[i]->vertex[1]->position );
+				aabb_add( root->brb->data->aabb, f5[i]->vertex[2]->position );
 			}
 		}
 
@@ -306,9 +309,9 @@ int buildOctree( Octree * root, int maxdepth )
 			{
 				root->blf->data->faces[i] = f6[i];
 
-				aabb_add_3D( root->blf->data->aabb, f6[i]->vertex[0]->position );
-				aabb_add_3D( root->blf->data->aabb, f6[i]->vertex[1]->position );
-				aabb_add_3D( root->blf->data->aabb, f6[i]->vertex[2]->position );
+				aabb_add( root->blf->data->aabb, f6[i]->vertex[0]->position );
+				aabb_add( root->blf->data->aabb, f6[i]->vertex[1]->position );
+				aabb_add( root->blf->data->aabb, f6[i]->vertex[2]->position );
 			}
 		}
 
@@ -325,9 +328,9 @@ int buildOctree( Octree * root, int maxdepth )
 			{
 				root->brf->data->faces[i] = f7[i];
 
-				aabb_add_3D( root->brf->data->aabb, f7[i]->vertex[0]->position );
-				aabb_add_3D( root->brf->data->aabb, f7[i]->vertex[1]->position );
-				aabb_add_3D( root->brf->data->aabb, f7[i]->vertex[2]->position );
+				aabb_add( root->brf->data->aabb, f7[i]->vertex[0]->position );
+				aabb_add( root->brf->data->aabb, f7[i]->vertex[1]->position );
+				aabb_add( root->brf->data->aabb, f7[i]->vertex[2]->position );
 			}
 		}
 		

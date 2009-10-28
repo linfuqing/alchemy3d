@@ -205,6 +205,7 @@ INLINE void entity_updateAfterRender( Entity * entity )
 	{
 		entity->transformDirty = FALSE;
 		entity->mesh->v_dirty = FALSE;
+		entity->mesh->uvDirty = FALSE;
 		entity->mesh->nRenderList = entity->mesh->nCullList = entity->mesh->nClippList = 0;
 	}
 }

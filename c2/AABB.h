@@ -102,20 +102,27 @@ INLINE Vector3D * aabb_corner(Vector3D * output, AABB * aabb, int i)
 	return output;
 }
 
+INLINE float aabb_lengthX( AABB * aabb )
+{
+	return aabb->max->x - aabb->min->x;
+}
+
+INLINE float aabb_lengthY( AABB * aabb )
+{
+	return aabb->max->y - aabb->min->y;
+}
+
+INLINE float aabb_lengthZ( AABB * aabb )
+{
+	return aabb->max->z - aabb->min->z;
+}
+
 //---------------------------------------------------------------------------
 // aabb_add
 //
 // Add a point to the box
 
-INLINE void aabb_add_2D(AABB * aabb, Vector3D * p)
-{
-	if (p->x < aabb->min->x) aabb->min->x = p->x;
-	if (p->x > aabb->max->x) aabb->max->x = p->x;
-	if (p->y < aabb->min->y) aabb->min->y = p->y;
-	if (p->y > aabb->max->y) aabb->max->y = p->y;
-}
-
-INLINE void aabb_add_3D(AABB * aabb, Vector3D * p)
+INLINE void aabb_add(AABB * aabb, Vector3D * p)
 {
 	if (p->x < aabb->min->x) aabb->min->x = p->x;
 	if (p->x > aabb->max->x) aabb->max->x = p->x;
@@ -125,33 +132,7 @@ INLINE void aabb_add_3D(AABB * aabb, Vector3D * p)
 	if (p->z > aabb->max->z) aabb->max->z = p->z;
 }
 
-INLINE void aabb_add_4D(AABB * aabb, Vector3D * p)
-{
-	if (p->x < aabb->min->x) aabb->min->x = p->x;
-	if (p->x > aabb->max->x) aabb->max->x = p->x;
-	if (p->y < aabb->min->y) aabb->min->y = p->y;
-	if (p->y > aabb->max->y) aabb->max->y = p->y;
-	if (p->z < aabb->min->z) aabb->min->z = p->z;
-	if (p->z > aabb->max->z) aabb->max->z = p->z;
-	if (p->w < aabb->min->w) aabb->min->w = p->w;
-	if (p->w > aabb->max->w) aabb->max->w = p->w;
-}
 
-INLINE AABB * aabb_createFromAABB(AABB * box)
-{
-	AABB * aabb;
-	Vector3D * p;
-
-	aabb = newAABB();
-
-	p = box->min;
-	aabb_add_3D( aabb, p );
-
-	p = box->max;
-	aabb_add_3D( aabb, p );
-
-	return aabb;
-}
 
 INLINE void aabb_copy(AABB * aabb, AABB * src)
 {

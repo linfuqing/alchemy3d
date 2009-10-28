@@ -1,6 +1,19 @@
 #ifndef __MESH_H
 #define __MESH_H
 
+#define MATERIAL_KEY			0x01
+#define TEXTURE_KEY				0x02
+#define FOG_KEY					0x04
+#define LIGHT_KEY				0x08
+#define RENDERMODE_KEY			0x10
+#define ALPHA_KEY				0x20
+
+#define ADDRESS_MODE_NONE		0x01
+#define ADDRESS_MODE_WRAP		0x02
+#define ADDRESS_MODE_BORDER		0x04
+#define ADDRESS_MODE_CLAMP		0x08
+#define ADDRESS_MODE_MIRROR		0x10
+
 #include "Triangle.h"
 #include "Vertex.h"
 #include "Vector.h"
@@ -9,21 +22,11 @@
 #include "Texture.h"
 #include "RenderList.h"
 
-#define OCTREE_NOT_READY	FALSE
-#define OCTREE_READY		TRUE
-
-#define MATERIAL_KEY		0x01
-#define TEXTURE_KEY			0x02
-#define FOG_KEY				0x04
-#define LIGHT_KEY			0x08
-#define RENDERMODE_KEY		0x10
-#define ALPHA_KEY			0x20
-
 typedef struct Mesh
 {
 	DWORD nFaces, nVertices, nRenderList, nClippList, nCullList;
 
-	int type, octree_depth, octreeState, v_dirty, lightEnable, fogEnable, useMipmap, terrainTrace;
+	int type, octree_depth, octreeState, v_dirty, lightEnable, fogEnable, useMipmap, terrainTrace, uvDirty, addressMode;
 
 	int widthSegment, heightSegment;
 	
@@ -98,7 +101,7 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	m->renderList = initializeRenderList( nFaces + 2 );
 	m->clippedList = initializeRenderList( nFaces + 2 );
 
-	m->octree			= newOctree();
+	m->octree = newOctree();
 
 	m->nRenderList = m->nCullList = m->nClippList = 0;
 }
@@ -126,6 +129,8 @@ Mesh * newMesh( int nVertices, int nFaces )
 	m->terrainTrace		= FALSE;
 	m->type				= 0;
 	m->octree_depth		= 0;
+	m->uvDirty			= FALSE;
+	m->addressMode		= ADDRESS_MODE_NONE;
 
 	return m;
 }
@@ -238,7 +243,7 @@ void mesh_updateVertices( Mesh * m )
 		vert = m->vertices[i];
 
 		//ÖØÐÂ¼ÆËãAABB
-		aabb_add_3D( m->octree->data->aabb, vert->position );
+		aabb_add( m->octree->data->aabb, vert->position );
 
 		if ( vert->nContectedFaces == 0 ) continue;
 

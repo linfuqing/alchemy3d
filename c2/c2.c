@@ -14,9 +14,9 @@ DWORD multiply256Fix8_table[256][256];
 
 #include "Scene.h"
 #include "Entity.h"
-#include "Viewport.h"
 #include "Triangle.h"
 #include "Mesh.h"
+#include "Viewport.h"
 #include "Vector3D.h"
 #include "Matrix3D.h"
 #include "ColorValue.h"
@@ -114,8 +114,7 @@ int main()
 	bitmap = newBitmap( 4, 4, (LPBYTE)bitmapData );
 	texture = newTexture( "default_tex" );
 	texture_setMipmap( texture, bitmap );
-	texture->perspective_dist = 100.0f;
-	texture->addressMode = 1;
+	texture->perspective_dist = 500.0f;
 
 	fog = newFog( newColorValue( 0.0f, 0.0f, 0.0f, 1.0f ), 1000.0f, 4000.0f, 1.0f, FOG_EXP2 );
 	fog->ready = TRUE;
@@ -125,33 +124,34 @@ int main()
 	scene_addFog( scene, fog );
 
 	camera = newCamera( 90.0f, 10.0f, 5000.0f, newEntity() );
-	entity_setZ(camera->eye, -910.0f);
+	//entity_setZ(camera->eye, -910.0f);
 
 	view = newViewport( 600, 400, scene, camera );
 
 	do3d = newEntity();
 	do3d->name = "root2";
-	entity_setRotationY( do3d, 45.0f);
+	//entity_setRotationY( do3d, 45.0f);
 	entity_setZ(do3d, 200.0f);
-	entity_setX(do3d, 200.0f);
-	entity_setY(do3d, -100.0f);
+	//entity_setX(do3d, 200.0f);
+	//entity_setY(do3d, -100.0f);
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
-	entity_setRotationX( do3d3, 20.0f);
-	entity_setRotationY( do3d3, 45.0f);
+	//entity_setRotationX( do3d3, 20.0f);
+	//entity_setRotationY( do3d3, 45.0f);
 	entity_setZ(do3d3, 100.0f);
-	entity_setY(do3d3, 200.0f);
-	entity_setX(do3d3, -100.0f);
+	//entity_setY(do3d3, 200.0f);
+	//entity_setX(do3d3, -100.0f);
 
-	mesh4 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
-	mesh5 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32 );
+	mesh4 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32 );
+	mesh5 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32 );
+	mesh5->addressMode = ADDRESS_MODE_WRAP;
 	//mesh4->terrainTrace = TRUE;
 	//mesh5->fogEnable = TRUE;
 	entity_setMesh( do3d, mesh4 );
 	entity_setMesh( do3d3, mesh5 );
 
-	scene_addEntity(scene, do3d, NULL);
+	//scene_addEntity(scene, do3d, NULL);
 	scene_addEntity(scene, do3d3, NULL);
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -205,7 +205,7 @@ int main()
 	//scene_addLight(scene, light);
 	//scene_addEntity(scene, lightSource, NULL);
 
-	for ( i = 0; i < 1; i ++ )
+	for ( i = 0; i < 20; i ++ )
 	{
 		viewport_updateBeforeRender( view );
 

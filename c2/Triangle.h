@@ -239,20 +239,43 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 	}
 }
 
-INLINE void triangle_setUV( Triangle * face, int texWidth, int texHeight, int addressMode )
+INLINE void triangle_setUV( Triangle * face, float meshWidth, float meshHeight, int texWidth, int texHeight, int addressMode )
 {
-	texWidth--;
+	float ratio;
 
+	texWidth--;
 	texHeight--;
 
-	face->t_uv[0]->u = face->uv[0]->u * texWidth ;
-	face->t_uv[0]->v = face->uv[0]->v * texHeight;
+	switch ( addressMode )
+	{
+		case ADDRESS_MODE_WRAP:
 
-	face->t_uv[1]->u = face->uv[1]->u * texWidth ;
-	face->t_uv[1]->v = face->uv[1]->v * texHeight;
+			ratio = meshWidth / texWidth;
 
-	face->t_uv[2]->u = face->uv[2]->u * texWidth ;
-	face->t_uv[2]->v = face->uv[2]->v * texHeight;
+			face->t_uv[0]->u = face->uv[0]->u * texWidth * ratio ;
+			face->t_uv[0]->v = face->uv[0]->v * texHeight * ratio;
+
+			face->t_uv[1]->u = face->uv[1]->u * texWidth * ratio ;
+			face->t_uv[1]->v = face->uv[1]->v * texHeight * ratio;
+
+			face->t_uv[2]->u = face->uv[2]->u * texWidth * ratio ;
+			face->t_uv[2]->v = face->uv[2]->v * texHeight * ratio;
+
+			break;
+
+		default:
+
+			face->t_uv[0]->u = face->uv[0]->u * texWidth ;
+			face->t_uv[0]->v = face->uv[0]->v * texHeight;
+
+			face->t_uv[1]->u = face->uv[1]->u * texWidth ;
+			face->t_uv[1]->v = face->uv[1]->v * texHeight;
+
+			face->t_uv[2]->u = face->uv[2]->u * texWidth ;
+			face->t_uv[2]->v = face->uv[2]->v * texHeight;
+
+			break;
+	}
 
 	/*if( addressMode == ADDRESS_MODE_CLAMP )
 	{
