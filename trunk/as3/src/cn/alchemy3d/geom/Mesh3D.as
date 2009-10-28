@@ -15,6 +15,12 @@ package cn.alchemy3d.geom
 		public static const RENDERMODE_KEY:uint		= 0x10;
 		public static const ALPHA_KEY:uint			= 0x20;
 		
+		public static const ADDRESS_MODE_NONE:uint	= 0x01;
+		public static const ADDRESS_MODE_WRAP:uint	= 0x02;
+		public static const ADDRESS_MODE_BORDER:uint	= 0x04;
+		public static const ADDRESS_MODE_CLAMP:uint	= 0x08;
+		public static const ADDRESS_MODE_MIRROR:uint	= 0x10;
+		
 		private var vertices:Vector.<Vertex3D>;
 		private var faces:Vector.<Triangle3D>;
 		
@@ -24,7 +30,9 @@ package cn.alchemy3d.geom
 		private var terrainTracePointer:uint;
 		private var mipDistPointer:uint;
 		private var vDirtyPointer:uint;
+		private var uvDirtyPointer:uint;
 		private var octreeDepthPointer:uint;
+		private var addressModePointer:uint;
 		
 		private var _lightEnable:Boolean;
 		
@@ -142,6 +150,21 @@ package cn.alchemy3d.geom
 			return Vector.<uint>( [fp, uvp, mp, tp, rmp] );
 		}
 		
+		public function set addressMode(value:int):void
+		{
+			Library.memory.position = addressModePointer;
+			Library.memory.writeInt(value);
+			
+			Library.memory.position = uvDirtyPointer;
+			Library.memory.writeBoolean(true);
+		}
+		
+		public function get addressMode():int
+		{
+			Library.memory.position = addressModePointer;
+			return Library.memory.readUnsignedInt();
+		}
+		
 		public function get useMipmap():Boolean
 		{
 			Library.memory.position = useMipmapPointer;
@@ -230,18 +253,20 @@ package cn.alchemy3d.geom
 			terrainTracePointer	= ps[4];
 			mipDistPointer		= ps[5];
 			vDirtyPointer		= ps[6];
-			octreeDepthPointer	= ps[7];
+			uvDirtyPointer		= ps[7];
+			octreeDepthPointer	= ps[8];
+			addressModePointer	= ps[9];
 
-			if( ps[8] && vertices )
+			if( ps[10] && vertices )
 			{
-				Library.memory.position = ps[8];
+				Library.memory.position = ps[10];
 			
 				for( var i:uint = 0; i < vertices.length; i ++ )
 				{
 					vertices[i].setPointer( Library.memory.readUnsignedInt() );
 				}
 				
-				Library.alchemy3DLib.freeTmpBuffer( ps[8] );
+				Library.alchemy3DLib.freeTmpBuffer( ps[10] );
 			}
 		}
 		

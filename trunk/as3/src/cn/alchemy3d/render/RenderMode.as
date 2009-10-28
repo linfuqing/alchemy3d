@@ -14,7 +14,7 @@ package cn.alchemy3d.render
 		/**
 		 * 32位模式 + 1/z深度缓冲 + 纹理映射
 		 */
-		public static const RENDER_TEXTRUED_TRIANGLE_INVZB_32:uint							= 0x000002;
+		//public static const RENDER_TEXTRUED_TRIANGLE_INVZB_32:uint							= 0x000002;
 		
 		/**
 		 * 32位模式 + 1/z深度缓冲 + 双线性纹理
@@ -24,12 +24,12 @@ package cn.alchemy3d.render
 		/**
 		 * 32位模式 + 1/z深度缓冲 + Flat光照模型 + 纹理映射
 		 */
-		public static const RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:uint						= 0x000008;
+		//public static const RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:uint						= 0x000008;
 		
 		/**
 		 * 32位模式 + 1/z深度缓冲 + Gouraud光照模型 + 纹理映射
 		 */
-		public static const RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:uint						= 0x000010;
+		//public static const RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:uint						= 0x000010;
 		
 		/**
 		 * 32位模式 + 1/z深度缓冲 + 透视矫正纹理映射
@@ -89,6 +89,21 @@ package cn.alchemy3d.render
 		/**
 		 * 
 		 */
-		public static const RENDER_TEXTRUED_TRIANGLE_GSINVZB_ALPHA_32:uint					= 0x010000;
+		public static const RENDER_TRIANGLE_FSINVZB_ALPHA_32:uint							= 0x010000;
+		
+		/**
+		 * 
+		 */
+		public static const RENDER_TRIANGLE_GSINVZB_ALPHA_32:uint							= 0x020000;
+		
+		/**
+		 * 
+		 */
+		public static const RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32:uint					= 0x040000;
+		
+		/**
+		 * 
+		 */
+		public static const RENDER_TEXTRUED_TRIANGLE_INVZB_ADDR_32:uint						= 0x080000;
 	}
 }
