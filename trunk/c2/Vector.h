@@ -19,6 +19,12 @@ typedef struct
 			float u;
 			float v;
 		};
+
+		struct
+		{
+			int tu;
+			int tv;
+		};
 	};
 }Vector;
 

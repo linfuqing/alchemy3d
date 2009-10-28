@@ -687,10 +687,11 @@ void viewport_lightting( Viewport * viewport )
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
 	ColorValue fColor, lastColor, outPutColor;
 	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
-	DWORD l = 0, j = 0, i = 0, tmiplevels, miplevel;
+	DWORD l = 0, j = 0, i = 0;
 	//
 	Triangle * face;
-	Bitmap * bitmap;
+	int tmiplevels, miplevel;
+
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
 	Vector3D vLightsToObject[MAX_LIGHTS];
@@ -957,37 +958,31 @@ void viewport_lightting( Viewport * viewport )
 				//平均深度
 				face->depth /= 3;
 
-				//mipmap处理
+				//mipmap和uv处理
 				if ( face->texture && face->texture->mipmaps )
 				{
+					//计算uv
+					if ( ! face->uvTransformed )
+					{
+						triangle_setUV( face, aabb_lengthX( mesh->octree->data->aabb ), aabb_lengthY( mesh->octree->data->aabb ), face->texture->mipmaps[0]->width, face->texture->mipmaps[0]->height, mesh->addressMode );
+
+						face->uvTransformed = TRUE;
+					}
+
+					//如果使用mipmap
 					if ( mesh->useMipmap && mesh->mip_dist )
 					{
 						tmiplevels = logbase2ofx[face->texture->mipmaps[0]->width];
 
-						miplevel = (int)(tmiplevels * face->vertex[0]->v_pos->w / mesh->mip_dist);
+						miplevel = ( int )( tmiplevels * face->depth / mesh->mip_dist );
 
-						if ( miplevel > tmiplevels ) miplevel = tmiplevels;
+						miplevel = MIN( miplevel, tmiplevels );
 
-						bitmap = face->texture->mipmaps[miplevel];
-
-						if ( miplevel != face->miplevel || ! face->uvTransformed || mesh->uvDirty )
+						if ( miplevel != face->miplevel )
 						{
-							triangle_setUV( face, aabb_lengthX( mesh->octree->data->aabb ), aabb_lengthY( mesh->octree->data->aabb ), bitmap->width, bitmap->height, mesh->addressMode );
+							triangle_correctMipmapUV( face, miplevel, face->miplevel );
 
 							face->miplevel = miplevel;
-
-							face->uvTransformed = TRUE;
-						}
-					}
-					else
-					{
-						bitmap = face->texture->mipmaps[0];
-
-						if ( ! face->uvTransformed || mesh->uvDirty )
-						{
-							triangle_setUV( face, aabb_lengthX( mesh->octree->data->aabb ), aabb_lengthY( mesh->octree->data->aabb ), bitmap->width, bitmap->height, mesh->addressMode );
-
-							face->uvTransformed = TRUE;
 						}
 					}
 				}
@@ -1276,12 +1271,6 @@ void viewport_render( Viewport * viewport )
 						Draw_Textured_Triangle_GSINVZB_32( face, viewport );
 				}
 #endif
-				break;
-
-			case RENDER_TEXTRUED_TRIANGLE_INVZB_ADDR_32:
-
-				Draw_Textured_Triangle_INVZB_ADDR_32( face, viewport );
-
 				break;
 			}
 		}

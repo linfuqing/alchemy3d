@@ -243,36 +243,39 @@ INLINE void triangle_setUV( Triangle * face, float meshWidth, float meshHeight, 
 {
 	float ratio;
 
-	texWidth--;
-	texHeight--;
-
 	switch ( addressMode )
 	{
 		case ADDRESS_MODE_WRAP:
 
 			ratio = meshWidth / texWidth;
 
-			face->t_uv[0]->u = face->uv[0]->u * texWidth * ratio ;
-			face->t_uv[0]->v = face->uv[0]->v * texHeight * ratio;
+			texWidth--;
+			texHeight--;
 
-			face->t_uv[1]->u = face->uv[1]->u * texWidth * ratio ;
-			face->t_uv[1]->v = face->uv[1]->v * texHeight * ratio;
+			face->t_uv[0]->tu = (int)(face->uv[0]->u * texWidth * ratio + .5f);
+			face->t_uv[0]->tv = (int)(face->uv[0]->v * texHeight * ratio + .5f);
 
-			face->t_uv[2]->u = face->uv[2]->u * texWidth * ratio ;
-			face->t_uv[2]->v = face->uv[2]->v * texHeight * ratio;
+			face->t_uv[1]->tu = (int)(face->uv[1]->u * texWidth * ratio + .5f);
+			face->t_uv[1]->tv = (int)(face->uv[1]->v * texHeight * ratio + .5f);
+
+			face->t_uv[2]->tu = (int)(face->uv[2]->u * texWidth * ratio + .5f);
+			face->t_uv[2]->tv = (int)(face->uv[2]->v * texHeight * ratio + .5f);
 
 			break;
 
 		default:
 
-			face->t_uv[0]->u = face->uv[0]->u * texWidth ;
-			face->t_uv[0]->v = face->uv[0]->v * texHeight;
+			texWidth--;
+			texHeight--;
 
-			face->t_uv[1]->u = face->uv[1]->u * texWidth ;
-			face->t_uv[1]->v = face->uv[1]->v * texHeight;
+			face->t_uv[0]->tu = (int)(face->uv[0]->u * texWidth + .5f);
+			face->t_uv[0]->tv = (int)(face->uv[0]->v * texHeight + .5f);
 
-			face->t_uv[2]->u = face->uv[2]->u * texWidth ;
-			face->t_uv[2]->v = face->uv[2]->v * texHeight;
+			face->t_uv[1]->tu = (int)(face->uv[1]->u * texWidth + .5f);
+			face->t_uv[1]->tv = (int)(face->uv[1]->v * texHeight + .5f);
+
+			face->t_uv[2]->tu = (int)(face->uv[2]->u * texWidth + .5f);
+			face->t_uv[2]->tv = (int)(face->uv[2]->v * texHeight + .5f);
 
 			break;
 	}
@@ -341,6 +344,36 @@ INLINE void triangle_setUV( Triangle * face, float meshWidth, float meshHeight, 
 			face->t_uv[2]->v = tv2 * texHeight;
 		}
 	}*/
+}
+
+INLINE void triangle_correctMipmapUV( Triangle * face, int miplevel1, int miplevel2 )
+{
+	int m = miplevel1 - miplevel2;
+
+	if ( m > 0 )
+	{
+		face->t_uv[0]->tu >>= m;
+		face->t_uv[0]->tv >>= m;
+
+		face->t_uv[1]->tu >>= m;
+		face->t_uv[1]->tv >>= m;
+
+		face->t_uv[2]->tu >>= m;
+		face->t_uv[2]->tv >>= m;
+	}
+	else
+	{
+		m = - m;
+
+		face->t_uv[0]->tu <<= m;
+		face->t_uv[0]->tv <<= m;
+
+		face->t_uv[1]->tu <<= m;
+		face->t_uv[1]->tv <<= m;
+
+		face->t_uv[2]->tu <<= m;
+		face->t_uv[2]->tv <<= m;
+	}
 }
 
 INLINE int triangle_backFaceCulling( Triangle * face, Vector3D * viewerToLocal, Vector3D * viewerPosition  )

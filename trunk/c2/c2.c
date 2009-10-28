@@ -87,6 +87,7 @@ int main()
 							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
 							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
 							4.0f );
+
 	if( ( bitmapData = ( LPDWORD )calloc( 3 * 3, sizeof( DWORD ) ) ) == NULL )
 	{
 		exit( TRUE );
@@ -101,17 +102,17 @@ int main()
 	bitmap2 = newBitmap( 3, 3, (LPBYTE)bitmapData );
 
 	//Œ∆¿Ì
-	if( ( bitmapData = ( LPDWORD )calloc( 4 * 4, sizeof( DWORD ) ) ) == NULL )
+	if( ( bitmapData = ( LPDWORD )calloc( 32 * 32, sizeof( DWORD ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
-	for ( i = 0; i < 4 * 4; i ++ )
+	for ( i = 0; i < 32 * 32; i ++ )
 	{
 		bitmapData[i] = 0xffffffff;
 	}
 
-	bitmap = newBitmap( 4, 4, (LPBYTE)bitmapData );
+	bitmap = newBitmap( 32, 32, (LPBYTE)bitmapData );
 	texture = newTexture( "default_tex" );
 	texture_setMipmap( texture, bitmap );
 	texture->perspective_dist = 500.0f;
@@ -131,7 +132,7 @@ int main()
 	do3d = newEntity();
 	do3d->name = "root2";
 	//entity_setRotationY( do3d, 45.0f);
-	entity_setZ(do3d, 200.0f);
+	entity_setZ(do3d, 700.0f);
 	//entity_setX(do3d, 200.0f);
 	//entity_setY(do3d, -100.0f);
 
@@ -146,6 +147,8 @@ int main()
 	mesh4 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32 );
 	mesh5 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32 );
 	mesh5->addressMode = ADDRESS_MODE_WRAP;
+	mesh5->useMipmap = TRUE;
+	mesh5->mip_dist = 500.0f;
 	//mesh4->terrainTrace = TRUE;
 	//mesh5->fogEnable = TRUE;
 	entity_setMesh( do3d, mesh4 );
