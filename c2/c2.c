@@ -8,9 +8,10 @@
 #include "Base.h"
 #include "Math3D.h"
 
+BYTE logbase2ofx[2048];
 BYTE alpha_table[NUM_ALPHA_LEVELS][256];
 DWORD multiply256_table[256][256];
-DWORD multiply256Fix8_table[256][256];
+DWORD multiply256FIXP8_table[256][256];
 
 #include "Scene.h"
 #include "Entity.h"
@@ -19,7 +20,7 @@ DWORD multiply256Fix8_table[256][256];
 #include "Viewport.h"
 #include "Vector3D.h"
 #include "Matrix3D.h"
-#include "ColorValue.h"
+#include "Color888.h"
 #include "Material.h"
 #include "Texture.h"
 #include "Light.h"
@@ -70,22 +71,23 @@ int main()
 	//UCHAR * buffer;
 	//long length=0;
 
+	log2base_Table_Builder(logbase2ofx);
 	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
 	multiply256_Table_Builder(multiply256_table);
-	multiply256Fix8_Table_Builder(multiply256Fix8_table);
+	multiply256FIXP8_Table_Builder(multiply256FIXP8_table);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	material = newMaterial( newColorValue( 1.0f, 1.0f, 1.0f, 1.0f ),
-							newColorValue( 0.3f, 0.8f, 0.6f, 0.5f ),
-							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
+	material = newMaterial( newColor888( 0, 0, 0, 255 ),
+							newColor888( 100, 200, 0, 255 ),
+							newColor888( 255, 0, 0, 255 ),
+							newColor888( 255, 0, 0, 255 ),
 							4.0f );
 
-	material2 = newMaterial( newColorValue( 0.0f, 1.0f, 0.0f, 1.0f ),
-							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
-							newColorValue( 1.0f, 0.0f, 0.0f, 1.0f ),
+	material2 = newMaterial( newColor888( 255, 255, 255, 255 ),
+							newColor888( 100, 200, 0, 255 ),
+							newColor888( 255, 0, 0, 255 ),
+							newColor888( 255, 0, 0, 255 ),
 							4.0f );
 
 	if( ( bitmapData = ( LPDWORD )calloc( 3 * 3, sizeof( DWORD ) ) ) == NULL )
@@ -102,20 +104,20 @@ int main()
 	bitmap2 = newBitmap( 3, 3, (LPBYTE)bitmapData );
 
 	//Œ∆¿Ì
-	if( ( bitmapData = ( LPDWORD )calloc( 32 * 32, sizeof( DWORD ) ) ) == NULL )
+	if( ( bitmapData = ( LPDWORD )calloc( 256 * 256, sizeof( DWORD ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
-	for ( i = 0; i < 32 * 32; i ++ )
+	for ( i = 0; i < 256 * 256; i ++ )
 	{
 		bitmapData[i] = 0xffffffff;
 	}
 
-	bitmap = newBitmap( 32, 32, (LPBYTE)bitmapData );
+	bitmap = newBitmap( 256, 256, (LPBYTE)bitmapData );
 	texture = newTexture( "default_tex" );
 	texture_setMipmap( texture, bitmap );
-	texture->perspective_dist = 500.0f;
+	texture->perspective_dist = 3000.0f;
 
 	fog = newFog( newColorValue( 0.0f, 0.0f, 0.0f, 1.0f ), 1000.0f, 4000.0f, 1.0f, FOG_EXP2 );
 	fog->ready = TRUE;
@@ -132,23 +134,27 @@ int main()
 	do3d = newEntity();
 	do3d->name = "root2";
 	//entity_setRotationY( do3d, 45.0f);
-	entity_setZ(do3d, 700.0f);
+	entity_setZ(do3d, 200.0f);
 	//entity_setX(do3d, 200.0f);
 	//entity_setY(do3d, -100.0f);
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
-	//entity_setRotationX( do3d3, 20.0f);
+	//entity_setRotationX( do3d3, 10.0f);
 	//entity_setRotationY( do3d3, 45.0f);
-	entity_setZ(do3d3, 100.0f);
+	entity_setZ(do3d3, 1600.0f);
 	//entity_setY(do3d3, 200.0f);
 	//entity_setX(do3d3, -100.0f);
 
-	mesh4 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32 );
-	mesh5 = newPlane( NULL, material, texture, 250.0f, 250.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32 );
+	mesh4 = newPlane( NULL, material, texture, 1024.0f, 1024.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
+	mesh5 = newPlane( NULL, material, texture, 3200.0f, 3200.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh5->addressMode = ADDRESS_MODE_WRAP;
-	mesh5->useMipmap = TRUE;
-	mesh5->mip_dist = 500.0f;
+	//mesh_setTexScale( mesh5, 2.0f, 2.0f );
+	mesh_setTexOffset( mesh5, 2.0f, 2.0f );
+	mesh5->texTransformDirty = TRUE;
+	//mesh5->useMipmap = TRUE;
+	//mesh5->mip_dist = 500.0f;
+	//mesh5->lightEnable = TRUE;
 	//mesh4->terrainTrace = TRUE;
 	//mesh5->fogEnable = TRUE;
 	entity_setMesh( do3d, mesh4 );
@@ -197,12 +203,12 @@ int main()
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	//lightSource = newEntity();
-	//entity_setZ(lightSource, 300.0f);
+	//entity_setY(lightSource, 300.0f);
 	//light = newPointLight( POINT_LIGHT, lightSource );
 	//setLightOnOff( light, TRUE );
 	//light->mode = HIGH_MODE;
-	//light->ambient = newColorValue( 0.0f, 0.0f, 0.0f, 1.0f );
-	//light->diffuse = newColorValue( 1.0f, 1.0f, 1.0f, 1.0f );
+	//light->ambient = newColor888( 0, 0, 0, 255 );
+	//light->diffuse = newColor888( 255, 255, 255, 255 );
 	//light->attenuation1 = .001f;
 	//light->attenuation2 = .0000001f;
 	//scene_addLight(scene, light);

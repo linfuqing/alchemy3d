@@ -36,7 +36,7 @@ typedef struct Entity
 	Vector3D * position, * direction, * scale, * w_pos, * s_pos, * CVVPosition, * viewerToLocal;
 
 	//局部矩阵，世界矩阵，世界逆矩阵，相机矩阵，投影矩阵
-	Matrix3D * transform, * world, * worldInvert, * view, * projection;
+	Matrix4x4 * transform, * world, * worldInvert, * view, * projection;
 
 	//网格
 	Mesh * mesh;
@@ -71,11 +71,11 @@ Entity * newEntity()
 	entity->CVVPosition		= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 	entity->viewerToLocal	= newVector3D(0.0f, 0.0f, 0.0f, 1.0f);
 
-	entity->transform		= newMatrix3D(NULL);
-	entity->world			= newMatrix3D(NULL);
-	entity->worldInvert		= newMatrix3D(NULL);
-	entity->view			= newMatrix3D(NULL);
-	entity->projection		= newMatrix3D(NULL);
+	entity->transform		= newMatrix4x4(NULL);
+	entity->world			= newMatrix4x4(NULL);
+	entity->worldInvert		= newMatrix4x4(NULL);
+	entity->view			= newMatrix4x4(NULL);
+	entity->projection		= newMatrix4x4(NULL);
 
 	entity->name			= NULL;
 	entity->children		= NULL;
@@ -183,11 +183,11 @@ void entity_dispose( Entity * entity )
 	vector3D_dispose( entity->viewerToLocal );
 	vector3D_dispose( entity->direction );
 	vector3D_dispose( entity->scale );
-	matrix3D_dispose( entity->transform );
-	matrix3D_dispose( entity->world );
-	matrix3D_dispose( entity->worldInvert );
-	matrix3D_dispose( entity->view );
-	matrix3D_dispose( entity->projection );
+	matrix4x4_dispose( entity->transform );
+	matrix4x4_dispose( entity->world );
+	matrix4x4_dispose( entity->worldInvert );
+	matrix4x4_dispose( entity->view );
+	matrix4x4_dispose( entity->projection );
 
 	memset( entity, 0, sizeof(Entity));
 }
@@ -205,7 +205,6 @@ INLINE void entity_updateAfterRender( Entity * entity )
 	{
 		entity->transformDirty = FALSE;
 		entity->mesh->v_dirty = FALSE;
-		entity->mesh->uvDirty = FALSE;
 		entity->mesh->nRenderList = entity->mesh->nCullList = entity->mesh->nClippList = 0;
 	}
 }
@@ -215,27 +214,27 @@ INLINE void entity_updateTransform( Entity * entity )
 	if ( entity->transformDirty )
 	{
 		Quaternion qua;
-		Matrix3D quaMtr;
+		Matrix4x4 quaMtr;
 
 		//单位化
-		matrix3D_identity( entity->transform );
+		matrix4x4_identity( entity->transform );
 		//缩放
-		matrix3D_appendScale( entity->transform, entity->scale->x, entity->scale->y, entity->scale->z );
+		matrix4x4_appendScale( entity->transform, entity->scale->x, entity->scale->y, entity->scale->z );
 		//旋转
-		matrix3D_append_self( entity->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( entity->direction->y ), DEG2RAD( entity->direction->x ), DEG2RAD( entity->direction->z ) ) ) );
+		matrix4x4_append_self( entity->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( entity->direction->y ), DEG2RAD( entity->direction->x ), DEG2RAD( entity->direction->z ) ) ) );
 		//位移
-		matrix3D_appendTranslation( entity->transform, entity->position->x, entity->position->y, entity->position->z );
+		matrix4x4_appendTranslation( entity->transform, entity->position->x, entity->position->y, entity->position->z );
 
-		matrix3D_copy( entity->world, entity->transform );
+		matrix4x4_copy( entity->world, entity->transform );
 		
 		//如果存在父结点，则连接父结点世界矩阵
-		if( NULL != entity->parent ) matrix3D_append_self(entity->world, entity->parent->world);
+		if( NULL != entity->parent ) matrix4x4_append_self(entity->world, entity->parent->world);
 
-		matrix3D_copy( entity->worldInvert, entity->world );
+		matrix4x4_copy( entity->worldInvert, entity->world );
 		//世界逆矩阵
-		matrix3D_fastInvert( entity->worldInvert );
+		matrix4x4_fastInvert( entity->worldInvert );
 		//从世界矩阵获得世界位置
-		matrix3D_getPosition( entity->w_pos, entity->world );
+		matrix4x4_getPosition( entity->w_pos, entity->world );
 	}
 }
 

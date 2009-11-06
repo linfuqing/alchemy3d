@@ -257,7 +257,7 @@ void animation_terrainTrace_update( Animation * animation )
 			}
 
 			//把实体位置变换到地形的私有坐标系
-			matrix3D_transformVector( & local, animation->container->worldInvert, ep->entity->w_pos );
+			matrix4x4_transformVector( & local, animation->container->worldInvert, ep->entity->w_pos );
 
 			if(	local.x < x0 
 			||  local.x > x1

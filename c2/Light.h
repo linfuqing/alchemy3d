@@ -20,21 +20,21 @@
 
 typedef struct Light
 {
-	int mode;			//光照模式
-	int type;			//定义灯光类型，我们能够使用下面三种类型之一：POINT_LIGHT, SPOT_LIGHT, DIRECTIONAL_LIGHT
-	int bOnOff;			//灯光是否开启
+	int mode;				//光照模式
+	int type;				//定义灯光类型，我们能够使用下面三种类型之一：POINT_LIGHT, SPOT_LIGHT, DIRECTIONAL_LIGHT
+	int bOnOff;				//灯光是否开启
 
-	ColorValue * ambient;	//此光源发出的环境光颜色
-	ColorValue * diffuse;	//此光源发出的漫射光颜色
-	ColorValue * specular;	//此光源发出的镜面光颜色
+	Color888 * ambient;		//此光源发出的环境光颜色
+	Color888 * diffuse;		//此光源发出的漫射光颜色
+	Color888 * specular;	//此光源发出的镜面光颜色
 
-	float range;		//灯光能够传播的最大范围
-	float falloff;		//这个值只能用在聚光灯上。它定义灯光在从内圆锥到外圆锥之间的强度衰减。它的值通常设置为1.0f
-	float theta;		//只用于聚光灯；指定内圆锥的角度，单位是弧度
-	float phi;			//只用于聚光灯；指定外圆锥的角度，单位是弧度
+	float range;			//灯光能够传播的最大范围
+	float falloff;			//这个值只能用在聚光灯上。它定义灯光在从内圆锥到外圆锥之间的强度衰减。它的值通常设置为1.0f
+	float theta;			//只用于聚光灯；指定内圆锥的角度，单位是弧度
+	float phi;				//只用于聚光灯；指定外圆锥的角度，单位是弧度
 	float attenuation0, attenuation1, attenuation2;		//这些衰减变量被用来定义灯光强度的传播距离衰减
-	float spotExp;		//聚光指数
-	float spotCutoff;	//聚光发散半角
+	float spotExp;			//聚光指数
+	float spotCutoff;		//聚光发散半角
 
 	Entity * source;
 }Light;
@@ -59,9 +59,9 @@ Light * newPointLight( int type, Entity * source )
 	light->mode = HIGH_MODE;
 	light->type = type;
 	light->bOnOff = FALSE;
-	light->ambient = newColorValue( 0.0f, 0.0f, 0.0f, 1.0f );
-	light->diffuse = newColorValue( 1.0f, 1.0f, 1.0f, 1.0f );
-	light->specular = newColorValue( 1.0f, 1.0f, 1.0f, 1.0f );
+	light->ambient = newColor888( 0, 0, 0, 255 );
+	light->diffuse = newColor888( 255, 255, 255, 255 );
+	light->specular = newColor888( 255, 255, 255, 255 );
 
 	light->attenuation0 = 1.0f;
 	light->attenuation1 = light->attenuation2 = 0.0f;
@@ -121,27 +121,5 @@ INLINE void setLightOnOff( Light * light, int OnOff )
 //
 //	return light;
 //}
-
-//更新光源矩阵
-void light_updateTransform(Light * light)
-{
-	Quaternion qua;
-	Matrix3D quaMtr;
-
-	Entity * source = light->source;
-
-	matrix3D_identity( source->transform );
-
-	//如果光源是平行光或者聚光灯，则更新旋转矩阵
-	if ( light->type == SPOT_LIGHT )
-		matrix3D_append_self( source->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( source->direction->y ), DEG2RAD( source->direction->x ), DEG2RAD( source->direction->z ) ) ) );
-
-	//更新位置
-	matrix3D_appendTranslation( source->transform, source->position->x, source->position->y, source->position->z );
-
-	matrix3D_copy( source->world, source->transform );
-	//从世界矩阵获得世界位置
-	matrix3D_getPosition( source->w_pos, source->world );
-}
 
 #endif

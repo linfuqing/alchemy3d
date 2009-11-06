@@ -4,7 +4,7 @@
 
 /**************************************************************************************
  **----------------------------------------------------------------------------------**
- **                               |Matrix3D verson 1.5|                              **
+ **                               |Matrix4x4 verson 1.5|                              **
  **----------------------------------------------------------------------------------**
  **                           include< stdlib.h, Vector3D.h>                         **
  **__________________________________________________________________________________**
@@ -14,15 +14,16 @@
 #include <string.h>
 #include <math.h>
 
+#include "Vector.h"
 #include "Vector3D.h"
 #include "Math3D.h"
 
 /*
 ============
-Matrix2D
+Matrix2x2
 ============
 */
-typedef struct Matrix2D
+typedef struct Matrix2x2
 {
 	union
 	{
@@ -36,9 +37,9 @@ typedef struct Matrix2D
 
 		float _m[4];
 	};
-}Matrix2D;
+}Matrix2x2;
 
-int matrix2D_invert(Matrix2D * m)
+int matrix2x2_invert(Matrix2x2 * m)
 {
 	float det, invDet, a;
 
@@ -62,10 +63,273 @@ int matrix2D_invert(Matrix2D * m)
 
 /*
 ============
-Matrix3D
+Matrix3x3
 ============
 */
-typedef struct Matrix3D
+typedef struct Matrix3x3
+{
+	union
+	{
+		struct
+		{
+			float m11, m12, m13;
+			float m21, m22, m23;
+			float m31, m32, m33;
+		};
+
+		float m[3][3];
+
+		float _m[9];
+	};
+}Matrix3x3;
+
+INLINE Matrix3x3 * matrix3x3_identity( Matrix3x3 * m )
+{
+	m->m11 = 1.0f; m->m12 = 0.0f; m->m13 = 0.0f;
+
+	m->m21 = 0.0f; m->m22 = 1.0f; m->m23 = 0.0f;
+
+	m->m31 = 0.0f; m->m32 = 0.0f; m->m33 = 1.0f;
+
+	return m;
+}
+
+INLINE float matrix3x3_determinant( Matrix3x3 * m )
+{
+	return m->m11 * ( m->m22 * m->m33 - m->m23 * m->m32 ) + m->m12 * ( m->m23 * m->m31 - m->m21 * m->m33 ) + m->m13 * ( m->m21 * m->m32 - m->m22 * m->m31 );
+}
+
+INLINE float * matrix3x3_getRawData( Matrix3x3 * m )
+{
+	float * rawData;
+
+	if( ( rawData = (float *)malloc( sizeof( float ) * 9 ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	rawData[0] = m->m11;
+	rawData[1] = m->m21;
+	rawData[2] = m->m31;
+	
+	rawData[3] = m->m12;
+	rawData[4] = m->m22;
+	rawData[5] = m->m32;
+
+	rawData[6] = m->m13;
+	rawData[7] = m->m23;
+	rawData[8] = m->m33;
+
+	return rawData;
+}
+
+/**
+一个由 16 个数字组成的矢量，其中，每四个元素可以是 4x4 矩阵的一行或一列。 
+
+如果 rawData 属性设置为一个不可逆的矩阵，则会引发异常。Matrix3D 对象必须是可逆的。
+**/
+INLINE void matrix3x3_setRawData( Matrix3x3 * m, float ( * rawData )[9] )
+{
+	m->m11 = ( * rawData )[0];
+	m->m12 = ( * rawData )[1];
+	m->m13 = ( * rawData )[2];
+
+	m->m21 = ( * rawData )[3];
+	m->m22 = ( * rawData )[4];
+	m->m23 = ( * rawData )[5];
+
+	m->m31 = ( * rawData )[6];
+	m->m32 = ( * rawData )[7];
+	m->m33 = ( * rawData )[8];
+
+	if( !matrix3x3_determinant( m ) )
+	{
+		exit( TRUE );
+	}
+}
+
+
+Matrix3x3 * newMatrix3x3( float ( * rawData )[9] )
+{
+	Matrix3x3 * m;
+
+	if( ( m = ( Matrix3x3 * )malloc( sizeof( Matrix3x3 ) ) ) == NULL )
+	{
+		exit( TRUE );
+	}
+
+	if( rawData == NULL )
+	{
+		matrix3x3_identity( m );
+	}
+	else
+	{
+		matrix3x3_setRawData( m, rawData );
+	}
+
+	return m;
+}
+
+INLINE void * matrix3x3_copy( Matrix3x3 * m, Matrix3x3 * src )
+{
+	m->m11 = src->m11; m->m12 = src->m12; m->m13 = src->m13;
+
+	m->m21 = src->m21; m->m22 = src->m22; m->m23 = src->m23;
+
+	m->m31 = src->m31; m->m32 = src->m32; m->m33 = src->m33;
+
+	return m;
+}
+
+INLINE Matrix3x3 * matrix3x3_clone( Matrix3x3 * src )
+{
+	Matrix3x3 * dest = newMatrix3x3( NULL );
+
+	matrix3x3_copy( dest, src );
+
+	return dest;
+}
+
+void Matrix3x3_dispose( Matrix3x3 * m )
+{
+	memset( m, 0, sizeof( Matrix3x3 ) );
+	free( m );
+}
+
+INLINE Vector * matrix3x3_getPosition( Vector * output, Matrix3x3 * m )
+{
+	output->x = m->m31;
+	output->y = m->m32;
+
+	return output;
+}
+
+INLINE void matrix3x3_setPosition( Matrix3x3 * m, Vector * v )
+{
+	m->m31 = v->x;
+	m->m32 = v->y;
+}
+
+INLINE Matrix3x3 * matrix3x3_append( Matrix3x3 * output, Matrix3x3 * m1, Matrix3x3 * m2 )
+{
+	output->m11 = m1->m11 * m2->m11 + m1->m12 * m2->m21;
+	output->m12 = m1->m11 * m2->m12 + m1->m12 * m2->m22;
+
+	output->m21 = m1->m21 * m2->m11 + m1->m22 * m2->m21;
+	output->m22 = m1->m21 * m2->m12 + m1->m22 * m2->m22;
+
+	output->m31 = m1->m31 * m2->m11 + m1->m32 * m2->m21 + m2->m31;
+	output->m32 = m1->m31 * m2->m12 + m1->m32 * m2->m22 + m2->m32;
+
+	return output;
+}
+
+INLINE Matrix3x3 * matrix3x3_append_self( Matrix3x3 * thisMatrix, Matrix3x3 * lhs )
+{
+	float m11, m12, m13, m21, m22, m23, m31, m32, m33, lhs_m11, lhs_m12, lhs_m13, lhs_m21, lhs_m22, lhs_m23;
+
+	m11 = thisMatrix->m11;	m12 = thisMatrix->m12;	m13 = thisMatrix->m13;
+	m21 = thisMatrix->m21;	m22 = thisMatrix->m22;	m23 = thisMatrix->m23;
+	m31 = thisMatrix->m31;	m32 = thisMatrix->m32;	m33 = thisMatrix->m33;
+
+	lhs_m11 = lhs->m11;	lhs_m12 = lhs->m12;	lhs_m13 = lhs->m13;
+	lhs_m21 = lhs->m21;	lhs_m22 = lhs->m22;	lhs_m23 = lhs->m23;
+
+	thisMatrix->m11 = m11 * lhs_m11 + m12 * lhs_m21;
+	thisMatrix->m12 = m11 * lhs_m12 + m12 * lhs_m22;
+
+	thisMatrix->m21 = m21 * lhs_m11 + m22 * lhs_m21;
+	thisMatrix->m22 = m21 * lhs_m12 + m22 * lhs_m22;
+
+	thisMatrix->m31 = m31 * lhs_m11 + m32 * lhs_m21 + lhs->m31;
+	thisMatrix->m32 = m31 * lhs_m12 + m32 * lhs_m22 + lhs->m32;
+
+	return thisMatrix;
+}
+
+INLINE Matrix3x3 * matrix3x3_translationMatrix( Matrix3x3 * output, float x, float y )
+{
+	output->m12 = output->m13 = output->m21 = output->m23 = output->m31 = output->m32 = 0;
+	output->m11 = output->m22 = output->m33 = 1;
+
+	output->m31 = x;
+	output->m32 = y;
+
+	return output;
+}
+
+INLINE void matrix3x3_appendTranslation( Matrix3x3 * m, float x, float y )
+{
+	Matrix3x3 input;
+
+	matrix3x3_append_self( m, matrix3x3_translationMatrix( &input, x, y ) );
+}
+
+INLINE Matrix3x3 * matrix3x3_rotationMatrix( Matrix3x3 * output, float degrees )
+{
+	float angle = DEG2RAD(degrees);
+	float s = sinf( angle );
+	float c = cosf( angle );
+
+	output->m11 = c;		output->m12 = s;
+	output->m21 = -s;		output->m22 = c;
+
+	output->m31 = output->m32 = output->m13 = output->m23 =0.0f;
+	output->m33 = 1.0f;
+
+	return output;
+}
+
+INLINE void matrix3x3_appendRotation( Matrix3x3 * m, float degrees )
+{
+	Matrix3x3 input;
+
+	matrix3x3_append_self( m, matrix3x3_rotationMatrix( &input, degrees ) );
+}
+
+INLINE Matrix3x3 * matrix3x3_scaleMatrix( Matrix3x3 * output, float xScale, float yScale )
+{
+	output->m11 = xScale; output->m12 = 0.0f;
+	output->m21 = 0.0f; output->m22 = yScale;
+
+	output->m31 = output->m32 = output->m13 = output->m23 = 0.0f;
+	output->m33 = 1.0f;
+
+	return output;
+}
+
+INLINE void matrix3x3_appendScale( Matrix3x3 * m, float xScale, float yScale )
+{
+	Matrix3x3 input;
+
+	matrix3x3_append_self( m, matrix3x3_scaleMatrix( &input, xScale, yScale ) );
+}
+
+INLINE Vector * matrix3x3_transformVector( Vector * output, Matrix3x3 * m, Vector * v )
+{
+	output->x = m->m11 * v->x + m->m21 * v->y + m->m31;
+	output->y = m->m12 * v->x + m->m22 * v->y + m->m32;
+
+	return output;
+}
+
+INLINE void matrix3x3_transformVector_self( Matrix3x3 * m, Vector * v )
+{
+	float x, y;
+
+	x = m->m11 * v->x + m->m21 * v->y + m->m31;
+	y = m->m12 * v->x + m->m22 * v->y + m->m32;
+
+	v->x = x;
+	v->y = y;
+}
+
+/*
+============
+Matrix4x4
+============
+*/
+typedef struct Matrix4x4
 {
 	union
 	{
@@ -81,13 +345,13 @@ typedef struct Matrix3D
 
 		float _m[16];
 	};
-}Matrix3D;
+}Matrix4x4;
 
 /**
 将当前矩阵转换为恒等或单位矩阵。恒等矩阵中的主对角线位置上的元素的值为一，而所有其他元素的值为零。
 生成的结果是一个矩阵，其中，rawData 值为 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1，旋转设置为 Vector3D(0,0,0)，位置或平移设置为 Vector3D(0,0,0)，缩放设置为 Vector3D(1,1,1)。
 **/
-INLINE Matrix3D *  matrix3D_identity( Matrix3D * m )
+INLINE Matrix4x4 * matrix4x4_identity( Matrix4x4 * m )
 {
 	m->m11 = 1.0f; m->m12 = 0.0f; m->m13 = 0.0f; m->m14 = 0.0f;
 
@@ -101,8 +365,8 @@ INLINE Matrix3D *  matrix3D_identity( Matrix3D * m )
 }
 
 /**
-将当前 Matrix3D 对象转换为一个矩阵，并将互换其中的行和列。
-例如，如果当前 Matrix3D 对象的 rawData 包含以下 16 个数字：1,2,3,4,11,12,13,14,21,22,23,24,31,32,33,34，则 transpose() 方法会将每四个元素作为一个行读取并将这些行转换为列。
+将当前 Matrix4x4 对象转换为一个矩阵，并将互换其中的行和列。
+例如，如果当前 Matrix4x4 对象的 rawData 包含以下 16 个数字：1,2,3,4,11,12,13,14,21,22,23,24,31,32,33,34，则 transpose() 方法会将每四个元素作为一个行读取并将这些行转换为列。
 生成的结果是一个矩阵，其 rawData 为：1,11,21,31,2,12,22,32,3,13,23,33,4,14,24,34。 
 
 transpose() 方法会将当前矩阵替换为转置矩阵。
@@ -110,7 +374,7 @@ transpose() 方法会将当前矩阵替换为转置矩阵。
 
 正交矩阵是一个正方形矩阵，该矩阵的转置矩阵和逆矩阵相同。
 **/
-INLINE void matrix3D_transpose( Matrix3D * m )
+INLINE void matrix4x4_transpose( Matrix4x4 * m )
 {
 	float m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44;
 
@@ -128,17 +392,17 @@ INLINE void matrix3D_transpose( Matrix3D * m )
 /**
 一个用于确定矩阵是否可逆的数字。 
 
-Matrix3D 对象必须是可逆的。可以使用 determinant 属性确保 Matrix3D 对象是可逆的。
+Matrix4x4 对象必须是可逆的。可以使用 determinant 属性确保 Matrix4x4 对象是可逆的。
 如果行列式为零，则矩阵没有逆矩阵。
 例如，如果矩阵的整个行或列为零，或如果两个行或列相等，则行列式为零。
 行列式还可用于对一系列方程进行求解。 
 **/
-INLINE float matrix3D_determinant( Matrix3D * m )
+INLINE float matrix4x4_determinant( Matrix4x4 * m )
 {
 	return m->m11 * ( m->m22 * m->m33 - m->m23 * m->m32 ) + m->m12 * ( m->m23 * m->m31 - m->m21 * m->m33 ) + m->m13 * ( m->m21 * m->m32 - m->m22 * m->m31 );
 }
 
-INLINE float matrix3D_determinant4x4( Matrix3D * m )
+INLINE float matrix4x4_determinant4x4( Matrix4x4 * m )
 {
 	float det2_01_01, det2_01_02, det2_01_03, det2_01_12, det2_01_13, det2_01_23, det3_201_012, det3_201_013, det3_201_023, det3_201_123;
 
@@ -157,7 +421,7 @@ INLINE float matrix3D_determinant4x4( Matrix3D * m )
 	return ( - det3_201_123 * m->m41 + det3_201_023 * m->m42 - det3_201_013 * m->m43 + det3_201_012 * m->m44 );
 }
 
-INLINE int matrix3D_invert4x4( Matrix3D * m )
+INLINE int matrix4x4_invert4x4( Matrix4x4 * m )
 {
 	float det2_01_01, det2_01_02, det2_01_03, det2_01_12, det2_01_13, det2_01_23, det3_201_012, det3_201_013, det3_201_023, det3_201_123;
 	float det2_03_01, det2_03_02, det2_03_03, det2_03_12, det2_03_13, det2_03_23, det2_13_01, det2_13_02, det2_13_03, det2_13_12, det2_13_13, det2_13_23, det3_203_012, det3_203_013, det3_203_023, det3_203_123, det3_213_012, det3_213_013, det3_213_023, det3_213_123, det3_301_012, det3_301_013, det3_301_023, det3_301_123;
@@ -239,9 +503,9 @@ INLINE int matrix3D_invert4x4( Matrix3D * m )
 	return TRUE;
 }
 
-INLINE int matrix3D_fastInvert4x4( Matrix3D * m )
+INLINE int matrix4x4_fastInvert4x4( Matrix4x4 * m )
 {
-	Matrix2D r0, r1, r2, r3;
+	Matrix2x2 r0, r1, r2, r3;
 	float a, det, invDet;
 	//float *mat = reinterpret_cast<float *>(this);
 
@@ -342,13 +606,13 @@ INLINE int matrix3D_fastInvert4x4( Matrix3D * m )
 invert() 方法会将当前矩阵替换为逆矩阵。
 如果要反转矩阵，而不更改当前矩阵，请先使用 clone() 方法复制当前矩阵，然后对生成的副本应用 invert() 方法。 
 
-Matrix3D 对象必须是可逆的。
+Matrix4x4 对象必须是可逆的。
 **/
-INLINE int matrix3D_invert( Matrix3D * m )
+INLINE int matrix4x4_invert( Matrix4x4 * m )
 {
 	float m11, m12, m13, m21, m22, m23, m31, m32, m33, m41, m42, m43;
 
-	float det = matrix3D_determinant( m );
+	float det = matrix4x4_determinant( m );
 
 	if ( fabs( det ) < MATRIX_INVERSE_EPSILON )
 	{
@@ -380,7 +644,7 @@ INLINE int matrix3D_invert( Matrix3D * m )
 	return TRUE;
 }
 
-INLINE int matrix3D_fastInvert( Matrix3D * m )
+INLINE int matrix4x4_fastInvert( Matrix4x4 * m )
 {
 	float det, invDet, det_00, det_10, det_20, det_01, det_02, det_11, det_12, det_21, det_22;
 	float m11, m12, m13, m21, m22, m23, m31, m32, m33, m41, m42, m43;
@@ -433,7 +697,7 @@ INLINE int matrix3D_fastInvert( Matrix3D * m )
 
 如果 rawData 属性设置为一个不可逆的矩阵，则会引发异常。Matrix3D 对象必须是可逆的。
 **/
-INLINE float * matrix3D_getRawData( Matrix3D * m )
+INLINE float * matrix4x4_getRawData( Matrix4x4 * m )
 {
 	float * rawData;
 
@@ -470,7 +734,7 @@ INLINE float * matrix3D_getRawData( Matrix3D * m )
 
 如果 rawData 属性设置为一个不可逆的矩阵，则会引发异常。Matrix3D 对象必须是可逆的。
 **/
-INLINE void matrix3D_setRawData( Matrix3D * m, float ( * rawData )[16] )
+INLINE void matrix4x4_setRawData( Matrix4x4 * m, float ( * rawData )[16] )
 {
 	m->m11 = ( * rawData )[0];
 	m->m12 = ( * rawData )[1];
@@ -492,37 +756,37 @@ INLINE void matrix3D_setRawData( Matrix3D * m, float ( * rawData )[16] )
 	m->m43 = ( * rawData )[14];
 	m->m44 = ( * rawData )[15];
 
-	if( !matrix3D_determinant( m ) )
+	if( !matrix4x4_determinant( m ) )
 	{
 		exit( TRUE );
 	}
 }
 
 /**
-创建 Matrix3D 对象。可以使用一个由 16 个数字组成的矢量来初始化 Matrix3D 对象，其中，每四个元素可以是一行或一列。
-创建 Matrix3D 对象之后，可以使用 rawData 属性访问该对象的矩阵元素。 
+创建 Matrix4x4 对象。可以使用一个由 16 个数字组成的矢量来初始化 Matrix4x4 对象，其中，每四个元素可以是一行或一列。
+创建 Matrix4x4 对象之后，可以使用 rawData 属性访问该对象的矩阵元素。 
 
-如果未定义任何参数，则构造函数会生成一个恒等或单位 Matrix3D 对象。
+如果未定义任何参数，则构造函数会生成一个恒等或单位 Matrix4x4 对象。
 在矩阵表示法中，恒等矩阵中的主对角线位置上的所有元素的值均为一，而所有其他元素的值均为零。
 恒等矩阵的 rawData 属性的值为 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1。
 恒等矩阵的位置或平移值为 Vector3D(0,0,0)，旋转设置为 Vector3D(0,0,0)，缩放值为 Vector3D(1,1,1)。
 **/
-Matrix3D * newMatrix3D( float ( * rawData )[16] )
+Matrix4x4 * newMatrix4x4( float ( * rawData )[16] )
 {
-	Matrix3D * m;
+	Matrix4x4 * m;
 
-	if( ( m = ( Matrix3D * )malloc( sizeof( Matrix3D ) ) ) == NULL )
+	if( ( m = ( Matrix4x4 * )malloc( sizeof( Matrix4x4 ) ) ) == NULL )
 	{
 		exit( TRUE );
 	}
 
 	if( rawData == NULL )
 	{
-		matrix3D_identity( m );
+		matrix4x4_identity( m );
 	}
 	else
 	{
-		matrix3D_setRawData( m, rawData );
+		matrix4x4_setRawData( m, rawData );
 	}
 
 	return m;
@@ -531,7 +795,7 @@ Matrix3D * newMatrix3D( float ( * rawData )[16] )
 /**
 复制矩阵。
 **/
-INLINE void * matrix3D_copy( Matrix3D * m, Matrix3D * src )
+INLINE void * matrix4x4_copy( Matrix4x4 * m, Matrix4x4 * src )
 {
 	m->m11 = src->m11; m->m12 = src->m12; m->m13 = src->m13; m->m14 = src->m14;
 
@@ -546,26 +810,21 @@ INLINE void * matrix3D_copy( Matrix3D * m, Matrix3D * src )
 	return m;
 }
 
-INLINE Matrix3D * matrix3D_clone( Matrix3D * src )
+INLINE Matrix4x4 * matrix4x4_clone( Matrix4x4 * src )
 {
-	Matrix3D * dest = newMatrix3D( NULL );
+	Matrix4x4 * dest = newMatrix4x4( NULL );
 
-	matrix3D_copy( dest, src );
+	matrix4x4_copy( dest, src );
 
 	return dest;
 }
 
-void matrix3D_dispose( Matrix3D * m )
+void matrix4x4_dispose( Matrix4x4 * m )
 {
-	memset( m, 0, sizeof( Matrix3D ) );
+	memset( m, 0, sizeof( Matrix4x4 ) );
 	free( m );
 }
 
-INLINE void sinCos(float *returnSin, float *returnCos, float theta)
-{ 
-	*returnSin = sinf(theta); 
-	*returnCos = cosf(theta); 
-} 
 
 /**
 一个保存显示对象在转换参照帧中的 3D 坐标 (x,y,z) 位置的 Vector3D 对象。
@@ -573,7 +832,7 @@ INLINE void sinCos(float *returnSin, float *returnCos, float theta)
 
 利用 position 属性，可以获取和设置转换矩阵的平移元素。
 **/
-INLINE Vector3D * matrix3D_getPosition( Vector3D * output, Matrix3D * m )
+INLINE Vector3D * matrix4x4_getPosition( Vector3D * output, Matrix4x4 * m )
 {
 	output->x = m->m41;
 	output->y = m->m42;
@@ -589,7 +848,7 @@ INLINE Vector3D * matrix3D_getPosition( Vector3D * output, Matrix3D * m )
 
 利用 position 属性，可以获取和设置转换矩阵的平移元素。
 **/
-INLINE void matrix3D_setPosition( Matrix3D * m, Vector3D * v )
+INLINE void matrix4x4_setPosition( Matrix4x4 * m, Vector3D * v )
 {
 	m->m41 = v->x;
 	m->m42 = v->y;
@@ -598,21 +857,21 @@ INLINE void matrix3D_setPosition( Matrix3D * m, Vector3D * v )
 }
 
 /**
-通过将另一个 Matrix3D 对象与当前 Matrix3D 对象相乘来后置一个矩阵。
-得到的结果将合并两个矩阵转换。可以将一个 Matrix3D 对象与多个矩阵相乘。最终的 Matrix3D 对象将包含所有转换的结果。 
+通过将另一个 Matrix4x4 对象与当前 Matrix4x4 对象相乘来后置一个矩阵。
+得到的结果将合并两个矩阵转换。可以将一个 Matrix4x4 对象与多个矩阵相乘。最终的 Matrix4x4 对象将包含所有转换的结果。 
 
 矩阵乘法运算与矩阵加法运算不同。矩阵乘法运算是不可交换的。
 换句话说，A 乘以 B 并不等于 B 乘以 A。
-在使用 append() 方法时，乘法运算将从左侧开始，这意味着 lhs Matrix3D 对象位于乘法运算符的左侧。 
+在使用 append() 方法时，乘法运算将从左侧开始，这意味着 lhs Matrix4x4 对象位于乘法运算符的左侧。 
 
 thisMatrix = lhs * thisMatrix; 
 首次调用 append() 方法时，此方法会对父级空间进行相关修改。
-后续调用与后置的 Matrix3D 对象的参照帧相关。 
+后续调用与后置的 Matrix4x4 对象的参照帧相关。 
 
 append() 方法会将当前矩阵替换为后置的矩阵。
 如果要后置两个矩阵，而不更改当前矩阵，请使用 clone() 方法复制当前矩阵，然后对生成的副本应用 append() 方法。 
 **/
-INLINE Matrix3D * matrix3D_append( Matrix3D * output, Matrix3D * m1, Matrix3D * m2 )
+INLINE Matrix4x4 * matrix4x4_append( Matrix4x4 * output, Matrix4x4 * m1, Matrix4x4 * m2 )
 {
 	output->m11 = m1->m11 * m2->m11 + m1->m12 * m2->m21 + m1->m13 * m2->m31;
 	output->m12 = m1->m11 * m2->m12 + m1->m12 * m2->m22 + m1->m13 * m2->m32;
@@ -633,7 +892,7 @@ INLINE Matrix3D * matrix3D_append( Matrix3D * output, Matrix3D * m1, Matrix3D * 
 	return output;
 }
 
-INLINE Matrix3D * matrix3D_append_self( Matrix3D * thisMatrix, Matrix3D * lhs )
+INLINE Matrix4x4 * matrix4x4_append_self( Matrix4x4 * thisMatrix, Matrix4x4 * lhs )
 {
 	float m11, m12, m13, m21, m22, m23, m31, m32, m33, m41, m42, m43, lhs_m11, lhs_m12, lhs_m13, lhs_m21, lhs_m22, lhs_m23, lhs_m31, lhs_m32, lhs_m33;
 
@@ -665,7 +924,7 @@ INLINE Matrix3D * matrix3D_append_self( Matrix3D * thisMatrix, Matrix3D * lhs )
 	return thisMatrix;
 }
 
-INLINE Matrix3D *  matrix3D_append4x4( Matrix3D * output, Matrix3D * thisMatrix, Matrix3D * lhs )
+INLINE Matrix4x4 * matrix4x4_append4x4( Matrix4x4 * output, Matrix4x4 * thisMatrix, Matrix4x4 * lhs )
 {
 	float m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44;
 	float lhs_m11, lhs_m12, lhs_m13, lhs_m14, lhs_m21, lhs_m22, lhs_m23, lhs_m24, lhs_m31, lhs_m32, lhs_m33, lhs_m34, lhs_m41, lhs_m42, lhs_m43, lhs_m44;
@@ -703,7 +962,7 @@ INLINE Matrix3D *  matrix3D_append4x4( Matrix3D * output, Matrix3D * thisMatrix,
 	return output;
 }
 
-INLINE Matrix3D *  matrix3D_append4x4_self( Matrix3D * thisMatrix, Matrix3D * lhs )
+INLINE Matrix4x4 * matrix4x4_append4x4_self( Matrix4x4 * thisMatrix, Matrix4x4 * lhs )
 {
 	float m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44;
 	float lhs_m11, lhs_m12, lhs_m13, lhs_m14, lhs_m21, lhs_m22, lhs_m23, lhs_m24, lhs_m31, lhs_m32, lhs_m33, lhs_m34, lhs_m41, lhs_m42, lhs_m43, lhs_m44;
@@ -744,7 +1003,7 @@ INLINE Matrix3D *  matrix3D_append4x4_self( Matrix3D * thisMatrix, Matrix3D * lh
 /**
 获取一个位移矩阵。
 **/
-INLINE Matrix3D * translationMatrix3D( Matrix3D * output, float x, float y, float z )
+INLINE Matrix4x4 * matrix4x4_translationMatrix( Matrix4x4 * output, float x, float y, float z )
 {
 	output->m12 = output->m13 = output->m14 = output->m21 = output->m23 = output->m24 = output->m31 = output->m32 = output->m34 = 0;
 	output->m11= output->m22 = output->m33 = output->m44 =  1;
@@ -757,8 +1016,8 @@ INLINE Matrix3D * translationMatrix3D( Matrix3D * output, float x, float y, floa
 }
 
 /**
-在 Matrix3D 对象上后置一个增量平移，沿 x、y 和 z 轴重新定位。
-在将 Matrix3D 对象应用于显示对象时，矩阵会在 Matrix3D 对象中先执行其他转换，然后再执行平移更改。 
+在 Matrix4x4 对象上后置一个增量平移，沿 x、y 和 z 轴重新定位。
+在将 Matrix4x4 对象应用于显示对象时，矩阵会在 Matrix4x4 对象中先执行其他转换，然后再执行平移更改。 
 
 平移将作为沿三个轴（x、y、z）进行的三个增量更改集进行定义。
 在对显示对象应用转换时，显示对象会从当前位置沿 x、y 和 z 轴按参数指定的增量移动。
@@ -769,14 +1028,14 @@ INLINE Matrix3D * translationMatrix3D( Matrix3D * output, float x, float y, floa
 若要确保对转换矩阵进行绝对更改，请使用 recompose() 方法。转换的顺序也很重要。
 先平移再旋转的转换所产生的效果与先旋转再平移所产生的效果不同。 
 **/
-INLINE void matrix3D_appendTranslation( Matrix3D * m, float x, float y, float z )
+INLINE void matrix4x4_appendTranslation( Matrix4x4 * m, float x, float y, float z )
 {
-	Matrix3D input;
+	Matrix4x4 input;
 
-	matrix3D_append_self( m, translationMatrix3D( &input, x, y, z ) );
+	matrix4x4_append_self( m, matrix4x4_translationMatrix( &input, x, y, z ) );
 }
 
-INLINE Matrix3D * rotationMatrix3D( Matrix3D * output,  float degrees, int axis )
+INLINE Matrix4x4 * matrix4x4_rotationMatrix( Matrix4x4 * output,  float degrees, int axis )
 {
 	float angle = DEG2RAD(degrees);
 	float s = sinf( angle );
@@ -813,9 +1072,31 @@ INLINE Matrix3D * rotationMatrix3D( Matrix3D * output,  float degrees, int axis 
 }
 
 /**
+在 Matrix4x4 对象上前置一个增量旋转。
+在将 Matrix4x4 对象应用于显示对象时，矩阵会在 Matrix4x4 对象中先执行旋转，然后再执行其他转换。 
+
+显示对象的旋转由以下元素定义：一个轴、绕该轴旋转的增量角度和对象旋转中心的可选轴点。
+轴可以是任何常规方向。
+常见的轴为 XAXIS (Vector3D(1,0,0))、YAXIS (Vector3D(0,1,0)) 和 ZAXIS (Vector3D(0,0,1))。
+在航空术语中，有关 y 轴的旋转称为偏航。有关 x 轴的旋转称为俯仰。有关 z 轴的旋转称为翻滚。 
+
+转换的顺序很重要。
+先旋转再平移的转换所产生的效果与先平移再旋转所产生的效果不同。
+
+旋转效果不是绝对效果。
+此效果与对象有关，它与原始位置和方向的参照帧相对。若要确保对转换进行绝对更改，请使用 recompose() 方法。
+**/
+INLINE void matrix4x4_appendRotation( Matrix4x4 * m, float degrees, int axis )
+{
+	Matrix4x4 input;
+
+	matrix4x4_append_self( m, matrix4x4_rotationMatrix( &input,  degrees, axis ) );
+}
+
+/**
 获取一个旋转矩阵.
 **/
-INLINE Matrix3D * rotationMatrix3DByAxis( Matrix3D * output,  float degrees, Vector3D * axis )
+INLINE Matrix4x4 * matrix4x4_rotationMatrix3DByAxis( Matrix4x4 * output,  float degrees, Vector3D * axis )
 {
 	float angle = DEG2RAD(degrees);
 	float s = sinf( angle );
@@ -849,39 +1130,17 @@ INLINE Matrix3D * rotationMatrix3DByAxis( Matrix3D * output,  float degrees, Vec
 	return output;
 }
 
-/**
-在 Matrix3D 对象上前置一个增量旋转。
-在将 Matrix3D 对象应用于显示对象时，矩阵会在 Matrix3D 对象中先执行旋转，然后再执行其他转换。 
-
-显示对象的旋转由以下元素定义：一个轴、绕该轴旋转的增量角度和对象旋转中心的可选轴点。
-轴可以是任何常规方向。
-常见的轴为 XAXIS (Vector3D(1,0,0))、YAXIS (Vector3D(0,1,0)) 和 ZAXIS (Vector3D(0,0,1))。
-在航空术语中，有关 y 轴的旋转称为偏航。有关 x 轴的旋转称为俯仰。有关 z 轴的旋转称为翻滚。 
-
-转换的顺序很重要。
-先旋转再平移的转换所产生的效果与先平移再旋转所产生的效果不同。
-
-旋转效果不是绝对效果。
-此效果与对象有关，它与原始位置和方向的参照帧相对。若要确保对转换进行绝对更改，请使用 recompose() 方法。
-**/
-INLINE void matrix3D_appendRotation( Matrix3D * m, float degrees, int axis )
+INLINE void matrix4x4_appendRotationByAxis( Matrix4x4 * m, float degrees, Vector3D * axis )
 {
-	Matrix3D input;
+	Matrix4x4 input;
 
-	matrix3D_append_self( m, rotationMatrix3D( &input,  degrees, axis ) );
-}
-
-INLINE void matrix3D_appendRotationByAxis( Matrix3D * m, float degrees, Vector3D * axis )
-{
-	Matrix3D input;
-
-	matrix3D_append_self( m, rotationMatrix3DByAxis( &input, degrees, axis ) );
+	matrix4x4_append_self( m, matrix4x4_rotationMatrix3DByAxis( &input, degrees, axis ) );
 }
 
 /**
 生成一个缩放矩阵.
 **/
-INLINE Matrix3D * scaleMatrix3D( Matrix3D * output, float xScale, float yScale, float zScale )
+INLINE Matrix4x4 * matrix4x4_scaleMatrix( Matrix4x4 * output, float xScale, float yScale, float zScale )
 {
 	output->m11 = xScale; output->m12 = 0.0f; output->m13 = 0.0f;
 	output->m21 = 0.0f; output->m22 = yScale; output->m23 = 0.0f;
@@ -894,8 +1153,8 @@ INLINE Matrix3D * scaleMatrix3D( Matrix3D * output, float xScale, float yScale, 
 }
 
 /**
-在 Matrix3D 对象上后置一个增量缩放，沿 x、y 和 z 轴改变位置。
-在将 Matrix3D 对象应用于显示对象时，矩阵会在 Matrix3D 对象中先执行其他转换，然后再执行缩放更改。
+在 Matrix4x4 对象上后置一个增量缩放，沿 x、y 和 z 轴改变位置。
+在将 Matrix4x4 对象应用于显示对象时，矩阵会在 Matrix4x4 对象中先执行其他转换，然后再执行缩放更改。
 默认的缩放系数为 (1.0f, 1.0f, 1.0f)。 
 
 缩放将作为沿三个轴（x、y、z）进行的三个增量更改集进行定义。可以将每个轴与不同的数字相乘。
@@ -910,17 +1169,17 @@ appendScale() 方法可用于调整大小和管理扭曲（例如显示对象的拉伸或收缩），或用于某
 先调整大小再平移的转换所产生的效果与先平移再调整大小的转换所产生的效果不同。
 **/
 
-INLINE void matrix3D_appendScale( Matrix3D * m, float xScale, float yScale, float zScale )
+INLINE void matrix4x4_appendScale( Matrix4x4 * m, float xScale, float yScale, float zScale )
 {
-	Matrix3D input;
+	Matrix4x4 input;
 
-	matrix3D_append_self( m, scaleMatrix3D( &input, xScale, yScale, zScale ) );
+	matrix4x4_append_self( m, matrix4x4_scaleMatrix( &input, xScale, yScale, zScale ) );
 }
 
 /**
 生成一个绕X轴旋转矩阵。
 **/
-INLINE Matrix3D * rotationXMatrix3D( Matrix3D * output, float theta )
+INLINE Matrix4x4 * matrix4x4_rotationXMatrix( Matrix4x4 * output, float theta )
 {
 	float c, s;
 	sinCos(&s, &c, theta);
@@ -938,7 +1197,7 @@ INLINE Matrix3D * rotationXMatrix3D( Matrix3D * output, float theta )
 /**
 生成一个绕Y轴旋转矩阵。
 **/
-INLINE Matrix3D * rotationYMatrix3D( Matrix3D * output, float theta )
+INLINE Matrix4x4 * matrix4x4_rotationYMatrix( Matrix4x4 * output, float theta )
 {
 	float c, s;
 	sinCos(&s, &c, theta);
@@ -956,7 +1215,7 @@ INLINE Matrix3D * rotationYMatrix3D( Matrix3D * output, float theta )
 /**
 生成一个绕Z轴旋转矩阵。
 **/
-INLINE Matrix3D * rotationZMatrix3D( Matrix3D * output, float theta )
+INLINE Matrix4x4 * matrix4x4_rotationZMatrix3D( Matrix4x4 * output, float theta )
 {
 	float c, s;
 	sinCos(&s, &c, theta);
@@ -974,46 +1233,46 @@ INLINE Matrix3D * rotationZMatrix3D( Matrix3D * output, float theta )
 /**
 后置X轴旋转.
 **/
-INLINE void matrix3D_appendRotationX( Matrix3D * m, float angle )
+INLINE void matrix4x4_appendRotationX( Matrix4x4 * m, float angle )
 {
-	Matrix3D rotMtr;
+	Matrix4x4 rotMtr;
 
 	if (USERADIANS == TRUE)
 	{
 		angle = DEG2RAD(angle);
 	}
 
-	matrix3D_append_self( m, rotationXMatrix3D( &rotMtr, angle ) );
+	matrix4x4_append_self( m, matrix4x4_rotationXMatrix( &rotMtr, angle ) );
 }
 
 /**
 后置Y轴旋转.
 **/
-INLINE void matrix3D_appendRotationY( Matrix3D * m, float angle )
+INLINE void matrix4x4_appendRotationY( Matrix4x4 * m, float angle )
 {
-	Matrix3D rotMtr;
+	Matrix4x4 rotMtr;
 
 	if (USERADIANS == TRUE)
 	{
 		angle = DEG2RAD(angle);
 	}
 
-	matrix3D_append_self( m, rotationYMatrix3D( &rotMtr, angle ) );
+	matrix4x4_append_self( m, matrix4x4_rotationYMatrix( &rotMtr, angle ) );
 }
 
 /**
 后置Z轴旋转.
 **/
-INLINE void matrix3D_appendRotationZ( Matrix3D * m, float angle )
+INLINE void matrix4x4_appendRotationZ( Matrix4x4 * m, float angle )
 {
-	Matrix3D rotMtr;
+	Matrix4x4 rotMtr;
 
 	if (USERADIANS == TRUE)
 	{
 		angle = DEG2RAD(angle);
 	}
 
-	matrix3D_append_self( m, rotationZMatrix3D( &rotMtr, angle ) );
+	matrix4x4_append_self( m, matrix4x4_rotationZMatrix3D( &rotMtr, angle ) );
 }
 
 #include "Quaternion.h"
@@ -1024,9 +1283,9 @@ INLINE void matrix3D_appendRotationZ( Matrix3D * m, float angle )
 第二个 Vector3D 对象容纳缩放元素。
 第三个 Vector3D 对象容纳旋转元素。 
 **/
-INLINE void matrix3D_decompose( Matrix3D * m, Vector3D * position, Quaternion * rotation, Vector3D * scale )
+INLINE void matrix4x4_decompose( Matrix4x4 * m, Vector3D * position, Quaternion * rotation, Vector3D * scale )
 {
-	Matrix3D normalized;
+	Matrix4x4 normalized;
 
 	Vector3D i;
 	Vector3D j;
@@ -1070,7 +1329,7 @@ INLINE void matrix3D_decompose( Matrix3D * m, Vector3D * position, Quaternion * 
 		quaternion_rotationMatrix(rotation, & normalized);
 	}
 
-	//t = newMatrix3D(&data);
+	//t = newMatrix4x4(&data);
 
 	//t->m11 = i->x;	t->m21 = j->x;	t->m31 = k->x;	t->m41 = 0.0f;
 	//t->m12 = i->y;	t->m22 = j->y;	t->m32 = k->y;	t->m41 = 0.0f;
@@ -1079,7 +1338,7 @@ INLINE void matrix3D_decompose( Matrix3D * m, Vector3D * position, Quaternion * 
 
 	//rotation->x = atan2( t->m32, t->m33 );
 
-	//matrix3D_append(m, rotationXMatrix3D( - rotation->x ));
+	//matrix4x4_append(m, rotationXMatrix( - rotation->x ));
 
 	//rotation->y = atan2( - m->m13, sqrt( m->m11 * m->m11 + m->m12 * m->m12) );
 	//rotation->z = atan2( - m->m21, m->m11 );
@@ -1110,19 +1369,19 @@ recompose() 方法所做的更改是绝对更改。
 recompose() 方法将覆盖矩阵转换。 
 
 若要使用绝对父级参照帧来修改矩阵转换，请使用 decompose() 方法检索设置，然后做出适当的更改。
-然后，可以使用 recompose() 方法将 Matrix3D 对象设置为修改后的转换。 
+然后，可以使用 recompose() 方法将 Matrix4x4 对象设置为修改后的转换。 
 **/
-INLINE void matrix3D_recompose( Matrix3D * m, Vector3D * position, Vector3D * scale, Vector3D * rotation )
+INLINE void matrix4x4_recompose( Matrix4x4 * m, Vector3D * position, Vector3D * scale, Vector3D * rotation )
 {
-	m = translationMatrix3D( m, position->x, position->y, position->z );
+	m = matrix4x4_translationMatrix( m, position->x, position->y, position->z );
 
-	matrix3D_appendScale( m, scale->x,scale->y, scale->z );
+	matrix4x4_appendScale( m, scale->x,scale->y, scale->z );
 
-	matrix3D_appendRotationX( m, rotation->x );
+	matrix4x4_appendRotationX( m, rotation->x );
 
-	matrix3D_appendRotationY( m, rotation->y );
+	matrix4x4_appendRotationY( m, rotation->y );
 
-	matrix3D_appendRotationZ( m, rotation->z );
+	matrix4x4_appendRotationZ( m, rotation->z );
 }
 
 /**
@@ -1130,7 +1389,7 @@ INLINE void matrix3D_recompose( Matrix3D * m, Vector3D * position, Vector3D * sc
 返回的 Vector3D 对象将容纳转换后的新坐标。
 将对 Vector3D 对象中应用所有矩阵转换（包括平移）。 
 **/
-INLINE Vector3D * matrix3D_transformVector( Vector3D * output, Matrix3D * m, Vector3D * v )
+INLINE Vector3D * matrix4x4_transformVector( Vector3D * output, Matrix4x4 * m, Vector3D * v )
 {
 	if (v->w == 1)
 	{
@@ -1147,12 +1406,10 @@ INLINE Vector3D * matrix3D_transformVector( Vector3D * output, Matrix3D * m, Vec
 		output->w = m->m14 * v->x + m->m24 * v->y + m->m34 * v->z + m->m44 * v->w;
 	}
 
-	//if (output->w != 1) vector3D_project( output );
-
 	return output;
 }
 
-INLINE void matrix3D_transformVector_self( Matrix3D * m, Vector3D * v )
+INLINE void matrix4x4_transformVector_self( Matrix4x4 * m, Vector3D * v )
 {
 	float x, y, z, w;
 
@@ -1175,8 +1432,6 @@ INLINE void matrix3D_transformVector_self( Matrix3D * m, Vector3D * v )
 	v->y = y;
 	v->z = z;
 	v->w = w;
-
-	//if (v->w != 1) vector3D_project( v );
 }
 
 /**
@@ -1190,7 +1445,7 @@ lookAt() 方法可使缓存的显示对象旋转属性值无效。
 然后，此方法将重新组成（更新）显示对象的矩阵，这将执行转换。
 如果该对象指向正在移动的目标（例如正在移动的对象位置），则对于每个后续调用，此方法都会让对象朝正在移动的目标旋转。 
 **/
-INLINE Matrix3D * lookAt( Matrix3D * output, Vector3D * pEye, Vector3D * pAt, Vector3D * pUp )
+INLINE Matrix4x4 * lookAt( Matrix4x4 * output, Vector3D * pEye, Vector3D * pAt, Vector3D * pUp )
 {
 	Vector3D right, up, vec;
 
@@ -1227,7 +1482,7 @@ INLINE Matrix3D * lookAt( Matrix3D * output, Vector3D * pEye, Vector3D * pAt, Ve
 	return output;
 }
 
-//void printfMatrix3D( Matrix3D m )
+//void printfMatrix3D( Matrix4x4 m )
 //{
 //	printf( "\nMatrix3D(\n%-10.1lf%-10.1lf%-10.1lf%-10.1lf\n%-10.1lf%-10.1lf%-10.1lf%-10.1lf\n%-10.1lf%-10.1lf%-10.1lf%-10.1lf\n%-10.1lf%-10.1lf%-10.1lf%-10.1lf\n)\n", 
 //		m.m11, m.m12, m.m13, m.m14, m.m21, m.m22, m.m23, m.m24, m.m31, m.m32, m.m33, m.m34, m.m41, m.m42, m.m43, m.m44 );

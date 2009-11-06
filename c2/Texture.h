@@ -14,11 +14,21 @@ typedef struct Texture
 
 }Texture;
 
-typedef struct TextureList_TYP
+typedef struct TexTransform
+{
+	float rotation;
+
+	Vector * offset, * scale;
+
+	Matrix3x3 * transform;
+
+}TexTransform;
+
+typedef struct TextureList
 {
 	Texture * texture;
 
-	struct TextureList_TYP * next;
+	struct TextureList * next;
 
 }TextureList;
 
@@ -60,6 +70,20 @@ int texture_dispose( Texture * texture )
 	{
 		return 0;
 	}
+}
+
+TexTransform * newTexTransform()
+{
+	TexTransform * t;
+
+	if( ( t = ( TexTransform * )malloc( sizeof(TexTransform) ) ) == NULL ) exit( TRUE );
+	
+	t->offset		= newVector(0.0f, 0.0f);
+	t->scale		= newVector(1.0f, 1.0f);
+	t->rotation		= 0.0f;
+	t->transform	= newMatrix3x3(NULL);
+
+	return t;
 }
 
 TextureList * newTextureList()

@@ -26,7 +26,7 @@ typedef struct Mesh
 {
 	DWORD nFaces, nVertices, nRenderList, nClippList, nCullList;
 
-	int type, octree_depth, octreeState, v_dirty, lightEnable, fogEnable, useMipmap, terrainTrace, uvDirty, addressMode;
+	int type, octree_depth, octreeState, v_dirty, lightEnable, fogEnable, useMipmap, terrainTrace, addressMode, texTransformDirty;
 
 	int widthSegment, heightSegment;
 	
@@ -37,6 +37,8 @@ typedef struct Mesh
 	Vertex ** vertices;
 
 	RenderList * renderList, * clippedList;
+
+	struct TexTransform * texTransform;
 
 	struct Octree * octree;
 
@@ -49,8 +51,9 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	int i;
 	Triangle * faces;
 	Vertex * vertices;
-	Vector   * uvp;
-	Vector3D * vp;
+	Vector   * uvp, * s_uvp;
+	Vector3D * vp, * s_vp;
+
 #ifdef RGB565
 	Color565 * ap;
 #else
@@ -73,13 +76,16 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 		exit( TRUE );
 	}
 
+	s_uvp = uvp;
+	s_vp = vp;
+
 	for ( i = 0; i < nFaces; i ++ )
 	{
 		faces[i].normal = vp ++;
 
-		faces[i].t_uv[0]  = uvp ++;
-		faces[i].t_uv[1]  = uvp ++;
-		faces[i].t_uv[2]  = uvp ++;
+		faces[i].c_uv[0]  = uvp ++;
+		faces[i].c_uv[1]  = uvp ++;
+		faces[i].c_uv[2]  = uvp ++;
 
 		m->faces[i] = faces + i;
 	}
@@ -96,6 +102,9 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 
 		m->vertices[i] = vertices + i;
 	}
+
+	uvp = s_uvp;
+	vp = s_vp;
 	
 	//构造渲染列表和裁剪列表
 	m->renderList = initializeRenderList( nFaces + 2 );
@@ -120,17 +129,18 @@ Mesh * newMesh( int nVertices, int nFaces )
 		mesh_build( m, nVertices, nFaces );
 	}
 
-	m->octreeState		= OCTREE_NOT_READY;
-	m->v_dirty			= FALSE;
-	m->lightEnable		= FALSE;
-	m->fogEnable		= FALSE;
-	m->useMipmap		= FALSE;
-	m->mip_dist			= 0;
-	m->terrainTrace		= FALSE;
-	m->type				= 0;
-	m->octree_depth		= 0;
-	m->uvDirty			= FALSE;
-	m->addressMode		= ADDRESS_MODE_NONE;
+	m->octreeState			= OCTREE_NOT_READY;
+	m->v_dirty				= FALSE;
+	m->lightEnable			= FALSE;
+	m->fogEnable			= FALSE;
+	m->useMipmap			= FALSE;
+	m->mip_dist				= 0;
+	m->terrainTrace			= FALSE;
+	m->type					= 0;
+	m->octree_depth			= 0;
+	m->addressMode			= ADDRESS_MODE_NONE;
+	m->texTransform			= newTexTransform();
+	m->texTransformDirty	= FALSE;
 
 	return m;
 }
@@ -172,11 +182,11 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	p->uv[1] = uvb;
 	p->uv[2] = uvc;
 
-	vector_copy( p->t_uv[0], uva );// = vector_clone( uva );
-	vector_copy( p->t_uv[1], uvb );// = vector_clone( uvb );
-	vector_copy( p->t_uv[2], uvc );// = vector_clone( uvc );
+	vector_copy( p->c_uv[0], uva );
+	vector_copy( p->c_uv[1], uvb );
+	vector_copy( p->c_uv[2], uvc );
 
-	vector3D_set ( p->normal, 0.0f, 0.0f, 0.0f, 1.0f );// = newVector3D( 0.0f, 0.0f, 0.0f, 1.0f );
+	vector3D_set ( p->normal, 0.0f, 0.0f, 0.0f, 1.0f );
 
 	p->texture = texture;
 	p->material = material;
@@ -200,7 +210,6 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 	return p;
 }
 
-//效率可改进函数,将IF提出循环
 void mesh_updateFaces( Mesh * m )
 {
 	DWORD i = 0;
@@ -427,14 +436,45 @@ INLINE int mesh_intersectMesh( Mesh * m1, Mesh * m2 )
 
 void mesh_dispose( Mesh * mesh )
 {
-	//替换为树的销毁函数
-	//aabb_dispose( mesh->aabb );
-	//aabb_dispose( mesh->worldAABB );
-	//aabb_dispose( mesh->CVVAABB );
-
 	mesh_clear( mesh );
 
 	free( mesh );
+}
+
+void mesh_setTexOffset( Mesh * m, float x, float y )
+{
+	m->texTransform->offset->x = x;
+	m->texTransform->offset->y = y;
+}
+
+Vector * mesh_getTexOffset( Mesh * m, Vector * output )
+{
+	vector_copy( output, m->texTransform->offset );
+
+	return output;
+}
+
+void mesh_setTexScale( Mesh * m, float x, float y )
+{
+	m->texTransform->scale->x = 1.0f / x;
+	m->texTransform->scale->y = 1.0f / y;
+}
+
+Vector * mesh_getTexScale( Mesh * m, Vector * output )
+{
+	vector_copy( output, m->texTransform->scale );
+
+	return output;
+}
+
+void mesh_setTexRotation( Mesh * m, float angle )
+{
+	m->texTransform->rotation = angle;
+}
+
+float mesh_getTexRotation( Mesh * m )
+{
+	return m->texTransform->rotation;
 }
 
 #endif

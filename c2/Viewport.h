@@ -65,8 +65,8 @@ void viewport_resize( Viewport * viewport, int width, int height )
 	}
 
 	//初始化缓冲区
-	if( ( viewport->videoBuffer		= ( LPBYTE )calloc( wh * sizeof( DWORD ), sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
-	if( ( viewport->zBuffer			= ( LPBYTE )calloc( wh * sizeof( DWORD ), sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
+	if( ( viewport->videoBuffer	= ( LPBYTE )calloc( wh * sizeof( DWORD ), sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
+	if( ( viewport->zBuffer		= ( LPBYTE )calloc( wh * sizeof( DWORD ), sizeof( BYTE ) ) ) == NULL ) exit( TRUE );
 }
 
 Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
@@ -685,12 +685,13 @@ void viewport_lightting( Viewport * viewport )
 	Lights * lights;
 	Light * light;
 	Vector3D vFDist, vLightToVertex, vVertexToLight, vVertexToCamera;
-	ColorValue fColor, lastColor, outPutColor;
+	int fColor_r, fColor_g, fColor_b,
+		lastColor_r, lastColor_g, lastColor_b;
 	float dot, fAttenuCoef, fc1, fc2, fDist, fSpotFactor, fShine, fShineFactor;
 	DWORD l = 0, j = 0, i = 0;
 	//
 	Triangle * face;
-	int tmiplevels, miplevel;
+	BYTE tmiplevels, miplevel;
 
 	//如果有光源
 	//此数组用于记录以本地作为参考点的光源方向
@@ -722,7 +723,7 @@ void viewport_lightting( Viewport * viewport )
 				if ( TRUE == lights->light->bOnOff )
 				{
 					//用实体的世界逆矩阵变换光源的位置得到以实体为参考点的光源的位置，保存在数组
-					matrix3D_transformVector( & vLightsToObject[l], entity->worldInvert, lights->light->source->w_pos );
+					matrix4x4_transformVector( & vLightsToObject[l], entity->worldInvert, lights->light->source->w_pos );
 				}
 
 				lights = lights->next;
@@ -764,16 +765,16 @@ void viewport_lightting( Viewport * viewport )
 					//光源索引为零
 					l = 0;
 
-					colorValue_identity( & lastColor);
-
-					if ( NULL != material )
+					if ( material )
 					{
-						//基于在效率和真实感之间取得一个平衡，不考虑全局环境光的贡献，直接使用材质的环境光反射系数作为最终颜色
+						//基于在效率和真实感之间取得一个平衡，不考虑全局环境光的贡献，直接使用材质的环境光反射系数作为表面颜色
 						//复制材质颜色到最终颜色
-						colorValue_copy( & lastColor, material->ambient );
+						lastColor_r = material->ambient->red;
+						lastColor_g = material->ambient->green;
+						lastColor_b = material->ambient->blue;
 
 						//临时颜色清零
-						colorValue_zero( & fColor );
+						fColor_r = fColor_g = fColor_b = 0;
 
 						lights = viewport->scene->lights;
 
@@ -793,7 +794,6 @@ void viewport_lightting( Viewport * viewport )
 
 							light = lights->light;	
 
-							//如果启用高级光照算法
 							//其一, 计算衰减系数
 
 							//衰减系数.等于1.0则不衰减
@@ -809,16 +809,21 @@ void viewport_lightting( Viewport * viewport )
 								fc1 = light->attenuation1;
 								fc2 = light->attenuation2;
 
-								if ( ( fc1 > 0.0001f ) || ( fc2 > 0.0001f ) )
+								if ( ( fc1 > 0.0001f ) || ( fc2 > 0.00001f ) )
 								{
 									//求顶点至光源的距离
-									fDist = vector3D_lengthSquared( vector3D_subtract( & vFDist, & vLightsToObject[l], vs->position ) );
+									vFDist.x = vLightsToObject[l].x - vs->position->x;
+									vFDist.y = vLightsToObject[l].y - vs->position->y;
+									vFDist.z = vLightsToObject[l].z - vs->position->z;
+
+									fDist = vFDist.x * vFDist.x + vFDist.y * vFDist.y + vFDist.z * vFDist.z;
 
 									//加入一次和二次因子
 									fAttenuCoef += (fc1 * sqrtf( fDist ) + fc2 * fDist);
 								}
 
 								if ( fAttenuCoef < 0.0001f ) fAttenuCoef = 0.0001f;
+
 								fAttenuCoef = 1.0f / fAttenuCoef;
 
 								//衰减系数不得大于1.0
@@ -837,13 +842,15 @@ void viewport_lightting( Viewport * viewport )
 								//定向光源不产生聚光效果
 
 								//向量: 聚光位置指向照射顶点
-								vector3D_subtract( & vLightToVertex, & vLightsToObject[l], vs->position );
+								vLightToVertex.x = vLightsToObject[l].x - vs->position->x;
+								vLightToVertex.y = vLightsToObject[l].y - vs->position->y;
+								vLightToVertex.z = vLightsToObject[l].z - vs->position->z;
 
 								//单位化
 								vector3D_normalize( & vLightToVertex );
 
 								//聚光照射方向(已经是一个单位向量) 与 向量 vLightToVertex 夹角的余弦
-								dot = vector3D_dotProduct( & vLightToVertex, light->source->direction );
+								dot = vLightToVertex.x * light->source->direction->x + vLightToVertex.y * light->source->direction->y + vLightToVertex.z * light->source->direction->z;
 
 								//如果顶点位于光锥之外, 则不会有聚光光线照射到物体上
 								if ( dot < light->spotCutoff )
@@ -857,12 +864,16 @@ void viewport_lightting( Viewport * viewport )
 							// 计算来自光源的贡献(现在已经有足够的条件了)
 
 							//加入环境反射部分:
-							colorValue_append( & fColor, material->ambient, light->ambient );
+							fColor_r = multiply256FIXP8_table[material->ambient->red][light->ambient->red];
+							fColor_g = multiply256FIXP8_table[material->ambient->green][light->ambient->green];
+							fColor_b = multiply256FIXP8_table[material->ambient->blue][light->ambient->blue];
 
 							//其次, 计算漫反射部分
 
 							//顶点指向光源的向量
-							vector3D_subtract( & vVertexToLight, & vLightsToObject[l], vs->position );
+							vVertexToLight.x = vLightsToObject[l].x - vs->position->x;
+							vVertexToLight.y = vLightsToObject[l].y - vs->position->y;
+							vVertexToLight.z = vLightsToObject[l].z - vs->position->z;
 
 							//如果光源为平行光源(定位光源)
 							if ( light->type == DIRECTIONAL_LIGHT )
@@ -878,30 +889,41 @@ void viewport_lightting( Viewport * viewport )
 
 							//顶点法线向量与 vVertexToLight 向量的夹角的余弦
 							//顶点法线应是单位向量, 这在建模时已经或必须保证的
-							dot = vector3D_dotProduct( & vVertexToLight, vs->normal );
+							dot = vVertexToLight.x * vs->normal->x + vVertexToLight.y * vs->normal->y + vVertexToLight.z * vs->normal->z;
 
 							if ( dot > 0.0f )
 							{
 								//加入漫反射部分的贡献
-								colorValue_add_self( & fColor, colorValue_scaleBy_self( colorValue_append( & outPutColor, material->diffuse, light->diffuse ), dot, dot, dot, 1 ) );
+								fColor_r += (int)(multiply256FIXP8_table[material->diffuse->red][light->diffuse->red] * dot);
+								fColor_g += (int)(multiply256FIXP8_table[material->diffuse->green][light->diffuse->green] * dot);
+								fColor_b += (int)(multiply256FIXP8_table[material->diffuse->blue][light->diffuse->blue] * dot);
 
 								//计算高光部分
 								if ( light->mode == HIGH_MODE )
 								{
-									vector3D_subtract( & vVertexToCamera, entity->viewerToLocal, vs->position );
+									vVertexToCamera.x = entity->viewerToLocal->x - vs->position->x;
+									vVertexToCamera.y = entity->viewerToLocal->y - vs->position->y;
+									vVertexToCamera.z = entity->viewerToLocal->z - vs->position->z;
+
 									vector3D_normalize( & vVertexToCamera );
-									vector3D_add_self( & vVertexToCamera, & vVertexToLight );
+
+									vVertexToCamera.x += vVertexToLight.x;
+									vVertexToCamera.y += vVertexToLight.y;
+									vVertexToCamera.z += vVertexToLight.z;
+
 									vector3D_normalize( & vVertexToCamera );
 
 									//光度因子基数:与顶点法线作点积
-									fShine = vector3D_dotProduct( & vVertexToCamera, vs->normal );
+									fShine = vVertexToCamera.x * vs->normal->x + vVertexToCamera.y * vs->normal->y + vVertexToCamera.z * vs->normal->z;
 
 									if ( fShine > 0.0f )
 									{
 										fShineFactor = powf(fShine, material->power);
 
 										//加入高光部分的贡献
-										colorValue_add_self( & fColor, colorValue_scaleBy_self( colorValue_append( & outPutColor, material->specular, light->specular ), fShineFactor, fShineFactor, fShineFactor, 1 ) );
+										fColor_r += (int)(multiply256FIXP8_table[material->specular->red][light->specular->red] * fShineFactor);
+										fColor_g += (int)(multiply256FIXP8_table[material->specular->green][light->specular->green] * fShineFactor);
+										fColor_b += (int)(multiply256FIXP8_table[material->specular->blue][light->specular->blue] * fShineFactor);
 									}
 								}
 							}
@@ -909,10 +931,10 @@ void viewport_lightting( Viewport * viewport )
 							//最后乘以衰减和聚光因子，第 j 个光对物体的第个顶点的照射:
 							fSpotFactor *= fAttenuCoef;
 
-							colorValue_scaleBy_self( & fColor, fSpotFactor, fSpotFactor, fSpotFactor, 1.0f );
-
 							//累加至最后颜色:
-							colorValue_add_self( & lastColor, & fColor );
+							lastColor_r += (int)(fColor_r * fSpotFactor);
+							lastColor_g += (int)(fColor_g * fSpotFactor);
+							lastColor_b += (int)(fColor_b * fSpotFactor);
 
 							lights = lights->next;
 
@@ -934,37 +956,46 @@ void viewport_lightting( Viewport * viewport )
 						//}
 
 						//作颜色归一化处理
-						colorValue_normalize( & lastColor );
+						lastColor_r = MAX( lastColor_r, 0 );
+						lastColor_g = MAX( lastColor_g, 0 );
+						lastColor_b = MAX( lastColor_b, 0 );
 
-						//对于alpha, 这里简单地用材质漫反射属性来代替
-						lastColor.alpha = material->diffuse->alpha;
+						lastColor_r = MIN( lastColor_r, 255 );
+						lastColor_g = MIN( lastColor_g, 255 );
+						lastColor_b = MIN( lastColor_b, 255 );
 					}
 
 #ifdef RGB565
-					vs->color->red = (BYTE)(lastColor.red * 31.0f);
-					vs->color->green = (BYTE)(lastColor.green * 63.0f);
-					vs->color->blue = (BYTE)(lastColor.blue * 31.0f);
-					vs->color->alpha = (BYTE)(lastColor.blue * 255.0f);
+					vs->color->red = lastColor.red >> 3;
+					vs->color->green = lastColor.green >> 2;
+					vs->color->blue = lastColor.blue >> 3;
+					vs->color->alpha = material->diffuse->alpha;
 #else
-					vs->color->red = (BYTE)(lastColor.red * 255.0f);
-					vs->color->green = (BYTE)(lastColor.green * 255.0f);
-					vs->color->blue = (BYTE)(lastColor.blue * 255.0f);
-					vs->color->alpha = (BYTE)(lastColor.alpha * 255.0f);
+					vs->color->red = lastColor_r;
+					vs->color->green = lastColor_g;
+					vs->color->blue = lastColor_b;
+
+					//对于alpha, 这里简单地用材质漫反射属性来代替
+					vs->color->alpha = material->diffuse->alpha;
 #endif
 
 					vs->transformed = 2;
 				}//光照处理结束
 
-				//平均深度
-				face->depth /= 3;
-
 				//mipmap和uv处理
 				if ( face->texture && face->texture->mipmaps )
 				{
+					tmiplevels = logbase2ofx[face->texture->mipmaps[0]->width] + 1;
+
 					//计算uv
 					if ( ! face->uvTransformed )
 					{
-						triangle_setUV( face, aabb_lengthX( mesh->octree->data->aabb ), aabb_lengthY( mesh->octree->data->aabb ), face->texture->mipmaps[0]->width, face->texture->mipmaps[0]->height, mesh->addressMode );
+						//创建一组基于mipmap等级的uv链
+						triangle_createMipUVChain( face, tmiplevels );
+
+						triangle_setUV( face, tmiplevels );
+						
+						if ( mesh->texTransformDirty ) triangle_transformUV( face, mesh->texTransform, tmiplevels, mesh->addressMode );
 
 						face->uvTransformed = TRUE;
 					}
@@ -972,20 +1003,33 @@ void viewport_lightting( Viewport * viewport )
 					//如果使用mipmap
 					if ( mesh->useMipmap && mesh->mip_dist )
 					{
-						tmiplevels = logbase2ofx[face->texture->mipmaps[0]->width];
+						tmiplevels --;
 
-						miplevel = ( int )( tmiplevels * face->depth / mesh->mip_dist );
-
+						miplevel = ( int )( face->depth / mesh->mip_dist );
 						miplevel = MIN( miplevel, tmiplevels );
 
-						if ( miplevel != face->miplevel )
-						{
-							triangle_correctMipmapUV( face, miplevel, face->miplevel );
+						face->c_uv[0]->tu = face->t_uv[miplevel][0]->tu;
+						face->c_uv[0]->tv = face->t_uv[miplevel][0]->tv;
+						face->c_uv[1]->tu = face->t_uv[miplevel][1]->tu;
+						face->c_uv[1]->tv = face->t_uv[miplevel][1]->tv;
+						face->c_uv[2]->tu = face->t_uv[miplevel][2]->tu;
+						face->c_uv[2]->tv = face->t_uv[miplevel][2]->tv;
 
-							face->miplevel = miplevel;
-						}
+						face->miplevel = miplevel;
+					}
+					else
+					{
+						face->c_uv[0]->tu = face->t_uv[0][0]->tu;
+						face->c_uv[0]->tv = face->t_uv[0][0]->tv;
+						face->c_uv[1]->tu = face->t_uv[0][1]->tu;
+						face->c_uv[1]->tv = face->t_uv[0][1]->tv;
+						face->c_uv[2]->tu = face->t_uv[0][2]->tu;
+						face->c_uv[2]->tv = face->t_uv[0][2]->tv;
 					}
 				}
+
+				//平均深度
+				face->depth *= 0.3333333333f;
 
 				viewport->nRenderList ++ ;
 				renderList = renderList->next;
@@ -1043,13 +1087,13 @@ void viewport_project( Viewport * viewport, int time )
 			//重新计算法向量以及构造八叉树（如果顶点是静态的只会执行一次）
 			mesh_updateMesh( entity->mesh );
 
-			matrix3D_append( entity->view, entity->world, camera->eye->world );
+			matrix4x4_append( entity->view, entity->world, camera->eye->world );
 
 			//连接透视投影矩阵
-			matrix3D_append4x4( entity->projection, entity->view, camera->projectionMatrix );
+			matrix4x4_append4x4( entity->projection, entity->view, camera->projectionMatrix );
 
 			//计算视点在实体的局部坐标
-			matrix3D_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
+			matrix4x4_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
 
 			rl = entity->mesh->renderList->next;
 			cl = entity->mesh->clippedList->next;
@@ -1092,169 +1136,114 @@ void viewport_render( Viewport * viewport )
 			switch ( face->render_mode )
 			{
 			case RENDER_WIREFRAME_TRIANGLE_32:
-#ifdef RGB565
-				//Draw_Wireframe_Triangle_16( face, viewport );
-#else
+
 				Draw_Wireframe_Triangle_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_TEXTRUED_TRIANGLE_INVZB_32:
-#ifdef RGB565
-				Draw_Textured_Triangle_INVZB_16( face, viewport );
-#else
+
 				Draw_Textured_Triangle_INVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_TEXTRUED_BILERP_TRIANGLE_INVZB_32:
-#ifdef RGB565
-				Draw_Textured_Bilerp_Triangle_INVZB_16( face, viewport );
-#else
+
 				Draw_Textured_Bilerp_Triangle_INVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_TEXTRUED_TRIANGLE_FSINVZB_32:
-#ifdef RGB565
-				Draw_Textured_Triangle_FSINVZB_16( face, viewport );
-#else
+
 				Draw_Textured_Triangle_FSINVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_TEXTRUED_TRIANGLE_GSINVZB_32:
-#ifdef RGB565
-				Draw_Textured_Triangle_GSINVZB_16( face, viewport );
-#else
+
 				Draw_Textured_Triangle_GSINVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32:
-#ifdef RGB565
-				if ( face->depth < face->texture->perspective_dist )
-					Draw_Textured_Perspective_Triangle_FSINVZB_16( face, viewport );
-				else
-					Draw_Textured_Triangle_FSINVZB_16( face, viewport );
-#else
 
 				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_Perspective_Triangle_FSINVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_FSINVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32:
-#ifdef RGB565
-				if ( face->depth < face->texture->perspective_dist )
-					Draw_Textured_PerspectiveLP_Triangle_FSINVZB_16( face, viewport );
-				else
-					Draw_Textured_Triangle_FSINVZB_16( face, viewport );
-#else
 
 				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_FSINVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32:
-#ifdef RGB565
-				if ( face->depth < face->texture->perspective_dist )
-					Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
-				else
-					Draw_Textured_Triangle_GSINVZB_16( face, viewport );
-#else
 
 				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_Perspective_Triangle_GSINVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_GSINVZB_32( face, viewport );
-#endif
+
+				break;
+
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_GSINVZB_32:
+
+				if ( face->depth < face->texture->perspective_dist )
+					Draw_Textured_PerspectiveLP_Triangle_GSINVZB_32( face, viewport );
+				else
+					Draw_Textured_Triangle_GSINVZB_32( face, viewport );
+
 				break;
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32:
-#ifdef RGB565
-				if ( face->depth < face->texture->perspective_dist )
-					Draw_Textured_Perspective_Triangle_INVZB_16( face, viewport );
-				else
-					Draw_Textured_Triangle_INVZB_16( face, viewport );
-#else
 
 				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_Perspective_Triangle_INVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_INVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_INVZB_32:
-#ifdef RGB565
-				if ( face->depth < face->texture->perspective_dist )
-					Draw_Textured_PerspectiveLP_Triangle_INVZB_16( face, viewport );
-				else
-					Draw_Textured_Triangle_INVZB_16( face, viewport );
-#else
 
 				if ( face->depth < face->texture->perspective_dist )
 					Draw_Textured_PerspectiveLP_Triangle_INVZB_32( face, viewport );
 				else
 					Draw_Textured_Triangle_INVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_FLAT_TRIANGLE_32 :
-#ifdef RGB565
-				//Draw_Flat_Triangle_16( face, viewport );
-#else
+
 				Draw_Flat_Triangle_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_FLAT_TRIANGLEFP_32 :
-#ifdef RGB565
-				//Draw_Flat_TriangleFP_16( face, viewport );
-#else
+
 				Draw_Flat_TriangleFP_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_FLAT_TRIANGLE_INVZB_32:
-#ifdef RGB565
-				Draw_Flat_Triangle_INVZB_16( face, viewport );
-#else
+
 				Draw_Flat_Triangle_INVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_GOURAUD_TRIANGLE_INVZB_32:
-#ifdef RGB565
-				Draw_Gouraud_Triangle_INVZB_16( face, viewport );
-#else
+
 				Draw_Gouraud_Triangle_INVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32:
-#ifdef RGB565
-				if ( viewport->scene->fog && face->fogEnable )
-				{
-					if ( face->depth < face->texture->perspective_dist )
-						Draw_Textured_Perspective_Triangle_FOG_GSINVZB_16( face, viewport );
-					else
-						Draw_Textured_Triangle_FOG_GSINVZB_16( face, viewport );
-				}
-				else
-				{
-					if ( face->depth < face->texture->perspective_dist )
-						Draw_Textured_Perspective_Triangle_GSINVZB_16( face, viewport );
-					else
-						Draw_Textured_Triangle_GSINVZB_16( face, viewport );
-				}
-#else
 
 				if ( viewport->scene->fog && face->fogEnable )
 				{
@@ -1270,7 +1259,13 @@ void viewport_render( Viewport * viewport )
 					else
 						Draw_Textured_Triangle_GSINVZB_32( face, viewport );
 				}
-#endif
+
+				break;
+
+			case 0x10000000:
+
+				Draw_Textured_Triangle_Test_32( face, viewport );
+
 				break;
 			}
 		}
@@ -1279,43 +1274,33 @@ void viewport_render( Viewport * viewport )
 			switch ( face->render_mode )
 			{
 			case RENDER_WIREFRAME_TRIANGLE_32:
-#ifdef RGB565
-				//Draw_Wireframe_Triangle_16( face, viewport );
-#else
+
 				Draw_Wireframe_Triangle_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_FLAT_TRIANGLE_32 :
-#ifdef RGB565
-				//Draw_Flat_Triangle_16( face, viewport );
-#else
+
 				Draw_Flat_Triangle_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_FLAT_TRIANGLEFP_32 :
-#ifdef RGB565
-				//Draw_Flat_TriangleFP_16( face, viewport );
-#else
+
 				Draw_Flat_TriangleFP_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_FLAT_TRIANGLE_INVZB_32:
-#ifdef RGB565
-				Draw_Flat_Triangle_INVZB_16( face, viewport );
-#else
+
 				Draw_Flat_Triangle_INVZB_32( face, viewport );
-#endif
+
 				break;
 
 			case RENDER_GOURAUD_TRIANGLE_INVZB_32:
-#ifdef RGB565
-				Draw_Gouraud_Triangle_INVZB_16( face, viewport );
-#else
+
 				Draw_Gouraud_Triangle_INVZB_32( face, viewport );
-#endif
+
 				break;
 			}
 		}
