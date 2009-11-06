@@ -12,7 +12,7 @@ typedef struct Camera
 
 	Vector3D * target;
 
-	Matrix3D * projectionMatrix;
+	Matrix4x4 * projectionMatrix;
 
 	float fov, near, far, n_top, n_bottom, n_left, n_right, f_top, f_bottom, f_right, f_left, fn;
 
@@ -35,7 +35,7 @@ Camera * newCamera( float fov, float near, float far, Entity * eye )
 	cam->eye = eye;
 	cam->eye->position->z = -near;
 
-	cam->projectionMatrix = newMatrix3D(NULL);
+	cam->projectionMatrix = newMatrix4x4(NULL);
 
 	cam->target = NULL;
 
@@ -47,7 +47,7 @@ Camera * newCamera( float fov, float near, float far, Entity * eye )
 
 void camera_dispose( Camera * camera )
 {
-	matrix3D_dispose( camera->projectionMatrix );
+	matrix4x4_dispose( camera->projectionMatrix );
 	
 	memset( camera, 0, sizeof( Camera ) );
 	
@@ -73,7 +73,7 @@ INLINE void camera_setNullTarget( Camera * camera, int setFree )
 }
 
 //根据上下左右远近截面获得投影矩阵
-INLINE Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float bottom, float left, float right, float near, float far )
+INLINE Matrix4x4 * getProjectionMatrix( Matrix4x4 * output, float top, float bottom, float left, float right, float near, float far )
 {
 	float fn;
 
@@ -109,7 +109,7 @@ INLINE Matrix3D * getProjectionMatrix( Matrix3D * output, float top, float botto
 }
 
 //根据远近截面、宽高比和视角获得投影矩阵
-INLINE Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float aspect )
+INLINE Matrix4x4 * getPerspectiveFovLH( Matrix4x4 * output, Camera * camera, float aspect )
 {
 	camera->n_top = camera->near * tanf( DEG2RAD( camera->fov * 0.5f ) );
 	camera->n_bottom = -camera->n_top;
@@ -128,7 +128,7 @@ INLINE Matrix3D * getPerspectiveFovLH( Matrix3D * output, Camera * camera, float
 INLINE void camera_updateTransform(Camera * camera)
 {
 	Quaternion qua;
-	Matrix3D quaMtr;
+	Matrix4x4 quaMtr;
 
 	Entity * eye = camera->eye;
 
@@ -139,20 +139,20 @@ INLINE void camera_updateTransform(Camera * camera)
 		if ( TRUE == eye->transformDirty )
 		{
 			//单位化
-			matrix3D_identity( eye->transform );
+			matrix4x4_identity( eye->transform );
 			//缩放
-			matrix3D_appendScale( eye->transform, eye->scale->x, - eye->scale->y, eye->scale->z );
+			matrix4x4_appendScale( eye->transform, eye->scale->x, - eye->scale->y, eye->scale->z );
 			//旋转
-			matrix3D_append_self( eye->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( eye->direction->y ), DEG2RAD( eye->direction->x ), DEG2RAD( eye->direction->z ) ) ) );
+			matrix4x4_append_self( eye->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( eye->direction->y ), DEG2RAD( eye->direction->x ), DEG2RAD( eye->direction->z ) ) ) );
 			//位移
-			matrix3D_appendTranslation( eye->transform, eye->position->x, eye->position->y, eye->position->z );
+			matrix4x4_appendTranslation( eye->transform, eye->position->x, eye->position->y, eye->position->z );
 
-			matrix3D_copy( eye->world, eye->transform );
+			matrix4x4_copy( eye->world, eye->transform );
 
 			//从世界矩阵获得世界位置
-			matrix3D_getPosition( eye->w_pos, eye->world );
+			matrix4x4_getPosition( eye->w_pos, eye->world );
 
-			matrix3D_fastInvert( eye->world );
+			matrix4x4_fastInvert( eye->world );
 		}
 	}
 	//如果有目标
@@ -161,7 +161,7 @@ INLINE void camera_updateTransform(Camera * camera)
 		//获得指向目标位置的旋转矩阵
 		lookAt( eye->world, eye->position, camera->target, Y_AXIS );
 		//从世界矩阵获得世界位置
-		matrix3D_getPosition( eye->w_pos, eye->world );
+		matrix4x4_getPosition( eye->w_pos, eye->world );
 
 		eye->w_pos->x *= -1;
 		eye->w_pos->y *= -1;

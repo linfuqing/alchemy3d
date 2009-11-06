@@ -3,16 +3,16 @@
 
 #include <malloc.h>
 
-#include "ColorValue.h"
+#include "Color888.h"
 
 typedef struct Material
 {
 	char * name;
-	ColorValue * ambient;	//指定此表面反射的环境光数量
-	ColorValue * diffuse;	//指定此表面反射的漫射光数量
-	ColorValue * specular;	//指定此表面反射的镜面光数量
-	ColorValue * emissive;	//这个是被用来给表面添加颜色，它使得物体看起来就象是它自己发出的光一样
-	float power;		//指定锐利的镜面高光；它的值是高光的锐利值
+	Color888 * ambient;		//指定此表面反射的环境光数量
+	Color888 * diffuse;		//指定此表面反射的漫射光数量
+	Color888 * specular;	//指定此表面反射的镜面光数量
+	Color888 * emissive;	//这个是被用来给表面添加颜色，它使得物体看起来就象是它自己发出的光一样
+	float power;			//指定锐利的镜面高光；它的值是高光的锐利值
 }Material;
 
 typedef struct MaterialList_TYP
@@ -23,7 +23,7 @@ typedef struct MaterialList_TYP
 
 }MaterialList;
 
-Material * newMaterial( ColorValue * ambient, ColorValue * diffuse, ColorValue * specular, ColorValue * emissive, float power )
+Material * newMaterial( Color888 * ambient, Color888 * diffuse, Color888 * specular, Color888 * emissive, float power )
 {
 	Material * m;
 
@@ -32,10 +32,10 @@ Material * newMaterial( ColorValue * ambient, ColorValue * diffuse, ColorValue *
 		exit( TRUE );
 	}
 
-	ambient = NULL != ambient ? ambient : newColorValue( 1.0f, 1.0f, 1.0f, 1.0f );
-	diffuse = NULL != diffuse ? diffuse : newColorValue( 0.6f, 0.6f, 0.6f, 0.6f );
-	specular = NULL != specular ? specular : newColorValue( 0.8f, 0.8f, 0.8f, 0.8f );
-	emissive = NULL != emissive ? emissive : newColorValue( 0.0f, 0.0f, 0.0f, 0.0f );
+	ambient = NULL != ambient ? ambient : newColor888( 255, 255, 255, 255 );
+	diffuse = NULL != diffuse ? diffuse : newColor888( 153, 153, 153, 255 );
+	specular = NULL != specular ? specular : newColor888( 204, 204, 204, 255 );
+	emissive = NULL != emissive ? emissive : newColor888( 0, 0, 0, 0 );
 
 	m->name		= NULL;
 	m->ambient	= ambient;

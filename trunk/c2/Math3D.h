@@ -63,15 +63,16 @@ const float INFINITY		= 1e30f;
 const float FLT_EPSILON		= 1.192092896e-07f;
 const float INV_255			= 0.00392156862745098039f;
 
-#define FIXP8_SHIFT     8
-#define FIXP16_SHIFT     16
-#define FIXP16_MAG       65536
-#define FIXP16_DP_MASK   0x0000ffff
-#define FIXP16_WP_MASK   0xffff0000
-#define FIXP16_ROUND_UP  0x00008000
-#define FIXP22_SHIFT     22
-#define FIXP24_SHIFT     24
-#define FIXP28_SHIFT     28
+#define FIXP8_SHIFT			8
+#define FIXP16_SHIFT		16
+#define FIXP16_MAG			65536
+#define FIXP16_DP_MASK		0x0000ffff
+#define FIXP16_WP_MASK		0xffff0000
+#define FIXP16_ROUND_UP		0x00008000
+#define FIXP20_SHIFT		20
+#define FIXP22_SHIFT		22
+#define FIXP24_SHIFT		24
+#define FIXP28_SHIFT		28
 
 #define EPSILON_E3 (float)(1E-3) 
 #define EPSILON_E4 (float)(1E-4) 
@@ -79,27 +80,6 @@ const float INV_255			= 0.00392156862745098039f;
 #define EPSILON_E6 (float)(1E-6)
 
 #define MATRIX_INVERSE_EPSILON		1e-14
-
-BYTE logbase2ofx[513] = 
-{
-	0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3, 4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4, 
-	5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5, 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5, 
-	6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6, 6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6, 
-	6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6, 6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6, 
-	7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, 
-	7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, 
-	7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, 
-	7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-
-	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8, 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
-	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8, 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
-	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8, 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
-	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8, 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
-	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8, 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
-	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8, 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
-	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8, 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
-	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8, 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
-};
 
 #define RGB16BIT555(r, g, b) ((b & 31) + ((g & 31) << 5) + ((r & 31) << 10))
 #define RGB16BIT565(r, g, b) ((b & 31) + ((g & 63) << 5) + ((r & 31) << 11))
@@ -162,6 +142,12 @@ INLINE float invSqrt( float x )
 	return x;
 }
 
+INLINE void sinCos(float *returnSin, float *returnCos, float theta)
+{ 
+	*returnSin = sinf(theta); 
+	*returnCos = cosf(theta); 
+} 
+
 #define NUM_ALPHA_LEVELS 256
 
 #ifdef RGB565
@@ -174,7 +160,7 @@ int rgb565_Alpha_Table_Builder( int num_alpha_levels, USHORT rgb_alpha_table[NUM
 	float delta_alpha;
 
 	if (!rgb_alpha_table)
-		return(-1);
+		return(0);
 
 	alpha = 0;
 	delta_alpha = EPSILON_E6 + 1/((float)(num_alpha_levels-1));
@@ -219,7 +205,7 @@ int alpha_Table_Builder( int num_alpha_levels, BYTE alpha_table[NUM_ALPHA_LEVELS
 	float delta_alpha;
 
 	if ( !alpha_table )
-		return(-1);
+		return(0);
 
 	alpha = 0;
 	delta_alpha = EPSILON_E6 + 1/((float)(num_alpha_levels-1));
@@ -245,7 +231,7 @@ int multiply256_Table_Builder( DWORD multiply256_table[256][256] )
 	int index, alpha_level, alpha;
 
 	if ( !multiply256_table )
-		return(-1);
+		return(0);
 
 	alpha = 0;
 
@@ -263,12 +249,12 @@ int multiply256_Table_Builder( DWORD multiply256_table[256][256] )
 }
 
 //256*256 >> 8乘法表
-int multiply256Fix8_Table_Builder( DWORD multiply256Fix8_table[256][256] )
+int multiply256FIXP8_Table_Builder( DWORD multiply256FIXP8_table[256][256] )
 {
 	int index, alpha_level, alpha;
 
-	if ( !multiply256Fix8_table )
-		return(-1);
+	if ( !multiply256FIXP8_table )
+		return(0);
 
 	alpha = 0;
 
@@ -276,10 +262,26 @@ int multiply256Fix8_Table_Builder( DWORD multiply256Fix8_table[256][256] )
 	{
 		for ( index = 0; index < 256; index ++ )
 		{
-			multiply256Fix8_table[alpha_level][index] = ( alpha * index ) >> 8;
+			multiply256FIXP8_table[alpha_level][index] = ( alpha * index ) >> 8;
 		}
 
 		alpha ++;
+	}
+
+	return(1);
+}
+
+//log2查找表
+int log2base_Table_Builder( BYTE logbase2ofx[2048] )
+{
+	int index;
+
+	if ( !logbase2ofx )
+		return(0);
+
+	for ( index = 0; index < 2048; index ++ )
+	{
+		logbase2ofx[index] = (BYTE)(log(index)/log(2));
 	}
 
 	return(1);

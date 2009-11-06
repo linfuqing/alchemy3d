@@ -23,7 +23,7 @@ typedef struct Triangle
 
 	Vertex * vertex[3];
 
-	Vector * uv[3], * t_uv[3];
+	Vector * uv[3], *(* t_uv)[3],  * c_uv[3];
 
 }Triangle;
 
@@ -52,9 +52,9 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	p->uv[1] = uvb;
 	p->uv[2] = uvc;
 
-	p->t_uv[0] = vector_clone( uva );
-	p->t_uv[1] = vector_clone( uvb );
-	p->t_uv[2] = vector_clone( uvc );
+	p->c_uv[0] = vector_clone( uva );
+	p->c_uv[1] = vector_clone( uvb );
+	p->c_uv[2] = vector_clone( uvc );
 
 	vertex_addContectedFaces( p, va );
 	vertex_addContectedFaces( p, vb );
@@ -83,9 +83,9 @@ INLINE void triangle_copy( Triangle * dest, Triangle * src )
 	vector_copy( dest->uv[1], src->uv[1] );
 	vector_copy( dest->uv[2], src->uv[2] );
 
-	vector_copy( dest->t_uv[0], src->t_uv[0] );
-	vector_copy( dest->t_uv[1], src->t_uv[1] );
-	vector_copy( dest->t_uv[2], src->t_uv[2] );
+	vector_copy( dest->c_uv[0], src->c_uv[0] );
+	vector_copy( dest->c_uv[1], src->c_uv[1] );
+	vector_copy( dest->c_uv[2], src->c_uv[2] );
 
 	vector3D_copy( dest->normal, src->normal );
 
@@ -111,9 +111,9 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	dest->uv[1] = vector_clone( src->uv[1] );
 	dest->uv[2] = vector_clone( src->uv[2] );
 
-	dest->t_uv[0] = vector_clone( src->t_uv[0] );
-	dest->t_uv[1] = vector_clone( src->t_uv[1] );
-	dest->t_uv[2] = vector_clone( src->t_uv[2] );
+	dest->c_uv[0] = vector_clone( src->c_uv[0] );
+	dest->c_uv[1] = vector_clone( src->c_uv[1] );
+	dest->c_uv[2] = vector_clone( src->c_uv[2] );
 
 	vertex_addContectedFaces( dest, dest->vertex[0] );
 	vertex_addContectedFaces( dest, dest->vertex[1] );
@@ -133,12 +133,18 @@ INLINE Triangle * triangle_clone( Triangle * src )
 
 INLINE void triangle_dispose( Triangle * p )
 {
+	BYTE tmiplevels = logbase2ofx[p->texture->mipmaps[0]->width] + 1;
+
 	memset( p->normal, 0, sizeof( Vector3D ) );
-	memset( p->t_uv, 0, sizeof( Vector ) );
+	memset( p->t_uv[0][0], 0, sizeof( Vector ) * tmiplevels * 3 );
+	memset( p->t_uv, 0, sizeof( Vector * ) * tmiplevels * 3 );
+	memset( p->c_uv, 0, sizeof( Vector ) );
 	memset( p, 0, sizeof( Triangle ) );
 	
 	free( p->normal );
+	free( p->t_uv[0][0] );
 	free( p->t_uv );
+	free( p->c_uv );
 	free( p );
 }
 
@@ -186,7 +192,7 @@ INLINE int triangle_hitTestPoint2D( Triangle * triangle, float x, float y )
 		triangle -> vertex[1] -> v_pos -> y ) );
 }
 
-INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangle * face )
+INLINE void triangle_transform( Matrix4x4 * world, Matrix4x4 * projection, Triangle * face )
 {
 	Vertex * vert;
 
@@ -196,7 +202,7 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 
 		vert = face->vertex[0];
 
-		//matrix3D_transformVector( vert->w_pos, world, vert->position );
+		//matrix4x4_transformVector( vert->w_pos, world, vert->position );
 
 		vert->v_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
 		vert->v_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
@@ -212,7 +218,7 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 
 		vert = face->vertex[1];
 
-		//matrix3D_transformVector( vert->w_pos, world, vert->position );
+		//matrix4x4_transformVector( vert->w_pos, world, vert->position );
 
 		vert->v_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
 		vert->v_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
@@ -228,7 +234,7 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 
 		vert = face->vertex[2];
 
-		//matrix3D_transformVector( vert->w_pos, world, vert->position );
+		//matrix4x4_transformVector( vert->w_pos, world, vert->position );
 
 		vert->v_pos->x = projection->m11 * vert->position->x + projection->m21 * vert->position->y + projection->m31 * vert->position->z + projection->m41;
 		vert->v_pos->y = projection->m12 * vert->position->x + projection->m22 * vert->position->y + projection->m32 * vert->position->z + projection->m42;
@@ -239,45 +245,26 @@ INLINE void triangle_transform( Matrix3D * world, Matrix3D * projection, Triangl
 	}
 }
 
-INLINE void triangle_setUV( Triangle * face, float meshWidth, float meshHeight, int texWidth, int texHeight, int addressMode )
+void triangle_setUV( Triangle * face, int miplevels )
 {
-	float ratio;
+	int i, texWidth, texHeight;
 
-	switch ( addressMode )
+	for ( i = 0; i < miplevels; i ++ )
 	{
-		case ADDRESS_MODE_WRAP:
+		texWidth = face->texture->mipmaps[i]->width;
+		texHeight = face->texture->mipmaps[i]->height;
 
-			ratio = meshWidth / texWidth;
+		texWidth--;
+		texHeight--;
 
-			texWidth--;
-			texHeight--;
+		face->t_uv[i][0]->tu = (int)(face->uv[0]->u * texWidth + .5f);
+		face->t_uv[i][0]->tv = (int)(face->uv[0]->v * texHeight + .5f);
 
-			face->t_uv[0]->tu = (int)(face->uv[0]->u * texWidth * ratio + .5f);
-			face->t_uv[0]->tv = (int)(face->uv[0]->v * texHeight * ratio + .5f);
+		face->t_uv[i][1]->tu = (int)(face->uv[1]->u * texWidth + .5f);
+		face->t_uv[i][1]->tv = (int)(face->uv[1]->v * texHeight + .5f);
 
-			face->t_uv[1]->tu = (int)(face->uv[1]->u * texWidth * ratio + .5f);
-			face->t_uv[1]->tv = (int)(face->uv[1]->v * texHeight * ratio + .5f);
-
-			face->t_uv[2]->tu = (int)(face->uv[2]->u * texWidth * ratio + .5f);
-			face->t_uv[2]->tv = (int)(face->uv[2]->v * texHeight * ratio + .5f);
-
-			break;
-
-		default:
-
-			texWidth--;
-			texHeight--;
-
-			face->t_uv[0]->tu = (int)(face->uv[0]->u * texWidth + .5f);
-			face->t_uv[0]->tv = (int)(face->uv[0]->v * texHeight + .5f);
-
-			face->t_uv[1]->tu = (int)(face->uv[1]->u * texWidth + .5f);
-			face->t_uv[1]->tv = (int)(face->uv[1]->v * texHeight + .5f);
-
-			face->t_uv[2]->tu = (int)(face->uv[2]->u * texWidth + .5f);
-			face->t_uv[2]->tv = (int)(face->uv[2]->v * texHeight + .5f);
-
-			break;
+		face->t_uv[i][2]->tu = (int)(face->uv[2]->u * texWidth + .5f);
+		face->t_uv[i][2]->tv = (int)(face->uv[2]->v * texHeight + .5f);
 	}
 
 	/*if( addressMode == ADDRESS_MODE_CLAMP )
@@ -346,33 +333,66 @@ INLINE void triangle_setUV( Triangle * face, float meshWidth, float meshHeight, 
 	}*/
 }
 
-INLINE void triangle_correctMipmapUV( Triangle * face, int miplevel1, int miplevel2 )
+void triangle_transformUV( Triangle * face, TexTransform * transformation, int miplevels, int addressMode )
 {
-	int m = miplevel1 - miplevel2;
+	int i, x, y;
 
-	if ( m > 0 )
+	Matrix3x3 * m = transformation->transform;
+
+	matrix3x3_identity( m );
+
+	matrix3x3_appendScale( m, transformation->scale->x, transformation->scale->y );
+
+	matrix3x3_appendRotation( m, transformation->rotation );
+
+	matrix3x3_appendTranslation( m, transformation->offset->x, transformation->offset->y );
+
+	switch ( addressMode )
 	{
-		face->t_uv[0]->tu >>= m;
-		face->t_uv[0]->tv >>= m;
+		case ADDRESS_MODE_WRAP:
 
-		face->t_uv[1]->tu >>= m;
-		face->t_uv[1]->tv >>= m;
+			for ( i = 0; i < miplevels; i ++ )
+			{
+				x = (int)(m->m11 * face->t_uv[i][0]->tu + m->m21 * face->t_uv[i][0]->tu + m->m31);
+				y = (int)(m->m12 * face->t_uv[i][0]->tv + m->m22 * face->t_uv[i][0]->tv + m->m32);
 
-		face->t_uv[2]->tu >>= m;
-		face->t_uv[2]->tv >>= m;
+				face->t_uv[i][0]->tu = x;
+				face->t_uv[i][0]->tv = y;
+				
+				x = (int)(m->m11 * face->t_uv[i][1]->tu + m->m21 * face->t_uv[i][1]->tu + m->m31);
+				y = (int)(m->m12 * face->t_uv[i][1]->tv + m->m22 * face->t_uv[i][1]->tv + m->m32);
+
+				face->t_uv[i][0]->tu = x;
+				face->t_uv[i][0]->tv = y;
+				
+				x = (int)(m->m11 * face->t_uv[i][2]->tu + m->m21 * face->t_uv[i][2]->tu + m->m31);
+				y = (int)(m->m12 * face->t_uv[i][2]->tv + m->m22 * face->t_uv[i][2]->tv + m->m32);
+
+				face->t_uv[i][0]->tu = x;
+				face->t_uv[i][0]->tv = y;
+			}
+
+			break;
 	}
-	else
+}
+
+void triangle_createMipUVChain( Triangle * face, int tmiplevels )
+{
+	int i, j, k = 0;
+
+	Vector * tmp;
+
+	if ( ( tmp = ( Vector * )calloc( tmiplevels * 3, sizeof( Vector ) ) ) == NULL ) exit( TRUE );
+	if ( ( face->t_uv = ( Vector *(*)[3] )calloc( tmiplevels, sizeof( Vector * ) * 3 ) ) == NULL ) exit( TRUE );
+
+	for ( j = 0; j < tmiplevels; j ++ )
 	{
-		m = - m;
+		for ( i = 0; i < 3; i ++ )
+		{
+			face->t_uv[j][i] = tmp + k;
 
-		face->t_uv[0]->tu <<= m;
-		face->t_uv[0]->tv <<= m;
-
-		face->t_uv[1]->tu <<= m;
-		face->t_uv[1]->tv <<= m;
-
-		face->t_uv[2]->tu <<= m;
-		face->t_uv[2]->tv <<= m;
+			k ++;
+		}
 	}
 }
 

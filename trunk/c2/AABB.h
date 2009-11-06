@@ -157,7 +157,7 @@ INLINE int aabb_isEmpty(AABB * aabb)
 // results in an AABB that is at least as big as the origin, and may be
 // considerably bigger.
 
-AABB * aabb_setToTransformedBox(AABB * aabb, AABB * box, Matrix3D * m)
+AABB * aabb_setToTransformedBox(AABB * aabb, AABB * box, Matrix4x4 * m)
 {
 	if (aabb_isEmpty(box))
 	{
@@ -166,8 +166,8 @@ AABB * aabb_setToTransformedBox(AABB * aabb, AABB * box, Matrix3D * m)
 	}
 
 	// Start with the translation portion
-	matrix3D_getPosition(aabb->min, m);
-	matrix3D_getPosition(aabb->max, m);
+	matrix4x4_getPosition(aabb->min, m);
+	matrix4x4_getPosition(aabb->max, m);
 
 	//aabb_zero( aabb );
 
@@ -275,7 +275,7 @@ AABB * aabb_setToTransformedBox(AABB * aabb, AABB * box, Matrix3D * m)
 	return aabb;
 }
 
-AABB * aabb_setToTransformedBox_CVV(AABB * aabb, AABB * box, Matrix3D * m)
+AABB * aabb_setToTransformedBox_CVV(AABB * aabb, AABB * box, Matrix4x4 * m)
 {
 	if (aabb_isEmpty(box))
 	{
@@ -284,8 +284,8 @@ AABB * aabb_setToTransformedBox_CVV(AABB * aabb, AABB * box, Matrix3D * m)
 	}
 
 	// Start with the translation portion
-	//matrix3D_getPosition(aabb->min, m);
-	//matrix3D_getPosition(aabb->max, m);
+	//matrix4x4_getPosition(aabb->min, m);
+	//matrix4x4_getPosition(aabb->max, m);
 
 	aabb->min->x = 0.0f;
 	aabb->min->y = 0.0f;

@@ -2,15 +2,17 @@
 #define __AS3__
 //#define RGB565
 
+#include <GL/gl.h>
 #include <stdlib.h>
 #include <AS3.h>
 
 #include "Base.h"
 #include "Math3D.h"
 
+BYTE logbase2ofx[2048];
 BYTE alpha_table[NUM_ALPHA_LEVELS][256];
 DWORD multiply256_table[256][256];
-DWORD multiply256Fix8_table[256][256];
+DWORD multiply256FIXP8_table[256][256];
 
 #include "Entity.h"
 #include "Material.h"
@@ -21,6 +23,7 @@ DWORD multiply256Fix8_table[256][256];
 #include "Viewport.h"
 #include "Triangle.h"
 #include "Mesh.h"
+#include "Color888.h"
 #include "3DS.h"
 #include "Md2.h"
 #include "Primitives.h"
@@ -332,8 +335,8 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 	if( ( vp = ( Vector3D * *   )malloc( sizeof( Vector3D * ) * mesh -> nVertices ) ) == NULL )
 	{
-		return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-							mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->uvDirty, & mesh->octree_depth, & mesh->addressMode );
+		return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+							mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth, & mesh->addressMode );
 	}
 
 	for( i = 0; i < mesh -> nVertices; i ++ )
@@ -341,8 +344,8 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 		vp[i] = mesh -> vertices[i]->position;
 	}
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-						mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->uvDirty, & mesh->octree_depth, & mesh->addressMode, & vp );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+						mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth, & mesh->addressMode, & vp );
 }
 
 AS3_Val setMeshAttribute( void* self, AS3_Val args )
@@ -628,10 +631,10 @@ AS3_Val initializeMaterial( void* self, AS3_Val args )
 	e_b = AS3_NumberValue( AS3_GetS( emissive, "blueMultiplier" ) );
 	e_a = AS3_NumberValue( AS3_GetS( emissive, "alphaMultiplier" ) );
 
-	material = newMaterial( newColorValue( (float)a_r, (float)a_g, (float)a_b, (float)a_a ),
-							newColorValue( (float)d_r, (float)d_g, (float)d_b, (float)d_a ),
-							newColorValue( (float)s_r, (float)s_g, (float)s_b, (float)s_a ),
-							newColorValue( (float)e_r, (float)e_g, (float)e_b, (float)e_a ),
+	material = newMaterial( newColor888( (BYTE)(a_r * 255), (BYTE)(a_g * 255), (BYTE)(a_b * 255), (BYTE)(a_a * 255) ),
+							newColor888( (BYTE)(d_r * 255), (BYTE)(d_g * 255), (BYTE)(d_b * 255), (BYTE)(d_a * 255) ),
+							newColor888( (BYTE)(s_r * 255), (BYTE)(s_g * 255), (BYTE)(s_b * 255), (BYTE)(s_a * 255) ),
+							newColor888( (BYTE)(e_r * 255), (BYTE)(e_g * 255), (BYTE)(e_b * 255), (BYTE)(e_a * 255) ),
 							power );
 
 	AS3_Release( ambient );
@@ -761,9 +764,10 @@ AS3_Val test2( void* self, AS3_Val args )
 //Èë¿Ú
 int main()
 {
+	log2base_Table_Builder(logbase2ofx);
 	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
 	multiply256_Table_Builder(multiply256_table);
-	multiply256Fix8_Table_Builder(multiply256Fix8_table);
+	multiply256FIXP8_Table_Builder(multiply256FIXP8_table);
 
 	AS3_Val initializeCameraMethod = AS3_Function( NULL, initializeCamera );
 	AS3_Val attachCameraMethod = AS3_Function( NULL, attachCamera );

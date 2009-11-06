@@ -59,8 +59,9 @@ typedef unsigned long		ULONG;
 #define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FSINVZB_32		0x000080	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Flat光照模型
 #define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_FSINVZB_32	0x000100	//32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射 + Flat光照模型
 #define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32		0x002000	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Gouraud光照模型
-#define RENDER_TEXTRUED_TRIANGLE_FOG_GSINVZB_32				0x004000	//32位模式 + 1/z深度缓冲 + Gouraud光照模型 + 纹理映射 + 雾化效果
-#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32	0x008000	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Gouraud光照模型 + 雾化效果
+#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLELP_GSINVZB_32	0x004000	//32位模式 + 1/z深度缓冲 + 线性分段透视矫正纹理映射 + Gouraud光照模型
+#define RENDER_TEXTRUED_TRIANGLE_FOG_GSINVZB_32				0x008000	//32位模式 + 1/z深度缓冲 + Gouraud光照模型 + 纹理映射 + 雾化效果
+#define RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_FOG_GSINVZB_32	0x010000	//32位模式 + 1/z深度缓冲 + 透视矫正纹理映射 + Gouraud光照模型 + 雾化效果
 
 //不带纹理光栅化
 #define RENDER_FLAT_TRIANGLE_32								0x000200	//32位Flat模式不带Z缓冲
@@ -69,8 +70,8 @@ typedef unsigned long		ULONG;
 #define RENDER_GOURAUD_TRIANGLE_INVZB_32					0x001000	//32位模式 + 1/z深度缓冲 + Gouraud光照模型
 
 //带alpha光栅化
-#define RENDER_TRIANGLE_FSINVZB_ALPHA_32					0x010000
-#define RENDER_TRIANGLE_GSINVZB_ALPHA_32					0x020000
-#define RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32				0x040000
+#define RENDER_TRIANGLE_FSINVZB_ALPHA_32					0x020000
+#define RENDER_TRIANGLE_GSINVZB_ALPHA_32					0x040000
+#define RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32				0x080000
 
 #endif

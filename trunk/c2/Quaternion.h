@@ -119,7 +119,7 @@ INLINE Quaternion * quaternoin_setFromEuler(Quaternion * output, float ay, float
 /**
 * 从四元数返回矩阵
 */
-INLINE Matrix3D * quaternoin_toMatrix(Matrix3D * output, Quaternion * qua)
+INLINE Matrix4x4 * quaternoin_toMatrix(Matrix4x4 * output, Quaternion * qua)
 {
 	float x, y, z, w, xx, xy, xz, xw, yy, yz, yw, zz, zw;
 
@@ -241,7 +241,7 @@ INLINE Vector3D * quaternion_getRotationAxis(Quaternion * q)
 		);
 }
 
-INLINE void quaternion_rotationMatrix(Quaternion * pout, Matrix3D * pm)
+INLINE void quaternion_rotationMatrix(Quaternion * pout, Matrix4x4 * pm)
 {
 	int maxi;
 	float maxdiag, s, trace;
