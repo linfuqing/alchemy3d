@@ -147,11 +147,10 @@ int main()
 	//entity_setX(do3d3, -100.0f);
 
 	mesh4 = newPlane( NULL, material, texture, 1024.0f, 1024.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
-	mesh5 = newPlane( NULL, material, texture, 3200.0f, 3200.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
+	mesh5 = newPlane( NULL, material, texture, 3200.0f, 3200.0f, 2, 2, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh5->addressMode = ADDRESS_MODE_WRAP;
-	//mesh_setTexScale( mesh5, 2.0f, 2.0f );
-	mesh_setTexOffset( mesh5, 2.0f, 2.0f );
-	mesh5->texTransformDirty = TRUE;
+	mesh_setTexScale( mesh5, 2.0f, 2.0f );
+	//mesh_setTexOffset( mesh5, 2.0f, 2.0f );
 	//mesh5->useMipmap = TRUE;
 	//mesh5->mip_dist = 500.0f;
 	//mesh5->lightEnable = TRUE;

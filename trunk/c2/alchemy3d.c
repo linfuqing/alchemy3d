@@ -335,8 +335,20 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 
 	if( ( vp = ( Vector3D * *   )malloc( sizeof( Vector3D * ) * mesh -> nVertices ) ) == NULL )
 	{
-		return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-							mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth, & mesh->addressMode );
+		return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+							mesh,
+							& mesh->lightEnable,
+							& mesh->fogEnable,
+							& mesh->useMipmap,
+							& mesh->terrainTrace,
+							& mesh->mip_dist,
+							& mesh->v_dirty, 
+							& mesh->octree_depth,
+							& mesh->addressMode,
+							& mesh->texTransform->rotation,
+							mesh->texTransform->offset,
+							mesh->texTransform->scale,
+							& mesh->texTransformDirty );
 	}
 
 	for( i = 0; i < mesh -> nVertices; i ++ )
@@ -344,8 +356,21 @@ AS3_Val initializeMesh( void * self, AS3_Val args )
 		vp[i] = mesh -> vertices[i]->position;
 	}
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-						mesh, & mesh->lightEnable, & mesh->fogEnable, & mesh->useMipmap, & mesh->terrainTrace, & mesh->mip_dist, & mesh->v_dirty, & mesh->octree_depth, & mesh->addressMode, & vp );
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+						mesh,
+						& mesh->lightEnable,
+						& mesh->fogEnable,
+						& mesh->useMipmap,
+						& mesh->terrainTrace,
+						& mesh->mip_dist,
+						& mesh->v_dirty,
+						& mesh->octree_depth,
+						& mesh->addressMode,
+						& mesh->texTransform->rotation, 
+						mesh->texTransform->offset,
+						mesh->texTransform->scale,
+						& mesh->texTransformDirty,
+						& vp );
 }
 
 AS3_Val setMeshAttribute( void* self, AS3_Val args )

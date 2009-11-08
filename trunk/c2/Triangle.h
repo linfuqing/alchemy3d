@@ -257,14 +257,14 @@ void triangle_setUV( Triangle * face, int miplevels )
 		texWidth--;
 		texHeight--;
 
-		face->t_uv[i][0]->tu = (int)(face->uv[0]->u * texWidth + .5f);
-		face->t_uv[i][0]->tv = (int)(face->uv[0]->v * texHeight + .5f);
+		face->t_uv[i][0]->u = (face->uv[0]->u * texWidth);
+		face->t_uv[i][0]->v = (face->uv[0]->v * texHeight);
 
-		face->t_uv[i][1]->tu = (int)(face->uv[1]->u * texWidth + .5f);
-		face->t_uv[i][1]->tv = (int)(face->uv[1]->v * texHeight + .5f);
+		face->t_uv[i][1]->u = (face->uv[1]->u * texWidth);
+		face->t_uv[i][1]->v = (face->uv[1]->v * texHeight);
 
-		face->t_uv[i][2]->tu = (int)(face->uv[2]->u * texWidth + .5f);
-		face->t_uv[i][2]->tv = (int)(face->uv[2]->v * texHeight + .5f);
+		face->t_uv[i][2]->u = (face->uv[2]->u * texWidth);
+		face->t_uv[i][2]->v = (face->uv[2]->v * texHeight);
 	}
 
 	/*if( addressMode == ADDRESS_MODE_CLAMP )
@@ -335,17 +335,10 @@ void triangle_setUV( Triangle * face, int miplevels )
 
 void triangle_transformUV( Triangle * face, TexTransform * transformation, int miplevels, int addressMode )
 {
-	int i, x, y;
+	int i;
+	float x, y;
 
 	Matrix3x3 * m = transformation->transform;
-
-	matrix3x3_identity( m );
-
-	matrix3x3_appendScale( m, transformation->scale->x, transformation->scale->y );
-
-	matrix3x3_appendRotation( m, transformation->rotation );
-
-	matrix3x3_appendTranslation( m, transformation->offset->x, transformation->offset->y );
 
 	switch ( addressMode )
 	{
@@ -353,23 +346,23 @@ void triangle_transformUV( Triangle * face, TexTransform * transformation, int m
 
 			for ( i = 0; i < miplevels; i ++ )
 			{
-				x = (int)(m->m11 * face->t_uv[i][0]->tu + m->m21 * face->t_uv[i][0]->tu + m->m31);
-				y = (int)(m->m12 * face->t_uv[i][0]->tv + m->m22 * face->t_uv[i][0]->tv + m->m32);
+				x = (m->m11 * face->t_uv[i][0]->u + m->m21 * face->t_uv[i][0]->v + m->m31);
+				y = (m->m12 * face->t_uv[i][0]->u + m->m22 * face->t_uv[i][0]->v + m->m32);
 
-				face->t_uv[i][0]->tu = x;
-				face->t_uv[i][0]->tv = y;
+				face->t_uv[i][0]->u = x;
+				face->t_uv[i][0]->v = y;
 				
-				x = (int)(m->m11 * face->t_uv[i][1]->tu + m->m21 * face->t_uv[i][1]->tu + m->m31);
-				y = (int)(m->m12 * face->t_uv[i][1]->tv + m->m22 * face->t_uv[i][1]->tv + m->m32);
+				x = (m->m11 * face->t_uv[i][1]->u + m->m21 * face->t_uv[i][1]->v + m->m31);
+				y = (m->m12 * face->t_uv[i][1]->u + m->m22 * face->t_uv[i][1]->v + m->m32);
 
-				face->t_uv[i][0]->tu = x;
-				face->t_uv[i][0]->tv = y;
+				face->t_uv[i][1]->u = x;
+				face->t_uv[i][1]->v = y;
 				
-				x = (int)(m->m11 * face->t_uv[i][2]->tu + m->m21 * face->t_uv[i][2]->tu + m->m31);
-				y = (int)(m->m12 * face->t_uv[i][2]->tv + m->m22 * face->t_uv[i][2]->tv + m->m32);
+				x = (m->m11 * face->t_uv[i][2]->u + m->m21 * face->t_uv[i][2]->v + m->m31);
+				y = (m->m12 * face->t_uv[i][2]->u + m->m22 * face->t_uv[i][2]->v + m->m32);
 
-				face->t_uv[i][0]->tu = x;
-				face->t_uv[i][0]->tv = y;
+				face->t_uv[i][2]->u = x;
+				face->t_uv[i][2]->v = y;
 			}
 
 			break;

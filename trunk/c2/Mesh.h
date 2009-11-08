@@ -445,6 +445,8 @@ void mesh_setTexOffset( Mesh * m, float x, float y )
 {
 	m->texTransform->offset->x = x;
 	m->texTransform->offset->y = y;
+
+	m->texTransformDirty = TRUE;
 }
 
 Vector * mesh_getTexOffset( Mesh * m, Vector * output )
@@ -456,8 +458,10 @@ Vector * mesh_getTexOffset( Mesh * m, Vector * output )
 
 void mesh_setTexScale( Mesh * m, float x, float y )
 {
-	m->texTransform->scale->x = 1.0f / x;
-	m->texTransform->scale->y = 1.0f / y;
+	m->texTransform->scale->x = x;
+	m->texTransform->scale->y = y;
+
+	m->texTransformDirty = TRUE;
 }
 
 Vector * mesh_getTexScale( Mesh * m, Vector * output )
@@ -470,6 +474,8 @@ Vector * mesh_getTexScale( Mesh * m, Vector * output )
 void mesh_setTexRotation( Mesh * m, float angle )
 {
 	m->texTransform->rotation = angle;
+
+	m->texTransformDirty = TRUE;
 }
 
 float mesh_getTexRotation( Mesh * m )

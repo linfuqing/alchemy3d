@@ -205,6 +205,7 @@ INLINE void entity_updateAfterRender( Entity * entity )
 	{
 		entity->transformDirty = FALSE;
 		entity->mesh->v_dirty = FALSE;
+		entity->mesh->texTransformDirty = FALSE;
 		entity->mesh->nRenderList = entity->mesh->nCullList = entity->mesh->nClippList = 0;
 	}
 }
@@ -244,6 +245,8 @@ INLINE void entity_updateTransform( Entity * entity )
 INLINE void entity_setX(Entity * entity, float value)
 {
 	entity->position->x = value;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE float entity_getX(Entity * entity)
@@ -254,6 +257,8 @@ INLINE float entity_getX(Entity * entity)
 INLINE void entity_setY(Entity * entity, float value)
 {
 	entity->position->y = value;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE float entity_getY(Entity * entity)
@@ -264,6 +269,8 @@ INLINE float entity_getY(Entity * entity)
 INLINE void entity_setZ(Entity * entity, float value)
 {
 	entity->position->z = value;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE float entity_getZ(Entity * entity)
@@ -274,6 +281,8 @@ INLINE float entity_getZ(Entity * entity)
 INLINE void entity_setScaleX(Entity * entity, float value)
 {
 	entity->scale->x = value;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE float entity_getScaleX(Entity * entity)
@@ -284,6 +293,8 @@ INLINE float entity_getScaleX(Entity * entity)
 INLINE void entity_setScaleY(Entity * entity, float value)
 {
 	entity->scale->y = value;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE float entity_getScaleY(Entity * entity)
@@ -294,6 +305,8 @@ INLINE float entity_getScaleY(Entity * entity)
 INLINE void entity_setScaleZ(Entity * entity, float value)
 {
 	entity->scale->z = value;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE float entity_getScaleZ(Entity * entity)
@@ -304,6 +317,8 @@ INLINE float entity_getScaleZ(Entity * entity)
 INLINE void entity_setRotationX(Entity * entity, float value)
 {
 	entity->direction->x = value;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE float entity_getRotationX(Entity * entity)
@@ -314,6 +329,8 @@ INLINE float entity_getRotationX(Entity * entity)
 INLINE void entity_setRotationY(Entity * entity, float value)
 {
 	entity->direction->y = value;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE float entity_getRotationY(Entity * entity)
@@ -324,6 +341,8 @@ INLINE float entity_getRotationY(Entity * entity)
 INLINE void entity_setRotationZ(Entity * entity, float value)
 {
 	entity->direction->z = value;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE float entity_getRotationZ(Entity * entity)
@@ -336,6 +355,8 @@ INLINE void entity_setPosition(Entity * entity, Vector3D * v)
 	entity->position->x = v->x;
 	entity->position->y = v->y;
 	entity->position->z = v->z;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE Vector3D * entity_getPosition(Vector3D * output, Entity * entity)
@@ -350,6 +371,8 @@ INLINE void entity_setScale(Entity * entity, Vector3D * v)
 	entity->scale->x = v->x;
 	entity->scale->y = v->y;
 	entity->scale->z = v->z;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE Vector3D * entity_getScale(Vector3D * output, Entity * entity)
@@ -364,6 +387,8 @@ INLINE void entity_setRotation(Entity * entity, Vector3D * v)
 	entity->direction->x = v->x;
 	entity->direction->y = v->y;
 	entity->direction->z = v->z;
+
+	entity->transformDirty = TRUE;
 }
 
 INLINE Vector3D * entity_getRotation(Vector3D * output, Entity * entity)
