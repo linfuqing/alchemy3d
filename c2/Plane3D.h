@@ -47,7 +47,7 @@ float plane3D_side( Plane3D * p, Vector3D * v )
 
 	if ( ( result > -0.001f ) && ( result < 0.001f ) ) return 0;
 
-	return p->a * v->x + p->b * v->y + p->c * v->z + p->d;
+	return result;
 }
 
 float plane3D_distance( Plane3D * p, Vector3D * v )

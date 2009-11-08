@@ -994,11 +994,11 @@ void viewport_lightting( Viewport * viewport )
 						triangle_createMipUVChain( face, tmiplevels );
 
 						triangle_setUV( face, tmiplevels );
-						
-						if ( mesh->texTransformDirty ) triangle_transformUV( face, mesh->texTransform, tmiplevels, mesh->addressMode );
-
-						face->uvTransformed = TRUE;
 					}
+						
+					if ( mesh->texTransformDirty || ! face->uvTransformed ) triangle_transformUV( face, mesh->texTransform, tmiplevels, mesh->addressMode );
+
+					face->uvTransformed = TRUE;
 
 					//如果使用mipmap
 					if ( mesh->useMipmap && mesh->mip_dist )
@@ -1008,23 +1008,23 @@ void viewport_lightting( Viewport * viewport )
 						miplevel = ( int )( face->depth / mesh->mip_dist );
 						miplevel = MIN( miplevel, tmiplevels );
 
-						face->c_uv[0]->tu = face->t_uv[miplevel][0]->tu;
-						face->c_uv[0]->tv = face->t_uv[miplevel][0]->tv;
-						face->c_uv[1]->tu = face->t_uv[miplevel][1]->tu;
-						face->c_uv[1]->tv = face->t_uv[miplevel][1]->tv;
-						face->c_uv[2]->tu = face->t_uv[miplevel][2]->tu;
-						face->c_uv[2]->tv = face->t_uv[miplevel][2]->tv;
+						face->c_uv[0]->tu = (int)(face->t_uv[miplevel][0]->u + 0.5f);
+						face->c_uv[0]->tv = (int)(face->t_uv[miplevel][0]->v + 0.5f);
+						face->c_uv[1]->tu = (int)(face->t_uv[miplevel][1]->u + 0.5f);
+						face->c_uv[1]->tv = (int)(face->t_uv[miplevel][1]->v + 0.5f);
+						face->c_uv[2]->tu = (int)(face->t_uv[miplevel][2]->u + 0.5f);
+						face->c_uv[2]->tv = (int)(face->t_uv[miplevel][2]->v + 0.5f);
 
 						face->miplevel = miplevel;
 					}
 					else
 					{
-						face->c_uv[0]->tu = face->t_uv[0][0]->tu;
-						face->c_uv[0]->tv = face->t_uv[0][0]->tv;
-						face->c_uv[1]->tu = face->t_uv[0][1]->tu;
-						face->c_uv[1]->tv = face->t_uv[0][1]->tv;
-						face->c_uv[2]->tu = face->t_uv[0][2]->tu;
-						face->c_uv[2]->tv = face->t_uv[0][2]->tv;
+						face->c_uv[0]->tu = (int)(face->t_uv[0][0]->u + 0.5f);
+						face->c_uv[0]->tv = (int)(face->t_uv[0][0]->v + 0.5f);
+						face->c_uv[1]->tu = (int)(face->t_uv[0][1]->u + 0.5f);
+						face->c_uv[1]->tv = (int)(face->t_uv[0][1]->v + 0.5f);
+						face->c_uv[2]->tu = (int)(face->t_uv[0][2]->u + 0.5f);
+						face->c_uv[2]->tv = (int)(face->t_uv[0][2]->v + 0.5f);
 					}
 				}
 
@@ -1046,6 +1046,7 @@ void viewport_project( Viewport * viewport, int time )
 	SceneNode * sceneNode;
 	Camera * camera;
 	Entity * entity;
+	Mesh * mesh;
 	RenderList * rl, * cl, * vl, * tl;
 
 	scene = viewport->scene;
@@ -1080,12 +1081,14 @@ void viewport_project( Viewport * viewport, int time )
 	{
 		entity = sceneNode->entity;
 
+		mesh = entity->mesh;
+
 		entity_updateTransform(entity);
 
-		if ( entity->mesh && entity->mesh->nFaces && entity->mesh->nVertices )
+		if ( mesh && mesh->nFaces && mesh->nVertices )
 		{
 			//重新计算法向量以及构造八叉树（如果顶点是静态的只会执行一次）
-			mesh_updateMesh( entity->mesh );
+			mesh_updateMesh( mesh );
 
 			matrix4x4_append( entity->view, entity->world, camera->eye->world );
 
@@ -1095,11 +1098,11 @@ void viewport_project( Viewport * viewport, int time )
 			//计算视点在实体的局部坐标
 			matrix4x4_transformVector( entity->viewerToLocal, entity->worldInvert, camera->eye->position );
 
-			rl = entity->mesh->renderList->next;
-			cl = entity->mesh->clippedList->next;
+			rl = mesh->renderList->next;
+			cl = mesh->clippedList->next;
 
 			//八叉
-			if ( ! octree_culling( camera, sceneNode, entity->mesh->octree, & rl, & cl, & vl, &tl ) )
+			if ( ! octree_culling( camera, sceneNode, mesh->octree, & rl, & cl, & vl, &tl ) )
 			{
 				sceneNode = sceneNode->next;
 
@@ -1108,6 +1111,18 @@ void viewport_project( Viewport * viewport, int time )
 		}
 
 		viewport->tailList = tl->pre;
+
+		//计算纹理变换矩阵
+		if ( mesh->texTransformDirty )
+		{
+			matrix3x3_identity( mesh->texTransform->transform );
+
+			matrix3x3_appendScale( mesh->texTransform->transform, mesh->texTransform->scale->x, mesh->texTransform->scale->y );
+
+			matrix3x3_appendRotation( mesh->texTransform->transform, - mesh->texTransform->rotation );
+
+			matrix3x3_appendTranslation( mesh->texTransform->transform, - mesh->texTransform->offset->x, - mesh->texTransform->offset->y );
+		}
 
 		sceneNode = sceneNode->next;
 	}
