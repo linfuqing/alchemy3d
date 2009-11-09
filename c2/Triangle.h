@@ -337,6 +337,7 @@ void triangle_transformUV( Triangle * face, TexTransform * transformation, int m
 	float x, y;
 
 	Matrix3x3 * m = transformation->transform;
+				//AS3_Trace(AS3_String("face"));
 
 	switch ( addressMode )
 	{
@@ -356,6 +357,13 @@ void triangle_transformUV( Triangle * face, TexTransform * transformation, int m
 				x = (m->m11 * face->t_uv[i][0]->u + m->m21 * face->t_uv[i][0]->v + m->m31);
 				y = (m->m12 * face->t_uv[i][0]->u + m->m22 * face->t_uv[i][0]->v + m->m32);
 
+				/*if ( i == 0 )
+				{
+					AS3_Trace(AS3_String("uv"));
+					AS3_Trace(AS3_Number(x));
+					AS3_Trace(AS3_Number(y));
+				}*/
+
 				face->t_uv[i][0]->u = x;
 				face->t_uv[i][0]->v = y;
 
@@ -365,6 +373,13 @@ void triangle_transformUV( Triangle * face, TexTransform * transformation, int m
 				x = (m->m11 * face->t_uv[i][1]->u + m->m21 * face->t_uv[i][1]->v + m->m31);
 				y = (m->m12 * face->t_uv[i][1]->u + m->m22 * face->t_uv[i][1]->v + m->m32);
 
+				/*if ( i == 0 )
+				{
+					AS3_Trace(AS3_String("uv"));
+					AS3_Trace(AS3_Number(x));
+					AS3_Trace(AS3_Number(y));
+				}*/
+
 				face->t_uv[i][1]->u = x;
 				face->t_uv[i][1]->v = y;
 
@@ -373,6 +388,13 @@ void triangle_transformUV( Triangle * face, TexTransform * transformation, int m
 				
 				x = (m->m11 * face->t_uv[i][2]->u + m->m21 * face->t_uv[i][2]->v + m->m31);
 				y = (m->m12 * face->t_uv[i][2]->u + m->m22 * face->t_uv[i][2]->v + m->m32);
+
+				/*if ( i == 0 )
+				{
+					AS3_Trace(AS3_String("uv"));
+					AS3_Trace(AS3_Number(x));
+					AS3_Trace(AS3_Number(y));
+				}*/
 
 				face->t_uv[i][2]->u = x;
 				face->t_uv[i][2]->v = y;

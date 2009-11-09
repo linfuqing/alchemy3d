@@ -149,7 +149,7 @@ int main()
 	mesh4 = newPlane( NULL, material, texture, 1024.0f, 1024.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh5 = newPlane( NULL, material, texture, 3200.0f, 3200.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh5->addressMode = ADDRESS_MODE_WRAP;
-	mesh_setTexScale( mesh5, 5.4f, 5.4f );
+	mesh_setTexScale( mesh5, 5.9f, 5.9f );
 	mesh_setTexRotation( mesh5, 120.0f );
 	//mesh5->useMipmap = TRUE;
 	//mesh5->mip_dist = 500.0f;
