@@ -123,11 +123,6 @@ INLINE float * matrix3x3_getRawData( Matrix3x3 * m )
 	return rawData;
 }
 
-/**
-一个由 16 个数字组成的矢量，其中，每四个元素可以是 4x4 矩阵的一行或一列。 
-
-如果 rawData 属性设置为一个不可逆的矩阵，则会引发异常。Matrix3D 对象必须是可逆的。
-**/
 INLINE void matrix3x3_setRawData( Matrix3x3 * m, float ( * rawData )[9] )
 {
 	m->m11 = ( * rawData )[0];
