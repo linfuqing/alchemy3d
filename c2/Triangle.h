@@ -9,11 +9,9 @@
 //R
 typedef struct Triangle
 {
-	int miplevel, fogEnable, lightEnable, depth;
+	int miplevel, fogEnable, lightEnable, depth, uvTransformed;
 
 	DWORD render_mode;
-
-	int uvTransformed;
 
 	Texture * texture;
 
@@ -335,7 +333,7 @@ void triangle_setUV( Triangle * face, int miplevels )
 
 void triangle_transformUV( Triangle * face, TexTransform * transformation, int miplevels, int addressMode )
 {
-	int i;
+	int i, texWidth, texHeight;
 	float x, y;
 
 	Matrix3x3 * m = transformation->transform;
@@ -346,17 +344,32 @@ void triangle_transformUV( Triangle * face, TexTransform * transformation, int m
 
 			for ( i = 0; i < miplevels; i ++ )
 			{
+				texWidth = face->texture->mipmaps[i]->width;
+				texHeight = face->texture->mipmaps[i]->height;
+
+				texWidth--;
+				texHeight--;
+
+				face->t_uv[i][0]->u = (face->uv[0]->u * texWidth);
+				face->t_uv[i][0]->v = (face->uv[0]->v * texHeight);
+
 				x = (m->m11 * face->t_uv[i][0]->u + m->m21 * face->t_uv[i][0]->v + m->m31);
 				y = (m->m12 * face->t_uv[i][0]->u + m->m22 * face->t_uv[i][0]->v + m->m32);
 
 				face->t_uv[i][0]->u = x;
 				face->t_uv[i][0]->v = y;
+
+				face->t_uv[i][1]->u = (face->uv[1]->u * texWidth);
+				face->t_uv[i][1]->v = (face->uv[1]->v * texHeight);
 				
 				x = (m->m11 * face->t_uv[i][1]->u + m->m21 * face->t_uv[i][1]->v + m->m31);
 				y = (m->m12 * face->t_uv[i][1]->u + m->m22 * face->t_uv[i][1]->v + m->m32);
 
 				face->t_uv[i][1]->u = x;
 				face->t_uv[i][1]->v = y;
+
+				face->t_uv[i][2]->u = (face->uv[2]->u * texWidth);
+				face->t_uv[i][2]->v = (face->uv[2]->v * texHeight);
 				
 				x = (m->m11 * face->t_uv[i][2]->u + m->m21 * face->t_uv[i][2]->v + m->m31);
 				y = (m->m12 * face->t_uv[i][2]->u + m->m22 * face->t_uv[i][2]->v + m->m32);

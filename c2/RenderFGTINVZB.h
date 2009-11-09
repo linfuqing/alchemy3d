@@ -13638,10 +13638,20 @@ void Draw_Textured_Triangle_INVZB_32( Triangle * face, struct Viewport * viewpor
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -14437,10 +14447,20 @@ void Draw_Textured_Bilerp_Triangle_INVZB_32( Triangle * face, struct Viewport * 
 	int uint, vint, uint_pls_1, vint_pls_1, r_textel00, g_textel00, b_textel00, r_textel10, g_textel10, b_textel10,
 		r_textel01, g_textel01, b_textel01, r_textel11, g_textel11, b_textel11, dtu, dtv, one_minus_dtu, one_minus_dtv, one_minus_dtu_x_one_minus_dtv,
 		dtu_x_one_minus_dtv, dtu_x_dtv,one_minus_dtu_x_dtv, r_textel, g_textel, b_textel;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	texture_size = face->texture->mipmaps[face->miplevel]->width - 1;
 
@@ -15436,10 +15456,20 @@ void Draw_Textured_Triangle_FSINVZB_32( Triangle * face, struct Viewport * viewp
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -16283,10 +16313,20 @@ void Draw_Textured_Triangle_GSINVZB_32( Triangle * face, struct Viewport * viewp
 
 	DWORD	*z_ptr = NULL,
 			*zbuffer = (DWORD *)_zbuffer;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -17454,10 +17494,20 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -17702,8 +17752,10 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui) / (zi >> 8);
-						vii = (vi) / (zi >> 8);
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -17765,8 +17817,10 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui) / (zi >> 8);
-						vii = (vi) / (zi >> 8);
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -18005,8 +18059,10 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui) / (zi >> 8);
-						vii = (vi) / (zi >> 8);
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -18110,8 +18166,10 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui) / (zi >> 8);
-						vii = (vi) / (zi >> 8);
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -18250,10 +18308,20 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -18329,20 +18397,20 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = (face->c_uv[v0]->tu << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
-	tv0 = (face->c_uv[v0]->tv << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tu0 = (face->c_uv[v0]->tu << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tv0 = (face->c_uv[v0]->tv << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = (face->c_uv[v1]->tu << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
-	tv1 = (face->c_uv[v1]->tv << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tu1 = (face->c_uv[v1]->tu << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tv1 = (face->c_uv[v1]->tv << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = (face->c_uv[v2]->tu << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
-	tv2 = (face->c_uv[v2]->tv << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tu2 = (face->c_uv[v2]->tu << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tv2 = (face->c_uv[v2]->tv << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 
@@ -18502,8 +18570,10 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -18576,8 +18646,10 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -18825,8 +18897,10 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -18939,8 +19013,10 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -19098,10 +19174,20 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -19173,20 +19259,20 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = (face->c_uv[v0]->tu << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
-	tv0 = (face->c_uv[v0]->tv << FIXP22_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
+	tu0 = (face->c_uv[v0]->tu << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
+	tv0 = (face->c_uv[v0]->tv << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = (face->c_uv[v1]->tu << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
-	tv1 = (face->c_uv[v1]->tv << FIXP22_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
+	tu1 = (face->c_uv[v1]->tu << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
+	tv1 = (face->c_uv[v1]->tv << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = (face->c_uv[v2]->tu << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
-	tv2 = (face->c_uv[v2]->tv << FIXP22_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
+	tu2 = (face->c_uv[v2]->tu << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
+	tv2 = (face->c_uv[v2]->tv << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
@@ -19420,8 +19506,10 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -19516,8 +19604,10 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -19877,8 +19967,10 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -20039,8 +20131,10 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
-						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
+
+						uii = (ui) / ( vii );
+						vii = (vi) / ( vii );
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -20223,9 +20317,20 @@ void Draw_Textured_PerspectiveLP_Triangle_INVZB_32( Triangle * face, struct View
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
+
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -21048,10 +21153,20 @@ void Draw_Textured_PerspectiveLP_Triangle_FSINVZB_32( Triangle * face, struct Vi
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -21924,10 +22039,20 @@ void Draw_Textured_PerspectiveLP_Triangle_GSINVZB_32( Triangle * face, struct Vi
 
 	DWORD *z_ptr = NULL,
 		*zbuffer = (DWORD *)_zbuffer;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -23090,10 +23215,20 @@ void Draw_Textured_Perspective_Triangle_FOG_GSINVZB_32( Triangle * face, struct 
 		*zbuffer = (DWORD *)_zbuffer;
 
 	BYTE f_concentration;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -24312,10 +24447,20 @@ void Draw_Textured_Triangle_FOG_GSINVZB_32( Triangle * face, struct Viewport * v
 			*zbuffer = (DWORD *)_zbuffer;
 	
 	BYTE f_concentration;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 
@@ -27186,10 +27331,20 @@ void Draw_Textured_Triangle_INVZB_Alpha_32( Triangle * face, struct Viewport * v
 	DWORD textel;
 
 	BYTE a_textel, r_textel, g_textel, b_textel, alpha;
+		
+	int texWidth, texHeight;
+	
+	Bitmap * bitmap;
+	
+	bitmap = face->texture->mipmaps[face->miplevel];
 
-	textmap = (DWORD *)face->texture->mipmaps[face->miplevel]->pRGBABuffer;
+	textmap = (DWORD *)bitmap->pRGBABuffer;
+	
+	texWidth = bitmap->width;
+	
+	texHeight = bitmap->height;
 
-	texture_shift2 = logbase2ofx[face->texture->mipmaps[face->miplevel]->width];
+	texture_shift2 = logbase2ofx[texWidth];
 
 	mempitch >>= 2;
 

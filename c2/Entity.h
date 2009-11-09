@@ -212,31 +212,28 @@ INLINE void entity_updateAfterRender( Entity * entity )
 
 INLINE void entity_updateTransform( Entity * entity )
 {
-	if ( entity->transformDirty )
-	{
-		Quaternion qua;
-		Matrix4x4 quaMtr;
+	Quaternion qua;
+	Matrix4x4 quaMtr;
 
-		//单位化
-		matrix4x4_identity( entity->transform );
-		//缩放
-		matrix4x4_appendScale( entity->transform, entity->scale->x, entity->scale->y, entity->scale->z );
-		//旋转
-		matrix4x4_append_self( entity->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( entity->direction->y ), DEG2RAD( entity->direction->x ), DEG2RAD( entity->direction->z ) ) ) );
-		//位移
-		matrix4x4_appendTranslation( entity->transform, entity->position->x, entity->position->y, entity->position->z );
+	//单位化
+	matrix4x4_identity( entity->transform );
+	//缩放
+	matrix4x4_appendScale( entity->transform, entity->scale->x, entity->scale->y, entity->scale->z );
+	//旋转
+	matrix4x4_append_self( entity->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( entity->direction->y ), DEG2RAD( entity->direction->x ), DEG2RAD( entity->direction->z ) ) ) );
+	//位移
+	matrix4x4_appendTranslation( entity->transform, entity->position->x, entity->position->y, entity->position->z );
 
-		matrix4x4_copy( entity->world, entity->transform );
-		
-		//如果存在父结点，则连接父结点世界矩阵
-		if( NULL != entity->parent ) matrix4x4_append_self(entity->world, entity->parent->world);
+	matrix4x4_copy( entity->world, entity->transform );
 
-		matrix4x4_copy( entity->worldInvert, entity->world );
-		//世界逆矩阵
-		matrix4x4_fastInvert( entity->worldInvert );
-		//从世界矩阵获得世界位置
-		matrix4x4_getPosition( entity->w_pos, entity->world );
-	}
+	//如果存在父结点，则连接父结点世界矩阵
+	if( NULL != entity->parent ) matrix4x4_append_self(entity->world, entity->parent->world);
+
+	matrix4x4_copy( entity->worldInvert, entity->world );
+	//世界逆矩阵
+	matrix4x4_fastInvert( entity->worldInvert );
+	//从世界矩阵获得世界位置
+	matrix4x4_getPosition( entity->w_pos, entity->world );
 }
 
 /**

@@ -339,8 +339,6 @@ void mesh_setAttribute( Mesh * mesh, Material * material, Texture * texture, DWO
 
 INLINE void mesh_updateMesh( Mesh * m )
 {
-	if ( ! m->v_dirty ) return;
-
 	//重新计算法向量
 	mesh_updateFaces( m );
 	mesh_updateVertices( m );
@@ -441,6 +439,24 @@ void mesh_dispose( Mesh * mesh )
 	free( mesh );
 }
 
+INLINE void mesh_updateTexTransform( Mesh * m )
+{
+	DWORD i = 0;
+
+	matrix3x3_identity( m->texTransform->transform );
+
+	matrix3x3_appendScale( m->texTransform->transform, m->texTransform->scale->x, m->texTransform->scale->y );
+
+	matrix3x3_appendRotation( m->texTransform->transform, - m->texTransform->rotation );
+
+	matrix3x3_appendTranslation( m->texTransform->transform, - m->texTransform->offset->x, - m->texTransform->offset->y );
+
+	for( ; i < m->nFaces; i ++ )
+	{
+		m->faces[i]->uvTransformed = FALSE;
+	}
+}
+
 void mesh_setTexOffset( Mesh * m, float x, float y )
 {
 	m->texTransform->offset->x = x;
@@ -484,4 +500,3 @@ float mesh_getTexRotation( Mesh * m )
 }
 
 #endif
-

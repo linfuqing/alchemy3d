@@ -993,12 +993,10 @@ void viewport_lightting( Viewport * viewport )
 						//创建一组基于mipmap等级的uv链
 						triangle_createMipUVChain( face, tmiplevels );
 
-						triangle_setUV( face, tmiplevels );
-					}
-						
-					if ( mesh->texTransformDirty || ! face->uvTransformed ) triangle_transformUV( face, mesh->texTransform, tmiplevels, mesh->addressMode );
+						triangle_transformUV( face, mesh->texTransform, tmiplevels, mesh->addressMode );
 
-					face->uvTransformed = TRUE;
+						face->uvTransformed = TRUE;
+					}
 
 					//如果使用mipmap
 					if ( mesh->useMipmap && mesh->mip_dist )
@@ -1083,12 +1081,15 @@ void viewport_project( Viewport * viewport, int time )
 
 		mesh = entity->mesh;
 
-		entity_updateTransform(entity);
+		if ( entity->transformDirty ||
+			( entity->parent && entity->parent->transformDirty ) ||
+			camera->eye->transformDirty )
+			entity_updateTransform( entity );
 
 		if ( mesh && mesh->nFaces && mesh->nVertices )
 		{
 			//重新计算法向量以及构造八叉树（如果顶点是静态的只会执行一次）
-			mesh_updateMesh( mesh );
+			if ( mesh->v_dirty ) mesh_updateMesh( mesh );
 
 			matrix4x4_append( entity->view, entity->world, camera->eye->world );
 
@@ -1113,16 +1114,7 @@ void viewport_project( Viewport * viewport, int time )
 		viewport->tailList = tl->pre;
 
 		//计算纹理变换矩阵
-		if ( mesh->texTransformDirty )
-		{
-			matrix3x3_identity( mesh->texTransform->transform );
-
-			matrix3x3_appendScale( mesh->texTransform->transform, mesh->texTransform->scale->x, mesh->texTransform->scale->y );
-
-			matrix3x3_appendRotation( mesh->texTransform->transform, - mesh->texTransform->rotation );
-
-			matrix3x3_appendTranslation( mesh->texTransform->transform, - mesh->texTransform->offset->x, - mesh->texTransform->offset->y );
-		}
+		if ( mesh->texTransformDirty ) mesh_updateTexTransform( mesh );
 
 		sceneNode = sceneNode->next;
 	}
