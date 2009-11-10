@@ -9,7 +9,7 @@
 //R
 typedef struct Triangle
 {
-	int miplevel, fogEnable, lightEnable, depth, uvTransformed;
+	int miplevel, fogEnable, lightEnable, depth, uvState;
 
 	DWORD render_mode;
 
@@ -21,7 +21,7 @@ typedef struct Triangle
 
 	Vertex * vertex[3];
 
-	Vector * uv[3], *(* t_uv)[3],  * c_uv[3];
+	Vector * uv[3], * uvwh[3], *(* t_uv)[3],  * c_uv[3];
 
 }Triangle;
 
@@ -63,7 +63,7 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 
 	p->miplevel = 0;
 	p->render_mode = RENDER_NONE;
-	p->uvTransformed = FALSE;
+	p->uvState = FALSE;
 	p->fogEnable = FALSE;
 	p->lightEnable = FALSE;
 	p->depth = 0;
@@ -85,13 +85,17 @@ INLINE void triangle_copy( Triangle * dest, Triangle * src )
 	vector_copy( dest->c_uv[1], src->c_uv[1] );
 	vector_copy( dest->c_uv[2], src->c_uv[2] );
 
+	vector_copy( dest->uvwh[0], src->uvwh[0] );
+	vector_copy( dest->uvwh[1], src->uvwh[1] );
+	vector_copy( dest->uvwh[2], src->uvwh[2] );
+
 	vector3D_copy( dest->normal, src->normal );
 
 	dest->texture = src->texture;
 	dest->material = src->material;
 	dest->render_mode = src->render_mode;
 	dest->miplevel = src->miplevel;
-	dest->uvTransformed = src->uvTransformed;
+	dest->uvState = src->uvState;
 	dest->depth = 0;
 }
 
@@ -113,6 +117,10 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	dest->c_uv[1] = vector_clone( src->c_uv[1] );
 	dest->c_uv[2] = vector_clone( src->c_uv[2] );
 
+	dest->uvwh[0] = vector_clone( src->uvwh[0] );
+	dest->uvwh[1] = vector_clone( src->uvwh[1] );
+	dest->uvwh[2] = vector_clone( src->uvwh[2] );
+
 	vertex_addContectedFaces( dest, dest->vertex[0] );
 	vertex_addContectedFaces( dest, dest->vertex[1] );
 	vertex_addContectedFaces( dest, dest->vertex[2] );
@@ -121,7 +129,7 @@ INLINE Triangle * triangle_clone( Triangle * src )
 	dest->material = src->material;
 	dest->render_mode = src->render_mode;
 	dest->miplevel = src->miplevel;
-	dest->uvTransformed = src->uvTransformed;
+	dest->uvState = src->uvState;
 	dest->depth = 0;
 
 	dest->normal = vector3D_clone( src->normal );
@@ -148,46 +156,47 @@ INLINE void triangle_dispose( Triangle * p )
 
 INLINE int triangle_isOnSameSide( float pX, float pY, float pAX, float pAY, float pBX, float pBY, float pCX, float pCY )
 {
-	Vector ba, pa, ca;
+	float a;
+	float b;
+	float c;
 
-	ba.x = pBX - pAX;
-	ba.y = pBY - pAY;
+	a = pY - pAY; 
+	b = pAX - pX; 
+	c = pX * pAY - pAX * pY;
 
-	pa.x = pX  - pAX;
-	pa.y = pY  - pAY;
+	if( (a * pBX + b * pBY + c) * (a * pCX + b * pCY + c) > 0) return TRUE;
 
-	ca.x = pCX - pAX;
-	ca.y = pCY - pAY;
-
-	return vector_crossProduct( & ba, & pa ) * vector_crossProduct( & ca, & pa ) > 0;
+	return FALSE;
 }
 
 INLINE int triangle_hitTestPoint2D( Triangle * triangle, float x, float y )
 {
 	return ! ( triangle_isOnSameSide( 
 		x, y, 
-		triangle -> vertex[0] -> v_pos -> x, 
-		triangle -> vertex[0] -> v_pos -> y, 
-		triangle -> vertex[1] -> v_pos -> x,
-		triangle -> vertex[1] -> v_pos -> y,
-		triangle -> vertex[2] -> v_pos -> x,
-		triangle -> vertex[2] -> v_pos -> y )
-		||     triangle_isOnSameSide( 
+		triangle -> vertex[0] -> s_pos -> x, 
+		triangle -> vertex[0] -> s_pos -> y, 
+		triangle -> vertex[1] -> s_pos -> x,
+		triangle -> vertex[1] -> s_pos -> y,
+		triangle -> vertex[2] -> s_pos -> x,
+		triangle -> vertex[2] -> s_pos -> y )
+		||
+		triangle_isOnSameSide( 
 		x, y, 
-		triangle -> vertex[1] -> v_pos -> x, 
-		triangle -> vertex[1] -> v_pos -> y, 
-		triangle -> vertex[2] -> v_pos -> x,
-		triangle -> vertex[2] -> v_pos -> y,
-		triangle -> vertex[0] -> v_pos -> x,
-		triangle -> vertex[0] -> v_pos -> y )
-		||     triangle_isOnSameSide( 
+		triangle -> vertex[1] -> s_pos -> x, 
+		triangle -> vertex[1] -> s_pos -> y, 
+		triangle -> vertex[2] -> s_pos -> x,
+		triangle -> vertex[2] -> s_pos -> y,
+		triangle -> vertex[0] -> s_pos -> x,
+		triangle -> vertex[0] -> s_pos -> y )
+		||
+		triangle_isOnSameSide( 
 		x, y, 
-		triangle -> vertex[2] -> v_pos -> x, 
-		triangle -> vertex[2] -> v_pos -> y, 
-		triangle -> vertex[0] -> v_pos -> x,
-		triangle -> vertex[0] -> v_pos -> y,
-		triangle -> vertex[1] -> v_pos -> x,
-		triangle -> vertex[1] -> v_pos -> y ) );
+		triangle -> vertex[2] -> s_pos -> x, 
+		triangle -> vertex[2] -> s_pos -> y, 
+		triangle -> vertex[0] -> s_pos -> x,
+		triangle -> vertex[0] -> s_pos -> y,
+		triangle -> vertex[1] -> s_pos -> x,
+		triangle -> vertex[1] -> s_pos -> y ) );
 }
 
 INLINE void triangle_transform( Matrix4x4 * world, Matrix4x4 * projection, Triangle * face )
@@ -243,27 +252,24 @@ INLINE void triangle_transform( Matrix4x4 * world, Matrix4x4 * projection, Trian
 	}
 }
 
-void triangle_setUV( Triangle * face, int miplevels )
+void triangle_setUV( Triangle * face )
 {
-	int i, texWidth, texHeight;
+	int texWidth, texHeight;
 
-	for ( i = 0; i < miplevels; i ++ )
-	{
-		texWidth = face->texture->mipmaps[i]->width;
-		texHeight = face->texture->mipmaps[i]->height;
+	texWidth = face->texture->mipmaps[0]->width;
+	texHeight = face->texture->mipmaps[0]->height;
 
-		texWidth--;
-		texHeight--;
+	texWidth--;
+	texHeight--;
 
-		face->t_uv[i][0]->u = (face->uv[0]->u * texWidth);
-		face->t_uv[i][0]->v = (face->uv[0]->v * texHeight);
+	face->uvwh[0]->u = (face->uv[0]->u * texWidth);
+	face->uvwh[0]->v = (face->uv[0]->v * texHeight);
 
-		face->t_uv[i][1]->u = (face->uv[1]->u * texWidth);
-		face->t_uv[i][1]->v = (face->uv[1]->v * texHeight);
+	face->uvwh[1]->u = (face->uv[1]->u * texWidth);
+	face->uvwh[1]->v = (face->uv[1]->v * texHeight);
 
-		face->t_uv[i][2]->u = (face->uv[2]->u * texWidth);
-		face->t_uv[i][2]->v = (face->uv[2]->v * texHeight);
-	}
+	face->uvwh[2]->u = (face->uv[2]->u * texWidth);
+	face->uvwh[2]->v = (face->uv[2]->v * texHeight);
 
 	/*if( addressMode == ADDRESS_MODE_CLAMP )
 	{
@@ -331,74 +337,49 @@ void triangle_setUV( Triangle * face, int miplevels )
 	}*/
 }
 
-void triangle_transformUV( Triangle * face, TexTransform * transformation, int miplevels, int addressMode )
+void triangle_transformUV( Triangle * face, TexTransform * transformation, int addressMode )
 {
-	int i, texWidth, texHeight;
+	int texWidth, texHeight;
 	float x, y;
 
 	Matrix3x3 * m = transformation->transform;
-				//AS3_Trace(AS3_String("face"));
 
 	switch ( addressMode )
 	{
 		case ADDRESS_MODE_WRAP:
 
-			for ( i = 0; i < miplevels; i ++ )
-			{
-				texWidth = face->texture->mipmaps[i]->width;
-				texHeight = face->texture->mipmaps[i]->height;
+			texWidth = face->texture->mipmaps[0]->width;
+			texHeight = face->texture->mipmaps[0]->height;
 
-				texWidth--;
-				texHeight--;
+			texWidth--;
+			texHeight--;
 
-				face->t_uv[i][0]->u = (face->uv[0]->u * texWidth);
-				face->t_uv[i][0]->v = (face->uv[0]->v * texHeight);
+			face->uvwh[0]->u = (face->uv[0]->u * texWidth);
+			face->uvwh[0]->v = (face->uv[0]->v * texHeight);
 
-				x = (m->m11 * face->t_uv[i][0]->u + m->m21 * face->t_uv[i][0]->v + m->m31);
-				y = (m->m12 * face->t_uv[i][0]->u + m->m22 * face->t_uv[i][0]->v + m->m32);
+			x = (m->m11 * face->uvwh[0]->u + m->m21 * face->uvwh[0]->v + m->m31);
+			y = (m->m12 * face->uvwh[0]->u + m->m22 * face->uvwh[0]->v + m->m32);
 
-				/*if ( i == 0 )
-				{
-					AS3_Trace(AS3_String("uv"));
-					AS3_Trace(AS3_Number(x));
-					AS3_Trace(AS3_Number(y));
-				}*/
+			face->uvwh[0]->u = x;
+			face->uvwh[0]->v = y;
 
-				face->t_uv[i][0]->u = x;
-				face->t_uv[i][0]->v = y;
+			face->uvwh[1]->u = (face->uv[1]->u * texWidth);
+			face->uvwh[1]->v = (face->uv[1]->v * texHeight);
 
-				face->t_uv[i][1]->u = (face->uv[1]->u * texWidth);
-				face->t_uv[i][1]->v = (face->uv[1]->v * texHeight);
-				
-				x = (m->m11 * face->t_uv[i][1]->u + m->m21 * face->t_uv[i][1]->v + m->m31);
-				y = (m->m12 * face->t_uv[i][1]->u + m->m22 * face->t_uv[i][1]->v + m->m32);
+			x = (m->m11 * face->uvwh[1]->u + m->m21 * face->uvwh[1]->v + m->m31);
+			y = (m->m12 * face->uvwh[1]->u + m->m22 * face->uvwh[1]->v + m->m32);
 
-				/*if ( i == 0 )
-				{
-					AS3_Trace(AS3_String("uv"));
-					AS3_Trace(AS3_Number(x));
-					AS3_Trace(AS3_Number(y));
-				}*/
+			face->uvwh[1]->u = x;
+			face->uvwh[1]->v = y;
 
-				face->t_uv[i][1]->u = x;
-				face->t_uv[i][1]->v = y;
+			face->uvwh[2]->u = (face->uv[2]->u * texWidth);
+			face->uvwh[2]->v = (face->uv[2]->v * texHeight);
 
-				face->t_uv[i][2]->u = (face->uv[2]->u * texWidth);
-				face->t_uv[i][2]->v = (face->uv[2]->v * texHeight);
-				
-				x = (m->m11 * face->t_uv[i][2]->u + m->m21 * face->t_uv[i][2]->v + m->m31);
-				y = (m->m12 * face->t_uv[i][2]->u + m->m22 * face->t_uv[i][2]->v + m->m32);
+			x = (m->m11 * face->uvwh[2]->u + m->m21 * face->uvwh[2]->v + m->m31);
+			y = (m->m12 * face->uvwh[2]->u + m->m22 * face->uvwh[2]->v + m->m32);
 
-				/*if ( i == 0 )
-				{
-					AS3_Trace(AS3_String("uv"));
-					AS3_Trace(AS3_Number(x));
-					AS3_Trace(AS3_Number(y));
-				}*/
-
-				face->t_uv[i][2]->u = x;
-				face->t_uv[i][2]->v = y;
-			}
+			face->uvwh[2]->u = x;
+			face->uvwh[2]->v = y;
 
 			break;
 	}

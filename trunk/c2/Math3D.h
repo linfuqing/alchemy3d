@@ -287,4 +287,19 @@ int log2base_Table_Builder( BYTE logbase2ofx[2048] )
 	return(1);
 }
 
+int dot5miplevel_Table_Builder( float dot5miplevel_table[11] )
+{
+	int index;
+
+	if ( !dot5miplevel_table )
+		return(0);
+
+	for ( index = 0; index < 11; index ++ )
+	{
+		dot5miplevel_table[index] = powf( 0.5f,index );
+	}
+
+	return(1);
+}
+
 #endif

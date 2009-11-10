@@ -65,7 +65,7 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	 || ( m->faces	  = ( Triangle ** )malloc( sizeof( Triangle * ) * nFaces                     ) ) == NULL
 	 || ( m->vertices = ( Vertex   ** )malloc( sizeof( Vertex   * ) * nVertices                  ) ) == NULL
 	 || ( vp	      = ( Vector3D  * )malloc( sizeof( Vector3D   ) * ( nVertices * 5 + nFaces ) ) ) == NULL
-	 || ( uvp	      = ( Vector    * )malloc( sizeof( Vector     ) * nFaces    * 3              ) ) == NULL
+	 || ( uvp	      = ( Vector    * )malloc( sizeof( Vector     ) * nFaces    * 6              ) ) == NULL
 #ifdef RGB565
 	 || ( ap	      = ( Color565 *  )malloc( sizeof( Color565   ) * nVertices                  ) ) == NULL
 #else
@@ -82,6 +82,10 @@ void mesh_build( Mesh * m, int nVertices, int nFaces )
 	for ( i = 0; i < nFaces; i ++ )
 	{
 		faces[i].normal = vp ++;
+
+		faces[i].uvwh[0]  = uvp ++;
+		faces[i].uvwh[1]  = uvp ++;
+		faces[i].uvwh[2]  = uvp ++;
 
 		faces[i].c_uv[0]  = uvp ++;
 		faces[i].c_uv[1]  = uvp ++;
@@ -193,7 +197,7 @@ Triangle * mesh_push_triangle( Mesh * m, Vertex * va, Vertex * vb, Vertex * vc, 
 
 	p->miplevel = 0;
 	p->render_mode = render_mode;
-	p->uvTransformed = FALSE;	
+	p->uvState = FALSE;	
 	p->fogEnable = FALSE;
 	p->lightEnable = FALSE;
 	p->depth = 0;
@@ -453,7 +457,7 @@ INLINE void mesh_updateTexTransform( Mesh * m )
 
 	for( ; i < m->nFaces; i ++ )
 	{
-		m->faces[i]->uvTransformed = FALSE;
+		m->faces[i]->uvState = FALSE;
 	}
 }
 
