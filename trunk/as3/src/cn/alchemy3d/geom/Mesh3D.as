@@ -15,10 +15,10 @@ package cn.alchemy3d.geom
 		public static const RENDERMODE_KEY:uint		= 0x10;
 		public static const ALPHA_KEY:uint			= 0x20;
 		
-		public static const ADDRESS_MODE_NONE:uint	= 0x01;
-		public static const ADDRESS_MODE_WRAP:uint	= 0x02;
+		public static const ADDRESS_MODE_NONE:uint		= 0x01;
+		public static const ADDRESS_MODE_WRAP:uint		= 0x02;
 		public static const ADDRESS_MODE_BORDER:uint	= 0x04;
-		public static const ADDRESS_MODE_CLAMP:uint	= 0x08;
+		public static const ADDRESS_MODE_CLAMP:uint		= 0x08;
 		public static const ADDRESS_MODE_MIRROR:uint	= 0x10;
 		
 		private var vertices:Vector.<Vertex3D>;
@@ -30,9 +30,12 @@ package cn.alchemy3d.geom
 		private var terrainTracePointer:uint;
 		private var mipDistPointer:uint;
 		private var vDirtyPointer:uint;
-		private var uvDirtyPointer:uint;
 		private var octreeDepthPointer:uint;
 		private var addressModePointer:uint;
+		private var texRotationPointer:uint;
+		private var texOffsetPointer:uint;
+		private var texScalePointer:uint;
+		private var texTransformDirtyPointer:uint;
 		
 		private var _lightEnable:Boolean;
 		
@@ -150,13 +153,85 @@ package cn.alchemy3d.geom
 			return Vector.<uint>( [fp, uvp, mp, tp, rmp] );
 		}
 		
+		public function set texRotation(value:Number):void
+		{
+			Library.memory.position = texRotationPointer;
+			Library.memory.writeFloat(value);
+			
+			Library.memory.position = texTransformDirtyPointer;
+			Library.memory.writeBoolean(true);
+		}
+		
+		public function get texRotation():Number
+		{
+			Library.memory.position = texRotationPointer;
+			return Library.memory.readFloat();
+		}
+		
+		public function set texScaleX(value:Number):void
+		{
+			Library.memory.position = texScalePointer;
+			Library.memory.writeFloat(value);
+			
+			Library.memory.position = texTransformDirtyPointer;
+			Library.memory.writeBoolean(true);
+		}
+		
+		public function get texScaleX():Number
+		{
+			Library.memory.position = texScalePointer;
+			return Library.memory.readFloat();
+		}
+		
+		public function set texScaleY(value:Number):void
+		{
+			Library.memory.position = texScalePointer + Library.floatTypeSize;
+			Library.memory.writeFloat(value);
+			
+			Library.memory.position = texTransformDirtyPointer;
+			Library.memory.writeBoolean(true);
+		}
+		
+		public function get texScaleY():Number
+		{
+			Library.memory.position =  texScalePointer + Library.floatTypeSize;
+			return Library.memory.readFloat();
+		}
+		
+		public function set texOffsetX(value:Number):void
+		{
+			Library.memory.position = texOffsetPointer;
+			Library.memory.writeFloat(value);
+			
+			Library.memory.position = texTransformDirtyPointer;
+			Library.memory.writeBoolean(true);
+		}
+		
+		public function get texOffsetX():Number
+		{
+			Library.memory.position = texOffsetPointer;
+			return Library.memory.readFloat();
+		}
+		
+		public function set texOffsetY(value:Number):void
+		{
+			Library.memory.position = texOffsetPointer + Library.floatTypeSize;
+			Library.memory.writeFloat(value);
+			
+			Library.memory.position = texTransformDirtyPointer;
+			Library.memory.writeBoolean(true);
+		}
+		
+		public function get texOffsetY():Number
+		{
+			Library.memory.position =  texOffsetPointer + Library.floatTypeSize;
+			return Library.memory.readFloat();
+		}
+		
 		public function set addressMode(value:int):void
 		{
 			Library.memory.position = addressModePointer;
 			Library.memory.writeInt(value);
-			
-			Library.memory.position = uvDirtyPointer;
-			Library.memory.writeBoolean(true);
 		}
 		
 		public function get addressMode():int
@@ -246,27 +321,30 @@ package cn.alchemy3d.geom
 			
 			var ps:Array = Library.alchemy3DLib.initializeMesh( vp, fp, uvp, mp, tp, rmp,  numVertices, numFaces );
 			
-			_pointer            = ps[0];
-			lightEnablePointer	= ps[1];
-			fogEnablePointer	= ps[2];
-			useMipmapPointer	= ps[3];
-			terrainTracePointer	= ps[4];
-			mipDistPointer		= ps[5];
-			vDirtyPointer		= ps[6];
-			uvDirtyPointer		= ps[7];
-			octreeDepthPointer	= ps[8];
-			addressModePointer	= ps[9];
+			_pointer            		= ps[0];
+			lightEnablePointer			= ps[1];
+			fogEnablePointer			= ps[2];
+			useMipmapPointer			= ps[3];
+			terrainTracePointer			= ps[4];
+			mipDistPointer				= ps[5];
+			vDirtyPointer				= ps[6];
+			octreeDepthPointer			= ps[7];
+			addressModePointer			= ps[8];
+			texRotationPointer			= ps[9];
+			texOffsetPointer			= ps[10];
+			texScalePointer				= ps[11];
+			texTransformDirtyPointer	= ps[12];
 
-			if( ps[10] && vertices )
+			if( ps[13] && vertices )
 			{
-				Library.memory.position = ps[10];
+				Library.memory.position = ps[13];
 			
 				for( var i:uint = 0; i < vertices.length; i ++ )
 				{
 					vertices[i].setPointer( Library.memory.readUnsignedInt() );
 				}
 				
-				Library.alchemy3DLib.freeTmpBuffer( ps[10] );
+				Library.alchemy3DLib.freeTmpBuffer( ps[13] );
 			}
 		}
 		

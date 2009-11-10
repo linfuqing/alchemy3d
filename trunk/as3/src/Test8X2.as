@@ -55,7 +55,7 @@ package
 			camera.x = -1210;
 			
 //			center = new Entity();
-////			center.x = 300;
+//			center.x = 300;
 //			viewport.scene.addChild(center);
 			
 			var m:Material = new Material();

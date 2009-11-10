@@ -45,7 +45,7 @@ package
 			
 			Security.allowDomain("*");
 
-			var url:URLRequest = new URLRequest("highLight.swf");
+			var url:URLRequest = new URLRequest("Test8X.swf");
 			
 			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
 			var policyFile:Boolean = false;

@@ -47,7 +47,7 @@ package
 		
 		protected function init(e:Event = null):void
 		{
-			a3ds = new A3DS(RenderMode.RENDER_TEXTRUED_TRIANGLE_GSINVZB_32);
+			a3ds = new A3DS(RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32);
 			a3ds.load("asset/3ds/scene.jpg");
 			viewport.scene.addChild(a3ds);
 			

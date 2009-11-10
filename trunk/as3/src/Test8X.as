@@ -42,6 +42,7 @@ package
 		protected var t0:Texture;
 		protected var t1:Texture;
 		protected var t2:Texture;
+		protected var water:Primitives;
 		
 		protected var center:Primitives;
 		protected var lightObj:Primitives;
@@ -61,7 +62,7 @@ package
 		
 		public function Test8X()
 		{
-			super(640, 400, 100, 20, 3000);
+			super(640, 400, 100, 20, 20000);
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
@@ -80,17 +81,17 @@ package
 			t1 = new Texture(bl.getBitmapData("1"));
 			t2 = new Texture(bl.getBitmapData("4"));
 			
-			t0.perspectiveDist = 0;
-			t1.perspectiveDist = 0;
-			t2.perspectiveDist = 0;
+			t0.perspectiveDist = 10000;
+			t1.perspectiveDist = 10000;
+			t2.perspectiveDist = 10000;
 			
 //			viewport.backgroundColor = 0xffffffff;
 			
 			camera.z = -400;
-			camera.y = 200;
+			camera.y = 300;
 			
 			var fog:Fog = new Fog(new ColorTransform(1, 1, 1, 1), 1000, 2500, 1, Fog.FOG_LINEAR);
-			scene.addFog(fog);
+//			scene.addFog(fog);
 			
 			var m:Material = new Material();
 			m.ambient = new ColorTransform(.2, .2, .2, 1);
@@ -100,7 +101,7 @@ package
 			
 			var m2:Material = new Material();
 			m2.ambient = new ColorTransform(.1, .1, .1, 1);
-			m2.diffuse = new ColorTransform(1, 0.6, 0, 1);
+			m2.diffuse = new ColorTransform(1, 1, 1, 1);
 			m2.specular = new ColorTransform(0, 0, 0, 1);
 			m2.power = 0;
 			
@@ -108,7 +109,7 @@ package
 			m3.ambient = new ColorTransform(0, .2, .4, 1);
 			m3.diffuse = new ColorTransform(.1, .2, .533, .6);
 			m3.specular = new ColorTransform(1, 1, 1, 1);
-			m3.power = 1024;
+			m3.power = 0;
 			
 			lightObj = new Primitives(m, null, RenderMode.RENDER_FLAT_TRIANGLE_INVZB_32);
 			lightObj.toPlane(50, 50, 1, 1);
@@ -148,21 +149,25 @@ package
 			center.mesh.terrainTrace = true;
 			viewport.scene.addChild(center);
 			
-			var p:Primitives = new Primitives(m3, t2, RenderMode.RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32);
-			p.toPlane(2200, 2200, 10, 10);
-			p.mesh.octreeDepth = 0;
-			p.mesh.lightEnable = true;
-			p.mesh.addressMode = Mesh3D.ADDRESS_MODE_WRAP;
-			p.rotationX = 90;
-			p.y = -100;
-			viewport.scene.addChild(p);
+			water = new Primitives(m3, t2, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_ALPHA_32);
+			water.toPlane(20000, 20000, 10, 10);
+			water.mesh.octreeDepth = 1;
+//			water.mesh.lightEnable = true;
+			water.mesh.texScaleX = 8;
+			water.mesh.texScaleY = 8;
+			water.mesh.addressMode = Mesh3D.ADDRESS_MODE_WRAP;
+			water.rotationX = 90;
+			water.y = -300;
+			viewport.scene.addChild(water);
 			
-			terrain = new MeshTerrain(bl.getBitmapData("3"), m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32);
-			terrain.buildOn(2200, 2200, 800);
-			terrain.mesh.lightEnable = true;
-			terrain.mesh.octreeDepth = 0;
+			terrain = new MeshTerrain(bl.getBitmapData("3"), m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32);
+			terrain.buildOn(20000, 20000, 5000);
+//			terrain.mesh.lightEnable = true;
+			terrain.mesh.octreeDepth = 1;
+			terrain.mesh.texScaleX = 10;
+			terrain.mesh.texScaleY = 10;
 //			terrain.mesh.useMipmap = true;
-//			terrain.mesh.mipDist = 1000;
+//			terrain.mesh.mipDist = 5000;
 			terrain.mesh.addressMode = Mesh3D.ADDRESS_MODE_WRAP;
 //			terrain.mesh.fogEnable = true;
 			
@@ -171,10 +176,10 @@ package
 			light = new Light3D(lightObj);
 			viewport.scene.addLight(light);
 			light.type = LightType.POINT_LIGHT;
-			light.mode = LightType.HIGH_MODE;
+			light.mode = LightType.MID_MODE;
 			light.bOnOff = LightType.LIGHT_ON;
 			light.ambient = new ColorTransform(0, 0, 0, 1);
-			light.diffuse = new ColorTransform(0.8, 0.8, 0, 1);
+			light.diffuse = new ColorTransform(1, 1, 1, 1);
 			light.specular = new ColorTransform(0, 0, 0, 1);
 			light.attenuation1 = 0.0001;
 			light.attenuation2 = 0.00000001;
@@ -182,10 +187,10 @@ package
 			light2 = new Light3D(lightObj2);
 			viewport.scene.addLight(light2);
 			light2.type = LightType.POINT_LIGHT;
-			light2.mode = LightType.HIGH_MODE;
+			light2.mode = LightType.MID_MODE;
 			light2.bOnOff = LightType.LIGHT_ON;
 			light2.ambient = new ColorTransform(0, 0, 0, 1);
-			light2.diffuse = new ColorTransform(0, 1, 0, 1);
+			light2.diffuse = new ColorTransform(1, 1, 1, 1);
 			light2.specular = new ColorTransform(0, 0, 0, 1);
 			light2.attenuation1 = 0.0001;
 			light2.attenuation2 = 0.00000001;
@@ -213,8 +218,8 @@ package
 			
 			showInfo();
 			
-			moveLight1(1);
-			moveLight2(1);
+//			moveLight1(1);
+//			moveLight2(1);
 //			moveLight3(1);
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
@@ -383,6 +388,8 @@ package
 		
 		override protected function onRenderTick(e:Event = null):void
 		{
+			water.mesh.texOffsetY = water.mesh.texOffsetY > 255 ? 0 : water.mesh.texOffsetY + 1;
+			
 			k = center.worldPosition.y;
 			
 			super.onRenderTick(e);
@@ -394,7 +401,7 @@ package
 				camera.target = center.worldPosition;
 				
 				var mx:Number = viewport.mouseX / 350;
-				var my:Number = - (viewport.mouseY - 200 )/ 350;
+				var my:Number = - (viewport.mouseY - 700 )/ 350;
 				
 				camera.hover(mx, my, 10);
 			}
