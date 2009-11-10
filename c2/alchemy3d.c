@@ -11,6 +11,7 @@
 
 BYTE logbase2ofx[2048];
 BYTE alpha_table[NUM_ALPHA_LEVELS][256];
+float dot5miplevel_table[11];
 DWORD multiply256_table[256][256];
 DWORD multiply256FIXP8_table[256][256];
 
@@ -745,21 +746,21 @@ AS3_Val render( void* self, AS3_Val args )
 {
 	Viewport * viewport;
 
-	int time;
+	int time, mouseX, mouseY, hit = 0;
 
-	double mouseX, mouseY;
-
-	AS3_ArrayValue( args, "PtrType, IntType, DoubleType, DoubleType", &viewport, &time, & mouseX, & mouseY );
+	AS3_ArrayValue( args, "PtrType, IntType, IntType, IntType", &viewport, &time, & mouseX, & mouseY );
 
 	viewport_updateBeforeRender( viewport );
 
 	viewport_project( viewport, time );
 
+	//hit = viewport_mouseOn( viewport, (float)mouseX, (float)mouseY );
+
 	viewport_render( viewport );
 
 	viewport_updateAfterRender( viewport );
 
-	return AS3_Int( viewport_mouseOn( viewport, ( float )mouseX, ( float )mouseY ) );
+	return AS3_Int( hit );
 }
 
 //²âÊÔº¯Êý
@@ -793,6 +794,7 @@ int main()
 	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
 	multiply256_Table_Builder(multiply256_table);
 	multiply256FIXP8_Table_Builder(multiply256FIXP8_table);
+	dot5miplevel_Table_Builder(dot5miplevel_table);
 
 	AS3_Val initializeCameraMethod = AS3_Function( NULL, initializeCamera );
 	AS3_Val attachCameraMethod = AS3_Function( NULL, attachCamera );

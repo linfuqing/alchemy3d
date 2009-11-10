@@ -403,7 +403,7 @@ void animation_textureCoordinates_update( Animation * animation )
 		animation -> parent -> faces[i] -> uv[2] -> u += .001f;
 		animation -> parent -> faces[i] -> uv[2] -> v += .001f;
 
-		animation -> parent -> faces[i] -> uvTransformed = FALSE;
+		animation -> parent -> faces[i] -> uvState = FALSE;
 	}
 }
 

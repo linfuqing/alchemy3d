@@ -9,9 +9,11 @@
 typedef struct RenderList
 {
 	Triangle * polygon;
+
 	struct SceneNode  * parent;
 
 	struct RenderList * next;
+
 	struct RenderList * pre;
 
 }RenderList;
@@ -70,8 +72,11 @@ INLINE void renderList_push( RenderList ** rl_ptr, Triangle * face, struct Scene
 	( * rl_ptr ) = ( * rl_ptr )->next;
 }
 
+#define ORDER_SORT 0
+#define REVERSE_SORT 1
+
 //Partition
-RenderList * renderList_qPartition( RenderList * pstHead, RenderList * pstLow, RenderList * pstHigh )
+RenderList * renderList_qPartition( RenderList * pstHead, RenderList * pstLow, RenderList * pstHigh, int order )
 {
 	Triangle * iTmp;
 	int pivot = 0;
@@ -87,52 +92,81 @@ RenderList * renderList_qPartition( RenderList * pstHead, RenderList * pstLow, R
 
 	pivot = pstLow->polygon->depth;
 
-	while ( pstLow != pstHigh )
+	if ( order == ORDER_SORT )
 	{
-		//由近到远排序
-		//从后面往前换
-		while ( pstLow != pstHigh && pstHigh->polygon->depth >= pivot )
+		while ( pstLow != pstHigh )
 		{
-			pstHigh = pstHigh->pre;
+			//由近到远排序
+			//从后面往前换
+			while ( pstLow != pstHigh && pstHigh->polygon->depth >= pivot )
+			{
+				pstHigh = pstHigh->pre;
+			}
+			//交换high low
+			iTmp = pstLow->polygon;
+			pstLow->polygon = pstHigh->polygon;
+			pstHigh->polygon = iTmp;
+			//从前往后换
+			while ( pstLow != pstHigh && pstLow->polygon->depth <= pivot )
+			{
+				pstLow = pstLow->next;
+			}
+			//交换high low
+			iTmp = pstLow->polygon;
+			pstLow->polygon = pstHigh->polygon;
+			pstHigh->polygon = iTmp;
 		}
-		//交换high low
-		iTmp = pstLow->polygon;
-		pstLow->polygon = pstHigh->polygon;
-		pstHigh->polygon = iTmp;
-		//从前往后换
-		while ( pstLow != pstHigh && pstLow->polygon->depth <= pivot )
-		{
-			pstLow = pstLow->next;
-		}
-		//交换high low
-		iTmp = pstLow->polygon;
-		pstLow->polygon = pstHigh->polygon;
-		pstHigh->polygon = iTmp;
 	}
+	else
+	{
+		while ( pstLow != pstHigh )
+		{
+			//由近到远排序
+			//从后面往前换
+			while ( pstLow != pstHigh && pstHigh->polygon->depth <= pivot )
+			{
+				pstHigh = pstHigh->pre;
+			}
+			//交换high low
+			iTmp = pstLow->polygon;
+			pstLow->polygon = pstHigh->polygon;
+			pstHigh->polygon = iTmp;
+			//从前往后换
+			while ( pstLow != pstHigh && pstLow->polygon->depth >= pivot )
+			{
+				pstLow = pstLow->next;
+			}
+			//交换high low
+			iTmp = pstLow->polygon;
+			pstLow->polygon = pstHigh->polygon;
+			pstHigh->polygon = iTmp;
+		}
+	}
+
 	return pstLow;
 }
 
 //QSort函数
-void renderList_qSort( RenderList * pstHead, RenderList * pstLow, RenderList * pstHigh )
+void renderList_qSort( RenderList * pstHead, RenderList * pstLow, RenderList * pstHigh, int order )
 {
 	RenderList * pstTmp = NULL;
 
-	pstTmp = renderList_qPartition(pstHead, pstLow, pstHigh);
+	pstTmp = renderList_qPartition(pstHead, pstLow, pstHigh, order);
 
 	if ( pstLow != pstTmp )
 	{
-		renderList_qSort(pstHead, pstLow, pstTmp->pre);
+		renderList_qSort(pstHead, pstLow, pstTmp->pre, order);
 	}
 	if ( pstHigh != pstTmp )
 	{
-		renderList_qSort(pstHead, pstTmp->next, pstHigh);
+		renderList_qSort(pstHead, pstTmp->next, pstHigh, order);
 	}
 }
 
 //快速排序函数
-void renderList_quickSort( RenderList * pstHead, RenderList * pstHigh )
+void renderList_quickSort( RenderList * pstHead, RenderList * pstHigh, int order )
 {
-	renderList_qSort( pstHead, pstHead->next, pstHigh );
+	renderList_qSort( pstHead, pstHead->next, pstHigh, order );
 }
 
 #endif

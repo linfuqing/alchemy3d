@@ -368,7 +368,7 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 				face1->uv[v2]->u = ui;
 				face1->uv[v2]->v = vi;
 
-				face1->uvTransformed = FALSE;
+				face1->uvState = FALSE;
 			}
 			
 			face->vertex[0]->transformed = FALSE;
@@ -507,8 +507,8 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 				face2->uv[v0]->u = u02i;
 				face2->uv[v0]->v = v02i;
 
-				face1->uvTransformed = FALSE;
-				face2->uvTransformed = FALSE;
+				face1->uvState = FALSE;
+				face2->uvState = FALSE;
 			}
 
 			face->vertex[0]->transformed = FALSE;
@@ -522,7 +522,7 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 		{
 			renderList_push( rl_ptr, face, sceneNode );
 
-			if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32 ||
+			if ( face->render_mode == RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_ALPHA_32 ||
 				 face->render_mode == RENDER_TRIANGLE_FSINVZB_ALPHA_32 || 
 				 face->render_mode == RENDER_TRIANGLE_GSINVZB_ALPHA_32 )
 				renderList_push( tl_ptr, face, sceneNode );
@@ -538,7 +538,7 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 			{
 				renderList_push( rl_ptr, face1, sceneNode );
 
-				if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32 ||
+				if ( face->render_mode == RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_ALPHA_32 ||
 					 face->render_mode == RENDER_TRIANGLE_FSINVZB_ALPHA_32 || 
 					 face->render_mode == RENDER_TRIANGLE_GSINVZB_ALPHA_32 )
 					renderList_push( tl_ptr, face1, sceneNode );
@@ -552,7 +552,7 @@ void frustumClipping( Camera * camera, SceneNode * sceneNode, OctreeData * octre
 			{
 				renderList_push( rl_ptr, face2, sceneNode );
 
-				if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32 ||
+				if ( face->render_mode == RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_ALPHA_32 ||
 					 face->render_mode == RENDER_TRIANGLE_FSINVZB_ALPHA_32 || 
 					 face->render_mode == RENDER_TRIANGLE_GSINVZB_ALPHA_32 )
 					renderList_push( tl_ptr, face2, sceneNode );
@@ -624,7 +624,7 @@ int octree_culling( Camera * camera, SceneNode * sceneNode, Octree * octree, Ren
 
 				renderList_push( rl_ptr, face, sceneNode );
 
-				if ( face->render_mode == RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32 ||
+				if ( face->render_mode == RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_ALPHA_32 ||
 					 face->render_mode == RENDER_TRIANGLE_FSINVZB_ALPHA_32 || 
 					 face->render_mode == RENDER_TRIANGLE_GSINVZB_ALPHA_32 )
 					renderList_push( tl_ptr, face, sceneNode );
@@ -988,15 +988,24 @@ void viewport_lightting( Viewport * viewport )
 					tmiplevels = logbase2ofx[face->texture->mipmaps[0]->width] + 1;
 
 					//计算uv
-					if ( ! face->uvTransformed )
+					if ( ! face->uvState )
 					{
 						//创建一组基于mipmap等级的uv链
-						triangle_createMipUVChain( face, tmiplevels );
+						//triangle_createMipUVChain( face, tmiplevels );
 
-						triangle_transformUV( face, mesh->texTransform, tmiplevels, mesh->addressMode );
+						//triangle_setUV( face );
 
-						face->uvTransformed = TRUE;
+						triangle_transformUV( face, mesh->texTransform, mesh->addressMode );
+
+						face->uvState = TRUE;
 					}
+					
+					face->c_uv[0]->tu = (int)(face->uvwh[0]->u + 0.5f);
+					face->c_uv[0]->tv = (int)(face->uvwh[0]->v + 0.5f);
+					face->c_uv[1]->tu = (int)(face->uvwh[1]->u + 0.5f);
+					face->c_uv[1]->tv = (int)(face->uvwh[1]->v + 0.5f);
+					face->c_uv[2]->tu = (int)(face->uvwh[2]->u + 0.5f);
+					face->c_uv[2]->tv = (int)(face->uvwh[2]->v + 0.5f);
 
 					//如果使用mipmap
 					if ( mesh->useMipmap && mesh->mip_dist )
@@ -1006,23 +1015,17 @@ void viewport_lightting( Viewport * viewport )
 						miplevel = ( int )( face->depth / mesh->mip_dist );
 						miplevel = MIN( miplevel, tmiplevels );
 
-						face->c_uv[0]->tu = (int)(face->t_uv[miplevel][0]->u + 0.5f);
-						face->c_uv[0]->tv = (int)(face->t_uv[miplevel][0]->v + 0.5f);
-						face->c_uv[1]->tu = (int)(face->t_uv[miplevel][1]->u + 0.5f);
-						face->c_uv[1]->tv = (int)(face->t_uv[miplevel][1]->v + 0.5f);
-						face->c_uv[2]->tu = (int)(face->t_uv[miplevel][2]->u + 0.5f);
-						face->c_uv[2]->tv = (int)(face->t_uv[miplevel][2]->v + 0.5f);
+						if ( miplevel > 0 )
+						{
+							face->c_uv[0]->tu *= dot5miplevel_table[miplevel];
+							face->c_uv[0]->tv *= dot5miplevel_table[miplevel];
+							face->c_uv[1]->tu *= dot5miplevel_table[miplevel];
+							face->c_uv[1]->tv *= dot5miplevel_table[miplevel];
+							face->c_uv[2]->tu *= dot5miplevel_table[miplevel];
+							face->c_uv[2]->tv *= dot5miplevel_table[miplevel];
+						}
 
 						face->miplevel = miplevel;
-					}
-					else
-					{
-						face->c_uv[0]->tu = (int)(face->t_uv[0][0]->u + 0.5f);
-						face->c_uv[0]->tv = (int)(face->t_uv[0][0]->v + 0.5f);
-						face->c_uv[1]->tu = (int)(face->t_uv[0][1]->u + 0.5f);
-						face->c_uv[1]->tv = (int)(face->t_uv[0][1]->v + 0.5f);
-						face->c_uv[2]->tu = (int)(face->t_uv[0][2]->u + 0.5f);
-						face->c_uv[2]->tv = (int)(face->t_uv[0][2]->v + 0.5f);
 					}
 				}
 
@@ -1130,7 +1133,7 @@ void viewport_render( Viewport * viewport )
 	RenderList * rl;
 	Triangle * face;
 
-	//renderList_qSort( viewport->renderList, viewport->renderList->next, viewport->tailList );
+	//renderList_qSort( viewport->renderList, viewport->renderList->next, viewport->tailList, ORDER_SORT );
 
 	rl = viewport->renderList->next;
 
@@ -1341,9 +1344,12 @@ void viewport_render( Viewport * viewport )
 
 				break;
 
-			case RENDER_TEXTRUED_TRIANGLE_INVZB_ALPHA_32:
+			case RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_ALPHA_32:
 
-				Draw_Textured_Triangle_INVZB_Alpha_32( face, viewport );
+				if ( face->depth < face->texture->perspective_dist )
+					Draw_Textured_Perspective_Triangle_INVZB_Alpha_32( face, viewport );
+				else
+					Draw_Textured_Triangle_INVZB_Alpha_32( face, viewport );
 
 				break;
 		}
@@ -1372,6 +1378,20 @@ int viewport_mouseOn( Viewport * viewport, float mouseX, float mouseY )
 		{
 			hitEntity = rl -> parent -> ID;
 		}
+
+		rl = rl->next;
+	}
+
+	rl = viewport->transList->next;
+
+	while( rl && rl->polygon )
+	{
+		if( triangle_hitTestPoint2D( rl -> polygon, mouseX, mouseY ) )
+		{
+			hitEntity = rl -> parent -> ID;
+		}
+
+		rl = rl->next;
 	}
 
 	return hitEntity;

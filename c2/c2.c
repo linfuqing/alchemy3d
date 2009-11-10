@@ -10,6 +10,7 @@
 
 BYTE logbase2ofx[2048];
 BYTE alpha_table[NUM_ALPHA_LEVELS][256];
+float dot5miplevel_table[11];
 DWORD multiply256_table[256][256];
 DWORD multiply256FIXP8_table[256][256];
 
@@ -75,6 +76,7 @@ int main()
 	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
 	multiply256_Table_Builder(multiply256_table);
 	multiply256FIXP8_Table_Builder(multiply256FIXP8_table);
+	dot5miplevel_Table_Builder(dot5miplevel_table);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -142,12 +144,12 @@ int main()
 	do3d3->name = "root";
 	//entity_setRotationX( do3d3, 10.0f);
 	//entity_setRotationY( do3d3, 45.0f);
-	entity_setZ(do3d3, 1600.0f);
-	//entity_setY(do3d3, 200.0f);
+	entity_setZ(do3d3, 600.0f);
+	//entity_setY(do3d3, 400.0f);
 	//entity_setX(do3d3, -100.0f);
 
 	mesh4 = newPlane( NULL, material, texture, 1024.0f, 1024.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
-	mesh5 = newPlane( NULL, material, texture, 3200.0f, 3200.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
+	mesh5 = newPlane( NULL, material, texture, 320.0f, 320.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh5->addressMode = ADDRESS_MODE_WRAP;
 	mesh_setTexScale( mesh5, 5.9f, 5.9f );
 	mesh_setTexRotation( mesh5, 120.0f );
@@ -213,15 +215,18 @@ int main()
 	//scene_addLight(scene, light);
 	//scene_addEntity(scene, lightSource, NULL);
 
-	for ( i = 0; i < 20; i ++ )
+	for ( i = 0; i < 1; i ++ )
 	{
 		viewport_updateBeforeRender( view );
 
 		viewport_project( view, 0 );
 
+		printf( "%d", viewport_mouseOn( view, 250.0f, 250.0f ) );
+
 		viewport_render( view );
 
 		viewport_updateAfterRender( view );
 	}
+
 	return 0;
 }
