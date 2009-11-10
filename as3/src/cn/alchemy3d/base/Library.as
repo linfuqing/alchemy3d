@@ -2,8 +2,6 @@ package cn.alchemy3d.base
 {
 	import cmodule.alchemy3d.CLibInit;
 	
-	import cn.alchemy3d.tools.Alchemy3DLog;
-	
 	import flash.display.Sprite;
 	import flash.utils.ByteArray;
 	

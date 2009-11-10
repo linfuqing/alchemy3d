@@ -103,10 +103,10 @@ package cn.alchemy3d.lights
 			
 			_ambient = c;
 			Library.memory.position = ambientPtr;
-			Library.memory.writeFloat(c.redMultiplier);
-			Library.memory.writeFloat(c.greenMultiplier);
-			Library.memory.writeFloat(c.blueMultiplier);
-			Library.memory.writeFloat(c.alphaMultiplier);
+			Library.memory.writeByte(int(c.redMultiplier * 255));
+			Library.memory.writeByte(int(c.greenMultiplier * 255));
+			Library.memory.writeByte(int(c.blueMultiplier * 255));
+			Library.memory.writeByte(int(c.alphaMultiplier * 255));
 		}
 		
 		public function get diffuse():ColorTransform
@@ -120,10 +120,10 @@ package cn.alchemy3d.lights
 			
 			_diffuse = c;
 			Library.memory.position = diffusePtr;
-			Library.memory.writeFloat(c.redMultiplier);
-			Library.memory.writeFloat(c.greenMultiplier);
-			Library.memory.writeFloat(c.blueMultiplier);
-			Library.memory.writeFloat(c.alphaMultiplier);
+			Library.memory.writeByte(int(c.redMultiplier * 255));
+			Library.memory.writeByte(int(c.greenMultiplier * 255));
+			Library.memory.writeByte(int(c.blueMultiplier * 255));
+			Library.memory.writeByte(int(c.alphaMultiplier * 255));
 		}
 		
 		public function get specular():ColorTransform
@@ -137,10 +137,10 @@ package cn.alchemy3d.lights
 			
 			_specular = c;
 			Library.memory.position = specularPtr;
-			Library.memory.writeFloat(c.redMultiplier);
-			Library.memory.writeFloat(c.greenMultiplier);
-			Library.memory.writeFloat(c.blueMultiplier);
-			Library.memory.writeFloat(c.alphaMultiplier);
+			Library.memory.writeByte(int(c.redMultiplier * 255));
+			Library.memory.writeByte(int(c.greenMultiplier * 255));
+			Library.memory.writeByte(int(c.blueMultiplier * 255));
+			Library.memory.writeByte(int(c.alphaMultiplier * 255));
 		}
 		
 		public function get range():Number
