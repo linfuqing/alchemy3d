@@ -72,6 +72,13 @@ int main()
 	//UCHAR * buffer;
 	//long length=0;
 
+	//test
+	DWORD k;
+	i = 255 << 22;
+	j = ((i << 6) / (440058 >> 6))<<16;
+	k = i<<6;
+	//test
+
 	log2base_Table_Builder(logbase2ofx);
 	alpha_Table_Builder(NUM_ALPHA_LEVELS, alpha_table);
 	multiply256_Table_Builder(multiply256_table);
@@ -128,7 +135,7 @@ int main()
 
 	scene_addFog( scene, fog );
 
-	camera = newCamera( 90.0f, 10.0f, 5000.0f, newEntity() );
+	camera = newCamera( 90.0f, 20.0f, 20000.0f, newEntity() );
 	//entity_setZ(camera->eye, -910.0f);
 
 	view = newViewport( 600, 400, scene, camera );
@@ -142,17 +149,17 @@ int main()
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
-	//entity_setRotationX( do3d3, 10.0f);
+	entity_setRotationX( do3d3, 45.0f);
 	//entity_setRotationY( do3d3, 45.0f);
-	entity_setZ(do3d3, 600.0f);
+	//entity_setZ(do3d3, 15.0f);
 	//entity_setY(do3d3, 400.0f);
 	//entity_setX(do3d3, -100.0f);
 
 	mesh4 = newPlane( NULL, material, texture, 1024.0f, 1024.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh5 = newPlane( NULL, material, texture, 320.0f, 320.0f, 1, 1, RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32 );
 	mesh5->addressMode = ADDRESS_MODE_WRAP;
-	mesh_setTexScale( mesh5, 5.9f, 5.9f );
-	mesh_setTexRotation( mesh5, 120.0f );
+	mesh_setTexScale( mesh5, 4.0f, 4.0f );
+	//mesh_setTexRotation( mesh5, 120.0f );
 	//mesh5->useMipmap = TRUE;
 	//mesh5->mip_dist = 500.0f;
 	//mesh5->lightEnable = TRUE;
