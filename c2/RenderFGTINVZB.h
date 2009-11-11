@@ -17579,22 +17579,21 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = (face->c_uv[v0]->tu << FIXP19_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
-	tv0 = (face->c_uv[v0]->tv << FIXP19_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tu0 = (((face->c_uv[v0]->tu << FIXP16_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f)) << FIXP6_SHIFT);
+	tv0 = (((face->c_uv[v0]->tv << FIXP16_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f)) << FIXP6_SHIFT);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = (face->c_uv[v1]->tu << FIXP19_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
-	tv1 = (face->c_uv[v1]->tv << FIXP19_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tu1 = (((face->c_uv[v1]->tu << FIXP16_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f)) << FIXP6_SHIFT);
+	tv1 = (((face->c_uv[v1]->tv << FIXP16_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f)) << FIXP6_SHIFT);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = (face->c_uv[v2]->tu << FIXP19_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
-	tv2 = (face->c_uv[v2]->tv << FIXP19_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tu2 = (((face->c_uv[v2]->tu << FIXP16_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f)) << FIXP6_SHIFT);
+	tv2 = (((face->c_uv[v2]->tv << FIXP16_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f)) << FIXP6_SHIFT);
 	tz2 = face->vertex[v2]->fix_inv_z;
-
 
 	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
 		return;
@@ -17752,10 +17751,8 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
-
-						uii = (ui) / ( vii );
-						vii = (vi) / ( vii );
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -17817,10 +17814,8 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
-
-						uii = (ui) / ( vii );
-						vii = (vi) / ( vii );
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -18059,10 +18054,8 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
-
-						uii = (ui) / ( vii );
-						vii = (vi) / ( vii );
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -18166,10 +18159,8 @@ void Draw_Textured_Perspective_Triangle_INVZB_32( Triangle * face, struct Viewpo
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
-
-						uii = (ui) / ( vii );
-						vii = (vi) / ( vii );
+						uii = (ui << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
+						vii = (vi << (FIXP28_SHIFT - FIXP22_SHIFT)) / zi;
 
 						uii -= (uii >> texture_shift2) << texture_shift2;
 						vii -= (vii >> texture_shift2) << texture_shift2;
@@ -18397,20 +18388,20 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = (face->c_uv[v0]->tu << FIXP19_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
-	tv0 = (face->c_uv[v0]->tv << FIXP19_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tu0 = (face->c_uv[v0]->tu << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tv0 = (face->c_uv[v0]->tv << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = (face->c_uv[v1]->tu << FIXP19_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
-	tv1 = (face->c_uv[v1]->tv << FIXP19_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tu1 = (face->c_uv[v1]->tu << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tv1 = (face->c_uv[v1]->tv << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = (face->c_uv[v2]->tu << FIXP19_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
-	tv2 = (face->c_uv[v2]->tv << FIXP19_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tu2 = (face->c_uv[v2]->tu << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tv2 = (face->c_uv[v2]->tv << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 
@@ -18570,7 +18561,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -18646,7 +18637,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -18897,7 +18888,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -19013,7 +19004,7 @@ void Draw_Textured_Perspective_Triangle_FSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -19259,20 +19250,20 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = (face->c_uv[v0]->tu << FIXP19_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
-	tv0 = (face->c_uv[v0]->tv << FIXP19_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
+	tu0 = (face->c_uv[v0]->tu << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
+	tv0 = (face->c_uv[v0]->tv << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5f);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = (face->c_uv[v1]->tu << FIXP19_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
-	tv1 = (face->c_uv[v1]->tv << FIXP19_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
+	tu1 = (face->c_uv[v1]->tu << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
+	tv1 = (face->c_uv[v1]->tv << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5f);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = (face->c_uv[v2]->tu << FIXP19_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
-	tv2 = (face->c_uv[v2]->tv << FIXP19_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
+	tu2 = (face->c_uv[v2]->tu << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
+	tv2 = (face->c_uv[v2]->tv << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5f);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 	if ( ((x0 == x1) && (x1 == x2)) || ((y0 == y1) && (y1 == y2)))
@@ -19506,7 +19497,7 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -19604,7 +19595,7 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -19967,7 +19958,7 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -20131,7 +20122,7 @@ void Draw_Textured_Perspective_Triangle_GSINVZB_32( Triangle * face, struct View
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -28274,20 +28265,20 @@ void Draw_Textured_Perspective_Triangle_INVZB_Alpha_32( Triangle * face, struct 
 
 	x0 = (int)(face->vertex[v0]->s_pos->x);
 	y0 = (int)(face->vertex[v0]->s_pos->y);
-	tu0 = (face->c_uv[v0]->tu << FIXP19_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
-	tv0 = (face->c_uv[v0]->tv << FIXP19_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tu0 = (face->c_uv[v0]->tu << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
+	tv0 = (face->c_uv[v0]->tv << FIXP20_SHIFT) / (int)(face->vertex[v0]->s_pos->w + 0.5);
 	tz0 = face->vertex[v0]->fix_inv_z;
 
 	x1 = (int)(face->vertex[v1]->s_pos->x);
 	y1 = (int)(face->vertex[v1]->s_pos->y);
-	tu1 = (face->c_uv[v1]->tu << FIXP19_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
-	tv1 = (face->c_uv[v1]->tv << FIXP19_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tu1 = (face->c_uv[v1]->tu << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
+	tv1 = (face->c_uv[v1]->tv << FIXP20_SHIFT) / (int)(face->vertex[v1]->s_pos->w + 0.5);
 	tz1 = face->vertex[v1]->fix_inv_z;
 
 	x2 = (int)(face->vertex[v2]->s_pos->x);
 	y2 = (int)(face->vertex[v2]->s_pos->y);
-	tu2 = (face->c_uv[v2]->tu << FIXP19_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
-	tv2 = (face->c_uv[v2]->tv << FIXP19_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tu2 = (face->c_uv[v2]->tu << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
+	tv2 = (face->c_uv[v2]->tv << FIXP20_SHIFT) / (int)(face->vertex[v2]->s_pos->w + 0.5);
 	tz2 = face->vertex[v2]->fix_inv_z;
 
 
@@ -28447,7 +28438,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_Alpha_32( Triangle * face, struct 
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -28524,7 +28515,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_Alpha_32( Triangle * face, struct 
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -28778,7 +28769,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_Alpha_32( Triangle * face, struct 
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );
@@ -28897,7 +28888,7 @@ void Draw_Textured_Perspective_Triangle_INVZB_Alpha_32( Triangle * face, struct 
 				{
 					if (zi > z_ptr[xi])
 					{
-						vii = zi >> ( FIXP28_SHIFT - FIXP19_SHIFT );
+						vii = zi >> ( FIXP28_SHIFT - FIXP20_SHIFT );
 
 						uii = (ui) / ( vii );
 						vii = (vi) / ( vii );

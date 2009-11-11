@@ -63,13 +63,19 @@ const float INFINITY		= 1e30f;
 const float FLT_EPSILON		= 1.192092896e-07f;
 const float INV_255			= 0.00392156862745098039f;
 
-#define FIXP8_SHIFT			8
-#define FIXP16_SHIFT		16
 #define FIXP16_MAG			65536
 #define FIXP16_DP_MASK		0x0000ffff
 #define FIXP16_WP_MASK		0xffff0000
+
 #define FIXP16_ROUND_UP		0x00008000
-#define FIXP19_SHIFT		19
+#define FIXP28_ROUND_UP		134217728
+
+#define FIXP2_SHIFT			2
+#define FIXP6_SHIFT			6
+#define FIXP8_SHIFT			8
+#define FIXP16_SHIFT		16
+#define FIXP18_SHIFT		18
+#define FIXP20_SHIFT		20
 #define FIXP22_SHIFT		22
 #define FIXP24_SHIFT		24
 #define FIXP28_SHIFT		28
