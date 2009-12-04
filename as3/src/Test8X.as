@@ -62,7 +62,7 @@ package
 		
 		public function Test8X()
 		{
-			super(640, 400, 100, 20, 20000);
+			super(640, 400, 90, 20, 20000);
 			
 			bl = new BulkLoader("main-site");
 			bl.addEventListener(BulkProgressEvent.COMPLETE, init);
@@ -87,8 +87,8 @@ package
 			
 //			viewport.backgroundColor = 0xffffffff;
 			
-			camera.z = -400;
-			camera.y = 300;
+//			camera.z = -200;
+//			camera.y = 300;
 			
 			var fog:Fog = new Fog(new ColorTransform(1, 1, 1, 1), 1000, 2500, 1, Fog.FOG_LINEAR);
 //			scene.addFog(fog);
@@ -150,22 +150,22 @@ package
 			viewport.scene.addChild(center);
 			
 			water = new Primitives(m3, t2, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_ALPHA_32);
-			water.toPlane(20000, 20000, 10, 10);
-			water.mesh.octreeDepth = 1;
+			water.toPlane(40000, 40000, 10, 10);
+			water.mesh.octreeDepth = 2;
 //			water.mesh.lightEnable = true;
-			water.mesh.texScaleX = 8;
-			water.mesh.texScaleY = 8;
+//			water.mesh.texScaleX = .5;
+//			water.mesh.texScaleY = .5;
 			water.mesh.addressMode = Mesh3D.ADDRESS_MODE_WRAP;
 			water.rotationX = 90;
-			water.y = -300;
+			water.y = -450;
 			viewport.scene.addChild(water);
 			
-			terrain = new MeshTerrain(bl.getBitmapData("3"), m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_INVZB_32);
-			terrain.buildOn(20000, 20000, 5000);
-//			terrain.mesh.lightEnable = true;
-			terrain.mesh.octreeDepth = 1;
-			terrain.mesh.texScaleX = 10;
-			terrain.mesh.texScaleY = 10;
+			terrain = new MeshTerrain(bl.getBitmapData("3"), m2, t1, RenderMode.RENDER_TEXTRUED_PERSPECTIVE_TRIANGLE_GSINVZB_32);
+			terrain.buildOn(40000, 40000, 5000);
+			terrain.mesh.lightEnable = true;
+			terrain.mesh.octreeDepth = 2;
+			terrain.mesh.texScaleX = 4;
+			terrain.mesh.texScaleY = 4;
 //			terrain.mesh.useMipmap = true;
 //			terrain.mesh.mipDist = 5000;
 			terrain.mesh.addressMode = Mesh3D.ADDRESS_MODE_WRAP;
@@ -400,7 +400,7 @@ package
 			{
 				camera.target = center.worldPosition;
 				
-				var mx:Number = viewport.mouseX / 350;
+				var mx:Number = viewport.mouseX / 50;
 				var my:Number = - (viewport.mouseY - 700 )/ 350;
 				
 				camera.hover(mx, my, 10);
