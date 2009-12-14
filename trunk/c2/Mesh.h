@@ -142,7 +142,7 @@ Mesh * newMesh( int nVertices, int nFaces )
 	m->terrainTrace			= FALSE;
 	m->type					= 0;
 	m->octree_depth			= 0;
-	m->addressMode			= ADDRESS_MODE_NONE;
+	m->addressMode			= ADDRESS_MODE_WRAP;
 	m->texTransform			= newTexTransform();
 	m->texTransformDirty	= FALSE;
 

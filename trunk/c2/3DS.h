@@ -584,8 +584,8 @@ Mesh * A3DS_BuildMeshes( int vNum, int fNum, int uvNum, float * pfVertex, float 
 
 	for ( i = 0; i < fNum * 4; i += 4 )
 	{
-		mesh_push_triangle(	mesh,	vertArr[pwFace[i + 2]], vertArr[pwFace[i + 1]], vertArr[pwFace[i + 0]],
-									vectArr[pwFace[i + 2]], vectArr[pwFace[i + 1]], vectArr[pwFace[i + 0]],
+		mesh_push_triangle(	mesh,	vertArr[pwFace[i + 0]], vertArr[pwFace[i + 1]], vertArr[pwFace[i + 2]],
+									vectArr[pwFace[i + 0]], vectArr[pwFace[i + 1]], vectArr[pwFace[i + 2]],
 									NULL, NULL, RENDER_FLAT_TRIANGLE_INVZB_32 );
 	}
 

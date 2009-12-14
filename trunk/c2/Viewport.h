@@ -1117,7 +1117,7 @@ void viewport_project( Viewport * viewport, int time )
 		viewport->tailList = tl->pre;
 
 		//¼ÆËãÎÆÀí±ä»»¾ØÕó
-		if ( mesh->texTransformDirty ) mesh_updateTexTransform( mesh );
+		if ( mesh && mesh->texTransformDirty ) mesh_updateTexTransform( mesh );
 
 		sceneNode = sceneNode->next;
 	}

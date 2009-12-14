@@ -590,8 +590,12 @@ AS3_Val initialize3DS( void* self, AS3_Val args )
 AS3_Val loadComplete3DS( void* self, AS3_Val args )
 {
 	A3DS * a3ds = NULL;
+	Bitmap * pBitmapData;
+	Texture * pTexture;
 
-	AS3_ArrayValue( args, "PtrType", &a3ds );
+	AS3_ArrayValue( args, "PtrType, PtrType, PtrType", &a3ds, &pTexture, &pBitmapData );
+
+	texture_setMipmap( pTexture, pBitmapData );
 
 	A3DS_Dispose( a3ds );
 

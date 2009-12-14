@@ -67,10 +67,10 @@ int main()
 
 	//MD2 * md2;
 
-	//A3DS * a3ds;
-	//FILE *fp;
-	//UCHAR * buffer;
-	//long length=0;
+	A3DS * a3ds;
+	FILE *fp;
+	UCHAR * buffer;
+	long length=0;
 
 	//test
 	DWORD k;
@@ -149,7 +149,7 @@ int main()
 
 	do3d3 = newEntity();
 	do3d3->name = "root";
-	entity_setRotationX( do3d3, 45.0f);
+	//entity_setRotationX( do3d3, 45.0f);
 	//entity_setRotationY( do3d3, 45.0f);
 	//entity_setZ(do3d3, 15.0f);
 	//entity_setY(do3d3, 400.0f);
@@ -165,8 +165,8 @@ int main()
 	//mesh5->lightEnable = TRUE;
 	//mesh4->terrainTrace = TRUE;
 	//mesh5->fogEnable = TRUE;
-	entity_setMesh( do3d, mesh4 );
-	entity_setMesh( do3d3, mesh5 );
+	//entity_setMesh( do3d, mesh4 );
+	//entity_setMesh( do3d3, mesh5 );
 
 	//scene_addEntity(scene, do3d, NULL);
 	scene_addEntity(scene, do3d3, NULL);
@@ -185,22 +185,22 @@ int main()
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	//fopen_s( & fp, "D:\\Inetpub\\wwwroot2\\engine\\alchemy3d\\as3\\src\\asset\\md2\\tris.jpg","rb");
+	fopen_s( & fp, "D:\\3Dmodel\\3ds\\plane.3ds","rb");
 
-	//length = GetFileSize(fp);
+	length = GetFileSize(fp);
 
-	//buffer = (UCHAR * )malloc(length * sizeof(UCHAR));
+	buffer = (UCHAR * )malloc(length * sizeof(UCHAR));
 
-	//fread(buffer,1,length,fp);
+	fread(buffer,1,length,fp);
 
-	/*a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
+	a3ds = A3DS_Create( fp, do3d3, RENDER_TEXTRUED_TRIANGLE_GSINVZB_32 );
 
 	A3DS_Dispose( a3ds );
 
-	for ( i = 0; i < do3d3->children->entity->mesh->nFaces; i ++ )
-	{
-		do3d3->children->entity->mesh->faces[i].texture = texture;
-	}*/
+	//for ( i = 0; i < do3d3->children->entity->mesh->nFaces; i ++ )
+	//{
+	//	do3d3->children->entity->mesh->faces[i].texture = texture;
+	//}
 
 	//md2 = newMD2( do3d );
 
