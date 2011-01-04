@@ -63,9 +63,12 @@ Color888 * newColor888( BYTE r, BYTE g, BYTE b, BYTE a )
 
 INLINE void color888_destroy(Color888 **color)
 {
-	free(*color);
+	if(*color)
+	{
+		free(*color);
 
-	*color = NULL;
+		*color = NULL;
+	}
 }
 
 INLINE void color888_dispose( Color888 * color )

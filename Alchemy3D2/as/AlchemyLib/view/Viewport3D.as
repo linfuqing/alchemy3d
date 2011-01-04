@@ -10,6 +10,7 @@ package AlchemyLib.view
 	import flash.display.Sprite;
 	import flash.geom.Matrix;
 	import flash.geom.Rectangle;
+	import flash.geom.Vector3D;
 	import flash.system.ApplicationDomain;
 	import flash.utils.ByteArray;
 
@@ -122,6 +123,16 @@ package AlchemyLib.view
 				clearZB.writeByte(0);
 			
 			super();
+		}
+		
+		public function getWorldPositionFromScreen(x:Number, y:Number, z:Number = 0, autoDepth:Boolean = true):Vector3D
+		{
+			var ps:Array = Library.alchemy3DLib.getWorldPositionFromSreen(_pointer, x, y, z, autoDepth ? TRUE : FALSE);
+			
+			if(ps)
+				return new Vector3D(ps[0], ps[1], ps[2]);
+			
+			return null;
 		}
 		
 		public function setBackgroundImage(rect:Rectangle, data:ByteArray):void

@@ -91,6 +91,9 @@ package AlchemyLib.render
 			if(!bitmapData)
 				return;
 			
+			if(_bitmapdata)
+				_bitmapdata.dispose();
+			
 			if(bitmapData.transparent)
 				_bitmapdata = bitmapData.clone();
 			else
@@ -118,6 +121,14 @@ package AlchemyLib.render
 			super();
 			
 			this.bitmapData = bitmapdata;
+		}
+		
+		public override function destroy(all:Boolean):void
+		{
+			if(_bitmapdata)
+				_bitmapdata.dispose();
+			
+			Library.alchemy3DLib.destroyTexture(_pointer);
 		}
 		
 		static public function initializeBitmap(bitmapdata:BitmapData):uint

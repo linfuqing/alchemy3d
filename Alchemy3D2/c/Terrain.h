@@ -482,7 +482,7 @@ INLINE void terrain_traceCamera(Terrain * terrain, Camera * target)
 
 		matrix4x4_getPosition(target->eye->position, target->eye->transform);
 
-		if(target->UVNType)
+		if(target->isUVN)
 		{
 			//lookAt(target->eye->transform, target->eye->position, target->target, Y_AXIS);
 			vector3D_subtract(&temp, target->target, target->eye->position);

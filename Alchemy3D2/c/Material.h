@@ -60,6 +60,21 @@ void material_dispose( Material * m )
 	free( m );
 }
 
+void material_destroy(Material **m)
+{
+	if(*m)
+	{
+		color888_destroy(&(*m)->ambient);
+		color888_destroy(&(*m)->diffuse);
+		color888_destroy(&(*m)->specular);
+		color888_destroy(&(*m)->emissive);
+		
+		free(*m);
+
+		*m = NULL;
+	}
+}
+
 MaterialList * newMaterialList()
 {
 	MaterialList * materialList;

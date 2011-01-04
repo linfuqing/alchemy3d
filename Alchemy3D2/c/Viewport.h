@@ -28,7 +28,7 @@ typedef struct Viewport
 
 	int numFrames;
 
-	int mouseX, mouseY;
+	//int mouseX, mouseY;
 
 	int useAlphaTable;
 	
@@ -119,7 +119,7 @@ Viewport * newViewport( int width, int height, Scene * scene, Camera * camera )
 
 	viewport->aabb = newAABB();
 
-	viewport->numFrames = 0;
+	viewport->numFrames = OFF;
 
 	return viewport;
 }
@@ -1230,13 +1230,21 @@ void viewport_project( Viewport * viewport, int time )
 
 		matrix4x4_append4x4(camera->viewProjectionMatrix, camera->eye->world, camera->projectionMatrix);
 
+		matrix4x4_copy(camera->invertProjectionMatrix, camera->projectionMatrix);
+
+		matrix4x4_fastInvert(camera->invertProjectionMatrix);
+
 		matrix4x4_copy(camera->invertViewProjectionMatrix, camera->viewProjectionMatrix);
 
 		matrix4x4_fastInvert(camera->invertViewProjectionMatrix);
 	}
-	else if(camera->eye->transformDirty || camera->UVNType)
+	else if(camera->eye->transformDirty || camera->isUVN)
 	{
 		matrix4x4_append4x4(camera->viewProjectionMatrix, camera->eye->world, camera->projectionMatrix);
+
+		matrix4x4_copy(camera->invertProjectionMatrix, camera->projectionMatrix);
+
+		matrix4x4_fastInvert(camera->invertProjectionMatrix);
 
 		matrix4x4_copy(camera->invertViewProjectionMatrix, camera->viewProjectionMatrix);
 
@@ -1731,29 +1739,62 @@ int viewport_mouseOn( Viewport * viewport, int mouseX, int mouseY )
 	return FALSE;
 }
 
-Vector3D* viewport_getWorldPositionFromView(Vector3D* output, Viewport* v, float x, float y, float w, int autoDepth)
+Vector3D* viewport_getWorldPositionFromView(Vector3D* output, Viewport* viewport, float x, float y, float z, int autoDepth)
 {
-	/*DWORD depth;
-	if(!v && !v->camera || x < 0 || y < 0 || x >= v->width || y >= v->height)
+	Camera* camera;
+	Vector3D pointA, pointB;
+	DWORD depth;
+
+	if(viewport)
+		camera = viewport->camera;
+	else
 		return NULL;
-	
-	if(!output)
-		output = newVector3D();
+
+	if(!camera || x < 0 || y < 0 || x >= viewport->width || y >= viewport->height)
+		return NULL;
 
 	if(autoDepth)
 	{
-		w = 
-		output->w = (float)(0x10000000 * 1.0 / ( (DWORD*)(v->zBuffer) )[y * (v->zpitch >> 2) + x]);
+		depth = ( (DWORD*)(viewport->zBuffer) )[(int)(y * (viewport->zpitch >> 2) + x)];
+
+		if( depth > ( ( (DWORD)(viewport->numFrames) & 7 ) << FIXP28_SHIFT ) )
+			z = (float)( 0x10000000 * 1.0 / (depth & 0xfffffff) );
+		else
+		{
+			//AS3_Trace(AS3_Number((double)depth));
+			return NULL;
+		}
 	}
-	else
-		output->w = w;
 
-	output->x = (x / (v->width  * 0.5f) - 1.0f) * output->w;
-	output->y = (y / (v->height * 0.5f) - 1.0f) * output->w;
+	if(!output)
+		output = newVector3D(0, 0, 0, 1.0f);
 
-	matrix4x4_transformVector_self(v->camera->invertViewProjectionMatrix, output);
+	output->z = z;
 
-	return output;*/
+	x = x / (viewport->width  * 0.5f) - 1.0f;
+	y = y / (viewport->height * 0.5f) - 1.0f;
+
+	pointA.x = x * camera->near;
+	pointA.y = y * camera->near;
+	pointA.z = 0;
+	pointA.w = camera->near;
+
+	pointB.x = x * camera->far;
+	pointB.y = y * camera->far;
+	pointB.z = 1;
+	pointB.w = camera->far;
+
+	matrix4x4_transformVector_self(camera->invertProjectionMatrix, &pointA);
+	matrix4x4_transformVector_self(camera->invertProjectionMatrix, &pointB);
+
+	z /= camera->far - camera->near;
+
+	output->x = z * (pointB.x - pointA.x);
+	output->y = z * (pointB.y - pointA.y);
+
+	matrix4x4_transformVector_self(camera->eye->transform, output);
+
+	return output;
 }
 
 #endif

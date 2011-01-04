@@ -195,8 +195,20 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\test.asm"
+				>
+			</File>
+			<File
 				RelativePath=".\test.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -258,6 +270,10 @@
 			</File>
 			<File
 				RelativePath=".\Light.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Line3D.h"
 				>
 			</File>
 			<File

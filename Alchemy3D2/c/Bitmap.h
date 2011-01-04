@@ -112,6 +112,18 @@ int bitmap_dispose( Bitmap * bitmap )
 	}
 }
 
+void bitmap_destroy( Bitmap **bitmap )
+{
+	if ( (*bitmap) && (*bitmap)->pRGBABuffer )
+	{
+		free( (*bitmap)->pRGBABuffer );
+
+		free( *bitmap );
+
+		*bitmap = NULL;
+	}
+}
+
 //对图像执行双线性滤波
 void mipmap_bilerpBlends( Bitmap * src, Bitmap * dest, float gamma )
 {
@@ -301,25 +313,26 @@ int bitmap_generateMipmaps( Bitmap * source, Bitmap *** mipmaps, int num_mip_lev
 	return(num_mip_levels);
 }
 
-int bitmap_deleteMipmaps( Bitmap * * mipmaps, int leave_level_0 )
+int bitmap_deleteMipmaps( Bitmap * * mipmaps, int num_mip_levels/*leave_level_0*/ )
 {
 	Bitmap * * tmipmaps = ( Bitmap * * ) * mipmaps;
 
-	int mip_level = 1;
+	int mip_level = 0;//1;
 
-	int num_mip_levels = logbase2ofx[tmipmaps[0]->width] + 1;
+	//int num_mip_levels = logbase2ofx[tmipmaps[0]->width] + 1;
 
 	if ( !tmipmaps ) return( 0 );
 
 	for ( ; mip_level < num_mip_levels; mip_level++ )
 	{
-		bitmap_dispose(tmipmaps[mip_level]);
+		//bitmap_dispose(tmipmaps[mip_level]);
 
-		free(tmipmaps[mip_level]);
+		//free(tmipmaps[mip_level]);
 
+		bitmap_destroy(&tmipmaps[mip_level]);
 	}
 
-	if ( leave_level_0 == 1 )
+	/*if ( leave_level_0 == 1 )
 	{
 		Bitmap * temp = tmipmaps[0];
 
@@ -330,7 +343,7 @@ int bitmap_deleteMipmaps( Bitmap * * mipmaps, int leave_level_0 )
 		bitmap_dispose(tmipmaps[0]);
 
 		free(tmipmaps[0]);
-	}
+	}*/
 
 	return(1);
 }

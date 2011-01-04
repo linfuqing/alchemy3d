@@ -430,6 +430,15 @@ void scene_updateAfterRender( Scene * scene )
 
 	while( NULL != sceneNode )
 	{
+		if(!sceneNode->entity->visible)
+		{
+			sceneNode = entity_getTreeTail(sceneNode);
+
+			sceneNode = sceneNode->next;
+
+			continue;
+		}
+
 		scene->nNodes ++;
 
 		if ( sceneNode->entity->mesh )

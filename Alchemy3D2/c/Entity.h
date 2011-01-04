@@ -282,6 +282,9 @@ void entity_dispose( Entity * entity )
 
 void entity_destroy(Entity **entity)
 {
+	if( !(*entity) )
+		return;
+
 	vector3D_destroy(&(*entity)->position     );
 	vector3D_destroy(&(*entity)->w_pos        );
 	vector3D_destroy(&(*entity)->s_pos        );
@@ -306,7 +309,10 @@ void entity_destroy(Entity **entity)
 
 void sceneNode_destroy(SceneNode** sceneNode)
 {
-	entity_destroy(&(*sceneNode)->entity);
+	//entity_destroy(&(*sceneNode)->entity);
+
+	if( !(*sceneNode) )
+		return;
 
 	free(*sceneNode);
 

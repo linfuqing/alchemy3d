@@ -83,6 +83,13 @@ package AlchemyLib.animation
 				stop();
 		}
 		
+		public override function destroy(all:Boolean):void
+		{
+			Library.alchemy3DLib.destroyAnimation(animationPointer);
+			
+			super.destroy(all);
+		}
+		
 		public function play(loop:Boolean = true):void
 		{
 			if(!isPlayPointer)

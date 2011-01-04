@@ -371,6 +371,26 @@ package AlchemyLib.animation
 			return new SkeletalAnimation(name, type, null, times, params, matrices, interpolations, inTangent, outTangent);
 		}
 		
+		public override function destroy(all:Boolean):void
+		{
+			_times          = null;
+			_interpolations = null;
+			_params         = null;
+			_matrices       = null;
+			_inTangent      = null;
+			_outTangent     = null;
+			
+			Library.alchemy3DLib.freeTmpBuffer(timesPtr);
+			Library.alchemy3DLib.freeTmpBuffer(paramsPtr);
+			Library.alchemy3DLib.freeTmpBuffer(matricesPtr);
+			Library.alchemy3DLib.freeTmpBuffer(interpolationsPtr);
+			Library.alchemy3DLib.freeTmpBuffer(inTangentPtr);
+			Library.alchemy3DLib.freeTmpBuffer(outTangentPtr);
+			Library.alchemy3DLib.freeTmpBuffer(paramsValuesPtr);
+			
+			Library.alchemy3DLib.destroySkeletalChannel(_pointer);
+		}
+		
 		private var timesPtr:uint;
 		private var paramsPtr:uint;
 		private var matricesPtr:uint;

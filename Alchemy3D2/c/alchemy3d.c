@@ -47,8 +47,17 @@ AS3_Val initializeCamera( void* self, AS3_Val args )
 
 	camera = newCamera( (float)fov, (float)nearClip, (float)farClip, eye );
 
-	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
-					camera, camera->target, & camera->fov, & camera->near, & camera->far, & camera->fnfDirty, & camera->UVNType, &camera->rotationDirty, &camera->rotateX, &camera->rotateY, &camera->rotateZ, &camera->distance, &camera->factor, &camera->step);
+	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType",
+					camera, camera->target, & camera->fov, & camera->near, & camera->far, & camera->fnfDirty, & camera->isUVN, &camera->rotationDirty, &camera->rotateX, &camera->rotateY, &camera->rotateZ, &camera->distance, &camera->factor, &camera->step, &camera->hoverType);
+}
+
+AS3_Val destroyCamera( void* self, AS3_Val args )
+{
+	Camera * camera = AS3_PtrValue(args);
+
+	camera_destroy(&camera);
+
+	return 0;
 }
 
 AS3_Val attachCamera( void* self, AS3_Val args )
@@ -120,6 +129,27 @@ AS3_Val initializeViewport( void* self, AS3_Val args )
 	view = newViewport( (float)width, (float)height, scene, camera );
 
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", view, view->videoBuffer, view->zBuffer, & view->camera, & view->scene, &view->sortTransList );
+}
+
+AS3_Val getWorldPositionFromSreen( void* self, AS3_Val args )
+{
+	Viewport* viewport;
+	double x, y, z;
+	int autoDepth;
+	Vector3D output;
+
+	AS3_ArrayValue( args, "PtrType, DoubleType, DoubleType, DoubleType, IntType", &viewport, &x, &y, &z, &autoDepth );
+
+	if( viewport_getWorldPositionFromView(&output, viewport, (float)x, (float)y, (float)z, autoDepth) )
+	{
+		x = output.x;
+		y = output.y;
+		z = output.z;
+
+		return AS3_Array( "DoubleType, DoubleType, DoubleType", x, y, z);
+	}
+
+	return 0;
 }
 
 AS3_Val initializeLight( void* self, AS3_Val args )
@@ -917,6 +947,15 @@ AS3_Val initializeMaterial( void* self, AS3_Val args )
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType, PtrType, PtrType", material, material->ambient, material->diffuse, material->specular, material->emissive, &material->power, &material->doubleSide );
 }
 
+AS3_Val destroyMaterial( void* self, AS3_Val args )
+{
+	Material *material = AS3_PtrValue(args);
+
+	material_destroy(&material);
+
+	return 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 //
 //                                     Texture
@@ -947,6 +986,15 @@ AS3_Val initializeTexture( void* self, AS3_Val args )
 	texture = newTexture( name );
 
 	return AS3_Array( "PtrType, PtrType, PtrType, PtrType, PtrType", texture, & texture->perspective_dist, &texture->perspectiveLP_dist, &texture->alphaTestRef, &texture->numMipLevels);
+}
+
+AS3_Val destroyTexture( void* self, AS3_Val args )
+{
+	Texture *texture = AS3_PtrValue(args);
+
+	texture_destroy(&texture);
+
+	return 0;
 }
 
 AS3_Val setMipmap( void* self, AS3_Val args )
@@ -1045,13 +1093,17 @@ AS3_Val render( void* self, AS3_Val args )
 	
 	double mouseX, mouseY;//, hit = 0;
 
+	//Vector3D test;
+
 	AS3_ArrayValue( args, "PtrType, IntType, DoubleType, DoubleType", &viewport, &time, & mouseX, & mouseY );
 
-	viewport->mouseX = (int)mouseX;
-	viewport->mouseY = (int)mouseY;
+	//viewport->mouseX = (int)mouseX;
+	//viewport->mouseY = (int)mouseY;
 
 	//AS3_Trace( AS3_Int(viewport->mouseX) );
 	//AS3_Trace( AS3_Int(viewport->mouseY) );
+
+	viewport->numFrames ++;
 
 	viewport_updateBeforeRender( viewport );
 
@@ -1064,8 +1116,6 @@ AS3_Val render( void* self, AS3_Val args )
 	viewport_mouseOn( viewport, (int)mouseX, (int)mouseY );
 
 	viewport_updateAfterRender( viewport );
-
-	viewport->numFrames ++;
 
 	return 0;//AS3_Int( hit );
 }
@@ -1115,13 +1165,17 @@ int main()
 	//buildAlphaTable(alphaTable);
 
 	AS3_Val initializeCameraMethod = AS3_Function( NULL, initializeCamera );
+	AS3_Val destroyCameraMethod = AS3_Function( NULL, destroyCamera );
 	AS3_Val attachCameraMethod = AS3_Function( NULL, attachCamera );
 	AS3_Val initializeSceneMethod = AS3_Function( NULL, initializeScene );
 	AS3_Val attachSceneMethod = AS3_Function( NULL, attachScene );
 	AS3_Val initializeViewportMethod = AS3_Function( NULL, initializeViewport );
+	AS3_Val getWorldPositionFromSreenMethod = AS3_Function( NULL, getWorldPositionFromSreen );
 	AS3_Val initializeMaterialMethod = AS3_Function( NULL, initializeMaterial );
+	AS3_Val destroyMaterialMethod = AS3_Function( NULL, destroyMaterial );
 	AS3_Val initializeBitmapMethod = AS3_Function( NULL, initializeBitmap );
 	AS3_Val initializeTextureMethod = AS3_Function( NULL, initializeTexture );
+	AS3_Val destroyTextureMethod = AS3_Function( NULL, destroyTexture );
 	AS3_Val setMipmapMethod = AS3_Function( NULL, setMipmap );
 	AS3_Val getTextureLevelDescMethod = AS3_Function( NULL, getTextureLevelDesc );
 	AS3_Val swapTextureEndianMethod = AS3_Function( NULL, swapTextureEndian );
@@ -1140,11 +1194,14 @@ int main()
 	AS3_Val destroySkinMeshControllerMethod = AS3_Function( NULL, destroySkinMeshController );
 	AS3_Val setMeshAttributeMethod = AS3_Function( NULL, setMeshAttribute );
 	AS3_Val initializeEntityMethod = AS3_Function( NULL, initializeEntity );
+	AS3_Val destroyEntityMethod = AS3_Function( NULL, destroyEntity );
 	AS3_Val decomposeEntityMethod = AS3_Function( NULL, decomposeEntity );
 	AS3_Val addEntityMethod = AS3_Function( NULL, addEntity );
 	AS3_Val removeEntityMethod = AS3_Function( NULL, removeEntity );
 	AS3_Val initializeAnimationMethod = AS3_Function( NULL, initializeAnimation);
+	AS3_Val destroyAnimationMethod = AS3_Function( NULL, destroyAnimation );
 	AS3_Val initializeSkeletalChannelMethod = AS3_Function( NULL, initializeSkeletalChannel );
+	AS3_Val destroySkeletalChannelMethod = AS3_Function( NULL, destroySkeletalChannel );
 	AS3_Val initializeMorphChannelMethod = AS3_Function( NULL, initializeMorphChannel );
 	AS3_Val initialize3DSMethod = AS3_Function( NULL, initialize3DS );
 	AS3_Val loadComplete3DSMethod = AS3_Function( NULL, loadComplete3DS );
@@ -1158,13 +1215,17 @@ int main()
 
 
 	AS3_Val result = AS3_Object( "initializeCamera:AS3ValType,\
+								 destroyCamera:AS3ValType,\
 								 attachCamera:AS3ValType,\
 								 initializeScene:AS3ValType,\
 								 attachScene:AS3ValType,\
 								 initializeViewport:AS3ValType,\
+								 getWorldPositionFromSreen:AS3ValType,\
 								 initializeMaterial:AS3ValType,\
+								 destroyMaterial:AS3ValType,\
 								 initializeBitmap:AS3ValType,\
 								 initializeTexture:AS3ValType,\
+								 destroyTexture:AS3ValType,\
 								 setMipmap:AS3ValType,\
 								 getTextureLevelDesc:AS3ValType,\
 								 swapTextureEndian:AS3ValType,\
@@ -1183,11 +1244,14 @@ int main()
 								 destroySkinMeshController:AS3ValType,\
 								 setMeshAttribute:AS3ValType,\
 								 initializeEntity:AS3ValType,\
+								 destroyEntity:AS3ValType,\
 								 decomposeEntity:AS3ValType,\
 								 addEntity:AS3ValType,\
 								 removeEntity:AS3ValType,\
 								 initializeAnimation:AS3ValType,\
+								 destroyAnimation:AS3ValType,\
 								 initializeSkeletalChannel:AS3ValType,\
+								 destroySkeletalChannel:AS3ValType,\
 								 initializeMorphChannel:AS3ValType,\
 								 initialize3DS:AS3ValType,\
 								 loadComplete3DS:AS3ValType,\
@@ -1198,13 +1262,17 @@ int main()
 								 test:AS3ValType,\
 								 test2:AS3ValType",
 								initializeCameraMethod,
+								destroyCameraMethod,
 								attachCameraMethod,
 								initializeSceneMethod,
 								attachSceneMethod,
 								initializeViewportMethod,
+								getWorldPositionFromSreenMethod,
 								initializeMaterialMethod,
+								destroyMaterialMethod,
 								initializeBitmapMethod,
 								initializeTextureMethod,
+								destroyTextureMethod,
 								setMipmapMethod,
 								getTextureLevelDescMethod,
 								swapTextureEndianMethod,
@@ -1223,11 +1291,14 @@ int main()
 								destroySkinMeshControllerMethod,
 								setMeshAttributeMethod,
 								initializeEntityMethod,
+								destroyEntityMethod,
 								decomposeEntityMethod,
 								addEntityMethod,
 								removeEntityMethod,
 								initializeAnimationMethod,
+								destroyAnimationMethod,
 								initializeSkeletalChannelMethod,
+								destroySkeletalChannelMethod,
 								initializeMorphChannelMethod,
 								initialize3DSMethod,
 								loadComplete3DSMethod,
@@ -1240,13 +1311,17 @@ int main()
 
 
 	AS3_Release( initializeCameraMethod );
+	AS3_Release( destroyCameraMethod );
 	AS3_Release( attachCameraMethod );
 	AS3_Release( initializeSceneMethod );
 	AS3_Release( attachSceneMethod );
 	AS3_Release( initializeViewportMethod );
+	AS3_Release( getWorldPositionFromSreenMethod );
 	AS3_Release( initializeMaterialMethod );
+	AS3_Release( destroyMaterialMethod );
 	AS3_Release( initializeBitmapMethod );
 	AS3_Release( initializeTextureMethod );
+	AS3_Release( destroyTextureMethod );
 	AS3_Release( setMipmapMethod );
 	AS3_Release( getTextureLevelDescMethod );
 	AS3_Release( swapTextureEndianMethod );
@@ -1265,11 +1340,14 @@ int main()
 	AS3_Release( destroySkinMeshControllerMethod );
 	AS3_Release( setMeshAttributeMethod );
 	AS3_Release( initializeEntityMethod );
+	AS3_Release( destroyEntityMethod );
 	AS3_Release( decomposeEntityMethod );
 	AS3_Release( addEntityMethod );
 	AS3_Release( removeEntityMethod );
 	AS3_Release( initializeAnimationMethod );
+	AS3_Release( destroyAnimationMethod );
 	AS3_Release( initializeSkeletalChannelMethod );
+	AS3_Release( destroySkeletalChannelMethod );
 	AS3_Release( initializeMorphChannelMethod );
 	AS3_Release( initialize3DSMethod );
 	AS3_Release( loadComplete3DSMethod );
