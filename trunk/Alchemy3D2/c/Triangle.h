@@ -83,8 +83,19 @@ Triangle * newTriangle( Vertex * va, Vertex * vb, Vertex * vc, Vector * uva, Vec
 	return p;
 }
 
-void triangle_destroy(Triangle **triangle)
+void triangle_destroy(Triangle **triangle, int all)
 {
+	if(all)
+	{
+		vertex_destroy(&(*triangle)->vertex[0]);
+		vertex_destroy(&(*triangle)->vertex[1]);
+		vertex_destroy(&(*triangle)->vertex[2]);
+
+		vector_destroy(&(*triangle)->uvwh[0]);
+		vector_destroy(&(*triangle)->uvwh[1]);
+		vector_destroy(&(*triangle)->uvwh[2]);
+	}
+
 	vector_destroy(&(*triangle)->uv[0]);
 	vector_destroy(&(*triangle)->uv[1]);
 	vector_destroy(&(*triangle)->uv[2]);
@@ -92,6 +103,8 @@ void triangle_destroy(Triangle **triangle)
 	vector_destroy(&(*triangle)->c_uv[0]);
 	vector_destroy(&(*triangle)->c_uv[1]);
 	vector_destroy(&(*triangle)->c_uv[2]);
+
+	vector3D_destroy(&(*triangle)->normal);
 
 	free(*triangle);
 

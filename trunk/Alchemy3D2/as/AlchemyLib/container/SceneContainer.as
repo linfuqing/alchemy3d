@@ -31,6 +31,17 @@ package AlchemyLib.container
 			super();
 		}
 		
+		public override function destroy(all:Boolean):void
+		{
+			var length:uint = children.length;
+			
+			for(var i:uint = 0; i < length; i ++)
+				children[i].destroy(all);
+			
+			children = null;
+			lights = null;
+		}
+		
 		protected function isChild():uint
 		{
 			return TRUE;

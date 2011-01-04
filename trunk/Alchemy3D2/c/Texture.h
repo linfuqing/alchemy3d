@@ -85,6 +85,19 @@ int texture_dispose( Texture * texture )
 	}
 }
 
+void texture_destroy(Texture** texture)
+{
+	if(!*texture)
+		return;
+
+	if( (*texture)->mipmaps )
+		bitmap_deleteMipmaps( (*texture)->mipmaps , (*texture)->numMipLevels );
+
+	free(*texture);
+
+	*texture = NULL;
+}
+
 TexTransform * newTexTransform()
 {
 	TexTransform * t;

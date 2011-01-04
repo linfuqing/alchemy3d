@@ -442,6 +442,31 @@ package AlchemyLib.container
 			this.mesh = mesh;
 		}
 		
+		public override function destroy(all:Boolean):void
+		{
+			Library.alchemy3DLib.destroyEntity(_node);
+			
+			_direction     = null;
+			_position      = null;
+			_scale         = null;
+			_worldPosition = null;
+			
+			addEvent       = null;
+			removeEvent    = null;
+			
+			if(all)
+			{
+				if(_mesh)
+				{
+					_mesh.destroy(true);
+				
+					_mesh = null;
+				}
+			}
+			
+			super.destroy(all);
+		}
+		
 		static public function serialize(input:Entity, data:ByteArray):void
 		{
 			if(!input || !data)
@@ -579,7 +604,9 @@ package AlchemyLib.container
 		{
 			if(min)
 			{
-				Library.memory.position = localAABBPointer;
+				Library.memory.position = worldAABBPointer;
+				Library.memory.position = Library.memory.readUnsignedInt();
+				
 				min.x = Library.memory.readFloat();
 				min.y = Library.memory.readFloat();
 				min.z = Library.memory.readFloat();
@@ -588,7 +615,9 @@ package AlchemyLib.container
 			
 			if(max)
 			{
-				Library.memory.position = localAABBPointer + 4 * Library.floatTypeSize;
+				Library.memory.position = worldAABBPointer + Library.intTypeSize;
+				Library.memory.position = Library.memory.readUnsignedInt();
+				
 				max.x = Library.memory.readFloat();
 				max.y = Library.memory.readFloat();
 				max.z = Library.memory.readFloat();
@@ -600,7 +629,9 @@ package AlchemyLib.container
 		{
 			if(min)
 			{
-				Library.memory.position = worldAABBPointer;
+				Library.memory.position = localAABBPointer;
+				Library.memory.position = Library.memory.readUnsignedInt();
+				
 				min.x = Library.memory.readFloat();
 				min.y = Library.memory.readFloat();
 				min.z = Library.memory.readFloat();
@@ -609,7 +640,9 @@ package AlchemyLib.container
 			
 			if(max)
 			{
-				Library.memory.position = worldAABBPointer + 4 * Library.floatTypeSize;
+				Library.memory.position = localAABBPointer + Library.intTypeSize;
+				Library.memory.position = Library.memory.readUnsignedInt();
+				
 				max.x = Library.memory.readFloat();
 				max.y = Library.memory.readFloat();
 				max.z = Library.memory.readFloat();

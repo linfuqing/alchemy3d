@@ -146,6 +146,16 @@ package AlchemyLib.render
 			return material;
 		}
 		
+		public override function destroy(all:Boolean):void
+		{
+			_ambient  = null;
+			_diffuse  = null;
+			_specular = null;
+			_emissive = null;
+			
+			Library.alchemy3DLib.destroyMaterial(_pointer);
+		}
+		
 		override protected function initialize():void
 		{	
 			var ps:Array = Library.alchemy3DLib.initializeMaterial(_ambient, _diffuse, _specular, _emissive, _power);

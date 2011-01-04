@@ -8,9 +8,9 @@ package AlchemyLib.view
 	
 	public class Camera3D extends Pointer
 	{
-		public static const UVN_TYPE_NONE:int     = 0;
-		public static const UVN_TYPE_ABSOLUT:int  = 1;
-		public static const UVN_TYPE_RELATIVE:int = 2;
+		public static const HOVER_TYPE_NONE:int     = 0;
+		public static const HOVER_TYPE_ABSOLUT:int  = 1;
+		public static const HOVER_TYPE_RELATIVE:int = 2;
 		
 		public function get x():Number
 		{
@@ -44,7 +44,7 @@ package AlchemyLib.view
 		
 		public function get rotationX():Number
 		{
-			if(UVNType)
+			if(hoverType)
 				return targetRotationX;
 			
 			return _eye.rotationX;
@@ -52,13 +52,13 @@ package AlchemyLib.view
 		
 		public function set rotationX(value:Number):void
 		{
-			var UVNType:int = this.UVNType;
+			var hoverType:int = this.hoverType;
 			
-			if(UVNType)
+			if(hoverType)
 			{
 				Library.memory.position = rotateXPtr;
 				//Library.memory.writeFloat(value - targetRotationX);
-				Library.memory.writeFloat( UVNType == UVN_TYPE_ABSOLUT ? value : (value - targetRotationX) );
+				Library.memory.writeFloat( hoverType == HOVER_TYPE_ABSOLUT ? value : (value - targetRotationX) );
 				
 				Library.memory.position = rotateDirtyPtr;
 				Library.memory.writeInt(TRUE);
@@ -71,7 +71,7 @@ package AlchemyLib.view
 		
 		public function get rotationY():Number
 		{
-			if(UVNType)
+			if(hoverType)
 				return targetRotationY;
 			
 			return _eye.rotationY;
@@ -79,13 +79,13 @@ package AlchemyLib.view
 		
 		public function set rotationY(value:Number):void
 		{
-			var UVNType:int = this.UVNType;
+			var hoverType:int = this.hoverType;
 			
-			if(UVNType)
+			if(hoverType)
 			{
 				Library.memory.position = rotateYPtr;
 				//Library.memory.writeFloat(value - targetRotationY);
-				Library.memory.writeFloat( UVNType == UVN_TYPE_ABSOLUT ? value : (value - targetRotationY) );
+				Library.memory.writeFloat( hoverType == HOVER_TYPE_ABSOLUT ? value : (value - targetRotationY) );
 				
 				Library.memory.position = rotateDirtyPtr;
 				Library.memory.writeInt(TRUE);
@@ -98,7 +98,7 @@ package AlchemyLib.view
 		
 		public function get rotationZ():Number
 		{
-			if(UVNType)
+			if(hoverType)
 				return targetRotationZ;
 			
 			return _eye.rotationZ;
@@ -106,13 +106,13 @@ package AlchemyLib.view
 		
 		public function set rotationZ(value:Number):void
 		{
-			var UVNType:int = this.UVNType;
+			var hoverType:int = this.hoverType;
 			
-			if(UVNType)
+			if(hoverType)
 			{
 				Library.memory.position = rotateZPtr;
 				//Library.memory.writeFloat(value - targetRotationZ);
-				Library.memory.writeFloat( UVNType == UVN_TYPE_ABSOLUT ? value : (value - targetRotationZ) );
+				Library.memory.writeFloat( hoverType == HOVER_TYPE_ABSOLUT ? value : (value - targetRotationZ) );
 				
 				Library.memory.position = rotateDirtyPtr;
 				Library.memory.writeInt(TRUE);
@@ -128,15 +128,15 @@ package AlchemyLib.view
 			return _eye;
 		}
 		
-		public function set UVNType(value:int):void
+		public function set hoverType(value:int):void
 		{
-			Library.memory.position = UVNTypePtr;
+			Library.memory.position = hoverTypePtr;
 			Library.memory.writeInt(value);
 		}
 		
-		public function get UVNType():int
+		public function get hoverType():int
 		{
-			Library.memory.position = UVNTypePtr;
+			Library.memory.position = hoverTypePtr;
 			return Library.memory.readInt();
 		}
 		
@@ -183,7 +183,19 @@ package AlchemyLib.view
 				Library.memory.writeInt(FALSE);
 			}*/
 			
-			this._target = target;
+			_target = target;
+		}
+		
+		public function set isUVN(value:Boolean):void
+		{
+			Library.memory.position = isUVNPtr;
+			Library.memory.writeInt(value ? TRUE : FALSE);
+		}
+		
+		public function get isUVN():Boolean
+		{
+			Library.memory.position = isUVNPtr;
+			return Library.memory.readInt() ? true : false;
 		}
 		
 		public function get distance():Number
@@ -272,6 +284,18 @@ package AlchemyLib.view
 			super();
 		}
 		
+		public override function destroy(all:Boolean):void
+		{
+			if(_eye)
+			{
+				_eye.destroy(true);
+				
+				_eye = null;
+			}
+			
+			Library.alchemy3DLib.destroyCamera(_pointer);
+		}
+		
 		override protected function initialize():void
 		{
 			var ps:Array = Library.alchemy3DLib.initializeCamera(_eye.pointer, _fov, _near, _far);
@@ -282,7 +306,7 @@ package AlchemyLib.view
 			nearPtr = ps[3];
 			farPtr = ps[4];
 			fnfDirtyPtr = ps[5];
-			UVNTypePtr = ps[6];
+			isUVNPtr = ps[6];
 			rotateDirtyPtr = ps[7];
 			rotateXPtr = ps[8];
 			rotateYPtr = ps[9];
@@ -290,6 +314,7 @@ package AlchemyLib.view
 			distancePtr = ps[11];
 			factorPtr = ps[12];
 			stepPtr = ps[13];
+			hoverTypePtr = ps[14];
 		}
 		
 		public function hover(mouseX:Number, mouseY:Number, camSpeed:Number):void
@@ -299,7 +324,7 @@ package AlchemyLib.view
 		}
 		
 		private var targetPtr:uint;
-		private var UVNTypePtr:uint;
+		private var isUVNPtr:uint;
 		private var fovPtr:uint;
 		private var nearPtr:uint;
 		private var farPtr:uint;
@@ -311,6 +336,7 @@ package AlchemyLib.view
 		private var distancePtr:uint;
 		private var factorPtr:uint;
 		private var stepPtr:uint;
+		private var hoverTypePtr:uint;
 		
 		private var _target:Vector3D;
 		private var _fov:Number;

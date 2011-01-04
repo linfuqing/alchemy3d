@@ -97,6 +97,29 @@ package AlchemyLib.external
 			render_mode = renderMode;
         }
 		
+		public override function destroy(all:Boolean):void
+		{
+			super.destroy(all);
+			
+			geometryList = null;
+			geometryName = null;
+			geometryXMLList = null;
+			geometryControllerXMLList = null;
+			
+			materialList = null;
+			textureList = null;
+			textureFileName = null;
+			
+			animationList = null;
+			animationClipList = null;
+			
+			_defaultAnimationClip = null;
+
+			_loader = null;
+			
+			collada = null;
+		}
+		
 		public function toAnimation(name:String):void
 		{
 			if(!collada)

@@ -181,6 +181,12 @@ void mesh_destroy(Mesh **mesh)
 {
 	int i;
 	ContectedFaces *face, *data;
+	RenderList *head;
+
+	head = (*mesh)->clippedList;
+
+	while(head && head->polygon)
+		triangle_destroy(&head->polygon, TRUE);
 
 	free( (*mesh)->renderList );
 

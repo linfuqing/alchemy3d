@@ -6,9 +6,9 @@
 #include "Matrix3D.h"
 #include "Entity.h"
 
-#define CAMERA_UVN_TYPE_NONE     0
-#define CAMERA_UVN_TYPE_ABSOLUT  1
-#define CAMERA_UVN_TYPE_RELATIVE 2
+#define CAMERA_HOVER_TYPE_NONE     0
+#define CAMERA_HOVER_TYPE_ABSOLUT  1
+#define CAMERA_HOVER_TYPE_RELATIVE 2
 
 typedef struct Camera
 {
@@ -16,11 +16,11 @@ typedef struct Camera
 
 	Vector3D * target;
 
-	Matrix4x4 * projectionMatrix, * viewProjectionMatrix, *invertViewProjectionMatrix;
+	Matrix4x4 * projectionMatrix, * viewProjectionMatrix, *invertProjectionMatrix, *invertViewProjectionMatrix;
 
 	float fov, near, far, n_top, n_bottom, n_left, n_right, f_top, f_bottom, f_right, f_left, fn, rotateX, rotateY, rotateZ, distance, factor, step;
 
-	int fnfDirty, UVNType, rotationDirty;
+	int fnfDirty, isUVN, hoverType, rotationDirty;
 }Camera;
 
 Camera * newCamera( float fov, float near, float far, Entity * eye )
@@ -41,12 +41,13 @@ Camera * newCamera( float fov, float near, float far, Entity * eye )
 
 	cam->projectionMatrix           = newMatrix4x4(NULL);
 	cam->viewProjectionMatrix       = newMatrix4x4(NULL);
+	cam->invertProjectionMatrix     = newMatrix4x4(NULL);
 	cam->invertViewProjectionMatrix = newMatrix4x4(NULL);
 
 	cam->target = newVector3D(0, 0, 0, 1);
 
 	cam->fnfDirty = TRUE;
-	cam->UVNType = CAMERA_UVN_TYPE_NONE;
+	cam->isUVN = FALSE;
 
 	cam->rotateX = cam->rotateY = cam->rotateZ = 0.0f;
 	cam->distance = 0.0f;
@@ -64,6 +65,25 @@ void camera_dispose( Camera * camera )
 	memset( camera, 0, sizeof( Camera ) );
 	
 	free( camera );
+}
+
+void camera_destroy(Camera **camera)
+{
+	if(*camera)
+	{
+		matrix4x4_destroy( &(*camera)->projectionMatrix );
+		matrix4x4_destroy( &(*camera)->viewProjectionMatrix );
+		matrix4x4_destroy( &(*camera)->invertProjectionMatrix );
+		matrix4x4_destroy( &(*camera)->invertViewProjectionMatrix );
+
+		vector3D_destroy( &(*camera)->target );
+
+		//entity_destroy( &(*camera)->eye );
+
+		free(*camera);
+
+		*camera = NULL;
+	}
 }
 
 INLINE void camera_setTarget( Camera * camera, Vector3D * target )
@@ -143,46 +163,14 @@ INLINE void camera_updateTransform(Camera * camera)
 
 	Entity * eye = camera->eye;
 
-	//如果没有目标
-	if ( CAMERA_UVN_TYPE_NONE == camera->UVNType )
-	{
-		//如果摄像机属性被改变
-		if ( eye->transformDirty )
-		{
-			if(eye->matrixDirty)
-			{
-				//单位化
-				matrix4x4_identity( eye->transform );
-				//缩放
-				matrix4x4_appendScale( eye->transform, eye->scale->x, - eye->scale->y, eye->scale->z );
-				//旋转
-				matrix4x4_append_self( eye->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( eye->direction->y ), DEG2RAD( eye->direction->x ), DEG2RAD( eye->direction->z ) ) ) );
-				//位移
-				matrix4x4_appendTranslation( eye->transform, eye->position->x, eye->position->y, eye->position->z );
-			}
-
-			matrix4x4_copy( eye->world, eye->transform );
-
-			//从世界矩阵获得世界位置
-			matrix4x4_getPosition( eye->w_pos, eye->world );
-
-			matrix4x4_fastInvert( eye->world );
-		}
-	}
-	//如果有目标
-	else
+	if(camera->hoverType)
 	{
 		if(!eye->matrixDirty)
-		{
-			matrix4x4_decompose(eye->transform, eye->position, eye->scale, eye->direction, NULL);
-
-			eye->matrixDirty = TRUE;
-		}
-			//matrix4x4_getPosition(eye->position, eye->transform);
+			matrix4x4_getPosition(eye->position, eye->transform);
 
 		if(camera->rotationDirty)
 		{
-			if(camera->UVNType == CAMERA_UVN_TYPE_ABSOLUT)
+			if(camera->hoverType == CAMERA_HOVER_TYPE_ABSOLUT)
 			{
 				angle = DEG2RAD(camera->rotateX);
 				s     = sinf(angle);
@@ -243,6 +231,46 @@ INLINE void camera_updateTransform(Camera * camera)
 			}
 
 			camera->rotationDirty = FALSE;
+		}
+
+		if(!eye->matrixDirty)
+			matrix4x4_setPosition(eye->transform, eye->position);
+	}
+
+	//如果没有目标
+	if ( FALSE == camera->isUVN )
+	{
+		//如果摄像机属性被改变
+		if ( eye->transformDirty )
+		{
+			if(eye->matrixDirty)
+			{
+				//单位化
+				matrix4x4_identity( eye->transform );
+				//缩放
+				matrix4x4_appendScale( eye->transform, eye->scale->x, - eye->scale->y, eye->scale->z );
+				//旋转
+				matrix4x4_append_self( eye->transform, quaternoin_toMatrix( &quaMtr, quaternoin_setFromEuler( &qua, DEG2RAD( eye->direction->y ), DEG2RAD( eye->direction->x ), DEG2RAD( eye->direction->z ) ) ) );
+				//位移
+				matrix4x4_appendTranslation( eye->transform, eye->position->x, eye->position->y, eye->position->z );
+			}
+
+			matrix4x4_copy( eye->world, eye->transform );
+
+			//从世界矩阵获得世界位置
+			matrix4x4_getPosition( eye->w_pos, eye->world );
+
+			matrix4x4_fastInvert( eye->world );
+		}
+	}
+	//如果有目标
+	else
+	{
+		if(!eye->matrixDirty)
+		{
+			matrix4x4_decompose(eye->transform, eye->position, eye->scale, eye->direction, NULL);
+
+			eye->matrixDirty = TRUE;
 		}
 
 		//获得指向目标位置的旋转矩阵
